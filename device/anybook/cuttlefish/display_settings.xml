@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<!-- Copyright (C) 2026 The AnyBook Authors. SPDX-License-Identifier: Apache-2.0
+     Cuttlefish's crosvm display is port 0 (dumpsys SurfaceFlinger: "HWC display 0: port=0").
+     identifier="1" keys displays by port. windowingMode 5 = WINDOWING_MODE_FREEFORM: the display starts
+     desktop-first. Same values as display_settings.xml in the AOSP Desktop emulator image's vendor partition. -->
+<display-settings>
+    <config identifier="1" />
+    <display name="port:0" windowingMode="5" ignoreOrientationRequest="true" />
+</display-settings>

@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  The note's words (ANAL-219), from Q3's spec: docs/quire-design.md §3.2 (states), §3.3 (consent and honest effects),
+  §3.4 (the mirror) and §6.3 (TalkBack). The buttons on a consent card are the agent's own option names; none are here.
+-->
+<resources>
+    <!-- Header and composer. -->
+    <string name="q_close">Close</string>
+    <string name="q_tip_close">Close (Esc)</string>
+    <string name="q_tip_hide">Hide · keeps running (Meta+Space)</string>
+    <string name="q_a11y_hide">Hide the note; the task keeps running</string>
+    <string name="q_a11y_agent">Agent: %1$s %2$s. Change.</string>
+    <string name="q_no_agent">No agent</string>
+    <string name="q_not_connected">not connected</string>
+    <string name="q_field">Ask Quire</string>
+    <string name="q_field_followup">Ask a follow-up</string>
+    <string name="q_field_selection">Ask about the selection</string>
+    <string name="q_a11y_mic">Hold to talk</string>
+    <string name="q_a11y_send">Send</string>
+    <string name="q_jump">Jump to latest</string>
+
+    <!-- Intake (§2). -->
+    <string name="q_intake_secure">Secure window · not taken in</string>
+    <string name="q_intake_none">Add what’s on screen</string>
+    <string name="q_a11y_intake_window">Taking in %1$s. Remove.</string>
+    <string name="q_a11y_intake_selection">Selection from %1$s: “%2$s”. Remove.</string>
+    <string name="q_a11y_intake_secure">Pointing at a secure window; nothing is taken in.</string>
+    <string name="q_a11y_intake_remove">Remove what Quire took in</string>
+    <string name="q_an_app">an app</string>
+    <!-- Sent to the agent with the first prompt: the scope the intake chip showed. -->
+    <string name="q_ctx_window">The person called Quire while looking at %1$s. A screenshot of that window may follow.</string>
+    <string name="q_ctx_region">The person pointed at a region of %1$s. A screenshot of that region may follow.</string>
+    <string name="q_ctx_selection">The person selected this text in %1$s:\n\n%2$s</string>
+
+    <!-- Suggestions (§3.2 Composing). -->
+    <string name="q_suggest_dark">Turn on dark theme</string>
+    <string name="q_suggest_text">Make text bigger</string>
+    <string name="q_suggest_page">Explain this page</string>
+    <string name="q_suggest_setting">Change a setting</string>
+    <string name="q_suggest_what">What can you do here?</string>
+    <string name="q_suggest_summarise">Summarise</string>
+    <string name="q_suggest_translate">Translate</string>
+    <string name="q_suggest_explain">Explain</string>
+
+    <!-- Footer (§3.1): what is happening, and what Esc does. -->
+    <string name="q_foot_send">Enter send · Shift Enter new line</string>
+    <string name="q_foot_secure">This window is protected by the app</string>
+    <string name="q_foot_selection">Selection from %1$s</string>
+    <string name="q_foot_working">Working · %1$d s</string>
+    <string name="q_foot_answering">Answering · %1$d s</string>
+    <string name="q_foot_waiting">Waiting for you</string>
+    <string name="q_foot_stopping">Stopping…</string>
+    <string name="q_foot_done">Done</string>
+    <string name="q_foot_done_time">Done · %1$d s</string>
+    <string name="q_foot_stopped">Stopped</string>
+    <string name="q_foot_signin">Not signed in</string>
+    <string name="q_foot_noagent">Nothing is sent until you connect an agent</string>
+    <string name="q_foot_offline">Offline</string>
+    <string name="q_esc_stop">stop</string>
+    <string name="q_esc_close">close</string>
+    <string name="q_esc_cancel">cancel</string>
+    <string name="q_foot_listening">Listening · release to send</string>
+    <string name="q_seconds">%1$d s</string>
+
+    <!-- Streaming, steps, plan. -->
+    <string name="q_thinking">Thinking…</string>
+    <string name="q_a11y_thinking">%1$s is thinking.</string>
+    <string name="q_step_untitled">Working</string>
+    <string name="q_step_pending">waiting</string>
+    <string name="q_step_running">running</string>
+    <string name="q_step_done">done</string>
+    <string name="q_step_failed">failed</string>
+    <string name="q_step_interrupted">interrupted</string>
+    <plurals name="q_steps">
+        <item quantity="one">%1$d step</item>
+        <item quantity="other">%1$d steps</item>
+    </plurals>
+    <string name="q_steps_done">%1$d done</string>
+    <!-- A long run: the earlier steps counted on one line, which opens them (ANAL-220). -->
+    <plurals name="q_steps_earlier">
+        <item quantity="one">%1$d earlier step · %2$d done · show</item>
+        <item quantity="other">%1$d earlier steps · %2$d done · show</item>
+    </plurals>
+    <string name="q_a11y_steps">Steps, %1$d of %2$d done.</string>
+    <string name="q_a11y_steps_folded">%1$d steps. Show them.</string>
+    <string name="q_plan">Plan</string>
+    <string name="q_plan_meta">%1$d of %2$d</string>
+    <string name="q_plan_active">in progress</string>
+    <string name="q_priority_high">high</string>
+    <string name="q_a11y_high">high priority</string>
+    <string name="q_a11y_plan">Plan, %1$d of %2$d done.</string>
+    <string name="q_code">code</string>
+    <!-- Save as a file (§3.2 Long output, Code), through the Storage Access Framework. -->
+    <string name="q_save_answer">Save as a file</string>
+    <string name="q_save_code">Save as file</string>
+    <string name="q_save_answer_name">Quire answer.md</string>
+    <string name="q_saved">Saved as %1$s</string>
+    <string name="q_save_failed">Couldn’t save the file</string>
+    <string name="q_copy_code">Copy code</string>
+    <string name="q_copied">Copied</string>
+    <string name="q_a11y_code">Code block, %1$s</string>
+    <string name="q_image">Image from the agent</string>
+
+    <!-- Consent (§3.3). -->
+    <string name="q_consent_title">Allow this step?</string>
+    <string name="q_more_options">More options</string>
+    <string name="q_kind_edit">File edit</string>
+    <string name="q_kind_delete">Delete</string>
+    <string name="q_kind_move">Move</string>
+    <string name="q_kind_execute">Command</string>
+    <string name="q_kind_fetch">Web</string>
+    <string name="q_kind_read">Read</string>
+    <string name="q_kind_search">Search</string>
+    <string name="q_kind_other">Tool</string>
+    <string name="q_why_new_file">Creates %1$s.</string>
+    <string name="q_why_edit">Edits %1$s: %2$d lines added, %3$d removed.</string>
+    <string name="q_why_command">%1$s runs this %2$s.</string>
+    <string name="q_a11y_consent">%1$s asks: %2$s. Buttons: %3$s.</string>
+    <string name="q_a11y_change">%1$s, %2$s to %3$s.</string>
+    <string name="q_a11y_diff_add">Added: %1$s</string>
+    <string name="q_a11y_diff_del">Removed: %1$s</string>
+    <string name="q_undo_one">Undo %1$s</string>
+    <string name="q_moved_on">The agent moved on.</string>
+
+    <!-- Done, stopped, errors (§3.2, §3.3 rule 6). -->
+    <string name="q_a11y_done">Done.</string>
+    <string name="q_stopped">Stopped.</string>
+    <string name="q_stopped_after">Stopped after %1$d of %2$d steps.</string>
+    <string name="q_stop_unconfirmed">The agent didn’t confirm the stop.</string>
+    <string name="q_fx_none">Nothing was changed.</string>
+    <string name="q_fx_done">Done before the stop: %1$s.</string>
+    <string name="q_fx_interrupted">%1$s was interrupted and may be partly applied.</string>
+    <string name="q_fx_interrupted_read">%1$s was interrupted.</string>
+    <string name="q_fx_own">Quire can’t undo the agent’s own file and command actions.</string>
+    <string name="q_err_stopped">%1$s stopped</string>
+    <string name="q_err_declined">%1$s declined</string>
+    <string name="q_err_refusal">The agent refused to continue with this request.</string>
+    <string name="q_err_max_tokens">The answer reached the agent’s length limit.</string>
+    <string name="q_err_max_turns">The agent reached its limit of steps for one request.</string>
+    <string name="q_err_unknown">The agent ended the turn early.</string>
+    <string name="q_err_agent">The agent reported an error: %1$s.</string>
+    <string name="q_err_closed">The agent closed the connection before finishing.</string>
+    <string name="q_err_unreachable">%1$s isn’t running</string>
+    <string name="q_err_unreachable_msg">Quire couldn’t reach it. Nothing was sent.</string>
+    <string name="q_show_log">Show log</string>
+    <string name="q_hide_log">Hide log</string>
+    <string name="q_try_again">Try again</string>
+    <string name="q_retry">Retry</string>
+
+    <!-- Sign-in, no agent, offline (§3.2). -->
+    <string name="q_signin_title">%1$s needs to sign in</string>
+    <string name="q_signin_msg">Choose how to sign in. It happens in the agent’s own flow, and Quire never sees the secret.</string>
+    <string name="q_signin">Sign in</string>
+    <string name="q_use_instead">Use %1$s instead</string>
+    <string name="q_noagent_title">Connect an agent</string>
+    <string name="q_noagent_msg">Quire works with the agents you already have. These are the ones it found:</string>
+    <!-- ANAL-225: the Linux environment, where Quire runs the person's agents. -->
+    <string name="q_noagent_setup">Quire runs your agents in a Linux environment on this laptop. Setting it up takes a minute or two, once.</string>
+    <string name="q_noagent_installing">Setting up the Linux environment. This takes a minute or two, once.</string>
+    <string name="q_noagent_starting">Starting the Linux environment…</string>
+    <string name="q_setup_linux">Set up the Linux environment</string>
+    <string name="q_noagent_none">Quire works with the agents you already have. It hasn’t found one yet.</string>
+    <string name="q_agent_found">%1$s</string>
+    <string name="q_agent_unreachable">can’t be reached</string>
+    <string name="q_agent_unreachable_short">can’t be reached</string>
+    <string name="q_agent_not_connected">not connected</string>
+    <string name="q_agent_ready">connected</string>
+    <string name="q_agent_needs_signin">needs sign-in</string>
+    <string name="q_connect">Connect %1$s</string>
+    <string name="q_offline">%1$s can’t be reached</string>
+    <string name="q_offline_sub">No connection to the paired computer. Your prompt is kept.</string>
+    <string name="q_use_local">Use %1$s on this laptop</string>
+
+    <!-- The agent picker (§3.2 Choosing the agent). -->
+    <string name="q_picker">Choose an agent</string>
+    <string name="q_picker_local">On this laptop</string>
+    <!-- After an agent's name: it runs in the laptop's Linux environment (ANAL-218). -->
+    <string name="q_where_linux">in the Linux environment</string>
+    <string name="q_picker_paired">Paired computers</string>
+    <string name="q_picker_connect">Connect an agent</string>
+    <string name="q_picker_connect_sub">or pair a computer</string>
+    <string name="q_a11y_picker_item">%1$s, %2$s</string>
+
+    <!-- The tray (§3.5). -->
+    <string name="q_tray">Quire tasks</string>
+    <string name="q_tray_settings">Quire settings</string>
+    <string name="q_tray_new">New</string>
+    <string name="q_tray_history">History</string>
+    <string name="q_tray_new_note">New note</string>
+    <string name="q_tray_needs_answer">Needs your answer</string>
+    <string name="q_tray_done_now">Done just now</string>
+    <plurals name="q_tray_done_ago">
+        <item quantity="one">Done %1$d min ago</item>
+        <item quantity="other">Done %1$d min ago</item>
+    </plurals>
+
+    <!-- The broker's own card for an OS tool (§3.3 rule 2): Quire's options, enforced by Quire (Q6). -->
+    <string name="q_broker_deny">Don’t allow</string>
+    <string name="q_broker_task">Allow for this task</string>
+    <string name="q_broker_allow">Allow</string>
+    <string name="q_changed_title">Changed %1$d settings</string>
+    <string name="q_changed_meta">just now</string>
+    <!-- Q6: the broker's list of settings it changed in a task, each with an undo. -->
+    <plurals name="q_changed">
+        <item quantity="one">Changed %1$d setting</item>
+        <item quantity="other">Changed %1$d settings</item>
+    </plurals>
+    <string name="q_undone_where">%1$s · undone</string>
+    <string name="q_undo_failed">Couldn’t undo %1$s.</string>
+    <string name="q_undo_all">Undo all</string>
+    <string name="q_foot_undo">Done · undo stays available for 24 h from the Quire button</string>
+
+    <!-- Computer control (§3.3 rule 5, §3.4). -->
+    <string name="q_cc_asking">Asking to use %1$s</string>
+    <string name="q_cc_allowed">Allowed to use %1$s</string>
+    <string name="q_cc_waiting">Waiting for your permission</string>
+    <string name="q_cc_no_window">Quire couldn’t put its window on screen to ask.</string>
+    <string name="q_cc_waiting_sub">The system is asking whether %1$s may use %2$s.</string>
+    <string name="q_cc_opening">Opening %1$s</string>
+    <string name="q_cc_opened">Opened %1$s</string>
+    <string name="q_cc_denied">%1$s was not opened. You didn’t allow computer control.</string>
+    <string name="q_cc_refused">%1$s couldn’t be opened for %2$s.</string>
+    <string name="q_cc_refused_sub">The system refused the session (%1$s).</string>
+    <string name="q_cc_locked">Unlock the laptop, then try again.</string>
+    <string name="q_cc_limit">Another app is already being driven. Stop it first.</string>
+    <string name="q_cc_status">Step %1$d of %2$d · %3$d s</string>
+    <string name="q_cc_paused_status">Paused by you · %1$d s</string>
+    <string name="q_cc_protected">%1$s is showing a protected screen</string>
+    <string name="q_cc_prompt">Waiting for you: %1$s is asking on your screen</string>
+    <string name="q_cc_handed_over">%1$s is on your screen now.</string>
+    <string name="q_cc_done">Done in %1$s.</string>
+    <string name="q_cc_done_sub">In %1$s · %2$d taps · %3$d s</string>
+    <string name="q_cc_not_found">Couldn’t find “%1$s” in %2$s.</string>
+    <string name="q_cc_blind_after_pause">After the pause, the system stopped showing Quire what’s in %1$s, so the run ended. Open it yourself to finish.</string>
+    <string name="q_cc_closed_timeout">The session reached the system’s 60-minute limit, so %1$s was closed.</string>
+    <string name="q_cc_closed_user">You ended the session from the notification.</string>
+    <string name="q_cc_closed_empty">%1$s closed, so the session ended.</string>
+    <string name="q_cc_closed_other">The session with %1$s ended.</string>
+    <string name="q_cc_stop_clean">Nothing was in progress when it stopped; check %1$s if you want to be sure.</string>
+    <string name="q_cc_stop_partial">%1$s was interrupted and may be partly applied; check %2$s.</string>
+    <string name="q_stop">Stop</string>
+    <string name="q_pause">Pause</string>
+    <string name="q_resume">Resume</string>
+    <string name="q_take_over">Take over</string>
+    <string name="q_mirror_using">Using %1$s</string>
+    <string name="q_mirror_paused">Paused</string>
+    <string name="q_mirror_blocked">Blocked</string>
+    <string name="q_mirror_paused_hint">Paused · click in the mirror to act, or Take over</string>
+    <string name="q_a11y_mirror">Live view of %1$s, used by %2$s. Step %3$d of %4$d, %5$s.</string>
+    <string name="q_a11y_mirror_paused">Paused. The mirror is interactive.</string>
+    <string name="q_a11y_mirror_blocked">%1$s is showing a protected screen. Take over or stop.</string>
+</resources>

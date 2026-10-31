@@ -1,0 +1,5 @@
+# Linux build of AOSP's minigbm amdgpu backend (with the AnyBook dri_gbm.c) against the distro's
+# Mesa, to exercise it on a real AMD GPU without Android: scripts/minigbm-amdgpu-host-test.sh.
+# Arch tracks current Mesa releases; the test records the exact package versions it ran with.
+FROM archlinux:base-devel@sha256:061679925e5d5028f2df9395d441ce6c4b9accf0157ff3486c06b6962e014ef1
+RUN pacman -Syu --noconfirm --needed libdrm mesa libglvnd pkgconf && pacman -Scc --noconfirm

@@ -1,0 +1,2 @@
+# Ultimate: nouveau drives the panel. Its options come from vendor_dlkm's modules.options (ANAL-244 sets KMS).
+nouveau.ko

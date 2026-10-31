@@ -1,0 +1,7 @@
+# Copyright (C) 2026 The OpenBook Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+# ViewModelProvider creates the AndroidViewModel through its (Application) constructor by reflection.
+-keep class org.openbook.installer.InstallerViewModel {
+    <init>(android.app.Application);
+}

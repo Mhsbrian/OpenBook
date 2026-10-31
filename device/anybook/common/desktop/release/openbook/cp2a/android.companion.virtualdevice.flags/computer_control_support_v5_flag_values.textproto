@@ -1,0 +1,10 @@
+# Declared in frameworks/base/core/java/android/companion/virtual/flags/flags.aconfig
+# VirtualDeviceManager.COMPUTER_CONTROL_VERSION 5 instead of 4 (ANAL-216). A version 5 session must name at most six
+# apps, carry a promotable notification and an AppInteractionAttribution, and comes only from an agent with a visible
+# window. Enabled in trunk_staging, not in cp2a.
+flag_value {
+  package: "android.companion.virtualdevice.flags"
+  name: "computer_control_support_v5"
+  state: ENABLED
+  permission: READ_ONLY
+}

@@ -1,0 +1,82 @@
+{
+  "OpenBook_ChargingStarted": {
+    "channels": 1,
+    "file": "ui/OpenBook_ChargingStarted.ogg",
+    "loop": false,
+    "lufs": -25.1,
+    "pcm_sha256": "39877556c5467f99e23f02940c076560fe436fa25e21f60058de5aa4b4ffe8a1",
+    "seconds": 1.17,
+    "title": "Charging started",
+    "true_peak_dbfs": -12.1
+  },
+  "OpenBook_FirstLight": {
+    "channels": 2,
+    "file": "alarms/OpenBook_FirstLight.ogg",
+    "loop": true,
+    "lufs": -15.9,
+    "pcm_sha256": "579923a630c2499f1c83d2a0dc1f9ad622184dd7bad0546930e72abe9651e4bd",
+    "seconds": 17.198,
+    "title": "First Light",
+    "true_peak_dbfs": -5.4
+  },
+  "OpenBook_Lock": {
+    "channels": 1,
+    "file": "ui/OpenBook_Lock.ogg",
+    "loop": false,
+    "lufs": -20.4,
+    "pcm_sha256": "f52fde48bbd00661fbade638c385ec164615e0bbf8c1a012b59c60990f5d0601",
+    "seconds": 0.5,
+    "title": "Lock",
+    "true_peak_dbfs": -9.9
+  },
+  "OpenBook_LowBattery": {
+    "channels": 1,
+    "file": "ui/OpenBook_LowBattery.ogg",
+    "loop": false,
+    "lufs": -16.5,
+    "pcm_sha256": "86a7eafc0e935bb2f44adea3e95aff47c8d6dace17c7faf99f1ddc3a4cb78fea",
+    "seconds": 1.446,
+    "title": "Low battery",
+    "true_peak_dbfs": -4.9
+  },
+  "OpenBook_Pages": {
+    "channels": 2,
+    "file": "ringtones/OpenBook_Pages.ogg",
+    "loop": true,
+    "lufs": -16.0,
+    "pcm_sha256": "455b66e64b67f27ecd9d7c851886efc183471d92915641e8ff73c2abf5386731",
+    "seconds": 5.931,
+    "title": "Open Pages",
+    "true_peak_dbfs": -6.9
+  },
+  "OpenBook_Spark": {
+    "channels": 1,
+    "file": "notifications/OpenBook_Spark.ogg",
+    "loop": false,
+    "lufs": -16.0,
+    "pcm_sha256": "f3f6340e8cd643404f19f5d523a785039e48dc2973802123ec9afda62158ca30",
+    "seconds": 1.937,
+    "title": "Spark",
+    "true_peak_dbfs": -2.8
+  },
+  "OpenBook_Trusted": {
+    "channels": 1,
+    "file": "ui/OpenBook_Trusted.ogg",
+    "loop": false,
+    "lufs": -21.0,
+    "pcm_sha256": "a105fcbdceaf326a858a436ee5bd1659e7228adcf7fc0e45d79bca462f6df1ab",
+    "seconds": 0.483,
+    "title": "Trusted",
+    "true_peak_dbfs": -13.8
+  },
+  "OpenBook_Unlock": {
+    "channels": 1,
+    "file": "ui/OpenBook_Unlock.ogg",
+    "loop": false,
+    "lufs": -19.2,
+    "pcm_sha256": "82d667d045d66859086c05f824b508244193d5e39f155aa6a486caf4b69b9a70",
+    "seconds": 0.5,
+    "title": "Unlock",
+    "true_peak_dbfs": -9.9
+  }
+}

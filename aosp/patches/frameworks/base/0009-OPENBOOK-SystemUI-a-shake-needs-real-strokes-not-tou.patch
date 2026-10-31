@@ -1,0 +1,151 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenBook <noreply@anybook.invalid>
+Date: Mon, 19 Oct 2026 11:00:00 +0000
+Subject: [PATCH] OPENBOOK: SystemUI: a shake needs real strokes, not touchpad
+ jitter
+
+GestureDetectionInteractor counted every change of sign in the
+pointer's x movement as a reversal. A finger resting on a touchpad, or
+the start of a tap, jitters by a pixel or two many times in 500 ms, so
+ordinary touchpad use on the G14 kept invoking contextual search (Quire)
+by accident.
+
+A reversal now counts only once the pointer has come back at least
+12 dp from its turning point. The 100 dp box, 500 ms window, three
+reversals and cooldown are unchanged; the existing tests pass as they
+are, and three new ones cover jitter, strokes below the threshold, and a
+real shake that wobbles.
+
+OpenBook ANAL-225 (Quire on the G14).
+
+Change-Id: I844df39ad867472ca4ff833516608b8f08192446
+---
+ .../GestureDetectionInteractorTest.kt         | 46 +++++++++++++++++++
+ .../interactor/GestureDetectionInteractor.kt  | 42 ++++++++++++++---
+ 2 files changed, 81 insertions(+), 7 deletions(-)
+
+diff --git a/packages/SystemUI/multivalentTests/src/com/android/systemui/contextualcursor/domain/interactor/GestureDetectionInteractorTest.kt b/packages/SystemUI/multivalentTests/src/com/android/systemui/contextualcursor/domain/interactor/GestureDetectionInteractorTest.kt
+index 4f54fd7310b4..61c38a14c87b 100644
+--- a/packages/SystemUI/multivalentTests/src/com/android/systemui/contextualcursor/domain/interactor/GestureDetectionInteractorTest.kt
++++ b/packages/SystemUI/multivalentTests/src/com/android/systemui/contextualcursor/domain/interactor/GestureDetectionInteractorTest.kt
+@@ -160,6 +160,52 @@ class GestureDetectionInteractorTest : SysuiTestCase() {
+             verify(mockListener, never()).onShakeGestureDetected()
+         }
+ 
++    @Test
++    fun isShakeGestureDetected_jitter_remainsFalse() =
++        kosmos.runTest {
++            // OPENBOOK: a finger resting on a touchpad: pixel jitter that reverses every sample.
++            underTest.addShakeGestureListener(mockListener)
++
++            var x = 100f
++            repeat(20) { i ->
++                x += if (i % 2 == 0) 3f else -3f
++                newCursorPosition(x, 100f)
++                systemClock.advanceTime(10)
++            }
++
++            verify(mockListener, never()).onShakeGestureDetected()
++        }
++
++    @Test
++    fun isShakeGestureDetected_strokesBelowThreshold_remainsFalse() =
++        kosmos.runTest {
++            // OPENBOOK: 10 px strokes are 5 dp at density 2, under the 12 dp a stroke needs.
++            underTest.addShakeGestureListener(mockListener)
++
++            repeat(8) { i ->
++                newCursorPosition(if (i % 2 == 0) 0f else 10f, 0f)
++                systemClock.advanceTime(10)
++            }
++
++            verify(mockListener, never()).onShakeGestureDetected()
++        }
++
++    @Test
++    fun isShakeGestureDetected_validShakeWithJitter_becomesTrue() =
++        kosmos.runTest {
++            // OPENBOOK: a real shake still counts when each stroke wobbles on the way.
++            underTest.addShakeGestureListener(mockListener)
++
++            for (target in listOf(0f, 40f, 0f, 40f, 0f, 40f)) {
++                newCursorPosition(target, 0f)
++                systemClock.advanceTime(10)
++                newCursorPosition(target + if (target == 0f) 2f else -2f, 0f)
++                systemClock.advanceTime(10)
++            }
++
++            verify(mockListener).onShakeGestureDetected()
++        }
++
+     @Test
+     fun isShakeGestureDetected_cooldownPeriod_preventsImmediateReshake() =
+         kosmos.runTest {
+diff --git a/packages/SystemUI/src/com/android/systemui/contextualcursor/domain/interactor/GestureDetectionInteractor.kt b/packages/SystemUI/src/com/android/systemui/contextualcursor/domain/interactor/GestureDetectionInteractor.kt
+index 0d5fb4ed422b..1141fa6d97b8 100644
+--- a/packages/SystemUI/src/com/android/systemui/contextualcursor/domain/interactor/GestureDetectionInteractor.kt
++++ b/packages/SystemUI/src/com/android/systemui/contextualcursor/domain/interactor/GestureDetectionInteractor.kt
+@@ -26,6 +26,7 @@ import com.android.systemui.display.domain.interactor.DisplayWindowPropertiesInt
+ import com.android.systemui.util.time.SystemClock
+ import java.util.concurrent.ConcurrentHashMap
+ import javax.inject.Inject
++import kotlin.math.abs
+ import kotlin.math.sign
+ import kotlinx.coroutines.CoroutineScope
+ import kotlinx.coroutines.Job
+@@ -133,14 +134,38 @@ constructor(
+         val inRange = (maxX - minX) < rangeThresholdPx && (maxY - minY) < rangeThresholdPx
+         if (!inRange) return false
+ 
+-        val directionChanges =
+-            positions
+-                .zipWithNext { current, next -> next.pos.x - current.pos.x }
+-                .filter { deltaX -> deltaX != 0f }
+-                .zipWithNext()
+-                .count { (currentDelta, nextDelta) -> sign(currentDelta) != sign(nextDelta) }
++        // OPENBOOK: a reversal counts only after the pointer has gone back at least
++        // SHAKE_STROKE_THRESHOLD_DP from its turning point. Counting every change of sign made a
++        // finger resting on a touchpad, or the start of a tap, a "shake": its pixel jitter
++        // reverses many times in 500 ms (ANAL-225).
++        val strokeThresholdPx = SHAKE_STROKE_THRESHOLD_DP * windowDensity
++        return countReversals(positions.map { it.pos.x }, strokeThresholdPx) >= SHAKE_COUNT_THRESHOLD
++    }
+ 
+-        return directionChanges >= SHAKE_COUNT_THRESHOLD
++    /**
++     * OPENBOOK: the number of direction changes in [xs] whose stroke back is at least [minStrokePx]
++     * long. Movement smaller than that around a turning point is ignored, so jitter is not a stroke.
++     */
++    private fun countReversals(xs: List<Float>, minStrokePx: Float): Int {
++        if (xs.isEmpty()) return 0
++        var direction = 0f
++        var turn = xs.first()
++        var reversals = 0
++        for (x in xs) {
++            when {
++                direction == 0f -> if (abs(x - turn) >= minStrokePx) {
++                    direction = sign(x - turn)
++                    turn = x
++                }
++                (x - turn) * direction > 0 -> turn = x
++                abs(x - turn) >= minStrokePx -> {
++                    direction = -direction
++                    turn = x
++                    reversals++
++                }
++            }
++        }
++        return reversals
+     }
+ 
+     private data class TimedPosition(val pos: CursorPosition, val timestamp: Long)
+@@ -153,6 +178,9 @@ constructor(
+         private const val SHAKE_RANGE_THRESHOLD_DP = 100f
+         private const val SHAKE_COUNT_THRESHOLD = 3
+ 
++        /** OPENBOOK: how far the pointer must come back before a reversal counts. */
++        private const val SHAKE_STROKE_THRESHOLD_DP = 12f
++
+         private const val COOLDOWN_MS = 3000L
+ 
+         private const val TAG = "GestureDetectInteractor"

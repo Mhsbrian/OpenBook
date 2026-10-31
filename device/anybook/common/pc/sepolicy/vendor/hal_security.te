@@ -1,0 +1,7 @@
+# Software KeyMint and Gatekeeper (no TEE): attestation IDs read ro.serialno; both log to the kernel log.
+get_prop(hal_keymint_default, serialno_prop)
+allow hal_gatekeeper_default kmsg_device:chr_file { getattr w_file_perms };
+
+# Boot control HAL: getattr on the slot partitions through their by-name links.
+allow hal_bootctl_default block_device:lnk_file read;
+allow hal_bootctl_default boot_block_device:blk_file getattr;

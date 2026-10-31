@@ -1,0 +1,7 @@
+# Declared in packages/apps/Settings/aconfig/settings_desktop_flag_declarations.aconfig
+flag_value {
+  package: "com.android.settings.flags"
+  name: "show_user_details_settings_for_self"
+  state: ENABLED
+  permission: READ_ONLY
+}

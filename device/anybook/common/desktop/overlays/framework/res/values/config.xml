@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The AnyBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Framework config for an Android desktop (laptop) device. The values are the ones Google's
+  AOSP Desktop (Preview) emulator image (sdk_gdesktop_x86_64, Android 17, CLE1.260506.004) sets in its
+  vendor framework-res RRO; docs/aosp-desktop.md lists them all, plus the ones left out here. The typography,
+  shape and wallpaper values at the end match Googlebook instead (docs/googlebook-ui.md §2.1, §2.4).
+  Defaults: frameworks/base/core/res/res/values/config.xml.
+-->
+<resources>
+    <!-- Desktop windowing. WM Shell's DesktopStateImpl needs both of the first two for the
+         internal display to host desks; without them apps stay fullscreen. -->
+    <bool name="config_isDesktopModeSupported">true</bool>
+    <bool name="config_canInternalDisplayHostDesktops">true</bool>
+    <bool name="config_enterDesktopByDefaultOnFreeformDisplay">true</bool>
+    <!-- Only read when the show_home_behind_desktop flag is on (it is off in cp2a). -->
+    <bool name="config_showHomeBehindDesktop">true</bool>
+
+    <!-- Navigation: gestural (2), so the taskbar shows no back/home/recents buttons. -->
+    <bool name="config_showNavigationBar">true</bool>
+    <integer name="config_navBarInteractionMode">2</integer>
+    <bool name="config_showGesturalNavigationHints">true</bool>
+
+    <!-- Laptop/desktop behaviour from the same image. -->
+    <bool name="config_allowPresentationOnInternalDisplay">true</bool>
+    <string-array name="config_globalActionsList" translatable="false">
+        <item>emergency</item>
+        <item>lock</item>
+        <item>power</item>
+        <item>restart</item>
+        <item>logout</item>
+        <item>screenshot</item>
+        <item>bugreport</item>
+    </string-array>
+    <bool name="config_supportsCamToggle">true</bool>
+    <bool name="config_supportsMicToggle">true</bool>
+    <!-- No lock screen unless the user sets a PIN, pattern or password (LockPatternUtils.isLockScreenDisabled()). The
+         phone default shows a swipe lock screen at every boot, and SystemUI turns the screen off after 10 seconds on it
+         (config_lockScreenDisplayTimeout): on the G14 the first boot went black 10 s after reaching the desktop
+         (ANAL-176). -->
+    <bool name="config_disableLockscreenByDefault">true</bool>
+    <bool name="config_lockPatternVisibleDefault">false</bool>
+    <bool name="config_lockPinEnhancedPrivacyDefault">true</bool>
+    <bool name="config_magnification_keep_zoom_level_when_context_changed">true</bool>
+    <bool name="config_magnification_magnify_keyboard_default">true</bool>
+
+    <!-- Typography, as Googlebook's FrameworkDesktopOverlay sets it: headlines in Google Sans, running text in
+         Google Sans Text (ANAL-202). The families come from /product/etc/fonts_customization.xml (fonts/). -->
+    <string name="config_headlineFontFamily" translatable="false">google-sans</string>
+    <string name="config_headlineFontFamilyMedium" translatable="false">google-sans-medium</string>
+    <string name="config_bodyFontFamily" translatable="false">google-sans-text</string>
+    <string name="config_bodyFontFamilyMedium" translatable="false">google-sans-text-medium</string>
+
+    <!-- Shape and wallpaper, as on Googlebook (ANAL-205; docs/googlebook-ui.md §2.4). -->
+    <!-- Circular adaptive-icon mask on the 100x100 viewport: two half-circle arcs (our own path; AOSP's default is a
+         square with 8-unit corners). Launcher3 uses it until the user picks a shape in Wallpaper & style, whose
+         choice (LauncherPrefs icon_shape_model) then wins on the home screen; Settings, SystemUI and bubbles keep
+         following this mask. -->
+    <string name="config_icon_mask" translatable="false">"M50,0 A50,50 0 1,1 50,100 A50,50 0 1,1 50,0 Z"</string>
+    <!-- PackageManager hands out android:roundIcon where an app has one. -->
+    <bool name="config_useRoundIcon">true</bool>
+    <!-- No default dim: WallpaperService would otherwise dim a wallpaper that supports neither dark text nor a dark
+         theme by 5 %. -->
+    <item name="config_wallpaperDimAmount" format="float" type="dimen">0</item>
+
+    <!-- Refresh rate, as Googlebook's FrameworkDesktopOverlay sets it (ANAL-212; docs/graphics-amd.md, "Refresh
+         rate"). AOSP's config_defaultRefreshRate of 60 makes DisplayModeDirector cap the render rate at 60 at its
+         lowest priority: the G14's panel scanned out at 120 Hz while SurfaceFlinger drew at 60 (primary render range
+         [0, 60]), and the 75 Hz QEMU display drew at 37.5. 0 drops that cap. A peak of 1000 means no ceiling, so
+         every panel gets its own top rate. SurfaceFlinger still lowers the render rate for idle or slow content;
+         battery saver still caps it at 60. -->
+    <integer name="config_defaultRefreshRate">0</integer>
+    <integer name="config_defaultPeakRefreshRate">1000</integer>
+</resources>

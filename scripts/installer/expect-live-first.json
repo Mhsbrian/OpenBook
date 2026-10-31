@@ -1,0 +1,110 @@
+[
+{
+"wait": "openbook-live: live boot: boot_part_uuid=",
+"timeout": 120
+},
+{
+"wait": "openbook-live: grow: GPT backup moved",
+"timeout": 60
+},
+{
+"wait": "openbook-live: exec /init",
+"timeout": 120
+},
+{
+"wait": "init: init first stage started",
+"timeout": 60
+},
+{
+"wait": "init: init second stage started",
+"timeout": 120
+},
+{
+"wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+"timeout": 300
+},
+{
+"send": "\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 120
+},
+{
+"send": "su 0 dmesg -n 1\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 60
+},
+{
+"send": "echo ===LIVE-BEGIN===; su 0 dmesg | grep -E 'openbook-live|fs_mgr.*(wiped|ormat)|vold.*(ormat|encrypt)' | head -n 60; echo ===LIVE-END===\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 120
+},
+{
+"send": "echo ===STORAGE-BEGIN===; cat /proc/partitions; su 0 ls -l /dev/block/by-name; df -k /data /metadata; getprop | grep -E 'ro.boot.(openbook|slot_suffix|boot_part_uuid|verifiedbootstate|selinux)|ro.crypto'; echo ===STORAGE-END===\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 120
+},
+{
+"send": "su 0 sh -c 'echo openbook-live-marker-$(date +%s) > /data/local/tmp/openbook-marker; sync'; echo MARKER=$(su 0 cat /data/local/tmp/openbook-marker)\n"
+},
+{
+"wait": "\nMARKER=openbook-live-marker-\\d+",
+"timeout": 60
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 60
+},
+{
+"send": "i=0; while [ \"$(getprop sys.boot_completed)\" != 1 ] && [ $i -lt 600 ]; do sleep 3; i=$((i+3)); done; echo BOOTDONE=$(getprop sys.boot_completed) uptime=$(cut -d' ' -f1 /proc/uptime)\n"
+},
+{
+"wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+"timeout": 660
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 30
+},
+{
+"send": "sleep 20\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 60
+},
+{
+"shot": "after-boot"
+},
+{
+"send": "echo ===STATE-BEGIN===; getprop | grep -E 'init.svc.(surfaceflinger|zygote|zygote64|bootanim|vendor.openbook)|sys.boot_completed|sys.system_server|vendor.anybook.gpu|ro.hardware.(egl|vulkan|gralloc|hwcomposer)'; dumpsys SurfaceFlinger 2>&1 | head -n 30; dumpsys window displays 2>&1 | head -n 20; echo ===STATE-END===\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 120
+},
+{
+"send": "echo ===DMESG-BEGIN===; su 0 dmesg | gzip | base64; echo ===DMESG-END===\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 180
+},
+{
+"send": "echo ===LOGCAT-BEGIN===; su 0 logcat -d -b all | gzip | base64; echo ===LOGCAT-END===\n"
+},
+{
+"wait": "console:/ \\$ ",
+"timeout": 300
+},
+{
+"send": "su 0 sync; su 0 reboot -p\n"
+}
+]

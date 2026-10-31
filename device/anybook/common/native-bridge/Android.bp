@@ -1,0 +1,28 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+// The arm64 native bridge checks itself on the device (openbook-hwtest's "bridge" section, ANAL-200): a static arm64
+// binary that binfmt_misc runs through the translator. Only the native-bridge (arm64) variant is built; it installs
+// as /system/bin/arm64/openbook_bridge_check (fsgen installs native-bridge modules on the system partition only).
+cc_binary {
+    name: "openbook_bridge_check",
+    srcs: ["check/bridge_check.c"],
+    static_executable: true,
+    native_bridge_supported: true,
+    // cc_binary builds only the first (x86_64) target by default; the native-bridge target needs "both".
+    compile_multilib: "both",
+    enabled: false,
+    target: {
+        native_bridge: {
+            enabled: true,
+        },
+    },
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+}

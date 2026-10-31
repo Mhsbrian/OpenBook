@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<!--
+  OpenBook installer: high-fidelity design (ANAL-189).
+  The recommended wizard is an Android app in the live OpenBook session (docs/installer.md §4), so these screens use
+  Material 3 Expressive in a desktop window: Roboto Flex, Material Symbols Rounded, tonal surfaces, a pill-shaped
+  action row, and a wavy progress indicator.
+  Every hardware value, size and timing on these screens is sample data for illustration.
+
+  View: open in a browser (gallery). One screen at 1440x900: index.html?screen=<id>[&theme=dark].
+  Render all PNGs: scripts/installer/render-design.sh
+  Fonts: fonts/ (not committed; render-design.sh fetches them) or Google Fonts when online.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OpenBook installer: design</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..600,0..1,0">
+<style>
+@font-face { font-family: "OB Flex"; src: url("fonts/RobotoFlex.ttf") format("truetype"); font-weight: 100 1000; font-display: block; }
+@font-face { font-family: "OB Symbols"; src: url("fonts/MaterialSymbolsRounded.ttf") format("truetype"); font-weight: 100 700; font-display: block; }
+
+/* ---------- Color roles (Material 3, seed #4A5BD4) ---------- */
+:root, [data-theme="light"] {
+  --primary: #4355B9; --on-primary: #fff; --primary-container: #DEE0FF; --on-primary-container: #00105C;
+  --secondary: #5B5D72; --secondary-container: #E0E1F9; --on-secondary-container: #181A2C;
+  --tertiary: #8A4A62; --tertiary-container: #FFD9E3; --on-tertiary-container: #390A1E;
+  --error: #BA1A1A; --on-error: #fff; --error-container: #FFDAD6; --on-error-container: #410002;
+  --success: #276A3B; --success-container: #B6F1BE; --on-success-container: #00210B;
+  --warning: #775A00; --warning-container: #FFDF9A; --on-warning-container: #251A00;
+  --surface: #FBF8FF; --surface-lowest: #FFFFFF; --surface-low: #F5F2FB; --surface-mid: #EFEDF6;
+  --surface-high: #E9E7F0; --surface-highest: #E3E1EA;
+  --on-surface: #1B1B21; --on-surface-variant: #46464F; --outline: #767680; --outline-variant: #C6C5D0;
+  --scrim: rgba(17, 20, 45, .14);
+  --wall: radial-gradient(900px 640px at 12% 18%, #C3CBFF 0%, transparent 62%),
+          radial-gradient(760px 600px at 88% 10%, #FFD3E6 0%, transparent 58%),
+          radial-gradient(900px 700px at 78% 96%, #BFEDE6 0%, transparent 60%),
+          radial-gradient(700px 560px at 30% 100%, #FFE4C7 0%, transparent 60%),
+          linear-gradient(140deg, #EEF0FF 0%, #F8F1FB 55%, #F1F7F6 100%);
+  --taskbar: rgba(251, 248, 255, .72);
+  --win-shadow: 0 30px 80px rgba(37, 42, 98, .26), 0 6px 18px rgba(37, 42, 98, .10);
+  --bar-win: #4C74E6; --bar-linux: #E8A23C; --bar-efi: #8D8FA3; --bar-ob: linear-gradient(90deg, #4355B9, #8A5CF0);
+}
+[data-theme="dark"] {
+  --primary: #BAC3FF; --on-primary: #08218A; --primary-container: #293CA0; --on-primary-container: #DEE0FF;
+  --secondary: #C4C5DD; --secondary-container: #43465A; --on-secondary-container: #E0E1F9;
+  --tertiary: #FFB0C9; --tertiary-container: #6E3349; --on-tertiary-container: #FFD9E3;
+  --error: #FFB4AB; --on-error: #690005; --error-container: #93000A; --on-error-container: #FFDAD6;
+  --success: #9BD5A3; --success-container: #0B5225; --on-success-container: #B6F1BE;
+  --warning: #EFC048; --warning-container: #5A4300; --on-warning-container: #FFDF9A;
+  --surface: #121318; --surface-lowest: #0D0E13; --surface-low: #1B1B21; --surface-mid: #1F1F25;
+  --surface-high: #2A292F; --surface-highest: #35343A;
+  --on-surface: #E4E1E9; --on-surface-variant: #C6C5D0; --outline: #90909A; --outline-variant: #46464F;
+  --scrim: rgba(0, 0, 0, .35);
+  --wall: radial-gradient(900px 640px at 14% 20%, rgba(83, 101, 230, .55) 0%, transparent 62%),
+          radial-gradient(760px 600px at 86% 8%, rgba(176, 82, 160, .45) 0%, transparent 58%),
+          radial-gradient(900px 700px at 76% 98%, rgba(26, 140, 128, .40) 0%, transparent 60%),
+          linear-gradient(150deg, #0B0D1C 0%, #12101F 55%, #0B1716 100%);
+  --taskbar: rgba(27, 27, 33, .70);
+  --win-shadow: 0 30px 90px rgba(0, 0, 0, .60), 0 6px 18px rgba(0, 0, 0, .35);
+  --bar-win: #7F9CFF; --bar-linux: #F2B95E; --bar-efi: #9FA1B5; --bar-ob: linear-gradient(90deg, #8E9CFF, #C49BFF);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: "OB Flex", "Roboto Flex", "Noto Sans", system-ui, sans-serif; color: #1B1B21; background: #E9EAF2;
+       -webkit-font-smoothing: antialiased; font-optical-sizing: auto; }
+.ms { font-family: "OB Symbols", "Material Symbols Rounded"; font-weight: 400; font-style: normal; font-size: 22px; line-height: 1;
+      letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; direction: ltr;
+      font-feature-settings: "liga"; font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24; user-select: none; }
+.ms.fill { font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24; }
+
+/* ---------- Gallery ---------- */
+.gallery-head { max-width: 1520px; margin: 40px auto 8px; padding: 0 40px; }
+.gallery-head h1 { font-size: 34px; font-weight: 560; margin: 0 0 6px; letter-spacing: -0.01em; }
+.gallery-head p { margin: 0; color: #55566A; font-size: 15px; }
+.gallery { display: grid; grid-template-columns: repeat(2, 720px); gap: 36px 40px; justify-content: center; padding: 28px 40px 60px; }
+.gallery figure { margin: 0; }
+.gallery figcaption { font-size: 14px; color: #44465A; margin-top: 12px; }
+.gallery figcaption b { color: #1B1B21; font-weight: 600; }
+.gallery .artboard { zoom: .5; border-radius: 24px; box-shadow: 0 10px 40px rgba(30, 30, 70, .18); }
+body.single { background: #000; }
+body.single .gallery-head { display: none; }
+body.single .gallery { display: block; padding: 0; }
+body.single figure > figcaption { display: none; }
+body.single .artboard { zoom: 1; border-radius: 0; box-shadow: none; }
+
+/* ---------- Desktop ---------- */
+.artboard { width: 1440px; height: 900px; position: relative; overflow: hidden; background: var(--wall); color: var(--on-surface); }
+.taskbar { position: absolute; left: 0; right: 0; bottom: 0; height: 56px; background: var(--taskbar); backdrop-filter: blur(24px);
+           border-top: 1px solid color-mix(in srgb, var(--outline-variant) 50%, transparent); display: flex; align-items: center; padding: 0 18px; }
+.taskbar .apps { position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; }
+.tb-app { width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center; color: #fff; position: relative; }
+.tb-app .ms { font-size: 22px; }
+.tb-app.active::after { content: ""; position: absolute; bottom: -7px; width: 16px; height: 3px; border-radius: 3px; background: var(--primary); }
+.tb-left { display: flex; align-items: center; gap: 6px; color: var(--on-surface); }
+.tb-right { margin-left: auto; display: flex; align-items: center; gap: 14px; color: var(--on-surface); font-size: 14px; font-weight: 500; }
+.tb-right .ms { font-size: 20px; }
+.live-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 14px; font-size: 12.5px; font-weight: 600;
+             background: var(--primary-container); color: var(--on-primary-container); }
+.live-chip .ms { font-size: 16px; }
+
+/* ---------- Window ---------- */
+.window { position: absolute; left: 150px; top: 40px; width: 1140px; height: 776px; border-radius: 22px; overflow: hidden;
+          background: var(--surface); box-shadow: var(--win-shadow); display: flex; flex-direction: column;
+          outline: 1px solid color-mix(in srgb, var(--outline-variant) 60%, transparent); }
+.caption { height: 46px; flex: none; display: flex; align-items: center; padding: 0 10px 0 18px; gap: 10px; background: var(--surface-mid);
+           font-size: 13.5px; font-weight: 600; color: var(--on-surface); }
+.caption .ctl { margin-left: auto; display: flex; gap: 4px; }
+.caption .ctl span { width: 34px; height: 30px; border-radius: 10px; display: grid; place-items: center; color: var(--on-surface-variant); }
+.caption .ctl .ms { font-size: 19px; }
+.win-body { flex: 1; display: grid; grid-template-columns: 286px 1fr; min-height: 0; }
+
+/* rail */
+.rail { background: var(--surface-low); padding: 26px 22px 22px; display: flex; flex-direction: column; border-right: 1px solid color-mix(in srgb, var(--outline-variant) 45%, transparent); }
+.brand { display: flex; align-items: center; gap: 12px; margin: 0 0 30px 4px; }
+.brand .word { font-size: 23px; font-weight: 640; letter-spacing: -0.02em; }
+.brand .sub { font-size: 12.5px; color: var(--on-surface-variant); font-weight: 500; margin-top: 1px; }
+.steps { list-style: none; margin: 0; padding: 0; }
+.steps li { display: grid; grid-template-columns: 34px 1fr; column-gap: 14px; align-items: center; position: relative; padding: 9px 4px; border-radius: 16px; }
+.steps li + li::before { content: ""; position: absolute; left: 20px; top: -9px; height: 18px; width: 2px; background: var(--outline-variant); }
+.steps li.done + li::before { background: var(--primary); }
+.dot { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 650;
+       border: 2px solid var(--outline-variant); color: var(--on-surface-variant); background: var(--surface-low); position: relative; z-index: 1; }
+.steps li.done .dot { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.steps li.done .dot .ms { font-size: 19px; font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 20; }
+.steps li.now { background: color-mix(in srgb, var(--primary-container) 70%, transparent); }
+.steps li.now .dot { background: var(--primary); border-color: var(--primary); color: var(--on-primary); box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 18%, transparent); }
+.steps .lbl { font-size: 15px; font-weight: 560; }
+.steps li:not(.done):not(.now) .lbl { color: var(--on-surface-variant); font-weight: 500; }
+.steps .hint { font-size: 12.5px; color: var(--on-surface-variant); margin-top: 1px; font-weight: 450; }
+.assure { margin-top: auto; border-radius: 18px; padding: 14px 16px; background: var(--surface-high); display: flex; gap: 12px; font-size: 13px; line-height: 1.4; color: var(--on-surface-variant); }
+.assure .ms { color: var(--primary); font-size: 22px; }
+
+/* content */
+.content { padding: 40px 56px 28px; display: flex; flex-direction: column; min-width: 0; }
+.eyebrow { font-size: 13.5px; font-weight: 650; letter-spacing: .02em; color: var(--primary); margin-bottom: 10px; }
+h2.headline { font-size: 40px; line-height: 48px; font-weight: 520; letter-spacing: -0.02em; margin: 0 0 10px; }
+.lede { font-size: 16.5px; line-height: 25px; color: var(--on-surface-variant); margin: 0 0 26px; max-width: 660px; }
+.grow { flex: 1; min-height: 0; }
+.actions { display: flex; align-items: center; gap: 12px; padding-top: 18px; }
+.actions .push { margin-left: auto; }
+.btn { height: 46px; padding: 0 26px; border-radius: 23px; display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 620; letter-spacing: .01em; border: 0; }
+.btn .ms { font-size: 20px; }
+.btn.filled { background: var(--primary); color: var(--on-primary); box-shadow: 0 1px 2px rgba(0,0,0,.14); }
+.btn.tonal { background: var(--secondary-container); color: var(--on-secondary-container); }
+.btn.outlined { border: 1.5px solid var(--outline-variant); color: var(--primary); background: transparent; }
+.btn.text { color: var(--primary); padding: 0 14px; }
+.btn.danger { background: var(--error); color: var(--on-error); }
+.btn.big { height: 54px; border-radius: 27px; padding: 0 30px; font-size: 16px; }
+
+.card { background: var(--surface-low); border-radius: 22px; padding: 18px 20px; }
+.card.high { background: var(--surface-mid); }
+.pill { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 11px; border-radius: 13px; font-size: 12.5px; font-weight: 640; white-space: nowrap; }
+.pill .ms { font-size: 16px; font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 20; }
+.pill.ok { background: var(--success-container); color: var(--on-success-container); }
+.pill.warn { background: var(--warning-container); color: var(--on-warning-container); }
+.pill.off { background: var(--surface-highest); color: var(--on-surface-variant); }
+.pill.info { background: var(--primary-container); color: var(--on-primary-container); }
+.mono { font-family: "JetBrainsMono NF", "JetBrains Mono", ui-monospace, monospace; font-size: 12.5px; }
+
+/* ---------- 1 Welcome ---------- */
+.welcome { display: grid; grid-template-columns: 400px 1fr; height: 100%; }
+.hero { position: relative; overflow: hidden; color: #fff; padding: 46px 42px; display: flex; flex-direction: column;
+        background: radial-gradient(420px 360px at 20% 10%, #7D8BFF 0%, transparent 70%),
+                    radial-gradient(420px 420px at 100% 100%, #C06CF0 0%, transparent 65%),
+                    radial-gradient(300px 300px at 0% 100%, #FF9B7A 0%, transparent 70%),
+                    linear-gradient(160deg, #3446B0 0%, #5B3FC4 60%, #7B3FB3 100%); }
+.hero .blob { position: absolute; border-radius: 50%; filter: blur(2px); opacity: .22; background: #fff; }
+.hero .big-logo { margin-top: 120px; }
+.hero .hw { font-size: 52px; line-height: 56px; font-weight: 640; letter-spacing: -0.035em; margin: 26px 0 12px; }
+.hero .tag { font-size: 18px; line-height: 26px; opacity: .92; max-width: 300px; font-weight: 450; }
+.hero .foot { margin-top: auto; display: flex; gap: 10px; align-items: center; font-size: 13px; opacity: .9; }
+.hero .foot .hchip { background: rgba(255,255,255,.18); border-radius: 14px; padding: 6px 12px; display: inline-flex; gap: 6px; align-items: center; font-weight: 600; }
+.hero .foot .ms { font-size: 17px; }
+.lang-grid { display: grid; grid-template-columns: 1fr 262px; gap: 22px; }
+.search { height: 48px; border-radius: 24px; background: var(--surface-high); display: flex; align-items: center; gap: 10px; padding: 0 18px; color: var(--on-surface-variant); font-size: 15px; margin-bottom: 8px; }
+.lang { list-style: none; margin: 0; padding: 0; }
+.lang li { display: flex; align-items: center; gap: 14px; height: 52px; padding: 0 16px; border-radius: 16px; }
+.lang li .n { font-size: 15.5px; font-weight: 560; white-space: nowrap; }
+.lang li .e { font-size: 13px; color: var(--on-surface-variant); margin-left: auto; }
+.lang li.sel { background: var(--primary-container); color: var(--on-primary-container); }
+.lang li.sel .e { color: var(--on-primary-container); opacity: .8; }
+.radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--outline); flex: none; }
+.sel .radio, .radio.on { border-color: var(--primary); box-shadow: inset 0 0 0 4px var(--surface-lowest), inset 0 0 0 10px var(--primary); }
+.field { border-radius: 14px; border: 1.5px solid var(--outline-variant); padding: 8px 14px 10px; }
+.field .k { font-size: 12px; color: var(--on-surface-variant); font-weight: 600; }
+.field .v { font-size: 15.5px; font-weight: 520; display: flex; align-items: center; justify-content: space-between; margin-top: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px 0 11px; border-radius: 12px; border: 1.5px solid var(--outline-variant);
+        font-size: 13.5px; font-weight: 580; color: var(--on-surface-variant); }
+.chip .ms { font-size: 19px; }
+.chip.on { background: var(--secondary-container); color: var(--on-secondary-container); border-color: transparent; }
+.side-label { font-size: 13px; font-weight: 650; color: var(--on-surface-variant); margin: 6px 0 10px; letter-spacing: .02em; }
+
+/* ---------- 2 Hardware ---------- */
+.device { display: flex; align-items: center; gap: 22px; padding: 18px 22px; border-radius: 24px;
+          background: linear-gradient(120deg, var(--success-container), color-mix(in srgb, var(--success-container) 30%, var(--surface-low))); margin-bottom: 18px; }
+.device .t { font-size: 20px; font-weight: 620; letter-spacing: -0.01em; color: var(--on-success-container); }
+.device .s { font-size: 14px; color: color-mix(in srgb, var(--on-success-container) 75%, transparent); margin-top: 3px; }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.tile { background: var(--surface-low); border-radius: 20px; padding: 14px 14px 14px 14px; display: grid; grid-template-columns: 42px 1fr; column-gap: 12px; align-items: center; }
+.tile .ic { width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; background: var(--surface-high); color: var(--primary); grid-row: span 2; }
+.tile .ic .ms { font-size: 22px; }
+.tile .nm { font-size: 14.5px; font-weight: 620; white-space: nowrap; display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.tile .dt { font-size: 12.5px; color: var(--on-surface-variant); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- 3 Try / install ---------- */
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.choice { border-radius: 28px; background: var(--surface-low); overflow: hidden; outline: 1.5px solid transparent; position: relative; }
+.choice.sel { outline: 2.5px solid var(--primary); background: color-mix(in srgb, var(--primary-container) 35%, var(--surface-low)); }
+.choice .art { height: 210px; display: grid; place-items: center; }
+.choice .art.a { background: radial-gradient(240px 180px at 30% 30%, #CFE0FF, transparent 70%), radial-gradient(240px 200px at 80% 80%, #D9F3EC, transparent 70%), var(--surface-mid); }
+.choice .art.b { background: radial-gradient(240px 180px at 25% 25%, #DCD3FF, transparent 70%), radial-gradient(240px 200px at 85% 85%, #FFDCE8, transparent 70%), var(--surface-mid); }
+[data-theme="dark"] .choice .art.a, [data-theme="dark"] .choice .art.b { background: radial-gradient(240px 200px at 30% 30%, rgba(90,110,230,.35), transparent 70%), var(--surface-high); }
+.choice .bd { padding: 20px 24px 22px; }
+.choice h3 { margin: 0 0 6px; font-size: 22px; font-weight: 620; letter-spacing: -0.01em; }
+.choice p { margin: 0 0 12px; font-size: 14.5px; line-height: 21px; color: var(--on-surface-variant); }
+.choice ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.choice li { display: flex; gap: 9px; align-items: center; font-size: 14px; }
+.choice li .ms { font-size: 19px; color: var(--primary); font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 20; }
+.choice .tick { position: absolute; top: 16px; right: 16px; width: 30px; height: 30px; border-radius: 50%; background: var(--primary); color: var(--on-primary); display: grid; place-items: center; }
+.choice .tick .ms { font-size: 20px; font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 20; }
+.choice .tick.no { background: transparent; border: 2px solid var(--outline); }
+
+/* ---------- 4 Disk ---------- */
+.disk { border-radius: 24px; padding: 18px 20px; background: var(--surface-low); margin-bottom: 12px; }
+.disk.sel { outline: 2.5px solid var(--primary); background: color-mix(in srgb, var(--primary-container) 30%, var(--surface-low)); }
+.disk.locked { opacity: .78; }
+.disk .top { display: flex; align-items: center; gap: 16px; }
+.disk .ic { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; background: var(--primary-container); color: var(--on-primary-container); flex: none; }
+.disk.locked .ic { background: var(--surface-highest); color: var(--on-surface-variant); }
+.disk .ic .ms { font-size: 28px; }
+.disk .nm { font-size: 18px; font-weight: 620; letter-spacing: -0.01em; }
+.disk .dt { font-size: 13.5px; color: var(--on-surface-variant); margin-top: 3px; }
+.disk .right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.bar { display: flex; height: 30px; border-radius: 12px; overflow: hidden; gap: 3px; margin: 16px 0 10px; }
+.bar span { height: 100%; border-radius: 6px; }
+.bar .free { background: repeating-linear-gradient(135deg, var(--surface-highest) 0 7px, color-mix(in srgb, var(--surface-highest) 55%, transparent) 7px 14px); }
+.legend { display: flex; gap: 18px; font-size: 13px; color: var(--on-surface-variant); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 7px; vertical-align: 0; }
+.legend b { color: var(--on-surface); font-weight: 600; }
+.seg { display: inline-flex; border: 1.5px solid var(--outline); border-radius: 22px; overflow: hidden; height: 44px; }
+.seg span { display: inline-flex; align-items: center; gap: 8px; padding: 0 20px; font-size: 14.5px; font-weight: 600; color: var(--on-surface); }
+.seg span + span { border-left: 1.5px solid var(--outline); }
+.seg span.on { background: var(--secondary-container); color: var(--on-secondary-container); }
+.seg .ms { font-size: 19px; }
+.after { display: flex; align-items: center; gap: 14px; margin-top: 14px; font-size: 14px; color: var(--on-surface-variant); }
+.after .mini { flex: 1; height: 12px; border-radius: 6px; background: var(--bar-ob); }
+
+/* ---------- 5 Confirm ---------- */
+.warnbox { border-radius: 24px; background: var(--error-container); color: var(--on-error-container); padding: 20px 22px; display: grid; grid-template-columns: 44px 1fr; gap: 14px; }
+.warnbox .ic { width: 44px; height: 44px; border-radius: 14px; background: color-mix(in srgb, var(--error) 18%, transparent); display: grid; place-items: center; }
+.warnbox .ic .ms { color: var(--error); font-size: 26px; font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24; }
+.warnbox h4 { margin: 2px 0 8px; font-size: 17px; font-weight: 650; }
+.warnbox ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 14.5px; }
+.warnbox li { display: flex; align-items: center; gap: 10px; }
+.warnbox li i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.warnbox li .sz { margin-left: auto; font-weight: 600; }
+.beforeafter { display: grid; grid-template-columns: 1fr 40px 1fr; align-items: center; gap: 8px; margin: 18px 0; }
+.beforeafter .lab { font-size: 12.5px; font-weight: 650; color: var(--on-surface-variant); margin-bottom: 6px; letter-spacing: .02em; }
+.beforeafter .bar { margin: 0; height: 22px; }
+.beforeafter .arrow { text-align: center; color: var(--on-surface-variant); }
+.idrow { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 16px; background: var(--surface-low); color: var(--on-surface-variant); margin-bottom: 16px; }
+.idrow .ms { font-size: 18px; }
+.idrow .mono { color: var(--on-surface); }
+.typefield { position: relative; border-radius: 16px; border: 2px solid var(--success); padding: 22px 52px 10px 18px; max-width: 460px; }
+.typefield .lab { position: absolute; top: 7px; left: 18px; font-size: 12px; font-weight: 650; color: var(--success); }
+.typefield .val { font-size: 19px; font-weight: 600; letter-spacing: .02em; }
+.typefield .val::after { content: ""; display: inline-block; width: 2px; height: 22px; background: var(--primary); margin-left: 2px; vertical-align: -4px; }
+.typefield .ok { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--success); font-size: 24px; font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24; }
+.helper { font-size: 13px; color: var(--on-surface-variant); margin: 7px 0 0 18px; }
+
+/* ---------- 6 Progress ---------- */
+.prog-head { display: flex; align-items: flex-end; gap: 18px; margin: 6px 0 14px; }
+.pct { font-size: 76px; line-height: 76px; font-weight: 600; letter-spacing: -0.04em; color: var(--primary); }
+.eta { font-size: 16px; color: var(--on-surface-variant); padding-bottom: 10px; }
+.wave { width: 100%; height: 26px; display: block; margin-bottom: 22px; }
+.prog-grid { display: grid; grid-template-columns: 1fr 300px; gap: 18px; }
+.steplist { list-style: none; margin: 0; padding: 6px 4px; }
+.steplist li { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 16px; font-size: 15px; }
+.steplist li .ms { font-size: 22px; }
+.steplist li.d .ms { color: var(--success); font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24; }
+.steplist li.c { background: var(--primary-container); color: var(--on-primary-container); font-weight: 600; }
+.steplist li.c .ms { color: var(--primary); }
+.steplist li.p { color: var(--on-surface-variant); }
+.steplist li.p .ms { color: var(--outline); }
+.steplist .r { font-size: 13px; color: var(--on-surface-variant); font-weight: 500; }
+.steplist li.c .r { color: var(--on-primary-container); }
+.minibar { height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--primary) 22%, transparent); margin-top: 7px; overflow: hidden; }
+.minibar span { display: block; height: 100%; width: 62%; background: var(--primary); border-radius: 3px; }
+.tip { border-radius: 24px; overflow: hidden; background: var(--surface-mid); align-self: start; }
+.tip .art { height: 150px; position: relative; background: linear-gradient(135deg, #5367E0, #9A62E6); }
+.tip .art .w { position: absolute; border-radius: 10px; background: rgba(255,255,255,.92); box-shadow: 0 8px 20px rgba(0,0,0,.18); }
+.tip .art .w::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 14px; border-radius: 10px 10px 0 0; background: rgba(67, 85, 185, .18); }
+.tip .bd { padding: 16px 18px 18px; }
+.tip .dots { display: flex; gap: 6px; margin-top: 12px; } .tip .dots i { width: 6px; height: 6px; border-radius: 3px; background: var(--outline-variant); } .tip .dots i:first-child { width: 18px; background: var(--primary); }
+.tip .k { font-size: 12.5px; font-weight: 700; color: var(--primary); letter-spacing: .03em; }
+.tip .t { font-size: 15.5px; font-weight: 600; margin: 4px 0 4px; }
+.tip .s { font-size: 13.5px; line-height: 19px; color: var(--on-surface-variant); }
+.status-row { display: flex; gap: 10px; align-items: center; }
+
+/* ---------- 7 Done ---------- */
+.done-wrap { display: grid; grid-template-columns: 300px 1fr; gap: 38px; align-items: center; height: 100%; }
+.cookie { width: 260px; height: 260px; position: relative; display: grid; place-items: center; }
+.cookie svg { position: absolute; inset: 0; }
+.cookie .ms { position: relative; font-size: 104px; color: #fff; font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 48; }
+.confetti i { position: absolute; border-radius: 4px; }
+.sum { list-style: none; margin: 0 0 4px; padding: 0; display: grid; gap: 10px; }
+.sum li { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: center; padding: 12px 16px; border-radius: 18px; background: var(--surface-low); }
+.sum .ic { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--success-container); color: var(--on-success-container); }
+.sum .ic .ms { font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24; }
+.sum .t { font-size: 15.5px; font-weight: 620; }
+.sum .s { font-size: 13.5px; color: var(--on-surface-variant); margin-top: 2px; }
+.notice { display: flex; gap: 12px; align-items: center; padding: 14px 18px; border-radius: 18px; background: var(--primary-container); color: var(--on-primary-container); font-size: 14.5px; font-weight: 520; margin-top: 16px; }
+
+/* ---------- Boot ---------- */
+.boot { position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+        background: radial-gradient(700px 500px at 50% 46%, rgba(86, 104, 235, .40), transparent 70%),
+                    radial-gradient(500px 400px at 62% 60%, rgba(176, 82, 190, .30), transparent 70%), #07080F; color: #E9E8F5; }
+.boot .word { font-size: 44px; font-weight: 600; letter-spacing: -0.03em; margin-top: 22px; }
+.boot .load { margin: 44px auto 0; width: 64px; height: 64px; }
+.boot .small { position: absolute; bottom: 38px; left: 0; right: 0; font-size: 13px; color: rgba(233, 232, 245, .55); letter-spacing: .04em; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="pgL" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7E8CFF"/><stop offset="1" stop-color="#4355B9"/></linearGradient>
+    <linearGradient id="pgR" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D08BFF"/><stop offset="1" stop-color="#7A4CE0"/></linearGradient>
+    <linearGradient id="spk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB38A"/><stop offset="1" stop-color="#FF7A9C"/></linearGradient>
+    <linearGradient id="scr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5367E0"/><stop offset=".6" stop-color="#8B5CE6"/><stop offset="1" stop-color="#E58BB5"/></linearGradient>
+    <linearGradient id="ck" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5B6CF0"/><stop offset="1" stop-color="#9B5DE5"/></linearGradient>
+    <!-- OpenBook mark: two pages opening from a spine, and a spark. -->
+    <symbol id="logo" viewBox="0 0 48 48">
+      <path d="M23 40 C17 36 10 35 5 36 C4 36 3.4 35.3 3.5 34.4 L5.6 12.6 C5.7 11.7 6.4 11 7.3 11 C12.6 10.9 18.4 12.7 23 16.6 Z" fill="url(#pgL)"/>
+      <path d="M25 40 C31 36 38 35 43 36 C44 36 44.6 35.3 44.5 34.4 L42.4 12.6 C42.3 11.7 41.6 11 40.7 11 C35.4 10.9 29.6 12.7 25 16.6 Z" fill="url(#pgR)"/>
+      <path d="M24 2.5 C24.7 6.3 26.2 7.8 30 8.5 C26.2 9.2 24.7 10.7 24 14.5 C23.3 10.7 21.8 9.2 18 8.5 C21.8 7.8 23.3 6.3 24 2.5 Z" fill="url(#spk)"/>
+    </symbol>
+    <!-- Laptop illustration -->
+    <symbol id="laptop" viewBox="0 0 220 150">
+      <rect x="30" y="8" width="160" height="104" rx="12" fill="#1E2033"/>
+      <rect x="37" y="15" width="146" height="90" rx="6" fill="url(#scr)"/>
+      <use href="#logo" x="94" y="38" width="32" height="32"/>
+      <path d="M8 118 H212 L204 136 C203 139 200 141 197 141 H23 C20 141 17 139 16 136 Z" fill="#C9CCDD"/>
+      <rect x="90" y="118" width="40" height="5" rx="2.5" fill="#A9ACC0"/>
+    </symbol>
+    <symbol id="usb" viewBox="0 0 120 60">
+      <rect x="6" y="14" width="78" height="32" rx="10" fill="#3B3E57"/>
+      <rect x="84" y="20" width="28" height="20" rx="3" fill="#B9BCD0"/>
+      <rect x="92" y="25" width="6" height="4" rx="1" fill="#6E7190"/><rect x="102" y="25" width="6" height="4" rx="1" fill="#6E7190"/>
+      <use href="#logo" x="30" y="17" width="26" height="26"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="gallery-head">
+  <h1>OpenBook installer</h1>
+  <p>High-fidelity design for the recommended wizard: an Android app in the live OpenBook desktop, using Material 3 Expressive. Hardware values, sizes and times are sample data.</p>
+</header>
+
+<main class="gallery">
+
+<!-- ===================== 1 WELCOME ===================== -->
+<figure>
+<section class="artboard" data-id="welcome" data-theme="light">
+  <div class="window" style="left:150px">
+    <div class="caption"><svg width="18" height="18"><use href="#logo"/></svg>Install OpenBook<div class="ctl"><span><i class="ms">remove</i></span><span><i class="ms">crop_square</i></span><span><i class="ms">close</i></span></div></div>
+    <div class="welcome">
+      <div class="hero">
+        <div class="blob" style="width:260px;height:260px;right:-90px;top:-70px"></div>
+        <div class="blob" style="width:140px;height:140px;left:-40px;bottom:120px;opacity:.14"></div>
+        <svg class="big-logo" width="92" height="92" viewBox="0 0 48 48"><use href="#logo"/></svg>
+        <div class="hw">Hello,<br>OpenBook.</div>
+        <div class="tag">A laptop OS built on open Android, ready in a few steps.</div>
+        <div class="foot"><span class="hchip"><i class="ms">usb</i>Running from your USB stick</span></div>
+      </div>
+      <div class="content">
+        <div class="eyebrow">STEP 1 OF 7 · WELCOME</div>
+        <h2 class="headline">Choose your language</h2>
+        <p class="lede">Nothing on this computer changes until you say so. You can try OpenBook first and install later.</p>
+        <div class="lang-grid grow">
+          <div>
+            <div class="search"><i class="ms">search</i>Search languages</div>
+            <ul class="lang">
+              <li class="sel"><span class="radio"></span><span class="n">English (United States)</span><span class="e">English</span></li>
+              <li><span class="radio"></span><span class="n">Español</span><span class="e">Spanish</span></li>
+              <li><span class="radio"></span><span class="n">Français</span><span class="e">French</span></li>
+              <li><span class="radio"></span><span class="n">Deutsch</span><span class="e">German</span></li>
+              <li><span class="radio"></span><span class="n">Português (Brasil)</span><span class="e">Portuguese</span></li>
+              <li><span class="radio"></span><span class="n">Ελληνικά</span><span class="e">Greek</span></li>
+              <li><span class="radio"></span><span class="n">Tiếng Việt</span><span class="e">Vietnamese</span></li>
+            </ul>
+          </div>
+          <div>
+            <div class="side-label">KEYBOARD</div>
+            <div class="field"><div class="k">Layout</div><div class="v">English (US) · QWERTY <i class="ms">expand_more</i></div></div>
+            <div class="field" style="margin-top:10px;border-style:dashed"><div class="k">Try typing</div><div class="v" style="color:var(--on-surface-variant)">Hello from OpenBook</div></div>
+            <div class="side-label" style="margin-top:22px">ACCESSIBILITY</div>
+            <div class="chips">
+              <span class="chip"><i class="ms">text_increase</i>Larger text</span>
+              <span class="chip on"><i class="ms">contrast</i>High contrast</span>
+              <span class="chip"><i class="ms">record_voice_over</i>Screen reader</span>
+              <span class="chip"><i class="ms">motion_photos_off</i>Reduce motion</span>
+            </div>
+          </div>
+        </div>
+        <div class="actions"><span class="btn text"><i class="ms">help</i>Help</span><span class="btn filled big push">Continue<i class="ms">arrow_forward</i></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="taskbar">
+    <div class="tb-left"><i class="ms" style="font-size:24px">apps</i></div>
+    <div class="apps">
+      <span class="tb-app" style="background:#4A73E8"><i class="ms fill">folder</i></span>
+      <span class="tb-app" style="background:#1E9A8A"><i class="ms">public</i></span>
+      <span class="tb-app" style="background:#6B6E86"><i class="ms fill">settings</i></span>
+      <span class="tb-app active" style="background:#fff"><svg width="26" height="26"><use href="#logo"/></svg></span>
+    </div>
+    <div class="tb-right"><span class="live-chip"><i class="ms">usb</i>Live session</span><i class="ms">wifi</i><i class="ms">battery_5_bar</i>10:42</div>
+  </div>
+</section>
+<figcaption><b>1 · Welcome and language.</b> Full-height brand panel; language list with native names; keyboard test field; accessibility toggles available from the first screen.</figcaption>
+</figure>
+
+<!-- ===================== 2 HARDWARE ===================== -->
+<figure>
+<section class="artboard" data-id="hardware" data-theme="light">
+  <div class="window">
+    <div class="caption"><svg width="18" height="18"><use href="#logo"/></svg>Install OpenBook<div class="ctl"><span><i class="ms">remove</i></span><span><i class="ms">crop_square</i></span><span><i class="ms">close</i></span></div></div>
+    <div class="win-body">
+      <aside class="rail">
+        <div class="brand"><svg width="38" height="38"><use href="#logo"/></svg><div><div class="word">OpenBook</div><div class="sub">Installer</div></div></div>
+        <ol class="steps">
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Language</div><div class="hint">English (US)</div></div></li>
+          <li class="now"><span class="dot">2</span><div><div class="lbl">Hardware check</div><div class="hint">Looking at your laptop</div></div></li>
+          <li><span class="dot">3</span><div><div class="lbl">Try or install</div></div></li>
+          <li><span class="dot">4</span><div><div class="lbl">Disk</div></div></li>
+          <li><span class="dot">5</span><div><div class="lbl">Confirm</div></div></li>
+          <li><span class="dot">6</span><div><div class="lbl">Install</div></div></li>
+          <li><span class="dot">7</span><div><div class="lbl">Done</div></div></li>
+        </ol>
+        <div class="assure"><i class="ms">verified_user</i><div>Nothing on this computer changes until you confirm.</div></div>
+      </aside>
+      <div class="content">
+        <div class="eyebrow">STEP 2 OF 7</div>
+        <h2 class="headline">Your laptop is ready</h2>
+        <p class="lede" style="margin-bottom:18px">We checked the parts OpenBook needs. Two of them work a little differently; there's nothing to fix now.</p>
+        <div class="device">
+          <svg width="112" height="76"><use href="#laptop"/></svg>
+          <div><div class="t">ASUS ROG Zephyrus G14</div><div class="s">GA403WR · Ryzen AI 9 HX 370 · 32 GB · UEFI, Secure Boot off</div></div>
+          <span class="pill ok" style="margin-left:auto"><i class="ms">check_circle</i>Ready</span>
+        </div>
+        <div class="tiles grow">
+          <div class="tile"><span class="ic"><i class="ms">memory</i></span><div class="nm">Processor <span class="pill ok">Ready</span></div><div class="dt">Zen 5 · 12 cores</div></div>
+          <div class="tile"><span class="ic"><i class="ms">palette</i></span><div class="nm">Graphics <span class="pill ok">Ready</span></div><div class="dt">Radeon 890M</div></div>
+          <div class="tile"><span class="ic"><i class="ms">desktop_windows</i></span><div class="nm">Display <span class="pill ok">Ready</span></div><div class="dt">2880 × 1800 · 120 Hz</div></div>
+          <div class="tile"><span class="ic"><i class="ms">wifi</i></span><div class="nm">Wireless <span class="pill ok">Ready</span></div><div class="dt">Wi-Fi &amp; Bluetooth · MT7925</div></div>
+          <div class="tile"><span class="ic"><i class="ms">touch_app</i></span><div class="nm">Touchpad <span class="pill ok">Ready</span></div><div class="dt">ELAN precision touchpad</div></div>
+          <div class="tile"><span class="ic"><i class="ms">hard_drive</i></span><div class="nm">Storage <span class="pill ok">Ready</span></div><div class="dt">SK hynix NVMe · 1 TB</div></div>
+          <div class="tile"><span class="ic"><i class="ms">speaker</i></span><div class="nm">Speakers <span class="pill warn">Quieter</span></div><div class="dt">Quieter until tuned</div></div>
+          <div class="tile"><span class="ic"><i class="ms">bedtime</i></span><div class="nm">Sleep <span class="pill warn">New</span></div><div class="dt">Not tested on this model yet</div></div>
+          <div class="tile"><span class="ic"><i class="ms">bolt</i></span><div class="nm">NVIDIA GPU <span class="pill off">Off</span></div><div class="dt">Switched off to save power</div></div>
+        </div>
+        <div class="actions"><span class="btn text"><i class="ms">download</i>Save report to USB</span><span class="btn tonal push"><i class="ms">arrow_back</i>Back</span><span class="btn filled">Continue<i class="ms">arrow_forward</i></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="taskbar">
+    <div class="tb-left"><i class="ms" style="font-size:24px">apps</i></div>
+    <div class="apps"><span class="tb-app" style="background:#4A73E8"><i class="ms fill">folder</i></span><span class="tb-app" style="background:#1E9A8A"><i class="ms">public</i></span><span class="tb-app" style="background:#6B6E86"><i class="ms fill">settings</i></span><span class="tb-app active" style="background:#fff"><svg width="26" height="26"><use href="#logo"/></svg></span></div>
+    <div class="tb-right"><span class="live-chip"><i class="ms">usb</i>Live session</span><i class="ms">wifi</i><i class="ms">battery_5_bar</i>10:43</div>
+  </div>
+</section>
+<figcaption><b>2 · Hardware check.</b> One summary verdict, then a tile per component with a plain-language status. "Save report" writes the JSON report to the stick for support or the device agent.</figcaption>
+</figure>
+
+<!-- ===================== 3 TRY OR INSTALL ===================== -->
+<figure>
+<section class="artboard" data-id="choose" data-theme="light">
+  <div class="window">
+    <div class="caption"><svg width="18" height="18"><use href="#logo"/></svg>Install OpenBook<div class="ctl"><span><i class="ms">remove</i></span><span><i class="ms">crop_square</i></span><span><i class="ms">close</i></span></div></div>
+    <div class="win-body">
+      <aside class="rail">
+        <div class="brand"><svg width="38" height="38"><use href="#logo"/></svg><div><div class="word">OpenBook</div><div class="sub">Installer</div></div></div>
+        <ol class="steps">
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Language</div><div class="hint">English (US)</div></div></li>
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Hardware check</div><div class="hint">Ready</div></div></li>
+          <li class="now"><span class="dot">3</span><div><div class="lbl">Try or install</div><div class="hint">Pick how to start</div></div></li>
+          <li><span class="dot">4</span><div><div class="lbl">Disk</div></div></li>
+          <li><span class="dot">5</span><div><div class="lbl">Confirm</div></div></li>
+          <li><span class="dot">6</span><div><div class="lbl">Install</div></div></li>
+          <li><span class="dot">7</span><div><div class="lbl">Done</div></div></li>
+        </ol>
+        <div class="assure"><i class="ms">verified_user</i><div>Nothing on this computer changes until you confirm.</div></div>
+      </aside>
+      <div class="content">
+        <div class="eyebrow">STEP 3 OF 7</div>
+        <h2 class="headline">How would you like to start?</h2>
+        <p class="lede">Try it from the USB stick, or install it on this laptop. You can switch from trying to installing at any time.</p>
+        <div class="choices grow">
+          <div class="choice">
+            <span class="tick no"></span>
+            <div class="art a"><svg width="250" height="150" viewBox="0 0 250 150"><use href="#laptop" x="0" y="0" width="200" height="140"/><use href="#usb" x="168" y="96" width="80" height="40"/>
+              <path d="M220 40 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3z" fill="#7E8CFF"/><path d="M236 70 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="#E58BB5"/></svg></div>
+            <div class="bd"><h3>Try OpenBook</h3><p>Use OpenBook right now, straight from the USB stick.</p>
+              <ul><li><i class="ms">check_circle</i>Nothing on this laptop changes</li><li><i class="ms">check_circle</i>Apps and files stay on the stick</li><li><i class="ms">check_circle</i>Install later from the taskbar</li></ul></div>
+          </div>
+          <div class="choice sel">
+            <span class="tick"><i class="ms">check</i></span>
+            <div class="art b"><svg width="250" height="150" viewBox="0 0 250 150"><use href="#laptop" x="25" y="0" width="200" height="140"/>
+              <circle cx="200" cy="40" r="22" fill="#4355B9"/><path d="M200 29 v18 m-8 -7 l8 8 8 -8" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+            <div class="bd"><h3>Install OpenBook</h3><p>Make OpenBook this laptop's system. Faster, and no stick needed.</p>
+              <ul><li><i class="ms">check_circle</i>Choose the disk on the next step</li><li><i class="ms">check_circle</i>Keep Windows or Linux if there's room</li><li><i class="ms">check_circle</i>Updates install in the background</li></ul></div>
+          </div>
+        </div>
+        <div class="actions"><span class="btn tonal push"><i class="ms">arrow_back</i>Back</span><span class="btn filled">Continue<i class="ms">arrow_forward</i></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="taskbar">
+    <div class="tb-left"><i class="ms" style="font-size:24px">apps</i></div>
+    <div class="apps"><span class="tb-app" style="background:#4A73E8"><i class="ms fill">folder</i></span><span class="tb-app" style="background:#1E9A8A"><i class="ms">public</i></span><span class="tb-app" style="background:#6B6E86"><i class="ms fill">settings</i></span><span class="tb-app active" style="background:#fff"><svg width="26" height="26"><use href="#logo"/></svg></span></div>
+    <div class="tb-right"><span class="live-chip"><i class="ms">usb</i>Live session</span><i class="ms">wifi</i><i class="ms">battery_5_bar</i>10:43</div>
+  </div>
+</section>
+<figcaption><b>3 · Try or install.</b> Two large, illustrated choices. Try never touches the internal disk; the taskbar keeps an Install shortcut for later.</figcaption>
+</figure>
+
+<!-- ===================== 4 DISK ===================== -->
+<figure>
+<section class="artboard" data-id="disk" data-theme="light">
+  <div class="window">
+    <div class="caption"><svg width="18" height="18"><use href="#logo"/></svg>Install OpenBook<div class="ctl"><span><i class="ms">remove</i></span><span><i class="ms">crop_square</i></span><span><i class="ms">close</i></span></div></div>
+    <div class="win-body">
+      <aside class="rail">
+        <div class="brand"><svg width="38" height="38"><use href="#logo"/></svg><div><div class="word">OpenBook</div><div class="sub">Installer</div></div></div>
+        <ol class="steps">
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Language</div><div class="hint">English (US)</div></div></li>
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Hardware check</div><div class="hint">Ready</div></div></li>
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Try or install</div><div class="hint">Install</div></div></li>
+          <li class="now"><span class="dot">4</span><div><div class="lbl">Disk</div><div class="hint">Where OpenBook goes</div></div></li>
+          <li><span class="dot">5</span><div><div class="lbl">Confirm</div></div></li>
+          <li><span class="dot">6</span><div><div class="lbl">Install</div></div></li>
+          <li><span class="dot">7</span><div><div class="lbl">Done</div></div></li>
+        </ol>
+        <div class="assure"><i class="ms">verified_user</i><div>Nothing on this computer changes until you confirm.</div></div>
+      </aside>
+      <div class="content">
+        <div class="eyebrow">STEP 4 OF 7</div>
+        <h2 class="headline">Where should OpenBook live?</h2>
+        <p class="lede" style="margin-bottom:20px">Pick a disk. Your USB stick can't be picked: OpenBook is running from it.</p>
+        <div class="grow">
+          <div class="disk sel">
+            <div class="top"><span class="ic"><i class="ms">hard_drive</i></span>
+              <div><div class="nm">SK hynix PVC10</div><div class="dt">1.02 TB · NVMe · inside this laptop</div></div>
+              <div class="right"><span class="radio on"></span></div></div>
+            <div class="bar"><span style="width:1.5%;background:var(--bar-efi)"></span><span style="width:40%;background:var(--bar-win)"></span><span style="width:52%;background:var(--bar-linux)"></span><span class="free" style="width:6.5%"></span></div>
+            <div class="legend"><span><i style="background:var(--bar-win)"></i><b>Windows</b> 412 GB</span><span><i style="background:var(--bar-linux)"></i><b>Linux</b> 541 GB</span><span><i style="background:var(--bar-efi)"></i>EFI 260 MB</span><span><i style="background:var(--surface-highest)"></i>Free 69 GB</span></div>
+          </div>
+          <div class="disk locked">
+            <div class="top"><span class="ic"><i class="ms">usb</i></span>
+              <div><div class="nm">SanDisk Ultra</div><div class="dt">32 GB · USB · OpenBook is running from this stick</div></div>
+              <div class="right"><span class="pill off"><i class="ms">lock</i>In use</span></div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;margin-top:20px">
+            <span class="seg"><span class="on"><i class="ms">check</i>Erase disk and install</span><span>Install alongside · 69 GB free</span></span>
+          </div>
+          <div class="after"><span>After installing</span><span class="mini"></span><span><b style="color:var(--on-surface)">OpenBook</b> · 1.02 TB</span></div>
+          <div class="notice" style="margin-top:22px;background:var(--surface-low);color:var(--on-surface-variant)"><i class="ms" style="color:var(--primary)">lightbulb</i>
+            <div><b style="color:var(--on-surface)">Want to keep Windows and Linux?</b> Choose Install alongside. OpenBook uses the 69 GB of free space and adds itself to the boot menu; nothing else is touched.</div></div>
+        </div>
+        <div class="actions"><span class="btn text"><i class="ms">description</i>View the plan</span><span class="btn tonal push"><i class="ms">arrow_back</i>Back</span><span class="btn filled">Continue<i class="ms">arrow_forward</i></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="taskbar">
+    <div class="tb-left"><i class="ms" style="font-size:24px">apps</i></div>
+    <div class="apps"><span class="tb-app" style="background:#4A73E8"><i class="ms fill">folder</i></span><span class="tb-app" style="background:#1E9A8A"><i class="ms">public</i></span><span class="tb-app" style="background:#6B6E86"><i class="ms fill">settings</i></span><span class="tb-app active" style="background:#fff"><svg width="26" height="26"><use href="#logo"/></svg></span></div>
+    <div class="tb-right"><span class="live-chip"><i class="ms">usb</i>Live session</span><i class="ms">wifi</i><i class="ms">battery_5_bar</i>10:44</div>
+  </div>
+</section>
+<figcaption><b>4 · Disk choice.</b> Each disk shows what is on it today. The boot stick is visibly locked (safety rule S1). "View the plan" opens the dry-run plan.</figcaption>
+</figure>
+
+<!-- ===================== 5 CONFIRM ===================== -->
+<figure>
+<section class="artboard" data-id="confirm" data-theme="light">
+  <div class="window">
+    <div class="caption"><svg width="18" height="18"><use href="#logo"/></svg>Install OpenBook<div class="ctl"><span><i class="ms">remove</i></span><span><i class="ms">crop_square</i></span><span><i class="ms">close</i></span></div></div>
+    <div class="win-body">
+      <aside class="rail">
+        <div class="brand"><svg width="38" height="38"><use href="#logo"/></svg><div><div class="word">OpenBook</div><div class="sub">Installer</div></div></div>
+        <ol class="steps">
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Language</div><div class="hint">English (US)</div></div></li>
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Hardware check</div><div class="hint">Ready</div></div></li>
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Try or install</div><div class="hint">Install</div></div></li>
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Disk</div><div class="hint">SK hynix PVC10</div></div></li>
+          <li class="now"><span class="dot">5</span><div><div class="lbl">Confirm</div><div class="hint">Last check</div></div></li>
+          <li><span class="dot">6</span><div><div class="lbl">Install</div></div></li>
+          <li><span class="dot">7</span><div><div class="lbl">Done</div></div></li>
+        </ol>
+        <div class="assure"><i class="ms">verified_user</i><div>Nothing has changed yet. You can still go back.</div></div>
+      </aside>
+      <div class="content">
+        <div class="eyebrow" style="color:var(--error)">STEP 5 OF 7 · PLEASE READ</div>
+        <h2 class="headline">Erase SK hynix PVC10?</h2>
+        <div class="warnbox">
+          <span class="ic"><i class="ms">warning</i></span>
+          <div><h4>Everything on this disk will be deleted</h4>
+            <ul><li><i style="background:var(--bar-win)"></i>Windows · NTFS<span class="sz">412 GB</span></li>
+                <li><i style="background:var(--bar-linux)"></i>Linux · ext4<span class="sz">541 GB</span></li>
+                <li><i style="background:var(--bar-efi)"></i>EFI system partition<span class="sz">260 MB</span></li></ul>
+            <div style="font-size:13.5px;margin-top:10px;opacity:.85">This can't be undone. Back up anything you want to keep first.</div></div>
+        </div>
+        <div class="beforeafter">
+          <div><div class="lab">NOW</div><div class="bar"><span style="width:1.5%;background:var(--bar-efi)"></span><span style="width:40%;background:var(--bar-win)"></span><span style="width:52%;background:var(--bar-linux)"></span><span class="free" style="width:6.5%"></span></div></div>
+          <div class="arrow"><i class="ms">arrow_forward</i></div>
+          <div><div class="lab">AFTER</div><div class="bar"><span style="width:100%;background:var(--bar-ob)"></span></div></div>
+        </div>
+        <div class="idrow"><i class="ms">badge</i><span class="mono">/dev/disk/by-id/nvme-SK_hynix_PVC10_AN0BS4F2A</span><i class="ms" style="margin-left:auto">content_copy</i></div>
+        <div class="typefield"><span class="lab">Type PVC10 to confirm</span><div class="val">PVC10</div><i class="ms ok">check_circle</i></div>
+        <div class="helper">Matches the disk above.</div>
+        <div class="grow"></div>
+        <div class="actions"><span class="btn text"><i class="ms">description</i>View the plan</span><span class="btn tonal push"><i class="ms">arrow_back</i>Back</span><span class="btn danger"><i class="ms">delete_forever</i>Erase and install</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="taskbar">
+    <div class="tb-left"><i class="ms" style="font-size:24px">apps</i></div>
+    <div class="apps"><span class="tb-app" style="background:#4A73E8"><i class="ms fill">folder</i></span><span class="tb-app" style="background:#1E9A8A"><i class="ms">public</i></span><span class="tb-app" style="background:#6B6E86"><i class="ms fill">settings</i></span><span class="tb-app active" style="background:#fff"><svg width="26" height="26"><use href="#logo"/></svg></span></div>
+    <div class="tb-right"><span class="live-chip"><i class="ms">usb</i>Live session</span><i class="ms">wifi</i><i class="ms">battery_5_bar</i>10:45</div>
+  </div>
+</section>
+<figcaption><b>5 · Confirmation.</b> What gets erased, before and after, the full disk ID, and a typed confirmation. The red button only enables once the name matches; it never has default focus (S2–S4).</figcaption>
+</figure>
+
+<!-- ===================== 6 PROGRESS ===================== -->
+<figure>
+<section class="artboard" data-id="progress" data-theme="light">
+  <div class="window">
+    <div class="caption"><svg width="18" height="18"><use href="#logo"/></svg>Install OpenBook<div class="ctl"><span><i class="ms">remove</i></span><span><i class="ms">crop_square</i></span><span><i class="ms">close</i></span></div></div>
+    <div class="win-body">
+      <aside class="rail">
+        <div class="brand"><svg width="38" height="38"><use href="#logo"/></svg><div><div class="word">OpenBook</div><div class="sub">Installer</div></div></div>
+        <ol class="steps">
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Language</div></div></li>
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Hardware check</div></div></li>
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Try or install</div></div></li>
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Disk</div></div></li>
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Confirm</div></div></li>
+          <li class="now"><span class="dot">6</span><div><div class="lbl">Install</div><div class="hint">Copying the system</div></div></li>
+          <li><span class="dot">7</span><div><div class="lbl">Done</div></div></li>
+        </ol>
+        <div class="assure"><i class="ms">receipt_long</i><div>A log is being saved on the USB stick.</div></div>
+      </aside>
+      <div class="content">
+        <div class="eyebrow">STEP 6 OF 7</div>
+        <h2 class="headline">Installing OpenBook</h2>
+        <div class="prog-head"><div class="pct">62%</div><div class="eta">About 2 minutes left</div></div>
+        <svg class="wave" viewBox="0 0 760 26" preserveAspectRatio="none">
+          <path d="M0 13 Q 9.5 3 19 13 T 38 13 T 57 13 T 76 13 T 95 13 T 114 13 T 133 13 T 152 13 T 171 13 T 190 13 T 209 13 T 228 13 T 247 13 T 266 13 T 285 13 T 304 13 T 323 13 T 342 13 T 361 13 T 380 13 T 399 13 T 418 13 T 437 13 T 456 13 T 471 13" stroke="var(--primary)" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <line x1="486" y1="13" x2="752" y2="13" stroke="color-mix(in srgb, var(--primary) 24%, transparent)" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="756" cy="13" r="3.5" fill="var(--primary)"/>
+        </svg>
+        <div class="prog-grid grow">
+          <div class="card" style="padding:8px">
+            <ul class="steplist">
+              <li class="d"><i class="ms">check_circle</i>Checked the USB image<span class="r">verified</span></li>
+              <li class="d"><i class="ms">check_circle</i>Prepared the disk<span class="r">new partition table</span></li>
+              <li class="d"><i class="ms">check_circle</i>Copied the boot images<span class="r">4 of 4</span></li>
+              <li class="c"><i class="ms">progress_activity</i><div>Copying the system<div class="minibar"><span></span></div></div><span class="r">4.1 of 6.6 GB</span></li>
+              <li class="p"><i class="ms">radio_button_unchecked</i>Adding the boot menu entry<span class="r"></span></li>
+              <li class="p"><i class="ms">radio_button_unchecked</i>Verifying every partition<span class="r"></span></li>
+            </ul>
+          </div>
+          <div class="tip">
+            <div class="art">
+              <div class="w" style="left:26px;top:30px;width:118px;height:88px"></div>
+              <div class="w" style="left:154px;top:30px;width:118px;height:88px"></div>
+              <div style="position:absolute;left:0;right:0;bottom:0;height:16px;background:rgba(255,255,255,.35)"></div>
+            </div>
+            <div class="bd"><div class="k">WHILE YOU WAIT</div><div class="t">Apps open in windows</div><div class="s">Move, resize and snap them side by side, just like on a desktop.</div><div class="dots"><i></i><i></i><i></i></div></div>
+          </div>
+        </div>
+        <div class="actions"><span class="status-row"><span class="pill ok"><i class="ms">battery_charging_full</i>Charger connected</span><span class="pill info"><i class="ms">receipt_long</i>USB › openbook/logs</span></span><span class="btn text push"><i class="ms">article</i>Show details</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="taskbar">
+    <div class="tb-left"><i class="ms" style="font-size:24px">apps</i></div>
+    <div class="apps"><span class="tb-app" style="background:#4A73E8"><i class="ms fill">folder</i></span><span class="tb-app" style="background:#1E9A8A"><i class="ms">public</i></span><span class="tb-app" style="background:#6B6E86"><i class="ms fill">settings</i></span><span class="tb-app active" style="background:#fff"><svg width="26" height="26"><use href="#logo"/></svg></span></div>
+    <div class="tb-right"><span class="live-chip"><i class="ms">usb</i>Live session</span><i class="ms">wifi</i><i class="ms">battery_charging_full</i>10:48</div>
+  </div>
+</section>
+<figcaption><b>6 · Progress.</b> Large percentage and an expressive wavy progress bar; the step list mirrors the install engine. Also rendered in dark theme.</figcaption>
+</figure>
+
+<!-- ===================== 7 DONE ===================== -->
+<figure>
+<section class="artboard" data-id="done" data-theme="light">
+  <div class="window">
+    <div class="caption"><svg width="18" height="18"><use href="#logo"/></svg>Install OpenBook<div class="ctl"><span><i class="ms">remove</i></span><span><i class="ms">crop_square</i></span><span><i class="ms">close</i></span></div></div>
+    <div class="win-body">
+      <aside class="rail">
+        <div class="brand"><svg width="38" height="38"><use href="#logo"/></svg><div><div class="word">OpenBook</div><div class="sub">Installer</div></div></div>
+        <ol class="steps">
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Language</div></div></li>
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Hardware check</div></div></li>
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Try or install</div></div></li>
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Disk</div></div></li>
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Confirm</div></div></li>
+          <li class="done"><span class="dot"><i class="ms">check</i></span><div><div class="lbl">Install</div></div></li>
+          <li class="now"><span class="dot"><i class="ms" style="font-size:19px">celebration</i></span><div><div class="lbl">Done</div><div class="hint">Ready to restart</div></div></li>
+        </ol>
+        <div class="assure"><i class="ms">receipt_long</i><div>Install report saved on the stick and on the new system.</div></div>
+      </aside>
+      <div class="content">
+        <div class="done-wrap grow">
+          <div class="cookie">
+            <svg viewBox="0 0 200 200"><path fill="url(#ck)" d="M100 8 C112 8 118 18 129 21 C140 24 151 19 160 26 C169 33 168 45 174 55 C180 65 191 70 193 82 C195 94 186 102 186 114 C186 126 194 135 190 146 C186 157 174 160 166 169 C158 178 156 190 145 194 C134 198 124 190 112 191 C100 192 91 200 80 196 C69 192 66 180 56 173 C46 166 33 166 26 156 C19 146 23 134 19 123 C15 112 5 104 6 92 C7 80 18 74 22 63 C26 52 22 39 30 30 C38 21 51 23 61 17 C71 11 88 8 100 8 Z"/></svg>
+            <i class="ms">check</i>
+            <div class="confetti"><i style="left:-6px;top:30px;width:14px;height:14px;background:#FF9B7A;transform:rotate(20deg)"></i><i style="right:4px;top:-4px;width:10px;height:22px;background:#7E8CFF;transform:rotate(-25deg)"></i><i style="right:-14px;bottom:56px;width:14px;height:14px;border-radius:50%;background:#59C3A6"></i><i style="left:20px;bottom:-6px;width:20px;height:9px;background:#E58BB5;transform:rotate(-12deg)"></i><i style="left:-18px;top:120px;width:9px;height:9px;border-radius:50%;background:#C08BFF"></i></div>
+          </div>
+          <div>
+            <div class="eyebrow">ALL DONE</div>
+            <h2 class="headline" style="font-size:46px;line-height:54px">OpenBook is installed</h2>
+            <p class="lede">Remove the USB stick, then restart. Setup continues with Wi-Fi, your account and a screen lock.</p>
+            <ul class="sum">
+              <li><span class="ic"><i class="ms">verified</i></span><div><div class="t">Verified</div><div class="s">Every partition matches the image</div></div></li>
+              <li><span class="ic"><i class="ms">start</i></span><div><div class="t">Boot entry added</div><div class="s">"OpenBook" now starts this laptop</div></div></li>
+              <li><span class="ic"><i class="ms">receipt_long</i></span><div><div class="t">Report saved</div><div class="s">On the USB stick and on the new system</div></div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="actions"><span class="btn outlined push">Keep trying</span><span class="btn filled big"><i class="ms">restart_alt</i>Restart now</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="taskbar">
+    <div class="tb-left"><i class="ms" style="font-size:24px">apps</i></div>
+    <div class="apps"><span class="tb-app" style="background:#4A73E8"><i class="ms fill">folder</i></span><span class="tb-app" style="background:#1E9A8A"><i class="ms">public</i></span><span class="tb-app" style="background:#6B6E86"><i class="ms fill">settings</i></span><span class="tb-app active" style="background:#fff"><svg width="26" height="26"><use href="#logo"/></svg></span></div>
+    <div class="tb-right"><span class="live-chip"><i class="ms">usb</i>Live session</span><i class="ms">wifi</i><i class="ms">battery_charging_full</i>10:51</div>
+  </div>
+</section>
+<figcaption><b>7 · Done.</b> An expressive "cookie" shape for the finish, the read-back result, and one clear next action.</figcaption>
+</figure>
+
+<!-- ===================== BOOT ===================== -->
+<figure>
+<section class="artboard" data-id="boot" data-theme="dark">
+  <div class="boot">
+    <div>
+      <svg width="128" height="128" viewBox="0 0 48 48"><use href="#logo"/></svg>
+      <div class="word">OpenBook</div>
+      <svg class="load" viewBox="0 0 64 64"><circle cx="32" cy="32" r="24" fill="none" stroke="rgba(186,195,255,.18)" stroke-width="5"/>
+        <path d="M32 8 a24 24 0 0 1 22.8 16.6" fill="none" stroke="#BAC3FF" stroke-width="5" stroke-linecap="round"/></svg>
+    </div>
+    <div class="small">Starting from your USB stick</div>
+  </div>
+</section>
+<figcaption><b>Boot.</b> The boot menu stays hidden, so the laptop's own logo stays on screen until OpenBook's boot animation takes over (this frame). Hold a key at power-on to see the menu.</figcaption>
+</figure>
+
+</main>
+
+<script>
+  // ?screen=<id>[&theme=light|dark]: show one artboard at 1440x900 for rendering.
+  const q = new URLSearchParams(location.search);
+  const id = q.get("screen");
+  if (id) {
+    document.body.classList.add("single");
+    document.querySelectorAll("figure").forEach(f => {
+      const a = f.querySelector(".artboard");
+      f.hidden = a.dataset.id !== id;
+      if (!f.hidden && q.get("theme")) a.dataset.theme = q.get("theme");
+    });
+  }
+</script>
+</body>
+</html>

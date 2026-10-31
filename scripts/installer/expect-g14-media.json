@@ -1,0 +1,105 @@
+[
+ {
+  "wait": "init: init first stage started",
+  "timeout": 120
+ },
+ {
+  "wait": "init: init second stage started",
+  "timeout": 120
+ },
+ {
+  "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+  "timeout": 300
+ },
+ {
+  "send": "\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 dmesg -n 1\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "i=0; while [ \"$(getprop sys.boot_completed)\" != 1 ] && [ $i -lt 900 ]; do sleep 3; i=$((i+3)); done; echo BOOTDONE=$(getprop sys.boot_completed) uptime=$(cut -d' ' -f1 /proc/uptime)\n"
+ },
+ {
+  "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+  "timeout": 960
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "sleep 20\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===HEAP-BEGIN===; su 0 ls -l /dev/dma_heap/; su 0 grep -E '^(system_heap|efivarfs) ' /proc/modules; grep -w efivarfs /proc/filesystems; echo ===HEAP-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===CODEC2-BEGIN===; ps -A -o USER,PID,NAME | grep -iE 'swcodec|mediaserver|media.codec'; service list | grep -iE 'c2|codec'; echo ===CODEC2-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===DECODE-BEGIN===; f=/product/media/audio/ringtones/Atria.ogg; ls -l $f; rm -f /data/local/tmp/atria.pcm; timeout 120 stagefright -a -q -D /data/local/tmp/atria.pcm $f; echo stagefright_rc=$?; ls -l /data/local/tmp/atria.pcm; echo pcm_bytes=$(stat -c %s /data/local/tmp/atria.pcm 2>/dev/null || echo 0); echo ===DECODE-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 180
+ },
+ {
+  "send": "echo ===HEAPERR-BEGIN===; echo heap_errors=$(su 0 logcat -d -b all | grep -c 'Could not open DMA-BUF heap'); echo decoder_failures=$(su 0 logcat -d -b all | grep -c 'Failed to create .*decoder'); su 0 logcat -d -b all | grep -E 'Could not open DMA-BUF heap|Failed to create .*decoder|vorbis|CCodec.*(Allocat|component)|BufferAllocator' | tail -40; echo ===HEAPERR-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===EFIVARS-BEGIN===; su 0 mount -t efivarfs efivarfs /sys/firmware/efi/efivars; echo mount_rc=$?; grep efivarfs /proc/mounts; su 0 ls /sys/firmware/efi/efivars | grep -c .; su 0 ls /sys/firmware/efi/efivars | grep -E '^Boot(Order|Current|[0-9A-F]{4})-' | head -8; su 0 od -An -tx1 /sys/firmware/efi/efivars/BootOrder-8be4df61-93ca-11d2-aa0d-00e098032b8c; su 0 sh -c 'printf \"\\\\007\\\\000\\\\000\\\\000OpenBook\" > /sys/firmware/efi/efivars/OpenBookTest-a0a1b6a2-1b8f-4c3e-9d4d-0b0e0a198198'; echo write_rc=$?; su 0 od -An -c /sys/firmware/efi/efivars/OpenBookTest-a0a1b6a2-1b8f-4c3e-9d4d-0b0e0a198198; su 0 rm -f /sys/firmware/efi/efivars/OpenBookTest-a0a1b6a2-1b8f-4c3e-9d4d-0b0e0a198198; echo delete_rc=$?; su 0 ls /sys/firmware/efi/efivars/OpenBookTest-a0a1b6a2-1b8f-4c3e-9d4d-0b0e0a198198 2>&1 | head -1; echo enforcing_write_above_permissive_below; su 0 setenforce 0; su 0 sh -c 'printf \"\\\\007\\\\000\\\\000\\\\000OpenBook\" > /sys/firmware/efi/efivars/OpenBookTest2-a0a1b6a2-1b8f-4c3e-9d4d-0b0e0a198198'; echo pwrite_rc=$?; su 0 od -An -c /sys/firmware/efi/efivars/OpenBookTest2-a0a1b6a2-1b8f-4c3e-9d4d-0b0e0a198198; su 0 chattr -i /sys/firmware/efi/efivars/OpenBookTest2-a0a1b6a2-1b8f-4c3e-9d4d-0b0e0a198198; su 0 rm -f /sys/firmware/efi/efivars/OpenBookTest2-a0a1b6a2-1b8f-4c3e-9d4d-0b0e0a198198; echo pdelete_rc=$?; su 0 ls /sys/firmware/efi/efivars/OpenBookTest2-a0a1b6a2-1b8f-4c3e-9d4d-0b0e0a198198 2>&1 | head -1; su 0 setenforce 1; echo enforce=$(getenforce); su 0 umount /sys/firmware/efi/efivars; echo umount_rc=$?; echo ===EFIVARS-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 90
+ },
+ {
+  "send": "echo ===MODULES-BEGIN===; su 0 cat /proc/modules | wc -l; cat /proc/sys/kernel/tainted; uname -r; su 0 dmesg | grep -cE 'Unknown symbol|disagrees about version|module verification failed|Invalid module format'; echo ===MODULES-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===LOGCAT-BEGIN===; su 0 logcat -d -b all | gzip | base64; echo ===LOGCAT-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 300
+ },
+ {
+  "send": "echo ===DMESG-BEGIN===; su 0 dmesg | gzip | base64; echo ===DMESG-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 sync; su 0 reboot -p\n"
+ }
+]

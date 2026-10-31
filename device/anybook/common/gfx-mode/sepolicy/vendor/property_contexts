@@ -1,0 +1,2 @@
+vendor.openbook.gfx.           u:object_r:vendor_openbook_gfx_prop:s0 prefix string
+ro.vendor.openbook.gfx.        u:object_r:vendor_openbook_gfx_config_prop:s0 prefix string

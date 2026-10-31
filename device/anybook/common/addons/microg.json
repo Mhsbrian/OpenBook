@@ -1,0 +1,68 @@
+{
+  "schema": "openbook-addon/1",
+  "name": "microg",
+  "title": "Google services compatibility (microG)",
+  "version": "0.3.17.252432",
+  "licence": "Apache-2.0",
+  "homepage": "https://microg.org",
+  "gpg_fingerprint": "22F796D6E62E6625A0BCEFEA7F979A66F3E08422",
+  "files": [
+    {
+      "file": "com.google.android.gms-252432034.apk",
+      "package": "com.google.android.gms",
+      "version_code": 252432034,
+      "label": "microG Services 0.3.17.252432",
+      "sha256": "e5e6cba078bdec812b5450599350e5c1a12c8b7438da5bf77123af170f8c1a35",
+      "bytes": 108113833,
+      "cert_sha256": "9bd06727e62796c0130eb6dab39b73157451582cbd138e86c468acc395d14165",
+      "url": "https://github.com/microg/GmsCore/releases/download/v0.3.17.252432/com.google.android.gms-252432034.apk",
+      "source": "https://github.com/microg/GmsCore/tree/v0.3.17.252432",
+      "gpg": true,
+      "grant": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.GET_ACCOUNTS",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.READ_PHONE_STATE",
+        "android.permission.RECEIVE_SMS",
+        "android.permission.INTERACT_ACROSS_USERS"
+      ],
+      "appops": ["SYSTEM_ALERT_WINDOW"],
+      "power_allowlist": true
+    },
+    {
+      "file": "com.android.vending-84022634.apk",
+      "package": "com.android.vending",
+      "version_code": 84022634,
+      "label": "microG Companion 0.3.17.40226",
+      "sha256": "9b8616011cc8f026bcbbe094df850794abb9d6d9f23214d7a8f8c4d1033ea012",
+      "bytes": 4210169,
+      "cert_sha256": "9bd06727e62796c0130eb6dab39b73157451582cbd138e86c468acc395d14165",
+      "url": "https://github.com/microg/GmsCore/releases/download/v0.3.17.252432/com.android.vending-84022634.apk",
+      "source": "https://github.com/microg/GmsCore/tree/v0.3.17.252432/vending-app",
+      "gpg": true,
+      "grant": ["android.permission.POST_NOTIFICATIONS"],
+      "appops": [],
+      "power_allowlist": false
+    },
+    {
+      "file": "com.google.android.gsf-8.apk",
+      "package": "com.google.android.gsf",
+      "version_code": 8,
+      "label": "microG Services Framework Proxy v0.1.0",
+      "sha256": "86891b174301f06a1c84187b545a0a2a57044c6b768f3e84e865908743349692",
+      "bytes": 21872,
+      "cert_sha256": "9bd06727e62796c0130eb6dab39b73157451582cbd138e86c468acc395d14165",
+      "url": "https://github.com/microg/GsfProxy/releases/download/v0.1.0/GsfProxy.apk",
+      "source": "https://github.com/microg/GsfProxy/tree/v0.1.0",
+      "gpg": false,
+      "bypass_low_target_sdk": true,
+      "grant": [],
+      "appops": [],
+      "power_allowlist": false
+    }
+  ]
+}

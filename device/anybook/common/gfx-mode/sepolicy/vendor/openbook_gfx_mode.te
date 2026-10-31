@@ -1,0 +1,44 @@
+# openbook-gfx-mode (ANAL-246, docs/nvidia-graphics-modes.md §4 and §8): the graphics-mode switcher. init runs it
+# as root at early init (boot), on the composer's first frame, at boot completion, for the app's and adb's
+# requests, and as the Ultimate watchdog. Only this domain may write the firmware's GPU switches.
+type openbook_gfx_mode, domain;
+type openbook_gfx_mode_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(openbook_gfx_mode)
+
+# The firmware switches (genfs_contexts): gpu_mux_mode, dgpu_disable, egpu_enable, and the PCI rescan that the
+# kernel says enabling the dGPU may need.
+type sysfs_openbook_gfx_fw, sysfs_type, fs_type;
+allow openbook_gfx_mode sysfs_openbook_gfx_fw:file rw_file_perms;
+
+# Its record: /metadata/openbook/gfx (state, history, lock), which first-stage init mounts before early init.
+type openbook_gfx_metadata_file, file_type;
+allow openbook_gfx_mode metadata_file:dir { search getattr write add_name };
+type_transition openbook_gfx_mode metadata_file:dir openbook_gfx_metadata_file "openbook";
+allow openbook_gfx_mode openbook_gfx_metadata_file:dir create_dir_perms;
+allow openbook_gfx_mode openbook_gfx_metadata_file:file { create_file_perms rename unlink };
+
+# The selector's inputs, read for frame reports and status: DRM cards and connectors, PCI functions, the board.
+r_dir_file(openbook_gfx_mode, sysfs)
+r_dir_file(openbook_gfx_mode, sysfs_gpu)
+# The recovery entry: openbook.gfx=restore-hybrid on the kernel command line.
+allow openbook_gfx_mode proc_cmdline:file r_file_perms;
+# The stack manifest, and the stack files it names (stat only).
+allow openbook_gfx_mode vendor_configs_file:file r_file_perms;
+allow openbook_gfx_mode vendor_configs_file:dir r_dir_perms;
+allow openbook_gfx_mode { vendor_file same_process_hal_file vendor_kernel_modules }:file getattr;
+allow openbook_gfx_mode { vendor_file vendor_kernel_modules }:dir search;
+
+# Its state for the app, the selector and init (vendor.openbook.gfx.*); restarts after a rollback (sys.powerctl).
+set_prop(openbook_gfx_mode, vendor_openbook_gfx_prop)
+set_prop(openbook_gfx_mode, powerctl_prop)
+# ro.vendor.openbook.gfx.* (firmware writes, deadlines) and the lab switch (persist.vendor.openbook.lab).
+get_prop(openbook_gfx_mode, vendor_openbook_gfx_config_prop)
+get_prop(openbook_gfx_mode, vendor_openbook_prop)
+
+# Early init logs to the kernel log (stdio_to_kmsg); later commands also to logd.
+allow openbook_gfx_mode kmsg_device:chr_file w_file_perms;
+userdebug_or_eng(`allow openbook_gfx_mode kmsg_debug_device:chr_file { getattr ioctl w_file_perms };')
+
+# Nobody else writes the GPU switches. init and vendor_init write any sysfs file by AOSP's own rules (and no
+# OpenBook .rc file names these); ueventd only applies its permissions.
+neverallow { domain -openbook_gfx_mode -init -vendor_init -ueventd } sysfs_openbook_gfx_fw:file { write append };

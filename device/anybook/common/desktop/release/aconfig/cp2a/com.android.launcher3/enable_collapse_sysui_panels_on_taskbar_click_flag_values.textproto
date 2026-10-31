@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 3: a taskbar click collapses an open notification shade
+flag_value {
+  package: "com.android.launcher3"
+  name: "enable_collapse_sysui_panels_on_taskbar_click"
+  state: ENABLED
+  permission: READ_ONLY
+}

@@ -1,0 +1,6 @@
+# Unprivileged toolbox for inspecting Android/Googlebook disk images (no host sudo needed).
+FROM archlinux:latest
+RUN pacman -Syu --noconfirm --needed android-tools erofs-utils e2fsprogs binutils python \
+      lz4 xz zstd cpio file rust gcc git && pacman -Scc --noconfirm
+RUN cargo install --root /usr/local elfx86exts
+WORKDIR /w

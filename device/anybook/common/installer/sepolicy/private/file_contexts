@@ -1,0 +1,16 @@
+/(system_ext|system/system_ext)/bin/openbook-install   u:object_r:openbook_installd_exec:s0
+/dev/socket/openbook_installd                          u:object_r:openbook_installd_socket:s0
+/data/misc/openbook_install(/.*)?                      u:object_r:openbook_install_data_file:s0
+# Whole disks only (never a partition): USB and SATA (sdX), NVMe namespaces, eMMC, virtio.
+/dev/block/(sd[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+|vd[a-z]+)  -b  u:object_r:openbook_disk_block_device:s0
+
+# Disk identity for the installer's disk list and /dev/disk/by-id names (vold reads the SCSI vendor too): a whole
+# disk's WWN or virtio serial, an NVMe controller's model and serial, a SCSI device's vendor, model, WWN and unit
+# serial page, a USB device's vendor ID and serial, an MMC card's name and serial. ueventd labels them when the
+# device appears. And the machine's DMI names (not its serial numbers).
+/sys/devices/.*/(block/(sd[a-z]+|mmcblk[0-9]+|vd[a-z]+)|nvme[0-9]+n[0-9]+)/(wwid|serial)  u:object_r:sysfs_openbook_installer:s0
+/sys/devices/.*/nvme/nvme[0-9]+/(model|serial)                                             u:object_r:sysfs_openbook_installer:s0
+/sys/devices/.*/[0-9]+:[0-9]+:[0-9]+:[0-9]+/(vendor|model|wwid|vpd_pg80)                    u:object_r:sysfs_openbook_installer:s0
+/sys/devices/.*/usb[0-9]+(/[0-9]+-[0-9.]+)+/(idVendor|serial)                               u:object_r:sysfs_openbook_installer:s0
+/sys/devices/.*/mmc_host/mmc[0-9]+/mmc[0-9]+:[0-9a-f]+/(name|serial)                        u:object_r:sysfs_openbook_installer:s0
+/sys/devices/virtual/dmi/id/(sys_vendor|product_name|product_family|board_name|board_vendor|bios_version)  u:object_r:sysfs_openbook_installer:s0

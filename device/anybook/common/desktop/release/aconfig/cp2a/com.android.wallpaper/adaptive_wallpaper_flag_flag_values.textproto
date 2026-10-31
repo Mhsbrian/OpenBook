@@ -1,0 +1,7 @@
+# Declared in packages/apps/WallpaperPicker2/aconfig/customization_picker.aconfig
+flag_value {
+  package: "com.android.wallpaper"
+  name: "adaptive_wallpaper_flag"
+  state: ENABLED
+  permission: READ_ONLY
+}

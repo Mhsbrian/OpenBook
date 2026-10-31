@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  The device has a contextual search app (Quire, config_defaultContextualSearchPackageName). Launcher3's
+  ContextualSearchInvoker refuses to invoke contextual search without this feature; the name is AOSP's own
+  (ContextualSearchManager.FEATURE_CONTEXTUAL_SEARCH).
+-->
+<permissions>
+    <feature name="com.google.android.feature.CONTEXTUAL_SEARCH" />
+</permissions>

@@ -1,0 +1,116 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenBook <noreply@anybook.invalid>
+Date: Fri, 16 Oct 2026 21:26:19 -0400
+Subject: [PATCH] OPENBOOK: audio: primary module's ALSA card and device from
+ properties
+
+The example HAL's primary module plays and records on ALSA card 0, device 0,
+unless a device port's address names another one (CARD_x_DEV_y). On a PC the
+built-in codec's card number depends on which HDA controllers enumerate first
+(on the ASUS GA403WR the ALC285 is card 1 or 2, after the HDMI controllers),
+so a fixed address in the policy configuration cannot name it.
+
+Read vendor.audio.primary.card and vendor.audio.primary.device instead of the
+constants, both for streams and for the mixer. Card -1 selects the stub
+driver, for machines without a built-in sound card. Unset, they keep the old
+behaviour (card 0, device 0).
+
+Bug: ANAL-179
+Change-Id: Id4a87c11873817d5805d9bfbbe4bdfa16f789881
+---
+ .../aidl/default/include/core-impl/StreamPrimary.h  |  5 +++--
+ audio/aidl/default/primary/PrimaryMixer.cpp         | 13 +++++++++++++
+ audio/aidl/default/primary/PrimaryMixer.h           | 10 +++++++++-
+ audio/aidl/default/primary/StreamPrimary.cpp        |  4 ++--
+ 4 files changed, 27 insertions(+), 5 deletions(-)
+
+diff --git a/audio/aidl/default/include/core-impl/StreamPrimary.h b/audio/aidl/default/include/core-impl/StreamPrimary.h
+index 87dcc3b166..90ed71eca8 100644
+--- a/audio/aidl/default/include/core-impl/StreamPrimary.h
++++ b/audio/aidl/default/include/core-impl/StreamPrimary.h
+@@ -58,8 +58,9 @@ class StreamPrimary : public StreamAlsaMonoPipe {
+   private:
+     using AlsaDeviceId = std::pair<int, int>;
+ 
+-    static constexpr StreamPrimary::AlsaDeviceId kDefaultCardAndDeviceId{
+-            primary::PrimaryMixer::kAlsaCard, primary::PrimaryMixer::kAlsaDevice};
++    static AlsaDeviceId getDefaultCardAndDeviceId() {
++        return {primary::PrimaryMixer::getAlsaCard(), primary::PrimaryMixer::getAlsaDevice()};
++    }
+     static constexpr StreamPrimary::AlsaDeviceId kStubDeviceId{
+             primary::PrimaryMixer::kInvalidAlsaCard, primary::PrimaryMixer::kInvalidAlsaDevice};
+ 
+diff --git a/audio/aidl/default/primary/PrimaryMixer.cpp b/audio/aidl/default/primary/PrimaryMixer.cpp
+index 577d010f20..0558c0a4bd 100644
+--- a/audio/aidl/default/primary/PrimaryMixer.cpp
++++ b/audio/aidl/default/primary/PrimaryMixer.cpp
+@@ -16,10 +16,23 @@
+ 
+ #define LOG_TAG "AHAL_PrimaryMixer"
+ 
++#include <android-base/properties.h>
++
+ #include "PrimaryMixer.h"
+ 
+ namespace aidl::android::hardware::audio::core::primary {
+ 
++// static
++int PrimaryMixer::getAlsaCard() {
++    return ::android::base::GetIntProperty("vendor.audio.primary.card", kAlsaCard, kInvalidAlsaCard);
++}
++
++// static
++int PrimaryMixer::getAlsaDevice() {
++    if (getAlsaCard() == kInvalidAlsaCard) return kInvalidAlsaDevice;
++    return ::android::base::GetIntProperty("vendor.audio.primary.device", kAlsaDevice, 0);
++}
++
+ // static
+ PrimaryMixer& PrimaryMixer::getInstance() {
+     static PrimaryMixer gInstance;
+diff --git a/audio/aidl/default/primary/PrimaryMixer.h b/audio/aidl/default/primary/PrimaryMixer.h
+index 760d42f362..7451e419dd 100644
+--- a/audio/aidl/default/primary/PrimaryMixer.h
++++ b/audio/aidl/default/primary/PrimaryMixer.h
+@@ -27,10 +27,18 @@ class PrimaryMixer : public alsa::Mixer {
+     static constexpr int kAlsaCard = 0;
+     static constexpr int kAlsaDevice = 0;
+ 
++    // The ALSA card and PCM device of the primary module's attached devices (those whose address carries no
++    // "CARD_x_DEV_y"): kAlsaCard and kAlsaDevice, unless the vendor.audio.primary.card and
++    // vendor.audio.primary.device properties say otherwise. A device sets them before the HAL starts when its
++    // built-in codec is not card 0, e.g. a PC whose HDMI controllers enumerate first. Card -1 means there is no
++    // such card (a VM without sound): the streams then run on the stub driver.
++    static int getAlsaCard();
++    static int getAlsaDevice();
++
+     static PrimaryMixer& getInstance();
+ 
+   private:
+-    PrimaryMixer() : alsa::Mixer(kAlsaCard) {}
++    PrimaryMixer() : alsa::Mixer(getAlsaCard()) {}
+ };
+ 
+ }  // namespace aidl::android::hardware::audio::core::primary
+diff --git a/audio/aidl/default/primary/StreamPrimary.cpp b/audio/aidl/default/primary/StreamPrimary.cpp
+index ac0d3020c7..2513911615 100644
+--- a/audio/aidl/default/primary/StreamPrimary.cpp
++++ b/audio/aidl/default/primary/StreamPrimary.cpp
+@@ -178,7 +178,7 @@ bool StreamPrimary::isStubStream() {
+ StreamPrimary::AlsaDeviceId StreamPrimary::getCardAndDeviceId(
+         const std::vector<AudioDevice>& devices) {
+     if (devices.empty() || devices[0].address.getTag() != AudioDeviceAddress::id) {
+-        return kDefaultCardAndDeviceId;
++        return getDefaultCardAndDeviceId();
+     }
+     std::string deviceAddress = devices[0].address.get<AudioDeviceAddress::id>();
+     AlsaDeviceId cardAndDeviceId;
+@@ -186,7 +186,7 @@ StreamPrimary::AlsaDeviceId StreamPrimary::getCardAndDeviceId(
+         suffixPos == std::string::npos ||
+         sscanf(deviceAddress.c_str() + suffixPos, "CARD_%d_DEV_%d", &cardAndDeviceId.first,
+                &cardAndDeviceId.second) != 2) {
+-        return kDefaultCardAndDeviceId;
++        return getDefaultCardAndDeviceId();
+     }
+     LOG(DEBUG) << __func__ << ": parsed with card id " << cardAndDeviceId.first << ", device id "
+                << cardAndDeviceId.second;

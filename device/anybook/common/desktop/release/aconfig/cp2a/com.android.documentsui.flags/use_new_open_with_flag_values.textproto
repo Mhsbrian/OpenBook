@@ -1,0 +1,7 @@
+# Declared in packages/apps/DocumentsUI/flags.aconfig
+flag_value {
+  package: "com.android.documentsui.flags"
+  name: "use_new_open_with"
+  state: ENABLED
+  permission: READ_ONLY
+}

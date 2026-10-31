@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AnyBook (ANAL-181): pin the DigitalisX64 projects and fetch them over https.
+     Upstream digitalis.xml (manifest 3969040d) uses git@github.com: (needs an SSH key) and floating branches.
+     Revisions are the branch heads on 2026-10-16. scripts/compat/digitalis/sync.sh installs this file as
+     .repo/local_manifests/digitalis-pinned.xml.
+     sample_hello_digitalis (the Gradle sample suite, ce9aa116) is removed and not re-added: it uses git-LFS,
+     which breaks `repo` checkout in the build container, and the image build doesn't use it. -->
+<manifest>
+  <remote name="digitalis-https" fetch="https://github.com/DigitalisX64" />
+
+  <remove-project name="device_generic_goldfish" />
+  <remove-project name="digitalis" />
+  <remove-project name="platform_frameworks_libs_binary_translation" />
+  <remove-project name="sample_hello_digitalis" />
+
+  <project path="device/generic/goldfish" name="device_generic_goldfish" remote="digitalis-https"
+           revision="bbc2f1e4237016e744be8de59b7b6b310f2cc242" upstream="android-latest-release" />
+  <project path="digitalis" name="digitalis" remote="digitalis-https"
+           revision="11062cb09097c47a7d2b9ee292aa05626a821f10" upstream="android-latest-release" />
+  <project path="frameworks/libs/binary_translation" name="platform_frameworks_libs_binary_translation"
+           remote="digitalis-https"
+           revision="b6b7fc30f5e1cb2d2b9b465e3fdaa905616c31dc" upstream="android-latest-release" />
+</manifest>

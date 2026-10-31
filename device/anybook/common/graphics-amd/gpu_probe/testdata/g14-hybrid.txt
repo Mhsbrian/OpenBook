@@ -1,0 +1,8 @@
+# GA403WR in Hybrid on Ruby (synthetic, ANAL-246): g14-ga403wr.txt's amdgpu card1 with its connectors (eDP-1
+# connected; two of the 890M's eight DP connectors shown) and render node, and the dGPU at 64:00.0 with no driver
+# (D3cold, as on RB-20261025-01).
+fw mux=1 dgpu=0
+drm card1 driver=amdgpu pci=0000:65:00.0 vendor=0x1002 device=0x150e class=0x038000 conn=DP-1:disconnected,DP-2:disconnected,eDP-1:connected
+render renderD128 driver=amdgpu pci=0000:65:00.0 vendor=0x1002 device=0x150e class=0x038000
+pci 0000:64:00.0 driver=- vendor=0x10de device=0x2f58 class=0x030000
+pci 0000:65:00.0 driver=amdgpu vendor=0x1002 device=0x150e class=0x038000

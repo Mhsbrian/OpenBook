@@ -1,0 +1,94 @@
+[
+ {
+  "wait": "openbook-live: exec /init",
+  "timeout": 180
+ },
+ {
+  "wait": "init: init first stage started",
+  "timeout": 60
+ },
+ {
+  "wait": "init: init second stage started",
+  "timeout": 120
+ },
+ {
+  "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+  "timeout": 300
+ },
+ {
+  "send": "\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 dmesg -n 1\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "i=0; while [ \"$(getprop sys.boot_completed)\" != 1 ] && [ $i -lt 600 ]; do sleep 3; i=$((i+3)); done; echo BOOTDONE=$(getprop sys.boot_completed) uptime=$(cut -d' ' -f1 /proc/uptime)\n"
+ },
+ {
+  "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+  "timeout": 660
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "sleep 60\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 90
+ },
+ {
+  "send": "echo ===DEFAULTS-BEGIN===; echo qsb_path=[$(pm path com.android.quicksearchbox)]; echo global_search=$(cmd package query-activities --brief -a android.search.action.GLOBAL_SEARCH | grep -c /); echo partner=$(cmd package query-receivers --brief -a com.android.launcher3.action.PARTNER_CUSTOMIZATION | grep /); echo sound_effects_enabled=$(settings get system sound_effects_enabled); echo lockscreen_sounds_enabled=$(settings get system lockscreen_sounds_enabled); echo latin_config_default_sound_enabled=$(cmd overlay lookup com.android.inputmethod.latin com.android.inputmethod.latin:bool/config_default_sound_enabled); echo flag=$(su 0 aflags list | grep -F com.android.systemui.screenshot_remove_nonforced_sound); echo camera_features=$(pm list features | grep -cE 'feature:android.hardware.camera(\\.front|\\.external)?$'); echo camera_launcher_entries=$(cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER | grep -c com.android.camera2); echo qsb_widget_lines=$(dumpsys appwidget | grep -c quicksearchbox); dumpsys activity service com.android.launcher3/com.android.quickstep.TouchInteractionService | grep -m1 -o 'shownHotseatItems=\\[[^]]*\\]'; cmd overlay list | grep -F dev.anybook; echo crash_lines=$(su 0 logcat -d -b crash | grep -c .); echo ===DEFAULTS-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "am force-stop org.openbook.installer; sleep 5\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "shot": "desktop"
+ },
+ {
+  "send": "input keyevent KEYCODE_ALL_APPS; sleep 5\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "shot": "all-apps"
+ },
+ {
+  "send": "input keyevent KEYCODE_ESCAPE; sleep 2\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===LOGCAT-BEGIN===; su 0 logcat -d -b all | gzip | base64; echo ===LOGCAT-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 300
+ },
+ {
+  "send": "su 0 sync; su 0 reboot -p\n"
+ }
+]

@@ -1,0 +1,22 @@
+#!/bin/busybox sh
+# Throwaway QEMU guest for openbook_lid_guard (ANAL-235): baseline, guarded, unloaded.
+/bin/busybox --install -s /bin
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t tmpfs tmpfs /dev
+mdev -s
+echo "== kernel $(uname -r)"
+if [ -e /sys/bus/acpi/devices/PNP0C0D:00 ]; then MODE=acpilid; else MODE=virtual; fi
+echo "== scenario $MODE"
+/lidtest baseline $MODE
+mdev -s
+insmod /openbook_lid_guard.ko && echo "== module loaded"
+mdev -s
+/lidtest guarded $MODE
+echo "COUNTERS dropped_wakeups=$(cat /sys/module/openbook_lid_guard/parameters/dropped_wakeups) lid_corrections=$(cat /sys/module/openbook_lid_guard/parameters/lid_corrections)"
+dmesg | grep openbook_lid_guard | sed 's/^/KLOG /'
+rmmod openbook_lid_guard && echo "== module unloaded"
+mdev -s
+/lidtest unloaded $MODE
+echo "== done"
+poweroff -f

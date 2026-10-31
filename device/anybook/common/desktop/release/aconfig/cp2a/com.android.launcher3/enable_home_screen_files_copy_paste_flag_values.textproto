@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 3: copy/paste for files on the home screen (we ship show_files_on_home_screen)
+flag_value {
+  package: "com.android.launcher3"
+  name: "enable_home_screen_files_copy_paste"
+  state: ENABLED
+  permission: READ_ONLY
+}

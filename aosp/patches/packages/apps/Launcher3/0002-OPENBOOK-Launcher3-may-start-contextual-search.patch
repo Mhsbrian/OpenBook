@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenBook <noreply@anybook.invalid>
+Date: Sun, 18 Oct 2026 12:00:00 +0000
+Subject: [PATCH] OPENBOOK: Launcher3 may start contextual search
+
+ContextualSearchInvoker calls ContextualSearchManager.startContextualSearch()
+for the pointer shake (SystemUI's contextual cursor), Meta+A and Meta+G, all
+of which SystemUI hands to Launcher3 through invokeContextualSearch(). The
+service requires ACCESS_CONTEXTUAL_SEARCH (signature|privileged), which
+AOSP's Launcher3QuickStep does not request, so every such call failed:
+
+  SecurityException: Permission Denial: Cannot call startContextualSearch
+  from pid=0, uid=10092
+
+Request it. Launcher3QuickStep is not platform-signed, so the device's
+privapp allowlist must grant it too (OpenBook does, next to its contextual
+search app).
+---
+ quickstep/AndroidManifest.xml | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/quickstep/AndroidManifest.xml b/quickstep/AndroidManifest.xml
+index 789e0a5263..7c07a4dc41 100644
+--- a/quickstep/AndroidManifest.xml
++++ b/quickstep/AndroidManifest.xml
+@@ -59,6 +59,9 @@
+     -->
+     <uses-permission android:name="android.permission.ACCESS_HIDDEN_PROFILES_FULL" />
+ 
++    <!-- Start contextual search: the pointer shake, Meta+A and Meta+G (OPENBOOK). -->
++    <uses-permission android:name="android.permission.ACCESS_CONTEXTUAL_SEARCH" />
++
+     <!-- Permission required to listen to recent, all app key gestures. -->
+     <uses-permission android:name="android.permission.MANAGE_KEY_GESTURES"
+         android:featureFlag="com.android.window.flags.grant_manage_key_gestures_to_recents" />

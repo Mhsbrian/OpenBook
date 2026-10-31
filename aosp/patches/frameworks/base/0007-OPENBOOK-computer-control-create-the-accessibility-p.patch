@@ -1,0 +1,49 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenBook <noreply@anybook.invalid>
+Date: Sun, 18 Oct 2026 12:00:00 +0000
+Subject: [PATCH] OPENBOOK: computer control: create the accessibility proxy
+ before initialize()
+
+ComputerControlSession's constructor called IComputerControlSession
+.initialize() and only then created mAccessibilityProxy. The server
+answers initialize() with IComputerControlLifecycleCallback.onActive()
+on a binder thread right away, and onActive() registers that proxy with
+AccessibilityManager. It was still null:
+
+  java.lang.NullPointerException: Attempt to read from field
+  '...AccessibilityDisplayProxy.mServiceClient' on a null object reference
+    at AccessibilityManager.registerDisplayProxy(AccessibilityManager.java:2259)
+    at ComputerControlSession$CallbackProxy$1.registerDisplayProxy(...)
+
+(caught by Binder, so the session went on), and getAccessibilityWindows()
+returned no windows for the whole session: the agent could not read the
+apps it was automating. Seen in Cuttlefish with OpenBook's assistant,
+Quire (ANAL-216).
+
+Create the proxy first. It needs only the display id and the handler.
+---
+ .../virtual/computercontrol/ComputerControlSession.java     | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/core/java/android/companion/virtual/computercontrol/ComputerControlSession.java b/core/java/android/companion/virtual/computercontrol/ComputerControlSession.java
+index e1abf841b0b7..02c4743de902 100644
+--- a/core/java/android/companion/virtual/computercontrol/ComputerControlSession.java
++++ b/core/java/android/companion/virtual/computercontrol/ComputerControlSession.java
+@@ -355,13 +355,15 @@ public final class ComputerControlSession implements AutoCloseable {
+                 displayInfo.logicalHeight,
+                 PixelFormat.RGBA_8888, /* maxImages= */ 2);
+         mImageReader.setOnImageAvailableListener(reader -> onImageAvailable(), mHandler);
++        // OPENBOOK: before initialize(), which makes the server call onActive() on a binder
++        // thread at once; onActive() registers this proxy, and found it still null.
++        mAccessibilityProxy = new ComputerControlAccessibilityProxy(displayId, mHandler);
++
+         try {
+             mSession.initialize(mRemoteLifecycleCallback, mImageReader.getSurface());
+         } catch (RemoteException e) {
+             e.rethrowFromSystemServer();
+         }
+-
+-        mAccessibilityProxy = new ComputerControlAccessibilityProxy(displayId, mHandler);
+     }
+ 
+     /**

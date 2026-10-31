@@ -1,0 +1,49 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// OpenBook's own look and sound (ANAL-207): the pointer theme and the UI sounds' defaults. The art itself (and its
+// generators) lives in assets/ at the top of the repo; the files here are links to it, which aosp-build.sh copies
+// into the tree. branding.mk installs the boot animation and the sound files; the default wallpaper is in
+// AnyBookDesktopFrameworkOverlay and the wallpaper set in AnyBookDesktopPartnerCustomization (../desktop).
+
+package {
+    default_applicable_licenses: ["device_anybook_branding_license"],
+}
+
+// The art: CC-BY-4.0 (assets/LICENSE). This file and the overlays' XML wiring: Apache-2.0.
+license {
+    name: "device_anybook_branding_license",
+    visibility: [":__subpackages__"],
+    license_kinds: [
+        "SPDX-license-identifier-Apache-2.0",
+        "SPDX-license-identifier-CC-BY-4.0",
+    ],
+    license_text: ["LICENSE"],
+}
+
+// OpenBook's pointer shapes on Android 17's vector pointer icons (scripts/brand/pointers.py). They keep the
+// accessibility fill and stroke styles. Android applies the user's choice as the styles PointerIconVectorStyleFill*
+// and PointerIconVectorStyleStroke*, which set private framework attributes. aapt2 does not let an overlay's XML refer
+// to another package's private attribute, but it does accept one as a style item name (*android:...). So this
+// overlay also replaces those nine styles: each keeps AOSP's items (for the icons we don't replace, such as the wait
+// spinner, and for Settings' colour swatches) and adds the same colour under openbookPointerFill or
+// openbookPointerStroke, the overlay's own attributes, which our vectors use. Only the vectors are replaced; the
+// hotspots stay in AOSP's pointer-icon files.
+runtime_resource_overlay {
+    name: "OpenBookPointerOverlay",
+    manifest: "pointer/AndroidManifest.xml",
+    resource_dirs: ["pointer/res"],
+    product_specific: true,
+    // No sdk_version: the private attributes are only in framework-res itself, not in the SDK stubs.
+}
+
+// The UI sounds Android plays on a laptop (lock, unlock, trusted device, low battery, charging) point at
+// OpenBook's set in /product/media/audio/ui. Read when the settings database is created (first boot).
+// Whether touch, lock and charging sounds play at all is AnyBookDesktopSettingsProviderOverlay's (ANAL-206).
+runtime_resource_overlay {
+    name: "OpenBookSoundsSettingsProviderOverlay",
+    manifest: "sounds/AndroidManifest.xml",
+    resource_dirs: ["sounds/res"],
+    product_specific: true,
+    sdk_version: "current",
+}

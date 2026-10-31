@@ -1,0 +1,11 @@
+# Written by anybook_gpu_probe at early-init, read by init (init.anybook.graphics-amd.rc).
+vendor.anybook.gpu.                    u:object_r:vendor_anybook_gpu_prop:s0 prefix string
+# Driver options looked up by every process that renders or maps graphics buffers: Mesa (debug.mesa.*, then
+# vendor.mesa.*, then mesa.*; src/util/os_misc.c) and minigbm (vendor.minigbm.debug; drv.c). Unlabelled they are
+# vendor_default_prop, which platform processes may not read.
+vendor.mesa.                           u:object_r:vendor_graphics_option_prop:s0 prefix string
+vendor.minigbm.                        u:object_r:vendor_graphics_option_prop:s0 prefix string
+# ANAL-246: the selector's pins (anybook_gpu_probe --pin) and the composer's first-frame report.
+vendor.hwc.drm.device                  u:object_r:vendor_anybook_gpu_pin_prop:s0 exact string
+vendor.minigbm.render_node             u:object_r:vendor_anybook_gpu_pin_prop:s0 exact string
+vendor.hwc.openbook.first_present      u:object_r:vendor_anybook_hwc_report_prop:s0 exact string

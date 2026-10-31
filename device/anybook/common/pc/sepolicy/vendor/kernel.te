@@ -1,0 +1,18 @@
+# firmware_class.path=/vendor/firmware: the kernel reads firmware itself, with its own credentials, during driver
+# probe (amdgpu, mt7925e, cs35l56, amdxdna). ueventd's sysfs fallback reads the same files.
+allow kernel openbook_vendor_fw_file:dir r_dir_perms;
+allow kernel openbook_vendor_fw_file:file r_file_perms;
+# Since 6.x the kernel also checks system { firmware_load } against the firmware file's own label when it reads a
+# file directly. AOSP only allows it for kernel self (ueventd's sysfs fallback). Without this, the enforcing
+# entries got no amdgpu (psp_14_0_0_toc.bin) and no MT7925 firmware, so no display at all: the black screen of
+# every enforcing G14 boot, while permissive boots only logged it (ANAL-176, live-001/002 kernel logs).
+allow kernel openbook_vendor_fw_file:system firmware_load;
+allow ueventd openbook_vendor_fw_file:dir r_dir_perms;
+allow ueventd openbook_vendor_fw_file:file r_file_perms;
+# NVIDIA's open driver (ANAL-297) probes the GPU in a kernel thread (nv-probe-<bdf>), which opens the GPU's PCI config
+# file in sysfs (sysfs_gpu, file_contexts) and keeps it open to drive runtime D3. Denied, the open fails quietly,
+# nv_dynamic_power_available() is false and the dGPU never leaves D0 (seen on the G14, ANAL-299, 2026-10-26).
+allow kernel sysfs_gpu:file r_file_perms;
+# The same thread allocates RM's internal client, and RM asks capable(CAP_PERFMON) only to decide whether that client
+# also gets profiling rights, which it does not need: not audited rather than granted, as for vendor_modprobe.
+dontaudit kernel self:capability2 perfmon;

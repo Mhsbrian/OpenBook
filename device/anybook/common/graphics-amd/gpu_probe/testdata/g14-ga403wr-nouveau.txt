@@ -1,0 +1,6 @@
+# GA403WR in Hybrid with nouveau bound to the dGPU (ANAL-239): synthetic, from g14-ga403wr.txt plus the dGPU at
+# 64:00.0 (10de:2f58, ANAL-189) as nouveau's card1, which loads after amdgpu. The 890M must stay the graphics HAL.
+drm card0 driver=amdgpu pci=0000:65:00.0 vendor=0x1002 device=0x150e class=0x038000
+drm card1 driver=nouveau pci=0000:64:00.0 vendor=0x10de device=0x2f58 class=0x030000
+pci 0000:64:00.0 driver=nouveau vendor=0x10de device=0x2f58 class=0x030000
+pci 0000:65:00.0 driver=amdgpu vendor=0x1002 device=0x150e class=0x038000

@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: "AnyBook (ANAL-297)" <noreply@anybook.invalid>
+Date: Mon, 26 Oct 2026 00:00:00 +0000
+Subject: [PATCH] TEST ONLY: stay loaded without an NVIDIA GPU (QEMU check)
+
+Never shipped. scripts/kernel-nvidia-open-qemu-variant.sh builds nvidia.ko with this for the QEMU check (scripts/nvidia-open-guest-check.sh), which has no NVIDIA GPU: nvidia.ko then registers its character devices and device nodes as it does with an NVSwitch present, the shipped nvidia-modeset.ko and nvidia-drm.ko load on top, and the first ioctls run.
+---
+ kernel-open/nvidia/nv.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/kernel-open/nvidia/nv.c b/kernel-open/nvidia/nv.c
+index 850be3c..a429e31 100644
+--- a/kernel-open/nvidia/nv.c
++++ b/kernel-open/nvidia/nv.c
+@@ -1035,7 +1035,12 @@ static int __init nvidia_init_module(void)
+     NvU32 count;
+     NvBool warn_unprobed = NV_FALSE;
+     nvidia_stack_t *sp = NULL;
+-    const NvBool is_nvswitch_present = os_is_nvswitch_present();
++    /*
++     * AnyBook QEMU test build only, never shipped (kernel/patches/nvidia-open/test): stay loaded without an NVIDIA
++     * GPU, as NVIDIA's own code does when an NVSwitch is present, so that the QEMU check can load the shipped
++     * nvidia-modeset.ko and nvidia-drm.ko on top and issue the first ioctls.
++     */
++    const NvBool is_nvswitch_present = NV_TRUE;
+     int num_pci_devices = 0, num_platform_devices = 0;
+ 
+     nv_memdbg_init();

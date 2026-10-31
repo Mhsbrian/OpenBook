@@ -1,0 +1,19 @@
+# Copyright (C) 2026 The OpenBook Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Apps no agent may automate, whatever the allowlist says: package:certificate digest (upper-case hex SHA-256). Read by
+# system_server only while DeviceConfig computer_control/blocked_automatable_apps is unset and nothing is persisted
+# (aosp/patches/frameworks/base/0005). These are the system's own screens that install apps, hold certificates and
+# credentials, set up VPNs, provision or hand the device to an organisation, and the shell and the Terminal: the person
+# uses them directly. The platform refuses the permission controller by itself.
+#
+# The digest is AOSP's test platform key, which every OpenBook image uses today; an image signed with release keys
+# needs its own digest here (docs/quire.md §8). The Terminal is signed with its APEX's key.
+com.android.packageinstaller:C8A2E9BCCF597C2FB6DC66BEE293FC13F2FC47EC77BC6B2B0D52C11F51192AB8
+com.android.certinstaller:C8A2E9BCCF597C2FB6DC66BEE293FC13F2FC47EC77BC6B2B0D52C11F51192AB8
+com.android.keychain:C8A2E9BCCF597C2FB6DC66BEE293FC13F2FC47EC77BC6B2B0D52C11F51192AB8
+com.android.credentialmanager:C8A2E9BCCF597C2FB6DC66BEE293FC13F2FC47EC77BC6B2B0D52C11F51192AB8
+com.android.managedprovisioning:C8A2E9BCCF597C2FB6DC66BEE293FC13F2FC47EC77BC6B2B0D52C11F51192AB8
+com.android.vpndialogs:C8A2E9BCCF597C2FB6DC66BEE293FC13F2FC47EC77BC6B2B0D52C11F51192AB8
+com.android.shell:C8A2E9BCCF597C2FB6DC66BEE293FC13F2FC47EC77BC6B2B0D52C11F51192AB8
+com.android.virtualization.terminal:A40DA80A59D170CAA950CF15C18C454D47A39B26989D8B640ECD745BA71BF5DC

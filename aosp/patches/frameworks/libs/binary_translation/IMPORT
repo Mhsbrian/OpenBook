@@ -1,0 +1,5 @@
+# ANAL-200: Track A's arm64 native bridge is the Digitalis fork of AOSP's Berberis (Apache-2.0, docs/digitalis.md).
+# aosp-patches.sh replaces this project's tree (android17-release) with this commit of the fork, then applies the
+# patches in this directory on top of it: the Android 17 port and OpenBook's fixes.
+url https://github.com/DigitalisX64/platform_frameworks_libs_binary_translation.git
+rev b6b7fc30f5e1cb2d2b9b465e3fdaa905616c31dc

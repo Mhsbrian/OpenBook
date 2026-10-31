@@ -1,0 +1,6 @@
+# The boot control HAL runs in AOSP's hal_bootctl_default domain (misc, fstab); it starts openbook-bootsync in its own.
+/(vendor|system/vendor)/bin/hw/android\.hardware\.boot-service\.openbook  u:object_r:hal_bootctl_default_exec:s0
+/(vendor|system/vendor)/bin/openbook-bootsync                              u:object_r:openbook_bootsync_exec:s0
+# The ESP of the boot disk (by-name links exist for the boot disk only). The node alone (-b): the link keeps
+# block_device, like the boot partitions' links (device/anybook/common/pc/sepolicy/vendor/file_contexts).
+/dev/block/by-name/EFI  -b  u:object_r:openbook_esp_block_device:s0

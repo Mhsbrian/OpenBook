@@ -1,0 +1,409 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivaylo Spasov <Ivaylo.Spasov@amd.com>
+Date: Wed, 16 Sep 2026 17:19:09 +0300
+Subject: [PATCH] radv/android: support deferred swapchain image binding
+
+With VK_ANDROID_native_buffer v8+, the gralloc buffer backing an aliased
+swapchain image is unknown at vkCreateImage() and only arrives in
+VkNativeBufferANDROID at vkBindImageMemory2().
+
+Follow PanVK, Venus, Turnip, and v3dv by using
+vk_android_init_deferred_image() to preserve the create info. At bind
+time, derive the explicit DRM modifier layout from the ANB, initialize
+the RADV layout, import its memory, and continue through the normal bind
+path.
+
+Use the common vk_image.anb_memory ownership for both create-time and
+deferred ANB imports, removing RADV's redundant owned_memory field.
+Create-time imports use vkCreateImage()'s allocator; bind-time imports
+use the device allocator because vkBindImageMemory2() has no allocation
+callbacks.
+
+Share deferred layout initialization with AHB and use vk_image_destroy()
+to release common Android image state.
+
+Fixes dEQP-VK.wsi.android.swapchain.create.image_swapchain_create_info
+Fixes dEQP-VK.wsi.android.swapchain.simulate_oom.image_swapchain_create_info
+
+Signed-off-by: Ivaylo Spasov <Ivaylo.Spasov@amd.com>
+Assisted-by: Cursor
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/44426>
+(cherry picked from commit f7a9510280096eb223cfa954bb87d34ee41e9953)
+---
+ src/amd/vulkan/radv_android.c | 120 +++++++++++++++++++++++++++++-----
+ src/amd/vulkan/radv_android.h |   4 ++
+ src/amd/vulkan/radv_image.c   |  72 ++++++++++++++++----
+ src/amd/vulkan/radv_image.h   |   7 +-
+ 4 files changed, 169 insertions(+), 34 deletions(-)
+
+diff --git a/src/amd/vulkan/radv_android.c b/src/amd/vulkan/radv_android.c
+index 070e68d20..152ceb115 100644
+--- a/src/amd/vulkan/radv_android.c
++++ b/src/amd/vulkan/radv_android.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright © 2017, Google Inc.
++ * Copyright © 2026 Advanced Micro Devices, Inc.
+  *
+  * SPDX-License-Identifier: MIT
+  */
+@@ -11,6 +12,7 @@
+ #include "radv_entrypoints.h"
+ #include "radv_image.h"
+ #include "radv_physical_device.h"
++#include "ac_drm_fourcc.h"
+ 
+ #if DETECT_OS_ANDROID
+ #include <vulkan/vk_android_native_buffer.h>
+@@ -29,16 +31,13 @@
+ 
+ #if DETECT_OS_ANDROID
+ 
+-VkResult
+-radv_image_from_gralloc(VkDevice device_h, const VkImageCreateInfo *base_info,
+-                        const VkNativeBufferANDROID *gralloc_info, const VkAllocationCallbacks *alloc,
+-                        VkImage *out_image_h)
+-
++static VkResult
++radv_gralloc_import_memory(VkDevice device_h, const VkNativeBufferANDROID *gralloc_info,
++                           const VkAllocationCallbacks *alloc, VkDeviceMemory *out_memory_h)
+ {
+    VK_FROM_HANDLE(radv_device, device, device_h);
+    const struct radv_physical_device *pdev = radv_device_physical(device);
+-   VkImage image_h = VK_NULL_HANDLE;
+-   struct radv_image *image = NULL;
++   VkDeviceMemory memory_h = VK_NULL_HANDLE;
+    VkResult result;
+ 
+    /* 1) handle->numFds is about the number of plane(s) and metadata(optional) fd in a
+@@ -53,8 +52,6 @@ radv_image_from_gralloc(VkDevice device_h, const VkImageCreateInfo *base_info,
+    int dma_buf = gralloc_info->handle->data[0];
+    assert(dma_buf >= 0);
+ 
+-   VkDeviceMemory memory_h;
+-
+    int dup_fd = os_dupfd_cloexec(dma_buf);
+    if (dup_fd < 0)
+       return (errno == EMFILE) ? VK_ERROR_TOO_MANY_OBJECTS : VK_ERROR_OUT_OF_HOST_MEMORY;
+@@ -94,6 +91,27 @@ radv_image_from_gralloc(VkDevice device_h, const VkImageCreateInfo *base_info,
+       return result;
+    }
+ 
++   *out_memory_h = memory_h;
++
++   return VK_SUCCESS;
++}
++
++VkResult
++radv_image_from_gralloc(VkDevice device_h, const VkImageCreateInfo *base_info,
++                        const VkNativeBufferANDROID *gralloc_info, const VkAllocationCallbacks *alloc,
++                        VkImage *out_image_h)
++{
++   VK_FROM_HANDLE(radv_device, device, device_h);
++   const struct radv_physical_device *pdev = radv_device_physical(device);
++   VkImage image_h = VK_NULL_HANDLE;
++   VkDeviceMemory memory_h = VK_NULL_HANDLE;
++   struct radv_image *image = NULL;
++   VkResult result;
++
++   result = radv_gralloc_import_memory(device_h, gralloc_info, alloc, &memory_h);
++   if (result != VK_SUCCESS)
++      return result;
++
+    struct radeon_bo_metadata md;
+    device->ws->buffer_get_metadata(device->ws, radv_device_memory_from_handle(memory_h)->bo, &md);
+ 
+@@ -140,9 +158,12 @@ radv_image_from_gralloc(VkDevice device_h, const VkImageCreateInfo *base_info,
+                                       .image = image_h,
+                                       .memory = memory_h,
+                                       .memoryOffset = 0};
+-   radv_BindImageMemory2(device_h, 1, &bind_info);
++   result = radv_BindImageMemory2(device_h, 1, &bind_info);
+ 
+-   image->owned_memory = memory_h;
++   if (result != VK_SUCCESS)
++      goto fail_override;
++
++   image->vk.anb_memory = memory_h;
+    /* Don't clobber the out-parameter until success is certain. */
+    *out_image_h = image_h;
+ 
+@@ -155,6 +176,67 @@ fail_create_image:
+    return result;
+ }
+ 
++VkResult
++radv_android_get_wsi_memory(VkDevice device_h, const VkBindImageMemoryInfo *bind_info, VkDeviceMemory *out_memory_h)
++{
++   VK_FROM_HANDLE(radv_device, device, device_h);
++   VK_FROM_HANDLE(radv_image, image, bind_info->image);
++   VkImageCreateInfo *create_info = image->vk.android_deferred_create_info;
++   VkResult result;
++
++   if (!vk_image_is_android_native_buffer_alias(&image->vk) || !create_info)
++      return VK_ERROR_INVALID_EXTERNAL_HANDLE;
++
++   if (image->vk.anb_memory != VK_NULL_HANDLE) {
++      *out_memory_h = image->vk.anb_memory;
++      return VK_SUCCESS;
++   }
++
++   VkImageDrmFormatModifierExplicitCreateInfoEXT mod_info;
++   VkSubresourceLayout layouts[RADV_ANDROID_MAX_PLANES];
++   const VkNativeBufferANDROID *anb = vk_find_struct_const(bind_info->pNext, NATIVE_BUFFER_ANDROID);
++   if (!anb)
++      return VK_ERROR_INVALID_EXTERNAL_HANDLE;
++
++   /* Inject ANB into the deferred pNext chain so the common Android helper
++    * can derive the real modifier and plane layout.
++    */
++   VkNativeBufferANDROID local_anb = *anb;
++   local_anb.pNext = create_info->pNext;
++   create_info->pNext = &local_anb;
++
++   result = vk_android_get_anb_layout(create_info, &mod_info, layouts, RADV_ANDROID_MAX_PLANES);
++   if (result != VK_SUCCESS)
++      goto restore_create_info;
++
++   VkDeviceMemory memory_h = VK_NULL_HANDLE;
++   result = radv_gralloc_import_memory(device_h, anb, &device->vk.alloc, &memory_h);
++   if (result != VK_SUCCESS)
++      goto restore_create_info;
++
++   struct radeon_bo_metadata md;
++   device->ws->buffer_get_metadata(device->ws, radv_device_memory_from_handle(memory_h)->bo, &md);
++
++   result = radv_image_init_layout(device,
++                                   (struct radv_image_create_info){
++                                      .vk_info = create_info,
++                                      .no_metadata_planes = true,
++                                      .bo_metadata = &md,
++                                   },
++                                   mod_info.drmFormatModifier, &mod_info, NULL, image);
++   if (result != VK_SUCCESS) {
++      radv_FreeMemory(device_h, memory_h, &device->vk.alloc);
++      goto restore_create_info;
++   }
++
++   image->vk.anb_memory = memory_h;
++   *out_memory_h = memory_h;
++
++restore_create_info:
++   create_info->pNext = local_anb.pNext;
++   return result;
++}
++
+ #endif /* DETECT_OS_ANDROID */
+ 
+ #if RADV_SUPPORT_ANDROID_HARDWARE_BUFFER
+@@ -438,20 +520,22 @@ radv_import_ahb_memory(struct radv_device *device, struct radv_device_memory *me
+       struct radeon_bo_metadata metadata;
+       device->ws->buffer_get_metadata(device->ws, mem->bo, &metadata);
+ 
+-      struct radv_image_create_info create_info = {.no_metadata_planes = true, .bo_metadata = &metadata};
++      assert(mem->image->vk.android_deferred_create_info);
++      struct radv_image_create_info create_info = {
++         .vk_info = mem->image->vk.android_deferred_create_info,
++         .no_metadata_planes = true,
++         .bo_metadata = &metadata,
++      };
+ 
+       VkImageDrmFormatModifierExplicitCreateInfoEXT *mod_info_p = NULL;
+       VkImageDrmFormatModifierExplicitCreateInfoEXT mod_info;
+       VkSubresourceLayout layouts[RADV_ANDROID_MAX_PLANES];
+       result = vk_android_get_ahb_layout(info->buffer, &mod_info, layouts, RADV_ANDROID_MAX_PLANES);
+-      if (result == VK_SUCCESS) {
+-         for (unsigned plane = 0; plane < mem->image->plane_count; ++plane) {
+-            mem->image->planes[plane].surface.modifier = mod_info.drmFormatModifier;
+-         }
++      if (result == VK_SUCCESS)
+          mod_info_p = &mod_info;
+-      }
+ 
+-      result = radv_image_create_layout(device, create_info, mod_info_p, NULL, mem->image);
++      const uint64_t modifier = mod_info_p ? mod_info.drmFormatModifier : DRM_FORMAT_MOD_INVALID;
++      result = radv_image_init_layout(device, create_info, modifier, mod_info_p, NULL, mem->image);
+       if (result != VK_SUCCESS) {
+          radv_bo_destroy(device, NULL, mem->bo);
+          mem->bo = NULL;
+diff --git a/src/amd/vulkan/radv_android.h b/src/amd/vulkan/radv_android.h
+index d1515cae2..001c20778 100644
+--- a/src/amd/vulkan/radv_android.h
++++ b/src/amd/vulkan/radv_android.h
+@@ -1,6 +1,7 @@
+ /*
+  * Copyright © 2016 Red Hat.
+  * Copyright © 2016 Bas Nieuwenhuizen
++ * Copyright © 2026 Advanced Micro Devices, Inc.
+  *
+  * based in part on anv driver which is:
+  * Copyright © 2015 Intel Corporation
+@@ -40,6 +41,9 @@ VkResult radv_image_from_gralloc(VkDevice device_h, const VkImageCreateInfo *bas
+                                  const VkNativeBufferANDROID *gralloc_info, const VkAllocationCallbacks *alloc,
+                                  VkImage *out_image_h);
+ 
++VkResult radv_android_get_wsi_memory(VkDevice device_h, const VkBindImageMemoryInfo *bind_info,
++                                     VkDeviceMemory *out_memory_h);
++
+ unsigned radv_ahb_format_for_vk_format(VkFormat vk_format);
+ 
+ VkFormat radv_select_android_external_format(const void *next, VkFormat default_format);
+diff --git a/src/amd/vulkan/radv_image.c b/src/amd/vulkan/radv_image.c
+index 3fa5fa72f..d3c374628 100644
+--- a/src/amd/vulkan/radv_image.c
++++ b/src/amd/vulkan/radv_image.c
+@@ -1,6 +1,7 @@
+ /*
+  * Copyright © 2016 Red Hat.
+  * Copyright © 2016 Bas Nieuwenhuizen
++ * Copyright © 2026 Advanced Micro Devices, Inc.
+  *
+  * based in part on anv driver which is:
+  * Copyright © 2015 Intel Corporation
+@@ -24,6 +25,7 @@
+ #include "radv_radeon_winsys.h"
+ #include "radv_video.h"
+ #include "radv_wsi.h"
++#include "vk_android.h"
+ #include "vk_debug_utils.h"
+ #include "vk_format.h"
+ #include "vk_log.h"
+@@ -1326,10 +1328,17 @@ radv_destroy_image(struct radv_device *device, const VkAllocationCallbacks *pAll
+    if ((image->vk.create_flags & VK_IMAGE_CREATE_2_SPARSE_BINDING_BIT_KHR) && image->bindings[0].bo)
+       radv_bo_destroy(device, &image->vk.base, image->bindings[0].bo);
+ 
+-   if (image->owned_memory != VK_NULL_HANDLE) {
+-      VK_FROM_HANDLE(radv_device_memory, mem, image->owned_memory);
+-      radv_free_memory(device, pAllocator, mem);
++#if DETECT_OS_ANDROID
++   /* Bind-time ANB memory is allocated with the device allocator because
++    * vkBindImageMemory2() has no allocation callbacks. Create-time ANB is
++    * allocated with vkCreateImage()'s pAllocator and is freed by
++    * vk_image_destroy().
++    */
++   if (vk_image_is_android_native_buffer_alias(&image->vk) && image->vk.anb_memory != VK_NULL_HANDLE) {
++      radv_FreeMemory(radv_device_to_handle(device), image->vk.anb_memory, &device->vk.alloc);
++      image->vk.anb_memory = VK_NULL_HANDLE;
+    }
++#endif
+ 
+    for (uint32_t i = 0; i < ARRAY_SIZE(image->bindings); i++) {
+       if (!image->bindings[i].addr)
+@@ -1340,8 +1349,7 @@ radv_destroy_image(struct radv_device *device, const VkAllocationCallbacks *pAll
+    }
+ 
+    radv_rmv_log_resource_destroy(device, (uint64_t)radv_image_to_handle(image));
+-   vk_image_finish(&image->vk);
+-   vk_free2(&device->vk.alloc, pAllocator, image);
++   vk_image_destroy(&device->vk, pAllocator, &image->vk);
+ }
+ 
+ static void
+@@ -1406,6 +1414,24 @@ radv_select_modifier(const struct radv_device *dev, VkFormat format,
+    return VK_ERROR_UNKNOWN;
+ }
+ 
++VkResult
++radv_image_init_layout(struct radv_device *device, struct radv_image_create_info create_info, uint64_t modifier,
++                       const struct VkImageDrmFormatModifierExplicitCreateInfoEXT *mod_info,
++                       const struct VkVideoProfileListInfoKHR *profile_list, struct radv_image *image)
++{
++   const struct radv_physical_device *pdev = radv_device_physical(device);
++   const VkImageCreateInfo *pCreateInfo = create_info.vk_info;
++   VkFormat format = radv_select_android_external_format(pCreateInfo->pNext, pCreateInfo->format);
++   unsigned plane_count = radv_get_internal_plane_count(pdev, format);
++
++   for (unsigned plane = 0; plane < plane_count; ++plane) {
++      image->planes[plane].surface.flags = radv_get_surface_flags(device, image, plane, pCreateInfo, format);
++      image->planes[plane].surface.modifier = modifier;
++   }
++
++   return radv_image_create_layout(device, create_info, mod_info, profile_list, image);
++}
++
+ VkResult
+ radv_image_create(VkDevice _device, const struct radv_image_create_info *create_info,
+                   const VkAllocationCallbacks *alloc, VkImage *pImage, bool is_internal)
+@@ -1463,22 +1489,25 @@ radv_image_create(VkDevice _device, const struct radv_image_create_info *create_
+       modifier = explicit_mod->drmFormatModifier;
+    }
+ 
+-   for (unsigned plane = 0; plane < plane_count; ++plane) {
+-      image->planes[plane].surface.flags = radv_get_surface_flags(device, image, plane, pCreateInfo, format);
+-      image->planes[plane].surface.modifier = modifier;
+-   }
+-
+-   if (image->vk.external_handle_types & VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) {
++   if ((image->vk.external_handle_types & VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID) ||
++       vk_image_is_android_native_buffer_alias(&image->vk)) {
+ #if DETECT_OS_ANDROID
+-      image->vk.ahb_format = radv_ahb_format_for_vk_format(image->vk.format);
++      if (image->vk.external_handle_types & VK_EXTERNAL_MEMORY_HANDLE_TYPE_ANDROID_HARDWARE_BUFFER_BIT_ANDROID)
++         image->vk.ahb_format = radv_ahb_format_for_vk_format(image->vk.format);
+ #endif
+ 
++      result = vk_android_init_deferred_image(&device->vk, &image->vk, pCreateInfo, alloc);
++      if (result != VK_SUCCESS) {
++         radv_destroy_image(device, alloc, image);
++         return result;
++      }
++
+       *pImage = radv_image_to_handle(image);
+       assert(!(image->vk.create_flags & VK_IMAGE_CREATE_2_SPARSE_BINDING_BIT_KHR));
+       return VK_SUCCESS;
+    }
+ 
+-   result = radv_image_create_layout(device, *create_info, explicit_mod, profile_list, image);
++   result = radv_image_init_layout(device, *create_info, modifier, explicit_mod, profile_list, image);
+    if (result != VK_SUCCESS) {
+       radv_destroy_image(device, alloc, image);
+       return result;
+@@ -1845,6 +1874,23 @@ radv_BindImageMemory2(VkDevice _device, uint32_t bindInfoCount, const VkBindImag
+       }
+ #endif
+ 
++#if DETECT_OS_ANDROID
++      if (!mem) {
++         VkDeviceMemory memory_h = VK_NULL_HANDLE;
++         VkResult result = radv_android_get_wsi_memory(_device, &pBindInfos[i], &memory_h);
++
++         if (result != VK_SUCCESS) {
++            if (status)
++               *status->pResult = result;
++            return result;
++         }
++
++         mem = radv_device_memory_from_handle(memory_h);
++         offset = 0;
++      }
++#endif
++      assert(mem);
++
+       const VkBindImagePlaneMemoryInfo *plane_info = NULL;
+       uint32_t bind_idx = 0;
+ 
+diff --git a/src/amd/vulkan/radv_image.h b/src/amd/vulkan/radv_image.h
+index ac5a2ec6c..066b46b91 100644
+--- a/src/amd/vulkan/radv_image.h
++++ b/src/amd/vulkan/radv_image.h
+@@ -70,9 +70,6 @@ struct radv_image {
+     */
+    uint64_t hiz_metadata_offset;
+ 
+-   /* For VK_ANDROID_native_buffer, the WSI image owns the memory, */
+-   VkDeviceMemory owned_memory;
+-
+    unsigned plane_count;
+    bool disjoint;
+    struct radv_image_plane planes[0];
+@@ -412,6 +409,10 @@ struct radv_image_create_info {
+    const struct radeon_bo_metadata *bo_metadata;
+ };
+ 
++VkResult radv_image_init_layout(struct radv_device *device, struct radv_image_create_info create_info,
++                                uint64_t modifier, const struct VkImageDrmFormatModifierExplicitCreateInfoEXT *mod_info,
++                                const struct VkVideoProfileListInfoKHR *profile_list, struct radv_image *image);
++
+ VkResult radv_image_create_layout(struct radv_device *device, struct radv_image_create_info create_info,
+                                   const struct VkImageDrmFormatModifierExplicitCreateInfoEXT *mod_info,
+                                   const struct VkVideoProfileListInfoKHR *profile_list, struct radv_image *image);

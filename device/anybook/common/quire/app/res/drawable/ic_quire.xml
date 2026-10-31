@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Placeholder mark for Q2: a folded note. Atelier designs the real one (ANAL-215).
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#FF4355B9"
+        android:pathData="M10,6 L30,6 L40,16 L40,42 L10,42 Z" />
+    <path
+        android:fillColor="#FF7E8CFF"
+        android:pathData="M30,6 L30,16 L40,16 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M16,24 L34,24 L34,27 L16,27 Z M16,31 L29,31 L29,34 L16,34 Z" />
+</vector>

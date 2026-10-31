@@ -1,0 +1,14 @@
+// Copyright (C) 2026 The AnyBook Authors
+// SPDX-License-Identifier: Apache-2.0
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+// WM reads /product/etc/display_settings.xml before /vendor/etc/display_settings.xml.
+prebuilt_etc {
+    name: "anybook_cf_display_settings.xml",
+    src: "display_settings.xml",
+    filename: "display_settings.xml",
+    product_specific: true,
+}

@@ -1,0 +1,12 @@
+# GSP firmware for NVIDIA's open kernel modules (ANAL-297), from NVIDIA's own 615.78.08 driver package: the same release
+# as kernel/patches/nvidia-open/PIN (nvidia.ko asks for nvidia/<its version>/<file>). scripts/kernel-nvidia-open-firmware.py
+# stages these unmodified as /vendor/firmware/<install path>. Not in linux-firmware, whose NVIDIA files are nouveau's.
+# GB20x (GB205: the G14's RTX 5070 Ti Laptop) loads gsp_ga10x.bin and ucodes_ga10x.bin (kernel-open/common/inc/nv-firmware.h:
+# every family from GA10x on maps to the *_ga10x files; gsp_log_* only with firmware logging, which is off).
+# Licence: the NVIDIA Driver License Agreement in the package (LICENSE), §1.1(c) own use, §1.1(d) distribution with
+# OSI-licensed kernels, unmodified, with the Agreement; §2.1 NVIDIA hardware only. docs/nvidia-open-ruby.md §6.
+# kind	path in the package or URL	install path (/vendor/firmware/...)	sha256	bytes
+package	https://download.nvidia.com/XFree86/Linux-x86_64/615.78.08/NVIDIA-Linux-x86_64-615.78.08.run	-	3e3f6dddc2ee767a08185300af7be3cb286ece76698d2dde3524599782d07ffe	529834675
+file	firmware/gsp_ga10x.bin	nvidia/615.78.08/gsp_ga10x.bin	a20100cafd5a85e22b3e13188339730c6ced94bd5f654984dd2ed274ed58d584	27043992
+file	firmware/ucodes_ga10x.bin	nvidia/615.78.08/ucodes_ga10x.bin	eed53d76248582d71c629e8b6230aee48ce673c91d782301c94e98ac6a6db7aa	58215936
+licence	LICENSE	LICENSES/LICENSE.nvidia-driver-615.78.08	c692fb14ad4f499c6aee1b9e144e6905148c420e6225b17cb2937366c1e507ad	22653

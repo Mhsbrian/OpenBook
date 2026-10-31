@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 5: keyguard animations use the right wakefulness signal
+flag_value {
+  package: "com.android.systemui"
+  name: "wakefulness_for_animations"
+  state: ENABLED
+  permission: READ_ONLY
+}

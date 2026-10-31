@@ -1,0 +1,393 @@
+# AnyBook AMD laptop vendor modules (ANAL-171): a Kleaf mixed build on top of the x86_64 GKI.
+#
+# Lives in the AnyBook repo as kernel/devices/anybook/; scripts/kernel-amd-apply.sh copies it into the
+# kernel tree as //devices/anybook. The GKI itself only changes through kernel/patches/common/.
+#
+#   tools/bazel run --config=stamp //devices/anybook:anybook_amd_x86_64_dist -- --destdir=DIR
+#   tools/bazel run //devices/anybook:anybook_amd_x86_64_abi_update_symbol_list   # -> common/gki/x86_64/symbols/anybook_amd
+#   tools/bazel run --config=stamp //devices/anybook:anybook_g14_dist -- --destdir=DIR   # G14 images (ANAL-198)
+#   nouveau (ANAL-239) is an external module in nvidia/, prepared by kernel-amd-apply.sh (kernel-nouveau-apply.sh)
+#   NVIDIA's open modules (ANAL-297) are external modules in nvidia_open/ (kernel-nvidia-open-apply.sh)
+
+load("@rules_pkg//pkg:install.bzl", "pkg_install")
+load("//build/kernel/kleaf:hermetic_tools.bzl", "hermetic_genrule")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_files", "strip_prefix")
+load(
+    "//build/kernel/kleaf:kernel.bzl",
+    "ddk_module",
+    "initramfs",
+    "kernel_abi",
+    "kernel_build",
+    "kernel_modules_install",
+    "vendor_boot_image",
+    "vendor_dlkm_image",
+)
+
+# For scripts/kernel-amd-integrity.sh, which builds the GKI with the vendor fragment on top:
+#   --defconfig_fragment=//devices/anybook:anybook_amd_gki_check_fragment
+# Module signing stays on there, so the GKI build's own signed-module checks still pass.
+genrule(
+    name = "anybook_amd_gki_check_fragment",
+    srcs = ["anybook_amd.fragment"],
+    outs = ["anybook_amd_gki_check.fragment"],
+    cmd = "grep -v '^# CONFIG_MODULE_SIG_ALL is not set' $< > $@",
+)
+
+# In-tree modules the AMD fragment adds, relative to common/. Keep sorted.
+# Modules the GKI already builds (bluetooth, rfkill, thunderbolt, ...) come from //common:kernel_x86_64.
+_ANYBOOK_AMD_MODULES = [
+    "drivers/accel/amdxdna/amdxdna.ko",
+    "drivers/acpi/ac.ko",
+    "drivers/acpi/battery.ko",
+    "drivers/acpi/fan.ko",
+    "drivers/acpi/platform_profile.ko",
+    "drivers/acpi/thermal.ko",
+    "drivers/acpi/video.ko",
+    "drivers/bluetooth/btintel.ko",
+    "drivers/bluetooth/btmtk.ko",
+    "drivers/bluetooth/btrtl.ko",
+    "drivers/bluetooth/btusb.ko",
+    "drivers/char/tpm/tpm.ko",
+    "drivers/char/tpm/tpm_crb.ko",
+    "drivers/dma-buf/heaps/system_heap.ko",
+    "drivers/firmware/cirrus/cs_dsp.ko",
+    "drivers/gpu/drm/amd/amdgpu/amdgpu.ko",
+    "drivers/gpu/drm/amd/amdxcp/amdxcp.ko",
+    "drivers/gpu/drm/display/drm_display_helper.ko",
+    "drivers/gpu/drm/drm_buddy.ko",
+    "drivers/gpu/drm/drm_exec.ko",
+    "drivers/gpu/drm/drm_panel_backlight_quirks.ko",
+    "drivers/gpu/drm/drm_suballoc_helper.ko",
+    "drivers/gpu/drm/drm_ttm_helper.ko",
+    "drivers/gpu/drm/scheduler/gpu-sched.ko",
+    "drivers/gpu/drm/virtio/virtio-gpu.ko",
+    "drivers/hid/amd-sfh-hid/amd_sfh.ko",
+    "drivers/hid/hid-asus.ko",
+    "drivers/hid/i2c-hid/i2c-hid-acpi.ko",
+    "drivers/hid/i2c-hid/i2c-hid.ko",
+    "drivers/hwmon/hwmon.ko",
+    "drivers/hwmon/k10temp.ko",
+    "drivers/i2c/algos/i2c-algo-bit.ko",
+    "drivers/i2c/busses/i2c-designware-core.ko",
+    "drivers/i2c/busses/i2c-designware-platform.ko",
+    "drivers/i2c/busses/i2c-piix4.ko",
+    "drivers/i2c/i2c-smbus.ko",
+    "drivers/input/sparse-keymap.ko",
+    "drivers/mfd/mfd-core.ko",
+    "drivers/misc/cardreader/rtsx_pci.ko",
+    "drivers/mmc/host/rtsx_pci_sdmmc.ko",
+    "drivers/net/wireless/mediatek/mt76/mt76-connac-lib.ko",
+    "drivers/net/wireless/mediatek/mt76/mt76.ko",
+    "drivers/net/wireless/mediatek/mt76/mt7921/mt7921-common.ko",
+    "drivers/net/wireless/mediatek/mt76/mt7921/mt7921e.ko",
+    "drivers/net/wireless/mediatek/mt76/mt7925/mt7925-common.ko",
+    "drivers/net/wireless/mediatek/mt76/mt7925/mt7925e.ko",
+    "drivers/net/wireless/mediatek/mt76/mt792x-lib.ko",
+    "drivers/net/wireless/realtek/rtw89/rtw89_8851b.ko",
+    "drivers/net/wireless/realtek/rtw89/rtw89_8851be.ko",
+    "drivers/net/wireless/realtek/rtw89/rtw89_8852a.ko",
+    "drivers/net/wireless/realtek/rtw89/rtw89_8852ae.ko",
+    "drivers/net/wireless/realtek/rtw89/rtw89_8852b.ko",
+    "drivers/net/wireless/realtek/rtw89/rtw89_8852b_common.ko",
+    "drivers/net/wireless/realtek/rtw89/rtw89_8852be.ko",
+    "drivers/net/wireless/realtek/rtw89/rtw89_8852c.ko",
+    "drivers/net/wireless/realtek/rtw89/rtw89_8852ce.ko",
+    "drivers/net/wireless/realtek/rtw89/rtw89_8922a.ko",
+    "drivers/net/wireless/realtek/rtw89/rtw89_8922ae.ko",
+    "drivers/net/wireless/realtek/rtw89/rtw89_core.ko",
+    "drivers/net/wireless/realtek/rtw89/rtw89_pci.ko",
+    "drivers/platform/x86/amd/pmc/amd-pmc.ko",
+    "drivers/platform/x86/asus-nb-wmi.ko",
+    "drivers/platform/x86/asus-wmi.ko",
+    "drivers/platform/x86/nvidia-wmi-ec-backlight.ko",
+    "drivers/platform/x86/serial-multi-instantiate.ko",
+    "drivers/platform/x86/wmi-bmof.ko",
+    "drivers/platform/x86/wmi.ko",
+    "drivers/spi/spi-amd-pci.ko",
+    "drivers/spi/spi-amd.ko",
+    "drivers/usb/typec/ucsi/ucsi_acpi.ko",
+    "drivers/virtio/virtio_dma_buf.ko",
+    "drivers/virtio/virtio_input.ko",
+    "fs/efivarfs/efivarfs.ko",
+    "net/mac80211/mac80211.ko",
+    "net/wireless/cfg80211.ko",
+    "sound/core/snd-ctl-led.ko",
+    "sound/hda/codecs/hdmi/snd-hda-codec-atihdmi.ko",
+    "sound/hda/codecs/hdmi/snd-hda-codec-hdmi.ko",
+    "sound/hda/codecs/hdmi/snd-hda-codec-intelhdmi.ko",
+    "sound/hda/codecs/hdmi/snd-hda-codec-nvhdmi-mcp.ko",
+    "sound/hda/codecs/hdmi/snd-hda-codec-nvhdmi.ko",
+    "sound/hda/codecs/hdmi/snd-hda-codec-simplehdmi.ko",
+    "sound/hda/codecs/hdmi/snd-hda-codec-tegrahdmi.ko",
+    "sound/hda/codecs/realtek/snd-hda-codec-alc260.ko",
+    "sound/hda/codecs/realtek/snd-hda-codec-alc262.ko",
+    "sound/hda/codecs/realtek/snd-hda-codec-alc268.ko",
+    "sound/hda/codecs/realtek/snd-hda-codec-alc269.ko",
+    "sound/hda/codecs/realtek/snd-hda-codec-alc662.ko",
+    "sound/hda/codecs/realtek/snd-hda-codec-alc680.ko",
+    "sound/hda/codecs/realtek/snd-hda-codec-alc861.ko",
+    "sound/hda/codecs/realtek/snd-hda-codec-alc861vd.ko",
+    "sound/hda/codecs/realtek/snd-hda-codec-alc880.ko",
+    "sound/hda/codecs/realtek/snd-hda-codec-alc882.ko",
+    "sound/hda/codecs/realtek/snd-hda-codec-realtek-lib.ko",
+    "sound/hda/codecs/side-codecs/snd-hda-cirrus-scodec.ko",
+    "sound/hda/codecs/side-codecs/snd-hda-scodec-component.ko",
+    "sound/hda/codecs/side-codecs/snd-hda-scodec-cs35l56-i2c.ko",
+    "sound/hda/codecs/side-codecs/snd-hda-scodec-cs35l56.ko",
+    "sound/hda/codecs/snd-hda-codec-generic.ko",
+    "sound/hda/common/snd-hda-codec.ko",
+    "sound/hda/controllers/snd-hda-intel.ko",
+    "sound/hda/core/snd-hda-core.ko",
+    "sound/soc/amd/acp/snd-acp-i2s.ko",
+    "sound/soc/amd/acp/snd-acp-legacy-common.ko",
+    "sound/soc/amd/acp/snd-acp-legacy-mach.ko",
+    "sound/soc/amd/acp/snd-acp-mach.ko",
+    "sound/soc/amd/acp/snd-acp-pci.ko",
+    "sound/soc/amd/acp/snd-acp-pcm.ko",
+    "sound/soc/amd/acp/snd-acp-pdm.ko",
+    "sound/soc/amd/acp/snd-acp-sof-mach.ko",
+    "sound/soc/amd/acp/snd-acp70.ko",
+    "sound/soc/amd/acp/snd-amd-acpi-mach.ko",
+    "sound/soc/amd/acp/snd-amd-sdw-acpi.ko",
+    "sound/soc/amd/acp/snd-soc-acpi-amd-match.ko",
+    "sound/soc/amd/ps/snd-pci-ps.ko",
+    "sound/soc/amd/ps/snd-ps-pdm-dma.ko",
+    "sound/soc/amd/ps/snd-ps-sdw-dma.ko",
+    "sound/soc/amd/ps/snd-soc-ps-mach.ko",
+    "sound/soc/amd/snd-acp-config.ko",
+    "sound/soc/codecs/snd-soc-cs-amp-lib.ko",
+    "sound/soc/codecs/snd-soc-cs35l56-shared.ko",
+    "sound/soc/codecs/snd-soc-dmic.ko",
+    "sound/soc/codecs/snd-soc-max98357a.ko",
+    "sound/soc/codecs/snd-soc-max98388.ko",
+    "sound/soc/codecs/snd-soc-nau8821.ko",
+    "sound/soc/codecs/snd-soc-nau8825.ko",
+    "sound/soc/codecs/snd-soc-rl6231.ko",
+    "sound/soc/codecs/snd-soc-rt1019.ko",
+    "sound/soc/codecs/snd-soc-rt5682-i2c.ko",
+    "sound/soc/codecs/snd-soc-rt5682.ko",
+    "sound/soc/codecs/snd-soc-rt5682s.ko",
+    "sound/soc/sof/amd/snd-sof-amd-acp.ko",
+    "sound/soc/sof/amd/snd-sof-amd-acp63.ko",
+    "sound/soc/sof/amd/snd-sof-amd-acp70.ko",
+    "sound/soc/sof/amd/snd-sof-amd-rembrandt.ko",
+    "sound/soc/sof/snd-sof-pci.ko",
+    "sound/soc/sof/snd-sof-probes.ko",
+    "sound/soc/sof/snd-sof-utils.ko",
+    "sound/soc/sof/snd-sof.ko",
+    "sound/soc/sof/xtensa/snd-sof-xtensa-dsp.ko",
+]
+
+# ANAL-239: the in-tree helper of nouveau, the NVIDIA dGPU driver. nouveau itself is an external module
+# (//devices/anybook/nvidia:nouveau: common's driver plus kernel/patches/nouveau) so that its Kconfig never enters the
+# device config; nvidia/Kconfig.ext and anybook_nvidia.fragment turn on just this one. Keep sorted.
+_ANYBOOK_NVIDIA_MODULES = [
+    "drivers/gpu/drm/drm_gpuvm.ko",
+]
+
+kernel_build(
+    name = "anybook_amd_x86_64",
+    srcs = ["//common:kernel_x86_64_sources"],
+    outs = [],
+    arch = "x86_64",
+    base_kernel = "//common:kernel_x86_64",
+    kconfig_ext = "//devices/anybook/nvidia:Kconfig.ext",
+    kmi_symbol_list = "//common:gki/x86_64/symbols/anybook_amd",
+    make_goals = ["modules"],
+    makefile = "//common:Makefile",
+    module_outs = _ANYBOOK_AMD_MODULES + _ANYBOOK_NVIDIA_MODULES,
+    post_defconfig_fragments = [
+        "anybook_amd.fragment",
+        "anybook_nvidia.fragment",
+    ],
+    strip_modules = True,
+    visibility = [
+        "//devices/anybook/nvidia:__pkg__",
+        "//devices/anybook/nvidia_open:__pkg__",
+    ],
+)
+
+# kernel_modules: the external modules whose imports the symbol list must cover (nouveau, ANAL-239; NVIDIA's open
+# modules, ANAL-297).
+kernel_abi(
+    name = "anybook_amd_x86_64_abi",
+    kernel_build = ":anybook_amd_x86_64",
+    kernel_modules = [
+        ":openbook_sleep_diag",
+        "//devices/anybook/nvidia:nouveau",
+        "//devices/anybook/nvidia_open:nvidia_open",
+    ],
+    kmi_symbol_list_add_only = True,
+)
+
+kernel_modules_install(
+    name = "anybook_amd_x86_64_modules_install",
+    kernel_build = ":anybook_amd_x86_64",
+    kernel_modules = [
+        ":openbook_sleep_diag",
+        "//devices/anybook/nvidia:nouveau",
+        "//devices/anybook/nvidia_open:nvidia_open",
+    ],
+)
+
+pkg_files(
+    name = "anybook_amd_x86_64_dist_files",
+    srcs = [
+        ":anybook_amd_x86_64",
+        ":anybook_amd_x86_64_modules_install",
+        "//common:kernel_x86_64",
+        "//common:kernel_x86_64_additional_artifacts",
+        "//common:kernel_x86_64_modules",
+    ],
+    strip_prefix = strip_prefix.files_only(),
+    visibility = ["//visibility:private"],
+)
+
+pkg_install(
+    name = "anybook_amd_x86_64_dist",
+    srcs = [":anybook_amd_x86_64_dist_files"],
+    destdir = "out/anybook_amd_x86_64/dist",
+)
+
+# ANAL-235: keep a closed lid dark across s2idle resumes (drops the ACPI power button's resume KEY_WAKEUP
+# while the lid is closed; re-reads _LID after resume). Built on the device kernel_build so its modversions
+# CRCs match the other vendor modules. Not in the G14 load lists until it is qualified.
+#   tools/bazel build --config=stamp //devices/anybook:openbook_lid_guard
+ddk_module(
+    name = "openbook_lid_guard",
+    srcs = ["lid_guard/openbook_lid_guard.c"],
+    out = "openbook_lid_guard.ko",
+    kernel_build = ":anybook_amd_x86_64",
+    deps = ["//common:all_headers_x86_64"],
+)
+
+# ANAL-257: S0i3 diagnostics (PTM off across suspend, PCI and USB4 power snapshots). Test only: in vendor_dlkm but
+# blocklisted (g14/modules.tsv); the G14 lab helper loads it with parameters and unloads it; inert without them.
+#   tools/bazel build --config=stamp //devices/anybook:openbook_sleep_diag
+ddk_module(
+    name = "openbook_sleep_diag",
+    srcs = [
+        "sleep_diag/openbook_sleep_diag.c",
+        "sleep_diag/ptm_plan.h",
+    ],
+    out = "openbook_sleep_diag.ko",
+    kernel_build = ":anybook_amd_x86_64",
+    deps = ["//common:all_headers_x86_64"],
+)
+
+# ANAL-198: images for the ASUS ROG Zephyrus G14 2025 (GA403WR), in two variants:
+#   bm  bare metal, the laptop itself
+#   vm  QEMU/Cuttlefish guests, which boot from virtio-blk and lack the ASUS WMI GUID
+# Both variants ship the same vendor_dlkm files; the load lists and blocklists differ. The lists under g14/ are
+# generated from g14/modules.tsv by scripts/kernel-g14-modlists.py, which also checks them against a dist.
+# system_dlkm is the GKI's own image from //common, so its modules carry the signature of the bzImage in the
+# same dist. scripts/kernel-g14-package.sh builds all of this and records sizes, checksums and checks.
+
+_G14_VARIANTS = ("bm", "vm")
+
+# Appended to the GKI's built-in command line (console=ttynull stack_depot_disable=on cgroup_disable=pressure
+# bootconfig). Googlebook's vendor_boot sets the same firmware path; the kernel loads firmware from there
+# directly, without ueventd. log_buf_len keeps the whole boot in dmesg/pstore on the laptop, where there is no
+# serial console. The single quotes are deliberate: boot_images.bzl writes KERNEL_VENDOR_CMDLINE={value}
+# unquoted into a shell script, which silently drops everything after the first space.
+_G14_VENDOR_CMDLINE = "'firmware_class.path=/vendor/firmware log_buf_len=1M'"
+
+[initramfs(
+    name = "anybook_g14_{}_initramfs".format(v),
+    kernel_modules_install = ":anybook_amd_x86_64_modules_install",
+    modules_list = "g14/vendor_boot.{}.modules.list".format(v),
+    modules_load = "g14/vendor_boot.{}.modules.load".format(v),
+    ramdisk_compression = "lz4",
+    trim_unused_modules = True,
+) for v in _G14_VARIANTS]
+
+# The modules go into a DLKM ramdisk fragment named "dlkm", as on Googlebook (vendor_boot_a ramdisk_dlkm).
+# The product build can add its own fragments (fstab, first-stage tools) next to it.
+[vendor_boot_image(
+    name = "anybook_g14_{}_vendor_boot".format(v),
+    outs = ["vendor_boot.img"],
+    header_version = 4,
+    initramfs = ":anybook_g14_{}_initramfs".format(v),
+    initramfs_vendor_ramdisk_fragment_name = "dlkm",
+    kernel_build = ":anybook_amd_x86_64",
+    kernel_vendor_cmdline = _G14_VENDOR_CMDLINE,
+    ramdisk_compression = "lz4",
+    unpack_ramdisk = True,
+) for v in _G14_VARIANTS]
+
+# Kleaf's vendor_dlkm: the staging (modules.load with the vendor_boot and system_dlkm modules taken out,
+# modules.blocklist, depmod output) is what we want, but its flattened image copies all 238 modules of the
+# mixed build, the 100 GKI ones included, and drops modules.blocklist. So only its staging archive is used;
+# the image the device mounts comes from the genrule below.
+[vendor_dlkm_image(
+    name = "anybook_g14_{}_vendor_dlkm".format(v),
+    archive = True,
+    base_system_dlkm_image = "//common:kernel_x86_64_system_dlkm_image",
+    dedup_dlkm_modules = True,
+    fs_type = "erofs",
+    kernel_modules_install = ":anybook_amd_x86_64_modules_install",
+    modules_blocklist = "g14/modules.{}.blocklist".format(v),
+    modules_list = "g14/vendor_dlkm.modules.list",
+    modules_load = "g14/vendor_dlkm.{}.modules.load".format(v),
+    vendor_boot_modules_load = ":anybook_g14_{}_initramfs".format(v),
+) for v in _G14_VARIANTS]
+
+# vendor_dlkm.img as Android mounts it, laid out like Googlebook's: /vendor_dlkm/lib/modules/*.ko holds the
+# vendor modules only, and modules.dep names GKI dependencies as /system/lib/modules/<m>.ko, which system_dlkm
+# provides. erofs with an unsigned hashtree footer, as Kleaf's build_vendor_dlkm. The file contexts are the
+# platform's (system/sepolicy/private/file_contexts: vendor_file), not Kleaf's vendor_kernel_modules: AOSP grants
+# module_load on vendor_file to vendor_modprobe and ueventd, and on vendor_kernel_modules to nobody, so with
+# Kleaf's labels every vendor module fails with EACCES under enforcing SELinux.
+[hermetic_genrule(
+    name = "anybook_g14_{}_vendor_dlkm_android".format(v),
+    srcs = [
+        ":anybook_g14_{}_vendor_dlkm".format(v),
+        "//common:kernel_x86_64_system_dlkm_image",
+        "g14/modules.options",
+        "g14/pack_vendor_dlkm.py",
+        "g14/vendor_dlkm.file_contexts",
+        "g14/vendor_dlkm.modules.list",
+    ],
+    outs = ["g14_{}/vendor_dlkm.{}".format(v, f) for f in ("img", "modules.load", "modules.blocklist", "modules.dep",
+                                                          "modules.options")],
+    cmd = ("python3 $(location g14/pack_vendor_dlkm.py) --out $(RULEDIR)/g14_{v} " +
+           "--file-contexts $(location g14/vendor_dlkm.file_contexts) " +
+           "--modules-list $(location g14/vendor_dlkm.modules.list) " +
+           "--modules-options $(location g14/modules.options) " +
+           "$(locations :anybook_g14_{v}_vendor_dlkm) $(locations //common:kernel_x86_64_system_dlkm_image)").format(v = v),
+) for v in _G14_VARIANTS]
+
+[pkg_files(
+    name = "anybook_g14_{}_dist_files".format(v),
+    srcs = [
+        ":anybook_g14_{}_initramfs".format(v),
+        ":anybook_g14_{}_vendor_boot".format(v),
+        ":anybook_g14_{}_vendor_dlkm_android".format(v),
+    ],
+    prefix = v,
+    strip_prefix = strip_prefix.files_only(),
+    visibility = ["//visibility:private"],
+) for v in _G14_VARIANTS]
+
+pkg_files(
+    name = "anybook_g14_dist_files",
+    srcs = [
+        ":anybook_amd_x86_64",
+        ":openbook_lid_guard",
+        ":openbook_sleep_diag",
+        "//devices/anybook/nvidia:nouveau",
+        "//devices/anybook/nvidia_open:nvidia_open_ko",
+        "//common:kernel_x86_64",
+        "//common:kernel_x86_64_additional_artifacts",
+        "//common:kernel_x86_64_modules",
+        "//common:kernel_x86_64_system_dlkm_image",
+    ],
+    strip_prefix = strip_prefix.files_only(),
+    visibility = ["//visibility:private"],
+)
+
+pkg_install(
+    name = "anybook_g14_dist",
+    srcs = [":anybook_g14_dist_files"] + [":anybook_g14_{}_dist_files".format(v) for v in _G14_VARIANTS],
+    destdir = "out/anybook_g14/dist",
+)

@@ -1,0 +1,3 @@
+/vendor/bin/openbook-gfx-mode                     u:object_r:openbook_gfx_mode_exec:s0
+# The switcher's record: state, history and lock (created by openbook-gfx-mode at its first boot).
+/metadata/openbook(/.*)?                          u:object_r:openbook_gfx_metadata_file:s0

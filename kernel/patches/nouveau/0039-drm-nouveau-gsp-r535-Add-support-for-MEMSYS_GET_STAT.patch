@@ -1,0 +1,152 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Lyude Paul <lyude@redhat.com>
+Date: Thu, 17 Sep 2026 14:54:26 -0400
+Subject: [PATCH] drm/nouveau/gsp/r535: Add support for
+ MEMSYS_GET_STATIC_CONFIG
+
+This is a GSP structure describing various characteristics of the memory
+management system that GSP provides. Start by fetching it during driver
+load, but don't do anything with the information we get from it just yet.
+
+Signed-off-by: Lyude Paul <lyude@redhat.com>
+Reviewed-by: Dave Airlie <airlied@redhat.com>
+Link: https://patch.msgid.link/20260917185916.1089621-3-lyude@redhat.com
+(cherry picked from commit 3217000f0b7e4f67e5b386d5b3491ec1b9b584b8)
+---
+ .../gpu/drm/nouveau/include/nvkm/subdev/gsp.h |  4 ++
+ .../drm/nouveau/nvkm/subdev/gsp/rm/r535/gsp.c | 17 +++++++
+ .../nvkm/subdev/gsp/rm/r535/nvrm/gsp.h        | 45 +++++++++++++++++++
+ .../drm/nouveau/nvkm/subdev/gsp/rm/r570/gsp.c |  8 ++++
+ .../gpu/drm/nouveau/nvkm/subdev/gsp/rm/rm.h   |  1 +
+ 5 files changed, 75 insertions(+)
+
+diff --git a/drivers/gpu/drm/nouveau/include/nvkm/subdev/gsp.h b/drivers/gpu/drm/nouveau/include/nvkm/subdev/gsp.h
+index cd10c37053695..ed5c6e0e68d3c 100644
+--- a/drivers/gpu/drm/nouveau/include/nvkm/subdev/gsp.h
++++ b/drivers/gpu/drm/nouveau/include/nvkm/subdev/gsp.h
+@@ -156,6 +156,10 @@ struct nvkm_gsp {
+ 		struct sg_table fbsr;
+ 	} sr;
+ 
++	struct {
++		bool use_raw_mode_comptagline_alloc;
++	} memsys;
++
+ 	struct {
+ 		struct nvkm_gsp_mem mem;
+ 
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r535/gsp.c b/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r535/gsp.c
+index e8264a47820ac..3a84b784cbc4c 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r535/gsp.c
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r535/gsp.c
+@@ -1781,6 +1781,23 @@ r535_gsp_fini(struct nvkm_gsp *gsp, enum nvkm_suspend_state suspend)
+ 	return 0;
+ }
+ 
++int
++r535_gsp_get_static_memsys_info(struct nvkm_gsp *gsp)
++{
++	NV2080_CTRL_INTERNAL_MEMSYS_GET_STATIC_CONFIG_PARAMS *ctrl;
++
++	ctrl = nvkm_gsp_rm_ctrl_rd(&gsp->internal.device.subdevice,
++				    NV2080_CTRL_CMD_INTERNAL_MEMSYS_GET_STATIC_CONFIG,
++				    sizeof(*ctrl));
++	if (IS_ERR(ctrl))
++		return PTR_ERR(ctrl);
++
++	gsp->memsys.use_raw_mode_comptagline_alloc = ctrl->bUseRawModeComptaglineAllocation;
++
++	nvkm_gsp_rm_ctrl_done(&gsp->internal.device.subdevice, ctrl);
++	return 0;
++}
++
+ int
+ r535_gsp_init(struct nvkm_gsp *gsp)
+ {
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r535/nvrm/gsp.h b/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r535/nvrm/gsp.h
+index b6683a5bf870c..7b10b7548c575 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r535/nvrm/gsp.h
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r535/nvrm/gsp.h
+@@ -782,6 +782,51 @@ typedef struct NV2080_CTRL_INTERNAL_INTR_GET_KERNEL_TABLE_PARAMS {
+ 
+ #define GSP_FW_HEAP_PARAM_CLIENT_ALLOC_SIZE      ((48 << 10) * 2048)   // Support 2048 channels
+ 
++typedef struct NV2080_CTRL_INTERNAL_MEMSYS_GET_STATIC_CONFIG_PARAMS {
++    /*! Determines if RM should use 1 to 1 Comptagline allocation policy */
++    NvBool bOneToOneComptagLineAllocation;
++
++    /*! Determines if RM should use 1 to 4 Comptagline allocation policy */
++    NvBool bUseOneToFourComptagLineAllocation;
++
++    /*! Determines if RM should use raw Comptagline allocation policy */
++    NvBool bUseRawModeComptaglineAllocation;
++
++    /*! Has COMPBIT_BACKING_SIZE been overridden to zero (i.e. disabled)? */
++    NvBool bDisableCompbitBacking;
++
++    /*! Determine if we need to disable post L2 compression */
++    NvBool bDisablePostL2Compression;
++
++    /*! Is ECC DRAM feature supported? */
++    NvBool bEnabledEccFBPA;
++
++    NvBool bL2PreFill;
++
++    /*! L2 cache size */
++    NV_DECLARE_ALIGNED(NvU64 l2CacheSize, 8);
++
++    /*! Indicate whether fpba is present or not */
++    NvBool bFbpaPresent;
++
++    /*! Size covered by one comptag */
++    NvU32  comprPageSize;
++
++    /*! log32(comprPageSize) */
++    NvU32  comprPageShift;
++
++    /*! RAM type */
++    NvU32  ramType;
++
++    /*! LTC count */
++    NvU32  ltcCount;
++
++    /*! LTS per LTC count */
++    NvU32  ltsPerLtcCount;
++} NV2080_CTRL_INTERNAL_MEMSYS_GET_STATIC_CONFIG_PARAMS;
++
++#define NV2080_CTRL_CMD_INTERNAL_MEMSYS_GET_STATIC_CONFIG        (0x20800a1c) /* finn: Evaluated from "(FINN_NV20_SUBDEVICE_0_INTERNAL_INTERFACE_ID << 8) | NV2080_CTRL_INTERNAL_MEMSYS_GET_STATIC_CONFIG_PARAMS_MESSAGE_ID" */
++
+ typedef union rpc_message_rpc_union_field_v03_00
+ {
+     NvU32      spare;
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/gsp.c b/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/gsp.c
+index 89b801c1e6098..ea38a94211f4b 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/gsp.c
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/r570/gsp.c
+@@ -138,6 +138,14 @@ r570_gsp_get_static_info(struct nvkm_gsp *gsp)
+ 		}
+ 	}
+ 
++	ret = r535_gsp_get_static_memsys_info(gsp);
++	if (ret) {
++		nvkm_error(&gsp->subdev, "Retrieving static memsys info failed\n");
++		return ret;
++	}
++	nvkm_debug(&gsp->subdev, "memsys: Use raw mode for comptag allocations? %s\n",
++		   str_yes_no(gsp->memsys.use_raw_mode_comptagline_alloc));
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/rm.h b/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/rm.h
+index 5ccbaf646be22..163c907d08788 100644
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/rm.h
++++ b/drivers/gpu/drm/nouveau/nvkm/subdev/gsp/rm/rm.h
+@@ -176,6 +176,7 @@ int r535_gr_promote_ctx(struct r535_gr *, bool golden, struct nvkm_vmm *,
+ 			struct nvkm_memory **pctxbuf_mem, struct nvkm_vma **pctxbuf_vma,
+ 			struct nvkm_gsp_object *chan);
+ int r570_gsp_gcx_ready(struct nvkm_gsp *gsp);
++int r535_gsp_get_static_memsys_info(struct nvkm_gsp *gsp);
+ extern const struct nvkm_rm_api_engine r535_nvdec;
+ extern const struct nvkm_rm_api_engine r535_nvenc;
+ extern const struct nvkm_rm_api_engine r535_nvjpg;

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The OpenBook Authors; SPDX-License-Identifier: Apache-2.0 -->
+<manifest version="1.0" type="device">
+    <hal format="aidl">
+        <name>android.hardware.camera.provider</name>
+        <version>1</version>
+        <interface>
+            <name>ICameraProvider</name>
+            <instance>external/0</instance>
+        </interface>
+    </hal>
+</manifest>

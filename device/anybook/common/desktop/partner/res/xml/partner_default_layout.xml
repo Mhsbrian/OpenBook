@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  OpenBook's first home screen (ANAL-206): no icons on the desktop and six taskbar pins, in this order:
+  Files, Settings, the browser, Calendar, Gallery, Camera. On a desktop the taskbar shows the hotseat (container
+  -101); screen is the pin's position. Launcher3 reads this once, when its database is created (a new /data or
+  cleared Launcher data), and skips any pin whose app is missing. Format: Launcher3's default_workspace_*.xml,
+  read by DefaultLayoutParser.
+  - Files: DocumentsUI's launcher entry has MAIN/LAUNCHER/APP_FILES but no DEFAULT category, so a resolve by
+    category alone would not find it; the component is the fallback.
+  - The browser: whatever handles APP_BROWSER or http when the database is created. OpenBook ships no browser
+    of its own yet, so today that is AOSP's WebView Shell ("WebView Browser Tester").
+  - Camera: Camera2 disables its launcher entry at every boot on a device without a camera feature
+    (SetActivitiesCameraReceiver), and Launcher3 then drops the pin. So it only stays where a camera exists.
+-->
+<favorites xmlns:launcher="http://schemas.android.com/apk/res-auto/com.android.launcher3">
+
+    <resolve launcher:container="-101" launcher:screen="0" launcher:x="0" launcher:y="0">
+        <favorite launcher:uri="#Intent;action=android.intent.action.MAIN;category=android.intent.category.APP_FILES;end" />
+        <favorite
+            launcher:packageName="com.android.documentsui"
+            launcher:className="com.android.documentsui.LauncherActivity" />
+    </resolve>
+
+    <favorite
+        launcher:container="-101" launcher:screen="1" launcher:x="1" launcher:y="0"
+        launcher:packageName="com.android.settings"
+        launcher:className="com.android.settings.Settings" />
+
+    <resolve launcher:container="-101" launcher:screen="2" launcher:x="2" launcher:y="0">
+        <favorite launcher:uri="#Intent;action=android.intent.action.MAIN;category=android.intent.category.APP_BROWSER;end" />
+        <favorite launcher:uri="http://www.example.com/" />
+    </resolve>
+
+    <resolve launcher:container="-101" launcher:screen="3" launcher:x="3" launcher:y="0">
+        <favorite launcher:uri="#Intent;action=android.intent.action.MAIN;category=android.intent.category.APP_CALENDAR;end" />
+    </resolve>
+
+    <resolve launcher:container="-101" launcher:screen="4" launcher:x="4" launcher:y="0">
+        <favorite launcher:uri="#Intent;action=android.intent.action.MAIN;category=android.intent.category.APP_GALLERY;end" />
+        <favorite launcher:uri="#Intent;type=images/*;end" />
+    </resolve>
+
+    <resolve launcher:container="-101" launcher:screen="5" launcher:x="5" launcher:y="0">
+        <favorite launcher:uri="#Intent;action=android.media.action.STILL_IMAGE_CAMERA;end" />
+        <favorite launcher:uri="#Intent;action=android.intent.action.CAMERA_BUTTON;end" />
+    </resolve>
+
+</favorites>

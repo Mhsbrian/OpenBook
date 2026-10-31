@@ -1,0 +1,40 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: "AnyBook aosp-patches.sh" <noreply@anybook.invalid>
+Date: Sat, 17 Oct 2026 10:40:03 -0400
+Subject: [PATCH] OPENBOOK: EventHub: disable kernel key repeat on touchpads
+ too
+
+Some touchpads declare EV_REP: hid-input sets it for any usage on a page it
+maps to keys, before hid-multitouch drops the usage (the ASUS Zephyrus G14's
+ELAN 04F3:3315 has vendor usages on page 0xff01, HID_UP_HPVENDOR2). The input
+core then repeats the last key pressed, BTN_TOOL_FINGER, every few tens of ms
+while a finger is down. Those repeat frames carry no MSC_TIMESTAMP, so
+HardwareStateConverter hands the gestures library msc_timestamp 0, its
+TimestampFilterInterpreter re-bases its clock, and the next real frame jumps
+ahead by the time since touch-down: LookaheadFilterInterpreter logs "Clock
+changed backwards. Flushing queue." on every repeat.
+
+Android handles key repeat itself, so turn the kernel's off for touchpads as
+it already is for keyboards (ANAL-178).
+---
+ services/inputflinger/reader/EventHub.cpp | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/services/inputflinger/reader/EventHub.cpp b/services/inputflinger/reader/EventHub.cpp
+index ca79fc5ef2..9b27d6ecbf 100644
+--- a/services/inputflinger/reader/EventHub.cpp
++++ b/services/inputflinger/reader/EventHub.cpp
+@@ -627,8 +627,11 @@ status_t EventHub::Device::readDeviceBitMask(unsigned long ioctlCode, BitArray<N
+ 
+ bool EventHub::Device::configureFd() {
+     // Set fd parameters with ioctl, such as key repeat, suspend block, and clock type
+-    if (classes.test(InputDeviceClass::KEYBOARD)) {
+-        // Disable kernel key repeat since we handle it ourselves
++    if (classes.any(InputDeviceClass::KEYBOARD | InputDeviceClass::TOUCHPAD)) {
++        // Disable kernel key repeat since we handle it ourselves. Touchpads too: hid-input turns on
++        // repeat for any vendor usage it treats as keys (e.g. an HP vendor page in an ELAN touchpad's
++        // collection), and the kernel then repeats BTN_TOOL_FINGER in frames without MSC_TIMESTAMP,
++        // which resets the gestures library's time base ("Clock changed backwards").
+         unsigned int repeatRate[] = {0, 0};
+         if (ioctl(fd, EVIOCSREP, repeatRate)) {
+             ALOGW("Unable to disable kernel key repeat for %s: %s", path.c_str(), strerror(errno));

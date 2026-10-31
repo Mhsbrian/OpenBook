@@ -1,0 +1,81 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: "AnyBook (ANAL-297)" <noreply@anybook.invalid>
+Date: Mon, 26 Oct 2026 00:00:00 +0000
+Subject: [PATCH 3/7] Android GKI: import the VFS symbol namespace when asked
+ to
+
+Android's GKI exports filp_open(), close_fd() and some other VFS helpers in
+the namespace ANDROID_GKI_VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver.
+PLATFORM_IS_ANDROID=1 avoids them by turning off NV_FILESYSTEM_ACCESS_AVAILABLE,
+but that also turns off runtime D3: nv_dynamic_power_available() needs the
+GPU's PCI sysfs config file, which nv_get_pci_sysfs_config() opens with
+filp_open().
+
+Keep filesystem access and import the namespace instead, when Kbuild is given
+its name in NV_ANDROID_GKI_VFS_NAMESPACE. Nothing changes otherwise.
+---
+ kernel-open/Kbuild                                |  6 ++++++
+ kernel-open/nvidia-modeset/nvidia-modeset-linux.c | 12 ++++++++++++
+ kernel-open/nvidia/nv.c                           | 12 ++++++++++++
+ 3 files changed, 30 insertions(+)
+
+diff --git a/kernel-open/Kbuild b/kernel-open/Kbuild
+index a912600..3c8872e 100644
+--- a/kernel-open/Kbuild
++++ b/kernel-open/Kbuild
+@@ -136,6 +136,12 @@ endif
+ 
+ ccflags-y += -Wno-unused-function
+ 
++# Android GKI kernels put some VFS helpers in a symbol namespace (see
++# MODULE_IMPORT_NS in nv.c and nvidia-modeset-linux.c).
++ifneq ($(NV_ANDROID_GKI_VFS_NAMESPACE),)
++ ccflags-y += -DNV_ANDROID_GKI_VFS_NAMESPACE=\"$(NV_ANDROID_GKI_VFS_NAMESPACE)\"
++endif
++
+ ifneq ($(NV_BUILD_TYPE),debug)
+  ccflags-y += -Wuninitialized
+ endif
+diff --git a/kernel-open/nvidia-modeset/nvidia-modeset-linux.c b/kernel-open/nvidia-modeset/nvidia-modeset-linux.c
+index 62986c4..469a728 100644
+--- a/kernel-open/nvidia-modeset/nvidia-modeset-linux.c
++++ b/kernel-open/nvidia-modeset/nvidia-modeset-linux.c
+@@ -2298,3 +2298,15 @@ module_exit(nvkms_exit);
+ MODULE_INFO(supported, "external");
+ MODULE_VERSION(NV_VERSION_STRING);
+ MODULE_DESCRIPTION("NVIDIA modeset kernel module");
++
++/*
++ * Android GKI kernels export filp_open(), close_fd() and a few other VFS
++ * helpers only to modules that import this namespace. The driver needs them
++ * for runtime D3 (it keeps the GPU's PCI sysfs config file open), the
++ * temporary file that preserves video memory across suspend, and its
++ * configuration files. Kbuild sets NV_ANDROID_GKI_VFS_NAMESPACE for those
++ * kernels only.
++ */
++#if defined(NV_ANDROID_GKI_VFS_NAMESPACE)
++MODULE_IMPORT_NS(NV_ANDROID_GKI_VFS_NAMESPACE);
++#endif
+diff --git a/kernel-open/nvidia/nv.c b/kernel-open/nvidia/nv.c
+index e038b6c..7ae724c 100644
+--- a/kernel-open/nvidia/nv.c
++++ b/kernel-open/nvidia/nv.c
+@@ -149,6 +149,18 @@ MODULE_IMPORT_NS("CXL");
+ #endif  // defined(NV_MODULE_IMPORT_NS_TAKES_CONSTANT)
+ #endif  // defined(MODULE_IMPORT_NS)
+ 
++/*
++ * Android GKI kernels export filp_open(), close_fd() and a few other VFS
++ * helpers only to modules that import this namespace. The driver needs them
++ * for runtime D3 (it keeps the GPU's PCI sysfs config file open), the
++ * temporary file that preserves video memory across suspend, and its
++ * configuration files. Kbuild sets NV_ANDROID_GKI_VFS_NAMESPACE for those
++ * kernels only.
++ */
++#if defined(NV_ANDROID_GKI_VFS_NAMESPACE)
++MODULE_IMPORT_NS(NV_ANDROID_GKI_VFS_NAMESPACE);
++#endif
++
+ const NvBool nv_is_rm_firmware_supported_os = NV_TRUE;
+ 
+ // Deprecated, use NV_REG_ENABLE_GPU_FIRMWARE instead

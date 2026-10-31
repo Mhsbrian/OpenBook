@@ -1,0 +1,95 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: "AnyBook (ANAL-297)" <noreply@anybook.invalid>
+Date: Mon, 26 Oct 2026 00:00:00 +0000
+Subject: [PATCH 5/7] Core objects: Clang's retpoline and return-thunk flags,
+ and the kernel's code-generation flags
+
+nv-kernel.o and nv-modeset-kernel.o are built outside Kbuild. With Clang
+they got neither retpolines nor return thunks: GCC's -mindirect-branch=
+thunk-extern has no Clang spelling here, and nv-kernel.o never asked for
+-mfunction-return=thunk-extern. objtool reports this as 9,228 bare returns,
+4,133 indirect jumps and 2,834 indirect calls in a kernel built with
+MITIGATION_RETPOLINE and MITIGATION_RETHUNK. Use Clang's flags.
+
+Also append NV_KERNEL_CORE_CFLAGS, which a caller sets from the kernel's
+configuration: with CONFIG_CFI the kernel and the Kbuild part of the modules
+call into these objects through function pointers, and kCFI traps unless the
+target carries the type hash its caller expects. With CONFIG_PANIC_ON_OOPS
+that is a panic (for example nvidia-modeset's timers, which call core
+functions). AnyBook passes -fsanitize=kcfi with an ignore list that keeps the
+hashes but leaves out the checks inside the core: its NVOC dispatch calls
+methods through generic function pointer types.
+---
+ src/nvidia-modeset/Makefile | 19 +++++++++++++++++++
+ src/nvidia/Makefile         | 20 ++++++++++++++++++++
+ 2 files changed, 39 insertions(+)
+
+diff --git a/src/nvidia-modeset/Makefile b/src/nvidia-modeset/Makefile
+index 9f7de4b..6771b0a 100644
+--- a/src/nvidia-modeset/Makefile
++++ b/src/nvidia-modeset/Makefile
+@@ -167,10 +167,29 @@ ifeq ($(TARGET_ARCH),x86_64)
+   CONDITIONAL_CFLAGS += $(call TEST_CC_ARG, -mindirect-branch=thunk-extern)
+   CONDITIONAL_CFLAGS += $(call TEST_CC_ARG, -mindirect-branch-register)
+   CONDITIONAL_CFLAGS += $(call TEST_CC_ARG, -mfunction-return=thunk-extern)
++
++  #
++  # Clang spells GCC's -mindirect-branch=thunk-extern as
++  # -mretpoline-external-thunk, and has no -mindirect-branch-register. Without
++  # these, a kernel built with retpolines and return thunks loads this object
++  # with plain indirect branches and returns that it cannot patch.
++  #
++  ifeq ($(COMPILER_TYPE),clang)
++    CONDITIONAL_CFLAGS += $(call TEST_CC_ARG, -mretpoline-external-thunk)
++  endif
+ endif
+ 
+ CFLAGS += $(CONDITIONAL_CFLAGS)
+ 
++#
++# Code-generation flags this object must share with the kernel it links into,
++# which the caller derives from the kernel's configuration: kCFI type hashes
++# (kernel code calls into this object through function pointers, and with
++# CONFIG_CFI a function without the hash its caller expects traps), function
++# padding and call-used register zeroing.
++#
++CFLAGS += $(NV_KERNEL_CORE_CFLAGS)
++
+ CC_ONLY_CFLAGS += -Wimplicit
+ CC_ONLY_CFLAGS += -Wstrict-prototypes
+ CC_ONLY_CFLAGS += -Wmissing-prototypes
+diff --git a/src/nvidia/Makefile b/src/nvidia/Makefile
+index 9abfc7c..ee2a738 100644
+--- a/src/nvidia/Makefile
++++ b/src/nvidia/Makefile
+@@ -191,10 +191,30 @@ ifeq ($(TARGET_ARCH),x86_64)
+   CONDITIONAL_CFLAGS += $(call TEST_CC_ARG, -fno-jump-tables)
+   CONDITIONAL_CFLAGS += $(call TEST_CC_ARG, -mindirect-branch-register)
+     CONDITIONAL_CFLAGS += $(call TEST_CC_ARG, -mindirect-branch=thunk-extern)
++
++  #
++  # Clang spells GCC's -mindirect-branch=thunk-extern as
++  # -mretpoline-external-thunk, and has no -mindirect-branch-register. Without
++  # these, a kernel built with retpolines and return thunks loads this object
++  # with plain indirect branches and returns that it cannot patch.
++  #
++  ifeq ($(COMPILER_TYPE),clang)
++    CONDITIONAL_CFLAGS += $(call TEST_CC_ARG, -mretpoline-external-thunk)
++    CONDITIONAL_CFLAGS += $(call TEST_CC_ARG, -mfunction-return=thunk-extern)
++  endif
+ endif
+ 
+ CFLAGS += $(CONDITIONAL_CFLAGS)
+ 
++#
++# Code-generation flags this object must share with the kernel it links into,
++# which the caller derives from the kernel's configuration: kCFI type hashes
++# (kernel code calls into this object through function pointers, and with
++# CONFIG_CFI a function without the hash its caller expects traps), function
++# padding and call-used register zeroing.
++#
++CFLAGS += $(NV_KERNEL_CORE_CFLAGS)
++
+ CC_ONLY_CFLAGS += --std=gnu11
+ CXX_ONLY_CFLAGS += --std=gnu++11
+ 

@@ -1,0 +1,88 @@
+[
+ {
+  "wait": "init: init first stage started",
+  "timeout": 120
+ },
+ {
+  "wait": "init: init second stage started",
+  "timeout": 120
+ },
+ {
+  "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+  "timeout": 300
+ },
+ {
+  "send": "\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 dmesg -n 1\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "i=0; while [ \"$(getprop sys.boot_completed)\" != 1 ] && [ $i -lt 900 ]; do sleep 3; i=$((i+3)); done; echo BOOTDONE=$(getprop sys.boot_completed) uptime=$(cut -d' ' -f1 /proc/uptime)\n"
+ },
+ {
+  "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
+  "timeout": 960
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "sleep 30\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 90
+ },
+ {
+  "send": "echo ===PROPS-BEGIN===; getprop | grep -E 'vendor.audio|wifi.interface|init.svc.(wpa_supplicant|vendor.bluetooth|vendor.audio|vendor.openbook)|sys.boot_completed|ro.boot.selinux'; echo ===PROPS-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "su 0 sh -c 'for b in /dev/block/sd?; do [ \"$(head -c 18 $b)\" = openbook-qemu-test ] && tar -xf $b -C /data/local/tmp && echo payload from $b; done'\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 sh /data/local/tmp/openbook-qemu-test/guest-test.sh\n"
+ },
+ {
+  "wait": "\nGUEST-TEST-DONE",
+  "timeout": 900
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "echo ===LOGCAT-BEGIN===; su 0 logcat -d -b all | gzip | base64; echo ===LOGCAT-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 300
+ },
+ {
+  "send": "echo ===DMESG-BEGIN===; su 0 dmesg | gzip | base64; echo ===DMESG-END===\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 sync; su 0 reboot -p\n"
+ }
+]

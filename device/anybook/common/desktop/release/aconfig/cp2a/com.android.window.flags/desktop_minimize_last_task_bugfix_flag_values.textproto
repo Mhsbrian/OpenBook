@@ -1,0 +1,7 @@
+# From googlebook-triage.tsv group 3: minimizing the last window of a desk animates and stays in desktop mode
+flag_value {
+  package: "com.android.window.flags"
+  name: "desktop_minimize_last_task_bugfix"
+  state: ENABLED
+  permission: READ_ONLY
+}

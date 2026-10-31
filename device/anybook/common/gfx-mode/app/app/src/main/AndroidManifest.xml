@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  OpenBook Graphics: Eco, Hybrid and Ultimate on laptops with an ASUS MUX (ANAL-246,
+  docs/nvidia-graphics-modes.md §7). A privileged system app in its own SELinux domain
+  (openbook_graphics_app), which alone may set openbook.gfx.request for openbook-gfx-mode. REBOOT is its only
+  privileged permission (privapp-permissions-org.openbook.graphics.xml).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Restart after the owner confirms. Privileged: granted only to the allow-listed system app. -->
+    <uses-permission android:name="android.permission.REBOOT"
+        tools:ignore="ProtectedPermissions" />
+
+    <application
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.OpenBookGraphics"
+        android:enableOnBackInvokedCallback="true">
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- An entry under Settings > Display, through Settings' injection of system apps' activities
+             (HYPOTHESIS that Googlebook's Settings keeps it; checked in the Ruby VM). -->
+        <activity-alias
+            android:name=".ui.SettingsEntry"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:icon="@drawable/ic_graphics"
+            android:targetActivity=".ui.MainActivity">
+            <intent-filter>
+                <action android:name="com.android.settings.action.EXTRA_SETTINGS" />
+            </intent-filter>
+            <meta-data android:name="com.android.settings.category"
+                android:value="com.android.settings.category.ia.display" />
+            <meta-data android:name="com.android.settings.summary"
+                android:resource="@string/settings_summary" />
+            <meta-data android:name="com.android.settings.icon"
+                android:resource="@drawable/ic_graphics" />
+        </activity-alias>
+
+        <!-- A Quick Settings tile showing the mode; a tap opens the app. -->
+        <service
+            android:name=".GraphicsTile"
+            android:exported="true"
+            android:icon="@drawable/ic_graphics"
+            android:label="@string/tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- Protected broadcast: only the system can send it. -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
