@@ -20,9 +20,11 @@
 // what decides the next boot; misc follows it. In particular a slot is marked successful in misc (which lets
 // update_engine start the virtual A/B merge) only once its ESP entry is marked good, so a failed ESP write can never
 // leave a merged system that the loader would still roll back.
+// A live USB stick is the exception: markBootSuccessful marks misc only, as the stick has no slot entries (ANAL-320).
 #include "BootControl.h"
 
 #include <android-base/logging.h>
+#include <android-base/properties.h>
 #include <android-base/strings.h>
 #include <fcntl.h>
 #include <poll.h>
@@ -194,6 +196,18 @@ ScopedAStatus BootControl::isSlotMarkedSuccessful(int32_t in_slot, bool* _aidl_r
 }
 
 ScopedAStatus BootControl::markBootSuccessful() {
+    // A live USB stick (its entries set androidboot.openbook.live=1) has no slot entries for openbook-bootsync: its
+    // loader entries are the stick's own (openbook-live.conf and the rest, scripts/installer/mklive.py), so mark-good
+    // would always fail with no_current_entry. vold commits its checkpoint through this call when the boot completes,
+    // and a failure there makes Android restart, on every boot of the stick (ANAL-320). On a stick, misc alone is
+    // marked; nothing on the stick's ESP changes.
+    if (::android::base::GetBoolProperty("ro.boot.openbook.live", false)) {
+        if (!impl_.MarkBootSuccessful()) {
+            return ScopedAStatus::fromServiceSpecificErrorWithMessage(COMMAND_FAILED, "Operation failed");
+        }
+        LOG(INFO) << "live USB stick: boot marked successful in misc; the stick's loader entries are left as they are";
+        return ScopedAStatus::ok();
+    }
     std::string json;
     if (!Bootsync({"mark-good"}, &json)) {
         return ScopedAStatus::fromServiceSpecificErrorWithMessage(

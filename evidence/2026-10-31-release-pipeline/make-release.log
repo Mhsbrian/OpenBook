@@ -1,0 +1,19 @@
+== make-release.sh 0.0.0-test.anal191i from openbook-live-20261018-anal191i.img (2026-10-31T11:31:44Z), repo c75832dd
+-- checking the image against openbook-live-20261018-anal191i.build.json
+-- xz -9, multi-threaded, independent blocks
+   885136268 bytes; decompresses to the image's sha256
+-- torrent
+-- SHA256SUMS
+-- signing SHA256SUMS (ssh-keygen -Y sign, namespace openbook-release)
+   verified against SHA256:7nUlyaHSovkAqSbCk8fRWl/U1kAIK9n7nzMFWNfCyKw
+-- release.json
+   audience: unpublished; blocking: release_keys, user_build, source_offer, owner_approved
+-- done in 104 s: /home/hive/anybook/release/out/0.0.0-test.anal191i
+total 864452
+-rw-r--r-- 1 hive hive 885136268 Oct 31 07:33 openbook-0.0.0-test.anal191i-x86_64-live.img.xz
+-rw-r--r-- 1 hive hive     44795 Oct 31 07:33 openbook-0.0.0-test.anal191i-x86_64-live.img.xz.torrent
+-rw-r--r-- 1 hive hive       130 Oct 31 07:33 openbook-release.pub
+-rw-r--r-- 1 hive hive      3655 Oct 31 07:33 release.json
+-rw-r--r-- 1 hive hive       347 Oct 31 07:33 SHA256SUMS
+-rw-r--r-- 1 hive hive       310 Oct 31 07:33 SHA256SUMS.sig
+log: /home/hive/anybook/logs/release/release-0.0.0-test.anal191i-20261031T113144Z.log

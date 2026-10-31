@@ -275,7 +275,7 @@ Every image and firmware file is checked against its pin, and staging refuses NV
 | **Android** | [`aosp-build`](docs/aosp-build.md) · [`aosp-desktop`](docs/aosp-desktop.md) · [`googlebook-ui`](docs/googlebook-ui.md) · [`googlebook-flags`](docs/googlebook-flags.md) · [`setup`](docs/setup.md) · [`gapps`](docs/gapps.md) |
 | **Kernel and graphics** | [`kernel`](docs/kernel.md) · [`mesa`](docs/mesa.md) · [`graphics-amd`](docs/graphics-amd.md) |
 | **ARM apps** | [`COMPAT-MATRIX`](docs/COMPAT-MATRIX.md) · [`compat-harness`](docs/compat-harness.md) · [`digitalis`](docs/digitalis.md) |
-| **Install and update** | [`INSTALL`](docs/INSTALL.md) · [`installer`](docs/installer.md) · [design gallery](docs/installer-design/png/gallery.png) |
+| **Install and update** | [`INSTALL`](docs/INSTALL.md) · [`installer`](docs/installer.md) · [`RELEASE`](docs/RELEASE.md) · [design gallery](docs/installer-design/png/gallery.png) |
 | **Agents (Quire)** | [`quire`](docs/quire.md) · [`quire-design`](docs/quire-design.md) · [`quire-howto`](docs/quire-howto.md) · [`quired`](quire/quired/) |
 
 <details>

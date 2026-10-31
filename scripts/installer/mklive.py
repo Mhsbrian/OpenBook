@@ -35,7 +35,7 @@ Deterministic: the same inputs, --label and --epoch give the same image, byte fo
 
 usage: mklive.py --inputs DIR --live-init FILE --work DIR --out IMG [--label L] [--userdata-mib N]
                  [--super-margin-mib N] [--menu-timeout T] [--epoch S] [--vm-bundle DIR]
-                 [--firmware-manifest TSV] [--install-super-mib N] [--install-min-gb N]
+                 [--firmware-manifest TSV|JSON]... [--install-super-mib N] [--install-min-gb N]
 """
 import argparse
 import hashlib
@@ -233,7 +233,7 @@ def repack_super(super_raw, w, margin_mib, install_mib):
 
 
 # ---------------------------------------------------------------- licences
-def firmware_licences(vendor_img, w, manifest_tsv):
+def firmware_licences(vendor_img, w, manifests):
     """Extract the vendor image; list /vendor/firmware and its licence files; check each file has a licence."""
     x = f"{w}/vendor-x"
     shutil.rmtree(x, ignore_errors=True)
@@ -250,8 +250,18 @@ def firmware_licences(vendor_img, w, manifest_tsv):
     files.sort()
     licences.sort()
     known = {}
-    if manifest_tsv and os.path.exists(manifest_tsv):
-        for line in open(manifest_tsv):
+    for m in manifests or []:
+        if not os.path.exists(m):
+            continue
+        if m.endswith(".json"):
+            # NVIDIA's GSP firmware (scripts/kernel-nvidia-open-firmware.py, ANAL-297): one licence for the package
+            j = json.load(open(m))
+            lic = [os.path.basename(e["path"]) for e in j.get("files", []) if e.get("kind") == "licence"]
+            for e in j.get("files", []):
+                if e.get("kind") == "file" and lic:
+                    known[e["path"].removeprefix("vendor/firmware/")] = lic[0]
+            continue
+        for line in open(m):
             if line.startswith(("#", "path\t")):
                 continue
             f = line.rstrip("\n").split("\t")
@@ -286,7 +296,9 @@ def main():
     ap.add_argument("--serialno", default="OPENBOOKLIVE0001")
     ap.add_argument("--vm-density", type=int, default=160, help="androidboot.lcd_density of the VM entries")
     ap.add_argument("--vm-bundle", help="write the QEMU-only entries (console + reset, console + logs) here")
-    ap.add_argument("--firmware-manifest", help="ANAL-198 firmware-manifest.tsv, to map firmware files to licences")
+    ap.add_argument("--firmware-manifest", action="append", default=[],
+                    help="ANAL-198 firmware-manifest.tsv, or NVIDIA's firmware-manifest-nvidia-open.json (ANAL-297), "
+                         "to map firmware files to licences; repeatable")
     ap.add_argument("--provenance", help="text file copied to openbook/PROVENANCE.txt")
     ap.add_argument("--install-super-mib", type=int, default=12288, help="super on an installed disk (3.2)")
     ap.add_argument("--install-min-gb", type=int, default=64, help="smallest disk (or free space) to install to")

@@ -102,10 +102,14 @@ B=$A/installer/build/openbook-live-init
 # 3. image
 W=$A/installer/work/$LABEL
 FWM=$A/aosp/src/vendor/anybook/g14-kernel/firmware/firmware-manifest.tsv
+NVM=$A/aosp/src/vendor/anybook/g14-kernel/firmware-nvidia-open/firmware-manifest-nvidia-open.json   # ANAL-297, when staged
+FWARGS=()
+if [ -f "$FWM" ]; then FWARGS+=(--firmware-manifest "$FWM"); fi
+if [ -f "$NVM" ]; then FWARGS+=(--firmware-manifest "$NVM"); fi
 T2=$(date +%s)
 "$D" env SOURCE_DATE_EPOCH="$EPOCH" python3 "$S/mklive.py" --inputs "$IN" --live-init "$B" --work "$W" \
   --out "$O/$LABEL.img" --label "$LABEL" --menu-timeout "$MENU" --userdata-mib "$UD" --epoch "$EPOCH" \
-  --vm-bundle "$O/$LABEL.vm" --provenance "$IN/provenance.txt" $( [ -f "$FWM" ] && echo --firmware-manifest "$FWM" )
+  --vm-bundle "$O/$LABEL.vm" --provenance "$IN/provenance.txt" "${FWARGS[@]}"
 rm -rf "$W"
 T3=$(date +%s)
 

@@ -1,0 +1,1 @@
+vendor.img sha256 592daf3357b56fcedabbcb7ceb3fcf1a4b814337f5aceed304ad33f771b66bf4; image vendor_a 592daf3357b56fcedabbcb7ceb3fcf1a4b814337f5aceed304ad33f771b66bf4

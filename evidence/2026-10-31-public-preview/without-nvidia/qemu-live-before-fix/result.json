@@ -1,0 +1,72 @@
+{
+ "reason": "QEMU exited (0)",
+ "seconds": 18.3,
+ "steps_done": 18,
+ "steps": 30,
+ "hits": [
+  {
+   "step": 0,
+   "wait": "openbook-live: live boot: boot_part_uuid=",
+   "t": 3.4
+  },
+  {
+   "step": 1,
+   "wait": "openbook-live: grow: GPT backup moved",
+   "t": 4.9
+  },
+  {
+   "step": 2,
+   "wait": "openbook-live: exec /init",
+   "t": 4.9
+  },
+  {
+   "step": 3,
+   "wait": "init: init first stage started",
+   "t": 4.9
+  },
+  {
+   "step": 4,
+   "wait": "init: init second stage started",
+   "t": 5.1
+  },
+  {
+   "step": 5,
+   "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+   "t": 6.9
+  },
+  {
+   "step": 7,
+   "wait": "console:/ \\$ ",
+   "t": 7.0
+  },
+  {
+   "step": 9,
+   "wait": "console:/ \\$ ",
+   "t": 7.1
+  },
+  {
+   "step": 11,
+   "wait": "console:/ \\$ ",
+   "t": 8.6
+  },
+  {
+   "step": 13,
+   "wait": "console:/ \\$ ",
+   "t": 10.9
+  },
+  {
+   "step": 15,
+   "wait": "\nMARKER=openbook-live-marker-\\d+",
+   "t": 12.5
+  },
+  {
+   "step": 16,
+   "wait": "console:/ \\$ ",
+   "t": 12.5
+  }
+ ],
+ "qemu_rc": 0,
+ "usb": "/home/hive/anybook/installer/qemu/anal320pub-qemu/s16.img",
+ "nvme": "/home/hive/anybook/installer/qemu/anal320pub-qemu/decoy.img",
+ "nvme2": null
+}

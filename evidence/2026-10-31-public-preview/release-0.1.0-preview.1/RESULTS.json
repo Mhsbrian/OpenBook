@@ -1,0 +1,46 @@
+{
+  "version": "0.1.0-preview.1",
+  "file": "openbook-0.1.0-preview.1-x86_64-live.img.xz",
+  "fails": 0,
+  "web_seed_only": {
+    "complete": true,
+    "seconds": 2.0,
+    "bytes": 1010992432,
+    "MBps": 505.1,
+    "sources": [
+      "web_seed"
+    ],
+    "sha256_ok": true,
+    "progress": 1.0
+  },
+  "peer_only": {
+    "complete": true,
+    "seconds": 9.3,
+    "bytes": 1010992432,
+    "MBps": 109.1,
+    "sources": [
+      "peer"
+    ],
+    "sha256_ok": true,
+    "progress": 1.0
+  },
+  "swarm": {
+    "schema": "openbook-swarm/1",
+    "updated": "2026-10-31T14:05:59Z",
+    "peer_port": 51413,
+    "torrents": [
+      {
+        "version": "0.1.0-preview.1",
+        "name": "openbook-0.1.0-preview.1-x86_64-live.img.xz",
+        "infohash": "3cdb539387471bfb8e8d766ddd4051c9039fcc0d",
+        "state": "seeding",
+        "error": null,
+        "peers": 0,
+        "uploading_to": 0,
+        "upload_bps": 0,
+        "uploaded_bytes": 1011794623,
+        "size_bytes": 1010992432
+      }
+    ]
+  }
+}

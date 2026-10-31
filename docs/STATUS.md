@@ -1,5 +1,50 @@
 # Status
 
+## 2026-10-31: the first public build, 0.1.0-preview.1, with NVIDIA's open driver and firmware (ANAL-320)
+
+A G14 build meant for publishing, its GPL/LGPL source and its release folder. Nothing is published.
+
+- **NVIDIA's work is in the image (the owner's decision, 2026-10-31):** NVIDIA's open driver 615.78.08, its GSP
+  firmware, runtime D3 and the graphics-mode layer, as on the laptop. The firmware ships under the NVIDIA Driver
+  License Agreement's §1.1(d): unmodified, with an OSI-licensed kernel, with the Agreement given to every
+  recipient. `make-release.sh --nvidia-licence` checks every NVIDIA file in the image against its pin and puts the
+  Agreement next to the download; openbook.page links it (openbook.page PR #2).
+- **Apps on the RTX are not in it:** GoodBook's `nvk-rm` cites reverse engineering of NVIDIA's proprietary
+  libraries and stays private (ANAL-298). A clean rewrite would bring it here.
+- **A live-stick fix:** every live image since the boot HAL arrived (2026-10-18) restarted Android at the end of
+  each boot, because `markBootSuccessful` needed a loader entry only installed systems have. On a live stick the HAL
+  now marks misc only. No stick was built in between, as updates went over Wi-Fi.
+- **Source offer:** `scripts/release/make-sources.sh` packs the kernel exactly as built (with NVIDIA's open
+  modules), the 14 AOSP projects whose binaries carry a GPL/LGPL text, Mesa's libelf and Mesa, and systemd-boot 262-1.
+- **Also:** an image can still be built without NVIDIA's firmware (`G14_NVIDIA_FIRMWARE=none`); the driver then
+  never loads and `dgpu-pm` powers the RTX off.
+
+**Checks:** NVIDIA check 23/23 and standard G14 check 58/58 in QEMU; the live stick in QEMU 32/32, against a boot
+loop before the fix; the release folder's download test 9/9. Evidence: `evidence/2026-10-31-public-preview/`.
+
+**Open:** the owner's release key, sign-off, and choice on the test-keys and `userdebug` gates. This exact image
+has not run on the G14.
+
+## 2026-10-31: the release pipeline for openbook.page (ANAL-320)
+
+New `scripts/release/` and `tools/release/seeder/` ([`docs/RELEASE.md`](RELEASE.md)). They turn a live image into a
+release folder for openbook.page. The image is compressed with xz -9 (885 MB from 2.99 GB, measured against xz -6
+and zstd). Alongside it go a hybrid v1 + v2 torrent with web seeds, a signed `SHA256SUMS`, and `release.json`, the
+record the website reads. A hardened Transmission container seeds from the NAS, and only published releases.
+`release.json` carries the publish gates. The site (`Mhsbrian/openbook.page`, built by Atelier) publishes a release
+folder with `tools/publish-release.sh --from` (openbook.page PR #1), which refuses one that isn't public and links
+the direct download to the mirror. The script refuses an image that carries
+NVIDIA's own-use GSP firmware.
+
+**Checks:** torrents identical to libtorrent's own, 78/78. Swarm test on Docker, 9/9: the whole image from the web
+seed alone (through a 302) and from the seeder alone, both matching the sha256, and the gate refusing an unpublished
+release. Trackers 3/3. Refusal of the 2026-10-30 NVIDIA image shown. Evidence:
+`evidence/2026-10-31-release-pipeline/`.
+
+Nothing is published. Today's images fail `release_keys`, `user_build`, `source_offer` and `owner_approved`.
+Images from 2026-10-30 on also carry NVIDIA's firmware. The owner decides the mirror (GitHub Releases or R2), the
+release key and the router port forward.
+
 ## 2026-10-30: one kernel and one vendor layer with the Googlebook track; NVIDIA's open driver (ANAL-319)
 
 OpenBook's `kernel/` is now byte-identical to GoodBook's, and `device/` matches it apart from GoodBook's Ruby-only

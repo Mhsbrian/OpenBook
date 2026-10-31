@@ -1,0 +1,19 @@
+10-31 13:57:26.261   325   325 I modprobe: Loading module /vendor/lib/modules/amdgpu.ko with args ''
+10-31 13:57:26.362   325   325 I modprobe: Loaded kernel module /vendor/lib/modules/amdgpu.ko
+10-31 13:57:26.812     1     1 I init    : starting service 'vendor.openbook.dgpu-pm'...
+10-31 13:57:26.814     1     1 I init    : ... started service 'vendor.openbook.dgpu-pm' has pid 333
+10-31 13:57:26.815     1     1 I init    : SVC_EXEC service 'vendor.openbook.dgpu-pm' pid 333 (uid 0 gid 0+1 context default) started; waiting...
+10-31 13:57:26.851     1     1 I init    : Service 'vendor.openbook.dgpu-pm' (pid 333) exited with status 0 waiting took 0.038000 seconds
+10-31 13:57:26.852     1     1 I init    : Sending SIGKILL to service 'vendor.openbook.dgpu-pm' (pid 333) process group...
+10-31 13:57:29.438   716   716 I openbook-gfx-mode: frame report ignored: card0:Virtual-1 is not a connected panel on amdgpu
+10-31 13:57:35.789   724   780 I ActivityManager: About to commit checkpoint
+10-31 13:57:35.789   382   382 I Checkpoint: cp_commitChanges called
+10-31 13:57:35.958   412   412 I android.hardware.boot-service.openbook: live USB stick: boot marked successful in misc; the stick's loader entries are left as they are
+10-31 13:57:36.014     1     1 I init    : starting service 'vendor.openbook.dgpu-report'...
+10-31 13:57:36.019     1     1 I init    : ... started service 'vendor.openbook.dgpu-report' has pid 3035
+10-31 13:57:35.878  3044  3044 I openbook-pc-setup: dgpu-report (boot)
+10-31 13:57:36.076  3113  3113 I openbook-pc-setup: dgpu-report: suspend_stats success=0 fail=0
+10-31 13:57:36.121  3118  3118 I openbook-pc-setup: dgpu-report: state=absent
+10-31 13:57:36.511  3302  3302 I openbook-pc-setup: dgpu-report: health state=absent driver=- refs=- runtime_d3=- vram=- nvrm=0 xid=0 klog_s=0-13
+10-31 13:57:36.677     1     1 I init    : Service 'vendor.openbook.dgpu-report' (pid 3035) exited with status 0 oneshot service took 0.660000 seconds in background
+10-31 13:57:36.678     1     1 I init    : Sending SIGKILL to service 'vendor.openbook.dgpu-report' (pid 3035) process group...

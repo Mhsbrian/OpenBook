@@ -1,0 +1,128 @@
+{
+ "schema": "openbook-release/1",
+ "version": "0.1.0-preview.1",
+ "channel": "preview",
+ "date": "2026-10-31",
+ "audience": "unpublished",
+ "public": false,
+ "gates": {
+  "nvidia_firmware_terms": true,
+  "firmware_licences": true,
+  "release_keys": false,
+  "user_build": false,
+  "checksums_signed": false,
+  "source_offer": true,
+  "owner_approved": false
+ },
+ "waived": [],
+ "blocking": [
+  "release_keys",
+  "user_build",
+  "checksums_signed",
+  "owner_approved"
+ ],
+ "artifacts": [
+  {
+   "kind": "live-usb",
+   "arch": "x86_64",
+   "file": "openbook-0.1.0-preview.1-x86_64-live.img.xz",
+   "bytes": 1010992432,
+   "sha256": "dfbbcd1c956baf22d2b0698e854f7c4a22109d3c160281c5d620563bbe9a32bc",
+   "compression": {
+    "format": "xz",
+    "level": 9,
+    "blocks": 16,
+    "ratio": 0.3179
+   },
+   "image": {
+    "file": "openbook-0.1.0-preview.1-x86_64-live.img",
+    "bytes": 3180331008,
+    "sha256": "5cc310632bd1472710717f5ae6ed7b071c0411c27946b788fdb139c3dbe4ff8f"
+   },
+   "stick_min_gb": 4,
+   "install_min_gb": 64,
+   "urls": [
+    "https://github.com/Mhsbrian/OpenBook/releases/download/v0.1.0-preview.1/openbook-0.1.0-preview.1-x86_64-live.img.xz"
+   ],
+   "torrent": {
+    "file": "openbook-0.1.0-preview.1-x86_64-live.img.xz.torrent",
+    "url": "https://openbook.page/releases/openbook-0.1.0-preview.1-x86_64-live.img.xz.torrent",
+    "bytes": 51017,
+    "sha256": "38213a6cfd670b42e09073b31cd224c7e338b4f3d56180bb81ccd1e5722c5508",
+    "infohash_v1": "3cdb539387471bfb8e8d766ddd4051c9039fcc0d",
+    "infohash_v2": "4dcda8b216229eb94e1fa3a712b79a3e859e3d557e5e26371716a34d623b4b4a",
+    "magnet": "magnet:?xt=urn:btih:3cdb539387471bfb8e8d766ddd4051c9039fcc0d&xt=urn:btmh:12204dcda8b216229eb94e1fa3a712b79a3e859e3d557e5e26371716a34d623b4b4a&dn=openbook-0.1.0-preview.1-x86_64-live.img.xz&xl=1010992432&tr=udp:%2F%2Ftracker.opentrackr.org:1337%2Fannounce&tr=udp:%2F%2Fopen.stealth.si:80%2Fannounce&tr=udp:%2F%2Ftracker.torrent.eu.org:451%2Fannounce&ws=https:%2F%2Fgithub.com%2FMhsbrian%2FOpenBook%2Freleases%2Fdownload%2Fv0.1.0-preview.1%2Fopenbook-0.1.0-preview.1-x86_64-live.img.xz",
+    "piece_bytes": 1048576,
+    "pieces": 965,
+    "trackers": [
+     "udp://tracker.opentrackr.org:1337/announce",
+     "udp://open.stealth.si:80/announce",
+     "udp://tracker.torrent.eu.org:451/announce"
+    ],
+    "webseeds": [
+     "https://github.com/Mhsbrian/OpenBook/releases/download/v0.1.0-preview.1/openbook-0.1.0-preview.1-x86_64-live.img.xz"
+    ]
+   }
+  }
+ ],
+ "checksums": {
+  "file": "SHA256SUMS",
+  "url": "https://openbook.page/releases/openbook-0.1.0-preview.1-x86_64-live.sha256",
+  "signature": null
+ },
+ "source": {
+  "url": "https://github.com/Mhsbrian/OpenBook/releases/tag/v0.1.0-preview.1",
+  "files": [
+   {
+    "file": "openbook-0.1.0-preview.1-source-kernel.tar.xz",
+    "sha256": "082f8251041b57049ec40455aef1e9c2deb75dd6169963e6977b3619d2b13239"
+   },
+   {
+    "file": "openbook-0.1.0-preview.1-source-systemd-boot.tar.xz",
+    "sha256": "284573534c2c0b21c10197b8762a63b6b171bd5dd1a64af9972dcff83f49a884"
+   },
+   {
+    "file": "openbook-0.1.0-preview.1-source-userspace.tar.xz",
+    "sha256": "5e1bad0493259b026c38a279b2785ef529be515f0fb59bbec470e29771c7e4e0"
+   },
+   {
+    "file": "aosp-manifest.xml",
+    "sha256": "39694afeaa051de03fa5bf59c2e300812e7351f0f97da8b477c61d2c04b3b7a9"
+   },
+   {
+    "file": "SOURCES.md",
+    "sha256": "5b32fddd2cf8acf5ec3dd2b097cf1d628b3acdd1ab520d17a077ca4dcb78c151"
+   }
+  ]
+ },
+ "third_party": [
+  {
+   "name": "NVIDIA GSP firmware 615.78.08",
+   "files": [
+    "/vendor/firmware/nvidia/615.78.08/gsp_ga10x.bin",
+    "/vendor/firmware/nvidia/615.78.08/ucodes_ga10x.bin",
+    "/vendor/firmware/LICENSES/LICENSE.nvidia-driver-615.78.08"
+   ],
+   "licence": {
+    "file": "LICENSE.nvidia-driver-615.78.08",
+    "url": "https://openbook.page/releases/openbook-0.1.0-preview.1-x86_64-live.LICENSE.nvidia-driver-615.78.08.txt"
+   },
+   "terms": "NVIDIA Driver License Agreement 1.1(d): distributed unmodified, for use with operating system kernels under an OSI-approved licence, with the Agreement provided to each recipient",
+   "decision": "owner, 2026-10-31 (ANAL-320)"
+  }
+ ],
+ "build": {
+  "label": "openbook-live-20261031-anal320nv",
+  "fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
+  "kernel": "6.18.21-android17-5-g2461ae8277e6",
+  "loader": "systemd-boot 262-1",
+  "image_repo_commit": "bc680b0866bbc7a69cf980600ddf934f265be025",
+  "release_repo_commit": "ae7ad26f58e971e5647cfedc3b1f0c5abcf5a5d2",
+  "firmware_files": 141
+ },
+ "hardware": {
+  "first_target": "ASUS ROG Zephyrus G14 (2025, GA403WR)",
+  "status": "pre-alpha",
+  "docs": "https://github.com/Mhsbrian/OpenBook/blob/main/docs/HARDWARE.md"
+ }
+}

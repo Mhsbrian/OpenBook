@@ -1,0 +1,50 @@
+== make-sources.sh 0.1.0-preview.1 (2026-10-31T13:59:46Z), image openbook-live-20261031-anal320nv.img, kernel 6.18.21-android17-5-g2461ae8277e6, systemd-boot 262-1
+-- kernel: /home/hive/anybook/kernel/nvidia-open-anal297/ws (common 2461ae8277e6), dist /home/hive/anybook/kernel/dist/anybook-g14-gbos-16302624-anal297
+   openbook-0.1.0-preview.1-source-kernel.tar.xz: 168659600 bytes
+-- userspace copyleft components from the image's NOTICE files
+source   external/angle                           GPL        3 files, e.g. /system/lib64/libEGL_angle.so
+source   external/bpftool                         GPL        1 files, e.g. /system/bin/bpftool
+source   external/dnsmasq                         GPL        1 files, e.g. /system/bin/dnsmasq
+source   external/e2fsprogs                       GPL/LGPL  16 files, e.g. /system/bin/blkid
+source   external/exfatprogs                      GPL        2 files, e.g. /system/bin/fsck.exfat
+source   external/f2fs-tools                      GPL/LGPL   6 files, e.g. /system/bin/defrag.f2fs
+source   external/fec                             LGPL       1 files, e.g. /system/lib64/libfec_rs.so
+source   external/gptfdisk                        GPL        1 files, e.g. /system/bin/sgdisk
+source   external/hyphenation-patterns            LGPL       4 files, e.g. /system/usr/hyphen-data/hyph-hy.hyb
+source   external/iproute2                        GPL        5 files, e.g. /system/bin/ip
+source   external/iptables                        GPL        7 files, e.g. /system/bin/ip6tables
+source   external/libcap                          GPL        1 files, e.g. /system/lib64/libcap.so
+source   external/libexif                         LGPL       2 files, e.g. /system/lib64/libexif.so
+source   external/libnl                           LGPL       2 files, e.g. /system/lib64/libnl.so
+no-src   frameworks/base                                     3 files: Kotlin's notice collects the licences of the Kotlin distribution; its 
+no-src   packages/apps/AvatarPicker                          1 files: Kotlin's notice collects the licences of the Kotlin distribution; its 
+no-src   packages/apps/Calendar                              1 files: Kotlin's notice collects the licences of the Kotlin distribution; its 
+no-src   packages/apps/Camera2                               3 files: Kotlin's notice collects the licences of the Kotlin distribution; its 
+no-src   packages/apps/Contacts                              1 files: Kotlin's notice collects the licences of the Kotlin distribution; its 
+no-src   packages/apps/DeskClock                             1 files: Kotlin's notice collects the licences of the Kotlin distribution; its 
+no-src   packages/apps/Dialer                                1 files: the notice is prebuilts/tools' whole licence collection (416 KB); its 
+no-src   packages/apps/Gallery2                              4 files: Kotlin's notice collects the licences of the Kotlin distribution; its 
+no-src   packages/apps/ImsServiceEntitlement                 1 files: Kotlin's notice collects the licences of the Kotlin distribution; its 
+no-src   packages/apps/Launcher3                             1 files: Kotlin's notice collects the licences of the Kotlin distribution; its 
+no-src   packages/apps/Messaging                             1 files: Kotlin's notice collects the licences of the Kotlin distribution; its 
+no-src   packages/apps/Settings                              1 files: Kotlin's notice collects the licences of the Kotlin distribution; its 
+no-src   packages/apps/SettingsIntelligence                  1 files: Kotlin's notice collects the licences of the Kotlin distribution; its 
+no-src   packages/apps/StorageManager                        1 files: Kotlin's notice collects the licences of the Kotlin distribution; its 
+no-src   packages/apps/ThemePicker                           1 files: Kotlin's notice collects the licences of the Kotlin distribution; its 
+no-src   packages/inputmethods/LatinIME                      2 files: Kotlin's notice collects the licences of the Kotlin distribution; its 
+no-src   vendor/anybook/mesa                                10 files: Mesa's libelf (elfutils, LGPL-3.0+): mesa-build/ in the userspace tarb
+no-src   device/anybook/common/installer/app                 1 files: OpenBook's own app (Apache-2.0); its GPL text is Kotlin's, as above. S
+no-src   device/anybook/common/quire                         1 files: OpenBook's own app (Apache-2.0); its GPL text is Kotlin's, as above. S
+no-src   device/anybook/common/setup                         1 files: OpenBook's own app (Apache-2.0); its GPL text is Kotlin's, as above. S
+   openbook-0.1.0-preview.1-source-userspace.tar.xz: 108583468 bytes
+-- systemd-boot: systemd v262, Arch packaging 262-1
+   openbook-0.1.0-preview.1-source-systemd-boot.tar.xz: 19049408 bytes
+-- done: /home/hive/anybook/release/out/0.1.0-preview.1/sources
+total 289596
+-rw-r--r-- 1 hive hive    232840 Oct 31 10:01 aosp-manifest.xml
+-rw-r--r-- 1 hive hive 168659600 Oct 31 10:00 openbook-0.1.0-preview.1-source-kernel.tar.xz
+-rw-r--r-- 1 hive hive  19049408 Oct 31 10:01 openbook-0.1.0-preview.1-source-systemd-boot.tar.xz
+-rw-r--r-- 1 hive hive 108583468 Oct 31 10:01 openbook-0.1.0-preview.1-source-userspace.tar.xz
+-rw-r--r-- 1 hive hive       506 Oct 31 10:01 SHA256SUMS
+-rw-r--r-- 1 hive hive     10896 Oct 31 10:01 SOURCES.md
+log: /home/hive/anybook/logs/release/sources-0.1.0-preview.1-20261031T135946Z.log
