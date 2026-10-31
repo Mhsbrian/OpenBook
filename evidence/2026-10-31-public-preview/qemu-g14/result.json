@@ -1,6 +1,6 @@
 {
  "reason": "QEMU exited (0)",
- "seconds": 101.6,
+ "seconds": 101.4,
  "steps_done": 58,
  "steps": 58,
  "hits": [
@@ -12,42 +12,42 @@
   {
    "step": 1,
    "wait": "init: init second stage started",
-   "t": 5.1
+   "t": 5.0
   },
   {
    "step": 2,
    "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
-   "t": 7.0
+   "t": 6.9
   },
   {
    "step": 4,
    "wait": "console:/ \\$ ",
-   "t": 7.0
+   "t": 6.9
   },
   {
    "step": 6,
    "wait": "console:/ \\$ ",
-   "t": 7.2
+   "t": 7.1
   },
   {
    "step": 8,
    "wait": "BOOTDONE=\\S* uptime=[0-9.]+",
-   "t": 15.0
+   "t": 14.9
   },
   {
    "step": 9,
    "wait": "console:/ \\$ ",
-   "t": 15.0
+   "t": 14.9
   },
   {
    "step": 11,
    "wait": "console:/ \\$ ",
-   "t": 35.1
+   "t": 35.0
   },
   {
    "step": 14,
    "wait": "console:/ \\$ ",
-   "t": 40.3
+   "t": 40.2
   },
   {
    "step": 16,
@@ -57,12 +57,12 @@
   {
    "step": 18,
    "wait": "console:/ \\$ ",
-   "t": 41.8
+   "t": 41.7
   },
   {
    "step": 20,
    "wait": "console:/ \\$ ",
-   "t": 42.6
+   "t": 42.5
   },
   {
    "step": 22,
@@ -72,22 +72,22 @@
   {
    "step": 24,
    "wait": "console:/ \\$ ",
-   "t": 46.3
+   "t": 46.2
   },
   {
    "step": 26,
    "wait": "console:/ \\$ ",
-   "t": 48.2
+   "t": 48.1
   },
   {
    "step": 28,
    "wait": "console:/ \\$ ",
-   "t": 51.2
+   "t": 51.1
   },
   {
    "step": 30,
    "wait": "console:/ \\$ ",
-   "t": 53.3
+   "t": 53.2
   },
   {
    "step": 32,
@@ -102,12 +102,12 @@
   {
    "step": 36,
    "wait": "console:/ \\$ ",
-   "t": 59.1
+   "t": 59.0
   },
   {
    "step": 38,
    "wait": "console:/ \\$ ",
-   "t": 60.7
+   "t": 60.6
   },
   {
    "step": 40,
@@ -117,7 +117,7 @@
   {
    "step": 42,
    "wait": "console:/ \\$ ",
-   "t": 63.8
+   "t": 63.7
   },
   {
    "step": 44,
@@ -127,36 +127,36 @@
   {
    "step": 46,
    "wait": "console:/ \\$ ",
-   "t": 89.1
+   "t": 89.0
   },
   {
    "step": 48,
    "wait": "console:/ \\$ ",
-   "t": 90.7
+   "t": 90.6
   },
   {
    "step": 50,
    "wait": "console:/ \\$ ",
-   "t": 90.8
+   "t": 90.7
   },
   {
    "step": 52,
    "wait": "console:/ \\$ ",
-   "t": 93.4
+   "t": 93.2
   },
   {
    "step": 54,
    "wait": "console:/ \\$ ",
-   "t": 98.7
+   "t": 98.5
   },
   {
    "step": 56,
    "wait": "console:/ \\$ ",
-   "t": 100.2
+   "t": 100.0
   }
  ],
  "qemu_rc": 0,
- "usb": "/home/hive/anybook/installer/qemu/anal320pub-g14b/disk.img",
+ "usb": "/home/hive/anybook/installer/qemu/anal320nv-g14/disk.img",
  "nvme": null,
  "nvme2": null
 }

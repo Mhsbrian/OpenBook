@@ -1,16 +1,25 @@
-== make-release.sh 0.1.0-preview.1 from openbook-live-20261031-anal320pub.img (2026-10-31T13:24:40Z), repo be4ac675
--- checking the image against openbook-live-20261031-anal320pub.build.json
+== make-release.sh 0.1.0-preview.1 from openbook-live-20261031-anal320nv.img (2026-10-31T14:03:51Z), repo ae7ad26f
+-- checking the image against openbook-live-20261031-anal320nv.build.json
+   found NVIDIA firmware: [^/]gsp_ga10x\.bin
+   found NVIDIA firmware: [^/]ucodes_ga10x\.bin
+   found NVIDIA firmware: LICENSE\.nvidia-driver
+-- NVIDIA's firmware under its distribution terms (§1.1(d)): checking every file is unmodified
+   unmodified: /vendor/firmware/nvidia/615.78.08/gsp_ga10x.bin
+   unmodified: /vendor/firmware/nvidia/615.78.08/ucodes_ga10x.bin
+   unmodified: /vendor/firmware/LICENSES/LICENSE.nvidia-driver-615.78.08
+   the Agreement goes with the image: LICENSE.nvidia-driver-615.78.08
 -- xz -9, multi-threaded, independent blocks
-   944840824 bytes; decompresses to the image's sha256
+   1010992432 bytes; decompresses to the image's sha256
 -- torrent
 -- SHA256SUMS
 -- release.json
    audience: unpublished; blocking: release_keys, user_build, checksums_signed, owner_approved
--- done in 99 s: /home/hive/anybook/release/out/0.1.0-preview.1
-total 922756
--rw-r--r-- 1 hive hive 944840824 Oct 31 09:26 openbook-0.1.0-preview.1-x86_64-live.img.xz
--rw-r--r-- 1 hive hive     47739 Oct 31 09:26 openbook-0.1.0-preview.1-x86_64-live.img.xz.torrent
--rw-r--r-- 1 hive hive      4040 Oct 31 09:26 release.json
--rw-r--r-- 1 hive hive       335 Oct 31 09:26 SHA256SUMS
-drwxr-xr-x 1 hive hive       362 Oct 31 09:24 sources
-log: /home/hive/anybook/logs/release/release-0.1.0-preview.1-20261031T132440Z.log
+-- done in 96 s: /home/hive/anybook/release/out/0.1.0-preview.1
+total 987388
+-rw-r--r-- 1 hive hive      22653 Oct 31 10:03 LICENSE.nvidia-driver-615.78.08
+-rw-r--r-- 1 hive hive 1010992432 Oct 31 10:05 openbook-0.1.0-preview.1-x86_64-live.img.xz
+-rw-r--r-- 1 hive hive      51017 Oct 31 10:05 openbook-0.1.0-preview.1-x86_64-live.img.xz.torrent
+-rw-r--r-- 1 hive hive       4742 Oct 31 10:05 release.json
+-rw-r--r-- 1 hive hive        433 Oct 31 10:05 SHA256SUMS
+drwxr-xr-x 1 hive hive        362 Oct 31 10:01 sources
+log: /home/hive/anybook/logs/release/release-0.1.0-preview.1-20261031T140351Z.log

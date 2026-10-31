@@ -1,25 +1,29 @@
 # Status
 
-## 2026-10-31: the first public build, 0.1.0-preview.1, without NVIDIA's firmware (ANAL-320)
+## 2026-10-31: the first public build, 0.1.0-preview.1, with NVIDIA's open driver and firmware (ANAL-320)
 
 A G14 build meant for publishing, its GPL/LGPL source and its release folder. Nothing is published.
 
-- **No NVIDIA firmware:** `G14_NVIDIA_FIRMWARE=none` stages the same `anal297` kernel without the GSP firmware.
-  NVIDIA's modules ship but never load (`openbook-pc-setup dgpu-driver` looks for the firmware first), so the RTX is
-  left to `dgpu-pm`, as before the driver existed. `/vendor/firmware` has no `nvidia` folder.
+- **NVIDIA's work is in the image (the owner's decision, 2026-10-31):** NVIDIA's open driver 615.78.08, its GSP
+  firmware, runtime D3 and the graphics-mode layer, as on the laptop. The firmware ships under the NVIDIA Driver
+  License Agreement's §1.1(d): unmodified, with an OSI-licensed kernel, with the Agreement given to every
+  recipient. `make-release.sh --nvidia-licence` checks every NVIDIA file in the image against its pin and puts the
+  Agreement next to the download; openbook.page links it (openbook.page PR #2).
+- **Apps on the RTX are not in it:** GoodBook's `nvk-rm` cites reverse engineering of NVIDIA's proprietary
+  libraries and stays private (ANAL-298). A clean rewrite would bring it here.
 - **A live-stick fix:** every live image since the boot HAL arrived (2026-10-18) restarted Android at the end of
-  each boot, because `markBootSuccessful` needed a loader entry that only installed systems have. On a live stick
-  the HAL now marks misc only. No stick was built in between, as updates went over Wi-Fi.
-- **Source offer:** `scripts/release/make-sources.sh` packs the kernel exactly as built, the 14 AOSP projects whose
-  binaries carry a GPL/LGPL text (`notice-scan.py`, from the image's NOTICE files), Mesa's libelf and Mesa, and
-  systemd-boot 262-1. 296 MB in 3 tarballs.
+  each boot, because `markBootSuccessful` needed a loader entry only installed systems have. On a live stick the HAL
+  now marks misc only. No stick was built in between, as updates went over Wi-Fi.
+- **Source offer:** `scripts/release/make-sources.sh` packs the kernel exactly as built (with NVIDIA's open
+  modules), the 14 AOSP projects whose binaries carry a GPL/LGPL text, Mesa's libelf and Mesa, and systemd-boot 262-1.
+- **Also:** an image can still be built without NVIDIA's firmware (`G14_NVIDIA_FIRMWARE=none`); the driver then
+  never loads and `dgpu-pm` powers the RTX off.
 
-**Checks:** standard G14 QEMU check 58/58; the live stick in QEMU 32/32 (first boot, second boot, start fresh, save
-logs), against a boot loop before the fix; the release folder's download test 9/9. Evidence:
-`evidence/2026-10-31-public-preview/`.
+**Checks:** NVIDIA check 23/23 and standard G14 check 58/58 in QEMU; the live stick in QEMU 32/32, against a boot
+loop before the fix; the release folder's download test 9/9. Evidence: `evidence/2026-10-31-public-preview/`.
 
-**Open:** the RTX's D3cold on this build, on the G14 (measured on 2026-10-16 with the same hook and an older
-build). The owner's release key, sign-off, and choice on the test-keys and `userdebug` gates.
+**Open:** the owner's release key, sign-off, and choice on the test-keys and `userdebug` gates. This exact image
+has not run on the G14.
 
 ## 2026-10-31: the release pipeline for openbook.page (ANAL-320)
 

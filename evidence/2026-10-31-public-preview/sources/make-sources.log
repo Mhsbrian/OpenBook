@@ -1,6 +1,6 @@
-== make-sources.sh 0.1.0-preview.1 (2026-10-31T13:22:05Z), image openbook-live-20261031-anal320pub.img, kernel 6.18.21-android17-5-g2461ae8277e6, systemd-boot 262-1
+== make-sources.sh 0.1.0-preview.1 (2026-10-31T13:59:46Z), image openbook-live-20261031-anal320nv.img, kernel 6.18.21-android17-5-g2461ae8277e6, systemd-boot 262-1
 -- kernel: /home/hive/anybook/kernel/nvidia-open-anal297/ws (common 2461ae8277e6), dist /home/hive/anybook/kernel/dist/anybook-g14-gbos-16302624-anal297
-   openbook-0.1.0-preview.1-source-kernel.tar.xz: 168653008 bytes
+   openbook-0.1.0-preview.1-source-kernel.tar.xz: 168659600 bytes
 -- userspace copyleft components from the image's NOTICE files
 source   external/angle                           GPL        3 files, e.g. /system/lib64/libEGL_angle.so
 source   external/bpftool                         GPL        1 files, e.g. /system/bin/bpftool
@@ -36,15 +36,15 @@ no-src   vendor/anybook/mesa                                10 files: Mesa's lib
 no-src   device/anybook/common/installer/app                 1 files: OpenBook's own app (Apache-2.0); its GPL text is Kotlin's, as above. S
 no-src   device/anybook/common/quire                         1 files: OpenBook's own app (Apache-2.0); its GPL text is Kotlin's, as above. S
 no-src   device/anybook/common/setup                         1 files: OpenBook's own app (Apache-2.0); its GPL text is Kotlin's, as above. S
-   openbook-0.1.0-preview.1-source-userspace.tar.xz: 108585296 bytes
+   openbook-0.1.0-preview.1-source-userspace.tar.xz: 108583468 bytes
 -- systemd-boot: systemd v262, Arch packaging 262-1
-   openbook-0.1.0-preview.1-source-systemd-boot.tar.xz: 19049404 bytes
+   openbook-0.1.0-preview.1-source-systemd-boot.tar.xz: 19049408 bytes
 -- done: /home/hive/anybook/release/out/0.1.0-preview.1/sources
 total 289596
--rw-r--r-- 1 hive hive    232840 Oct 31 09:24 aosp-manifest.xml
--rw-r--r-- 1 hive hive 168653008 Oct 31 09:23 openbook-0.1.0-preview.1-source-kernel.tar.xz
--rw-r--r-- 1 hive hive  19049404 Oct 31 09:24 openbook-0.1.0-preview.1-source-systemd-boot.tar.xz
--rw-r--r-- 1 hive hive 108585296 Oct 31 09:23 openbook-0.1.0-preview.1-source-userspace.tar.xz
--rw-r--r-- 1 hive hive       506 Oct 31 09:24 SHA256SUMS
--rw-r--r-- 1 hive hive     10896 Oct 31 09:24 SOURCES.md
-log: /home/hive/anybook/logs/release/sources-0.1.0-preview.1-20261031T132205Z.log
+-rw-r--r-- 1 hive hive    232840 Oct 31 10:01 aosp-manifest.xml
+-rw-r--r-- 1 hive hive 168659600 Oct 31 10:00 openbook-0.1.0-preview.1-source-kernel.tar.xz
+-rw-r--r-- 1 hive hive  19049408 Oct 31 10:01 openbook-0.1.0-preview.1-source-systemd-boot.tar.xz
+-rw-r--r-- 1 hive hive 108583468 Oct 31 10:01 openbook-0.1.0-preview.1-source-userspace.tar.xz
+-rw-r--r-- 1 hive hive       506 Oct 31 10:01 SHA256SUMS
+-rw-r--r-- 1 hive hive     10896 Oct 31 10:01 SOURCES.md
+log: /home/hive/anybook/logs/release/sources-0.1.0-preview.1-20261031T135946Z.log

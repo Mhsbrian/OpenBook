@@ -1,0 +1,5 @@
+       NID TYPE  FILENAME
+   2374132    2  .
+   2195323    2  ..
+   4819328    1  gsp_ga10x.bin
+   4819840    1  ucodes_ga10x.bin

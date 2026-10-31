@@ -1,72 +1,61 @@
-# OpenBook 0.1.0-preview.1: the public build, its source and its release folder (ANAL-320, 2026-10-31)
+# OpenBook 0.1.0-preview.1: the public build with NVIDIA's open driver and firmware (ANAL-320, 2026-10-31)
 
-The first image built to be published: the G14 product without NVIDIA's GSP firmware, a fix that makes the live
-USB stick boot at all, the GPL/LGPL source bundle, and the release folder with its gates. **Nothing is published.**
-The folder is unsigned and not owner-approved, so `release.json` says `"public": false`.
+The owner wants NVIDIA's work in the public image (comment on ANAL-320, 2026-10-31). This is the G14 product as
+it runs on the laptop: NVIDIA's open driver 615.78.08, its GSP firmware, runtime D3 and the graphics-mode layer.
+The firmware ships under the NVIDIA Driver License Agreement's §1.1(d): unmodified, for use with an OSI-licensed
+kernel, with the Agreement given to every recipient. Apps on the RTX (NVK on NVIDIA's driver) are not in it (see
+the end). **Nothing is published.** The folder is unsigned and not owner-approved, so `release.json` says
+`"public": false`.
+
+An earlier build of the same day without the firmware, `G14_NVIDIA_FIRMWARE=none`, is in
+[`without-nvidia/`](without-nvidia/SUMMARY.md). It also records the live-stick fix and how it was found.
 
 ## The image
 
-`openbook-live-20261031-anal320pub.img`: 3,106,930,688 bytes, sha256 `a150c202…02b3`. Product
-`anybook_g14_x86_64-cp2a-userdebug` (fingerprint `…:userdebug/test-keys`), kernel `6.18.21-android17-5-g2461ae8277e6`
-(the 2026-10-26 `anal297` dist, the same kernel the G14 has run since then), staged with `G14_NVIDIA_FIRMWARE=none`
-(`image/kernel-staging-provenance.txt`). Built from this branch at `be4ac675` plus the then-uncommitted changes in
-this commit (`build.json` says `dirty: true`).
+`openbook-live-20261031-anal320nv.img`: 3,180,331,008 bytes, sha256 `5cc31063…e8618`. Product
+`anybook_g14_x86_64-cp2a-userdebug` (`…:userdebug/test-keys`), kernel `6.18.21-android17-5-g2461ae8277e6` (the
+`anal297` dist the G14 has run since 2026-10-26), NVIDIA's firmware staged and checked against its pins
+(`image/kernel-staging-provenance.txt`). Built from this branch at `bc680b08`, clean (`build.json`: `dirty: false`).
 
 | Check | Result | File |
 |---|---|---|
-| No NVIDIA firmware in `/vendor/firmware` | the folder has no `nvidia` directory; `LICENSES` has no NVIDIA licence (`dump.erofs` on `vendor.img`, sha256 `58d414ca…`, the same as `vendor_a` inside the live image) | `image/vendor-firmware-ls.txt`, `image/vendor-firmware-licenses-ls.txt` |
-| NVIDIA's modules still ship | `nvidia.ko`, `nvidia-modeset.ko`, `nvidia-drm.ko` in `vendor_dlkm` (Dual MIT/GPL; their source is in the kernel tarball), blocklisted and never loaded without firmware | `image/kernel-staging-provenance.txt` |
-| Standard G14 QEMU check (installed disk) | **58/58**, boot completed; the image's own `openbook-pc-setup-test` 0 failures, including the four no-firmware cases; 0 SELinux denials | `qemu-g14/` |
-| Live USB stick in QEMU, before the fix | **fails**: Android restarts at the end of every boot, `reboot: Restarting system with command 'Checkpoint commit failed'` | `qemu-live-before-fix/` |
-| Live USB stick in QEMU, after the fix | **32/32**: first boot (grows to 16 GiB, boot completed at 11.6 s), second boot (data kept), start fresh, save logs | `qemu-live/` |
-| `make-release.sh` firmware check | public build: no match; 2026-10-30 NVIDIA image: matches (see `docs/RELEASE.md` §2) | |
+| NVIDIA's files in the image are NVIDIA's, unmodified | `gsp_ga10x.bin` `a20100ca…`, `ucodes_ga10x.bin` `eed53d76…` and the Agreement `c692fb14…` match `kernel/firmware/anybook-nvidia-open.tsv`. They were read both inside the booted image and from the image's own vendor partition, which `make-release.sh` extracts (`vendor.img` = the image's `vendor_a`, `592daf33…`) | `qemu-g14-nvidia/nv-firmware.txt`, `image/vendor-match.txt`, `release-0.1.0-preview.1/make-release.log` |
+| Every firmware file has its licence | 141 files, none without a licence. The NVIDIA files map to the Agreement through NVIDIA's manifest (fixed here: `mklive.py` read only linux-firmware's) | `image/openbook-live-20261031-anal320nv.build.json` |
+| NVIDIA check (installed disk, QEMU) | **23/23**: the modules match the kernel and are blocklisted for early boot, the firmware hashes match, the device-node rules are installed, the switcher stays in Hybrid with firmware writes off, 0 SELinux denials | `qemu-g14-nvidia/` |
+| Standard G14 check (installed disk, QEMU) | **58/58**; the image's own `openbook-pc-setup-test` 0 failures; 0 SELinux denials | `qemu-g14/` |
+| Live USB stick (QEMU) | **32/32**: first boot (boot completed at 14.8 s), second boot, start fresh, save logs. Logcat shows the checkpoint commit, then the HAL's live-stick branch (the fix) | `qemu-live/` |
 
-### The live stick's boot loop (found and fixed here)
-
-Android commits vold's checkpoint when a boot completes, through the boot control HAL's `markBootSuccessful`
-(`ActivityManagerService`: "About to commit checkpoint", and a failure reboots with "Checkpoint commit failed").
-OpenBook's HAL first runs `openbook-bootsync mark-good`, which looks for the running slot's loader entry,
-`openbook-a.conf`. A live stick has no such entry. Its entries are the stick's own (`openbook-live.conf` and the
-rest, from `mklive.py`), so mark-good failed with `no_current_entry` on every boot of every live image since the
-HAL arrived (ANAL-223). Updates reached the G14 over Wi-Fi in the meantime, so no stick was built in that time. The
-fix: on a live boot (`ro.boot.openbook.live=1`), `markBootSuccessful` marks misc only and leaves the stick's ESP
-alone. After it, logcat shows `cp_commitChanges called` followed by `live USB stick: boot marked successful in misc`
-(`qemu-live/logcat-excerpt.txt`).
-
-## The RTX without firmware
-
-Not measured on this build. QEMU has no NVIDIA GPU, and the G14 didn't answer adb on 2026-10-31 (it runs the
-Googlebook image). The design is the one measured on the G14 on 2026-10-16, with an older build: no driver bound,
-`dgpu-pm` lets the root port power the slot off, and both functions read `D3cold`/`suspended`
-(`evidence/2026-10-16-installer/g14-live/SUMMARY.md`). To measure it on this build, boot this image's "save logs"
-entry on the G14. `read-stick-logs.sh` then reports the `dgpu_off` verdict.
+QEMU has no NVIDIA GPU, so the driver doesn't bind there. On the G14 this kernel and vendor layer load NVIDIA's
+driver after boot and hold the RTX in D3cold when idle: shown on 2026-10-26 (R5, ANAL-299) and 2026-10-28 (R7)
+with the sibling image (`docs/nvidia-open.md`). This exact image has not run on the G14.
 
 ## The source
 
-`sources/SOURCES.md` lists what is in each tarball and why. Totals: kernel 168,653,008 bytes, userspace 108,585,296,
-systemd-boot 19,049,404.
-
-- **Kernel:** the Kleaf workspace that built the shipped kernel (`kernel/nvidia-open-anal297/ws`, common at
-  `2461ae8277e6`, clean): Google's `3938c8d97142` plus 5 OpenBook commits, Kleaf `5877a401` plus 1 OpenBook commit
-  (the GKI symbol-list exception), `devices/anybook` (OpenBook's modules, nouveau, NVIDIA's open modules), the
-  pinned manifest, and the patch series.
-- **Userspace:** 14 AOSP projects whose binaries carry a GPL or LGPL text, found by
-  `scripts/release/notice-scan.py` in the image's own NOTICE files: angle, bpftool, dnsmasq, e2fsprogs, exfatprogs,
-  f2fs-tools, fec, gptfdisk, hyphenation-patterns, iproute2, iptables, libcap, libexif, libnl. Also Mesa's libelf
-  (elfutils `219c3a3`, LGPL-3.0+) and Mesa 26.2.5 with OpenBook's 4 patches, as built. The Kotlin apps and Dialer
-  carry licence collections whose GPL/LGPL entries are not in the binaries. They are listed with the reason and need
-  no source here (checked by hand; the reasons are in `notice-scan.py`).
-- **systemd-boot 262-1:** upstream's v262 source and Arch's packaging at `262-1`, downloaded 2026-10-31.
+`sources/SOURCES.md`; 168,659,600 + 108,583,468 + 19,049,408 bytes. The kernel tarball holds NVIDIA's open modules
+(Dual MIT/GPL) with OpenBook's patches, under `devices/anybook/nvidia_open`, along with Google's kernel and
+OpenBook's commits. The rest is as in `without-nvidia/`.
 
 ## The release folder
 
-`<data dir>/release/out/0.1.0-preview.1/` (not in the repository; 945 MB):
+`<data dir>/release/out/0.1.0-preview.1/` (not in the repository):
 
 | | |
 |---|---|
-| Image | `openbook-0.1.0-preview.1-x86_64-live.img.xz`, 944,840,824 bytes, xz -9 in 15 blocks |
-| Torrent | hybrid v1 + v2, 902 pieces of 1 MiB, info hash v1 `a3f1c69c71050d70136bc284b450f7c06c7f4204`, web seed `https://github.com/Mhsbrian/OpenBook/releases/download/v0.1.0-preview.1/…` |
-| Gates | pass: `no_nvidia_firmware`, `firmware_licences`, `source_offer`. Blocking: `release_keys`, `user_build`, `checksums_signed`, `owner_approved`. Nothing waived |
-| Download test | `swarm-test.sh` 9/9: the whole image from the web seed alone (through a 302) and from the seeder alone, both matching the sha256 |
+| Image | `openbook-0.1.0-preview.1-x86_64-live.img.xz`, 1,010,992,432 bytes, xz -9 |
+| NVIDIA's Agreement | `LICENSE.nvidia-driver-615.78.08` next to the image, in `SHA256SUMS`, and in `release.json`'s `third_party` with the terms and the decision |
+| Torrent | hybrid v1 + v2, 965 pieces of 1 MiB, info hash v1 `3cdb539387471bfb8e8d766ddd4051c9039fcc0d`, web seed on the GitHub Release |
+| Gates | pass: `nvidia_firmware_terms`, `firmware_licences`, `source_offer`. Blocking: `release_keys`, `user_build`, `checksums_signed`, `owner_approved`. Nothing waived |
+| Download test | `swarm-test.sh` **9/9**: the whole image from the web seed alone (through a 302) and from the seeder alone, both matching the sha256 |
 
-`release-0.1.0-preview.1/` holds `release.json`, `SHA256SUMS` and the logs.
+`site/downloads-page-test-copy.png`: a TEST-ONLY copy marked public, published with openbook.page's
+`publish-release.sh --from` (openbook.page PR #2). The Agreement is served as text (`text/plain`, 22,653 bytes) and
+linked as "Licence: NVIDIA GSP firmware 615.78.08".
+
+## Not in the image: apps on the RTX
+
+GoodBook runs apps on the RTX through NVK on NVIDIA's driver, built from its `nvk-rm` tree. That tree has 3 backend
+files and 13 Mesa patches that cite reverse engineering of NVIDIA's proprietary libraries, and the owner's rule
+for it (GoodBook `docs/nvidia-rm-nvk.md` §8, ANAL-298) is private use, never shared, with those parts replaced
+before anything is shared. So OpenBook's image has NVIDIA's driver, firmware and power management, and the desktop
+and apps stay on the Radeon. The way to bring apps on the RTX here is a clean rewrite of those parts from
+open-gpu-kernel-modules' MIT headers; GoodBook estimates the core as small, a hypothesis until done.

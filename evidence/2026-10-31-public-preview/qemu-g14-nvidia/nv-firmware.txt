@@ -1,0 +1,7 @@
+-rw-r--r-- 1 root root 22653 2026-10-31 13:29 LICENSE.nvidia-driver-615.78.08
+/vendor/firmware/nvidia/615.78.08:
+-rw-r--r-- 1 root root 27043992 2026-10-31 13:29 gsp_ga10x.bin
+-rw-r--r-- 1 root root 58215936 2026-10-31 13:29 ucodes_ga10x.bin
+a20100cafd5a85e22b3e13188339730c6ced94bd5f654984dd2ed274ed58d584  /vendor/firmware/nvidia/615.78.08/gsp_ga10x.bin
+eed53d76248582d71c629e8b6230aee48ce673c91d782301c94e98ac6a6db7aa  /vendor/firmware/nvidia/615.78.08/ucodes_ga10x.bin
+c692fb14ad4f499c6aee1b9e144e6905148c420e6225b17cb2937366c1e507ad  /vendor/firmware/LICENSES/LICENSE.nvidia-driver-615.78.08
