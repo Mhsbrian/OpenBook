@@ -58,13 +58,19 @@ for size, and would need measuring first. Neither has been measured.
 | `SHA256SUMS.sig`, `openbook-release.pub` | with `--sign-key`: an `ssh-keygen -Y sign` signature, namespace `openbook-release`, verified as soon as it is made |
 | `release.json` | the record the website reads (§5), including the gates (§7) |
 
-The script first checks the image against its build record (`<label>.build.json`). It refuses an image that carries
-NVIDIA's GSP firmware. A firmware file's name, or its licence's name, shows in the raw image as a directory entry.
-`nvidia.ko` names its firmware too, as a path (`nvidia/615.78.08/gsp_ga10x.bin`), and public images ship
-`nvidia.ko`, so only a name not preceded by `/` counts. The 2026-10-30 G14 image matches; the public build and the
-2026-10-18 image don't (`evidence/…/nvidia-refusal.txt`, `evidence/2026-10-31-public-preview/`). Building a public
-image is described in [`nvidia-open.md`](nvidia-open.md#public-images-the-modules-without-the-firmware-anal-320). `--private` is for the owner's own-use images. It writes the `.img.xz` and the
-checksums only: no torrent and no mirrors.
+The script first checks the image against its build record (`<label>.build.json`), then looks for NVIDIA's GSP
+firmware. A firmware file's name, or its licence's name, shows in the raw image as a directory entry. `nvidia.ko`
+names its firmware too, as a path (`nvidia/615.78.08/gsp_ga10x.bin`), so only a name not preceded by `/` counts.
+The 2026-10-30 G14 image matches; an image built without the firmware and the 2026-10-18 image don't
+(`evidence/…/nvidia-refusal.txt`, `evidence/2026-10-31-public-preview/`).
+
+An image with the firmware is published only under NVIDIA's distribution terms (the Agreement's §1.1(d), the owner's
+decision of 2026-10-31, [`nvidia-open.md`](nvidia-open.md#licences-and-the-owners-decisions)): `--nvidia-licence`
+with the Agreement that came with the firmware. The script then extracts the image's own vendor partition (found by
+its sha256), checks every NVIDIA file against `kernel/firmware/anybook-nvidia-open.tsv` (unmodified), and puts the
+Agreement next to the image, in `SHA256SUMS` and in `release.json`'s `third_party`. Without `--nvidia-licence` it
+refuses the image. `--private` is for the owner's own-use images. It writes the `.img.xz` and the checksums only:
+no torrent and no mirrors.
 
 **Checking a download** (this goes on the site's verify page):
 
@@ -209,7 +215,7 @@ Both need the deployed stack. A client behind NAT reaching the NAS is also untes
 
 | Gate | Passes when | Can be waived |
 |---|---|---|
-| `no_nvidia_firmware` | the image carries none of NVIDIA's GSP firmware ([`nvidia-open.md`](nvidia-open.md): own-use terms) | **no.** The script refuses such an image unless it is `--private` |
+| `nvidia_firmware_terms` | the image carries none of NVIDIA's GSP firmware, or carries it unmodified with the Agreement, under its §1.1(d) (`--nvidia-licence`) | **no.** Without `--nvidia-licence` the script refuses such an image unless it is `--private` |
 | `firmware_licences` | every firmware file ships with its licence | no |
 | `release_keys` | the build is not signed with AOSP's public test keys | `--waive release_keys`, recorded in the release, for an openly labelled developer preview |
 | `user_build` | a `user` build, not `userdebug` | `--waive user_build`, recorded the same way |
@@ -221,30 +227,30 @@ Both need the deployed stack. A client behind NAT reaching the NAS is also untes
 release that isn't public, so an unready image never reaches `releases.json`, the seed's watch folder or the
 downloads page. `openbook-seeder` checks the same thing again before it seeds.
 
-**`0.1.0-preview.1` (2026-10-31)** is the first public build: no NVIDIA firmware, with its source bundle. It passes
-`no_nvidia_firmware`, `firmware_licences` and `source_offer`. It is blocked on `release_keys` and `user_build` (it is
-a `userdebug` build on AOSP's test keys: waive both on the record for a labelled developer preview, or build with
-release keys), `checksums_signed` (the owner's key) and `owner_approved`
-(`evidence/2026-10-31-public-preview/SUMMARY.md`). Images from 2026-10-30 on with NVIDIA's firmware still fail
-`no_nvidia_firmware`; they stay private.
+**`0.1.0-preview.1` (2026-10-31)** is the first public build: the G14 product with NVIDIA's open driver and its
+firmware (the owner's decision of 2026-10-31), with its source bundle. It passes `nvidia_firmware_terms`,
+`firmware_licences` and `source_offer`. It is blocked on `release_keys` and `user_build` (a `userdebug` build on
+AOSP's test keys: waive both on the record for a labelled developer preview, or build with release keys),
+`checksums_signed` (the owner's key) and `owner_approved` (`evidence/2026-10-31-public-preview/SUMMARY.md`).
 
 ## 8. Publishing, once the gates pass (the owner's steps)
 
 ```bash
-# 0. a public build: the G14 product staged without NVIDIA's firmware (nvidia-open.md), then its live image
-G14_NVIDIA_FIRMWARE=none scripts/g14-stage-kernel.sh <dist>      # then build anybook_g14_x86_64 (BUILD.md)
+# 0. the G14 product (NVIDIA's firmware staged; G14_NVIDIA_FIRMWARE=none builds one without it), then its live image
+G14_NVIDIA_FIRMWARE=<firmware dir> scripts/g14-stage-kernel.sh <dist>      # then build anybook_g14_x86_64 (BUILD.md)
 scripts/installer-image.sh --label <label> --no-xz
 # 1. the source offer, then the release folder (the mirror URL is baked into the torrent as its web seed)
 scripts/release/make-sources.sh --version <V> --image ~/anybook/installer/out/<label>.img
 scripts/release/make-release.sh --image ~/anybook/installer/out/<label>.img --version <V> --channel preview \
   --mirror https://github.com/Mhsbrian/OpenBook/releases/download/v<V>/ \
   --source-url https://github.com/Mhsbrian/OpenBook/releases/tag/v<V> \
+  --nvidia-licence <firmware dir>/vendor/firmware/LICENSES/LICENSE.nvidia-driver-615.78.08 \
   --sign-key ~/.ssh/openbook-release --owner-approved [--waive release_keys,user_build]
 scripts/release/tracker-probe.py
 scripts/release/swarm-test.sh ~/anybook/release/out/<V>
 # 2. the mirror
 gh release create v<V> --repo Mhsbrian/OpenBook --prerelease --title "OpenBook <V>" --notes-file <notes> \
-  ~/anybook/release/out/<V>/{openbook-<V>-x86_64-live.img.xz,openbook-<V>-x86_64-live.img.xz.torrent,SHA256SUMS,SHA256SUMS.sig,openbook-release.pub} \
+  ~/anybook/release/out/<V>/{openbook-<V>-x86_64-live.img.xz,openbook-<V>-x86_64-live.img.xz.torrent,SHA256SUMS,SHA256SUMS.sig,openbook-release.pub,LICENSE.nvidia-driver-615.78.08} \
   ~/anybook/release/out/<V>/sources/{openbook-<V>-source-kernel.tar.xz,openbook-<V>-source-userspace.tar.xz,openbook-<V>-source-systemd-boot.tar.xz,aosp-manifest.xml,SOURCES.md}
 # 3. the site: from a clone of openbook.page, with the NAS releases folder mounted (or on the NAS itself);
 #    it places the files, writes releases.json and hands the torrent to the seed

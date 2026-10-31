@@ -32,23 +32,36 @@ off. When NVIDIA's driver binds, init still offers the OpenBook NVK package to a
 installs no such package, so Android logs `updatable driver package 'org.openbook.nvk' not installed` and an app
 opted in keeps the Radeon driver. CONFIRMED in AOSP 17's `GraphicsEnvironment.java`.
 
-## Licences and the two own-use decisions
+## Licences, and the owner's decisions
 
 - **The modules** are NVIDIA's open-gpu-kernel-modules, Dual MIT/GPL. CONFIRMED.
 - **The GSP firmware** is NVIDIA's, from its 615.78.08 driver package, under the NVIDIA Driver License Agreement it
-  ships with. That licence allows own use, and distribution only unmodified, with the agreement and with an
-  OSI-licensed kernel. On 2026-10-26 the owner chose its **own-use** terms (ANAL-297). **OpenBook images that carry
-  it stay private**, as GoodBook's do.
-- **The kernel's GKI exception**, also for the owner's own use (ANAL-297): Google's GKI denylist forbids
+  ships with (`LICENSES/LICENSE.nvidia-driver-615.78.08`). Its §1.1(c) allows own use; its §1.1(d) allows
+  distribution "for use with operating system kernels distributed under the terms of an OSI-approved open source
+  license", provided "(i) the binary files thereof are not modified in any way (except for uncompressing of
+  compressed files) and (ii) this Agreement is provided to each SOFTWARE recipient". §2.8 limits GeForce software
+  to GeForce hardware the user owns. CONFIRMED in the Agreement's text.
+  - 2026-10-26 (ANAL-297): the owner chose the own-use terms; OpenBook images with the firmware stayed private.
+  - **2026-10-31 (ANAL-320): the owner wants NVIDIA's work in the public image.** Public OpenBook images carry the
+    firmware under §1.1(d). `scripts/release/make-release.sh --nvidia-licence` checks every NVIDIA file in the
+    image against its pin (unmodified), and puts the Agreement next to the image, in `SHA256SUMS` and in
+    `release.json`. openbook.page links it from the download, and the image has it in `/vendor/firmware/LICENSES`.
+- **NVK on NVIDIA's driver (apps on the RTX) stays out of OpenBook.** GoodBook's `nvk-rm` tree has 3 backend files
+  and 13 Mesa patches that cite reverse engineering of NVIDIA's proprietary libraries, and the owner's rule for it is
+  "private use, never shared; replace these parts first if anything is ever shared" (GoodBook `docs/nvidia-rm-nvk.md`
+  §8, ANAL-298). Bringing apps on the RTX to OpenBook needs that replacement first: a clean rewrite of the 6 places
+  in the backend core from open-gpu-kernel-modules' MIT headers, and of the 13 patches. GoodBook's estimate for the
+  core: "looks small (HYPOTHESIS until done)".
+- **The kernel's GKI exception** (ANAL-297; with NVIDIA's driver in the public image, it ships too): Google's GKI denylist forbids
   `filp_open`, `kernel_read` and `kernel_write` on partner symbol lists. NVIDIA's runtime D3 and its saving of video
   memory across suspend need exactly those, so `kernel/patches/build-kernel/0001` takes an explicit exception for
   the AnyBook list. The alternative, NVIDIA's own Android build mode, loses both features.
 
-## Public images: the modules without the firmware (ANAL-320)
+## Images without the firmware (ANAL-320)
 
-A public OpenBook image can't carry the GSP firmware (own use, above), and NVIDIA's driver can't start the GPU
-without it. So a public build ships the same kernel and modules, which are Dual MIT/GPL and redistributable with
-their source, and leaves the driver unloaded:
+Since 2026-10-31 public images carry the firmware (above). An image can still be built without it, for anyone who
+wants to publish OpenBook without NVIDIA's Agreement. It ships the same kernel and modules, which are Dual MIT/GPL
+and redistributable with their source, and leaves the driver unloaded:
 
 - **Staging:** `G14_NVIDIA_FIRMWARE=none scripts/g14-stage-kernel.sh <dist>` stages the kernel without the firmware
   and says so in `PROVENANCE.txt`. Without `none`, the staging still refuses `nvidia.ko` with no firmware.

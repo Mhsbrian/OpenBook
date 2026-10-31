@@ -16,6 +16,7 @@
 # usage: make-release.sh --image IMG --version V [--out DIR] [--channel preview|stable] [--mirror URL_PREFIX]...
 #                        [--site URL_PREFIX] [--tracker URL]... [--no-default-trackers] [--sign-key KEY]
 #                        [--source-url URL] [--owner-approved] [--waive GATE[,GATE]] [--private] [--xz-level N]
+#                        [--nvidia-licence FILE [--vendor-img IMG]]
 #   --mirror      a folder URL that will hold the .img.xz (e.g. a GitHub release's download/<tag>/); becomes a web
 #                 seed and a direct-download link. Repeatable.
 #   --site        where the site serves this release's small files (default https://openbook.page/releases/<V>/)
@@ -23,14 +24,20 @@
 #                 <out>/sources/; its files and hashes go into release.json). Required for the source_offer gate.
 #   --sign-key    an ssh private key (ed25519). It is read by ssh-keygen only; never copied or logged.
 #   --waive       release_keys and/or user_build: publish a developer preview on AOSP test keys or userdebug, on the
-#                 record. no_nvidia_firmware, source_offer and owner_approved can't be waived.
+#                 record. nvidia_firmware_terms, source_offer and owner_approved can't be waived.
+#   --nvidia-licence  the image carries NVIDIA's GSP firmware and is published under NVIDIA's distribution terms
+#                 (NVIDIA Driver License Agreement §1.1(d): unmodified, for an OSI-licensed kernel, the Agreement
+#                 given to every recipient). FILE is the Agreement that came with the firmware. Every NVIDIA file in
+#                 the image is checked against kernel/firmware/anybook-nvidia-open.tsv by extracting the image's own
+#                 vendor partition (--vendor-img, default PRODUCT_OUT's vendor.img when its sha256 matches), and the
+#                 Agreement goes next to the image, in SHA256SUMS and in release.json. Owner decision 2026-10-31.
 #   --private     the image is for the owner's own use (e.g. it carries NVIDIA's GSP firmware): compress and checksum
 #                 only. No torrent, no mirrors, and release.json says private.
 # Output: --out DIR (default <data dir>/release/out/<V>); log: <data dir>/logs/release/release-<V>-<UTC>.log
 set -euo pipefail
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}
 R=$(cd "$(dirname "$0")/../.." && pwd)
-IMG=; VER=; OUT=; CHANNEL=preview; SITE=; KEY=; SRC=; OWNER=0; WAIVE=; PRIVATE=0; XZL=9; DEFTR=1
+IMG=; VER=; OUT=; CHANNEL=preview; SITE=; KEY=; SRC=; OWNER=0; WAIVE=; PRIVATE=0; XZL=9; DEFTR=1; NVLIC=; VIMG=
 MIRRORS=(); TRACKERS=()
 DEFAULT_TRACKERS=(
   udp://tracker.opentrackr.org:1337/announce
@@ -52,6 +59,8 @@ while [ $# -gt 0 ]; do
     --owner-approved) OWNER=1; shift ;;
     --waive) WAIVE=$2; shift 2 ;;
     --private) PRIVATE=1; shift ;;
+    --nvidia-licence) NVLIC=$(realpath "$2"); shift 2 ;;
+    --vendor-img) VIMG=$(realpath "$2"); shift 2 ;;
     --xz-level) XZL=$2; shift 2 ;;
     -h|--help) sed -n '3,30p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
@@ -92,8 +101,30 @@ NV=0
 for m in '[^/]gsp_ga10x\.bin' '[^/]ucodes_ga10x\.bin' 'LICENSE\.nvidia-driver'; do
   if LC_ALL=C grep -a -q -E "$m" "$IMG"; then NV=1; echo "   found NVIDIA firmware: $m"; fi
 done
+NVOK=0; NVLICNAME=
+rm -f "$OUT"/LICENSE.nvidia-driver-*
 if [ $NV = 1 ] && [ $PRIVATE = 0 ]; then
-  die "this image carries NVIDIA's GSP firmware, which the owner uses under its own-use terms (docs/nvidia-open.md). Build a public image without it, or use --private"
+  [ -n "$NVLIC" ] || die "this image carries NVIDIA's GSP firmware. It may be published only under NVIDIA's distribution terms: pass --nvidia-licence with the Agreement that came with the firmware (docs/nvidia-open.md), build without the firmware, or use --private"
+  echo "-- NVIDIA's firmware under its distribution terms (§1.1(d)): checking every file is unmodified"
+  VIMG=${VIMG:-$A/aosp/src/out/target/product/anybook_g14/vendor.img}
+  VWANT=$(jq -r '.super.partitions.vendor_a.sha256' "${IMG%.img}.img.json")
+  [ -f "$VIMG" ] && [ "$(sha256sum "$VIMG" | cut -d' ' -f1)" = "$VWANT" ] ||
+    die "--vendor-img: need this image's vendor partition (sha256 $VWANT) to check NVIDIA's files; $VIMG is not it"
+  mkdir -p "$A/release/work"; NVW=$(mktemp -d "$A/release/work/nv-XXXXXX")
+  "$A/aosp/src/out/host/linux-x86/bin/fsck.erofs" --extract="$NVW/vendor" "$VIMG" > /dev/null
+  NVLICSHA=
+  while IFS=$'\t' read -r kind _ path sha _; do
+    case $kind in file|licence) ;; *) continue ;; esac
+    have=$(sha256sum "$NVW/vendor/firmware/$path" 2>/dev/null | cut -d' ' -f1)
+    [ "$have" = "$sha" ] || die "/vendor/firmware/$path: sha256 ${have:-missing}, the pin says $sha (NVIDIA's terms allow unmodified files only)"
+    echo "   unmodified: /vendor/firmware/$path"
+    if [ "$kind" = licence ]; then NVLICNAME=$(basename "$path"); NVLICSHA=$sha; fi
+  done < <(grep -v '^#' "$R/kernel/firmware/anybook-nvidia-open.tsv")
+  rm -rf "$NVW"
+  [ -n "$NVLICSHA" ] && [ "$(sha256sum "$NVLIC" | cut -d' ' -f1)" = "$NVLICSHA" ] ||
+    die "--nvidia-licence is not the Agreement pinned with the firmware (kernel/firmware/anybook-nvidia-open.tsv)"
+  cp "$NVLIC" "$OUT/$NVLICNAME"; NVOK=1
+  echo "   the Agreement goes with the image: $NVLICNAME"
 fi
 
 # 2. compress, then prove the round trip
@@ -123,6 +154,7 @@ echo "-- SHA256SUMS"
 {
   (cd "$OUT" && sha256sum "$NAME.img.xz")
   if [ $PRIVATE = 0 ]; then (cd "$OUT" && sha256sum "$NAME.img.xz.torrent"); fi
+  if [ $NVOK = 1 ]; then (cd "$OUT" && sha256sum "$NVLICNAME"); fi
   echo "$WANT  $NAME.img"   # the decompressed image, for people who unpack it first (sha256sum -c --ignore-missing)
 } > "$OUT/SHA256SUMS.tmp"
 mv "$OUT/SHA256SUMS.tmp" "$OUT/SHA256SUMS"
@@ -143,10 +175,11 @@ fi
 # 5. release.json
 echo "-- release.json"
 python3 - "$BJ" "$OUT" "$NAME" "$VER" "$CHANNEL" "$SITE" "$SRC" "$OWNER" "$WAIVE" "$PRIVATE" "$NV" "$SIGNED" \
-  "$TJ" "$XZL" "$EPOCH" "$(git -C "$R" rev-parse HEAD)" "${MIRRORS[@]}" <<'PY'
+  "$TJ" "$XZL" "$EPOCH" "$(git -C "$R" rev-parse HEAD)" "$NVOK" "$NVLICNAME" "$R/kernel/firmware/anybook-nvidia-open.tsv" \
+  "${MIRRORS[@]}" <<'PY'
 import datetime, hashlib, json, os, subprocess, sys
 (bj, out, name, ver, channel, site, src, owner, waive, private, nv, signed, tj, xzl, epoch, commit,
- *mirrors) = sys.argv[1:]
+ nvok, nvlic, nvpin, *mirrors) = sys.argv[1:]
 b = json.load(open(bj))
 t = json.load(open(tj))
 xzf = f"{out}/{name}.img.xz"
@@ -163,7 +196,7 @@ for line in subprocess.run(["xz", "--robot", "-lv", xzf], capture_output=True, t
 fp = b["fingerprint"]
 waived = [w for w in waive.split(",") if w]
 gates = {
-    "no_nvidia_firmware": nv == "0",
+    "nvidia_firmware_terms": nv == "0" or nvok == "1",
     "firmware_licences": not b["firmware"]["without_licence"],
     "release_keys": not fp.endswith("/test-keys"),
     "user_build": ":user/" in fp,
@@ -207,6 +240,14 @@ rel = {
     "source": ({"url": src, "files": [{"file": l.split()[1], "sha256": l.split()[0]}
                                        for l in open(f"{out}/sources/SHA256SUMS")]}
                if src and os.path.exists(f"{out}/sources/SHA256SUMS") else (src or None)),
+    "third_party": ([{
+        "name": "NVIDIA GSP firmware " + nvlic.rsplit("-", 1)[-1],
+        "files": ["/vendor/firmware/" + r.split("\t")[2] for r in open(nvpin) if r.startswith(("file\t", "licence\t"))],
+        "licence": {"file": nvlic, "url": site + nvlic},
+        "terms": "NVIDIA Driver License Agreement 1.1(d): distributed unmodified, for use with operating system "
+                 "kernels under an OSI-approved licence, with the Agreement provided to each recipient",
+        "decision": "owner, 2026-10-31 (ANAL-320)",
+    }] if nvok == "1" else []),
     "build": {"label": b["label"], "fingerprint": fp, "kernel": b["kernel_release"], "loader": b["loader"],
               "image_repo_commit": b["repo"]["commit"], "release_repo_commit": commit,
               "firmware_files": b["firmware"]["files"]},
