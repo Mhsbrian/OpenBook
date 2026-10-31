@@ -296,8 +296,9 @@ labrun() {  # labrun ROOT ARGS...: the lab with the stubs; the property store is
     OPENBOOK_SETTLE_S=0 OPENBOOK_SYSFS_ROOT=$r OPENBOOK_LOGCMD= "$SH" "$SCRIPT" "$@" > "$r.log" 2>&1
   echo $? > "$r.rc"
 }
-lab_root() {  # a G14 with the dGPU in D3cold, an RTC and the suspend files
+lab_root() {  # a G14 with the dGPU in D3cold, an RTC, the suspend files and NVIDIA's GSP firmware
   g14_d3cold "$1"
+  w "$1/vendor/firmware/nvidia/615.78.08/gsp_ga10x.bin" stub
   w "$1/sys/class/rtc/rtc0/wakealarm" ""; w "$1/sys/power/state" ""
   w "$1/sys/power/suspend_stats/success" 7; w "$1/sys/power/suspend_stats/last_hw_sleep" 0
 }
@@ -479,6 +480,15 @@ drv "$r" boot
 check "dgpu-driver with nouveau: exit 0" "$r.rc" 0
 has "dgpu-driver with nouveau: said so" "$r.log" "nouveau is loaded and drives the same GPU"
 nothing_asked "dgpu-driver with nouveau: nothing asked"
+
+# ANAL-320: a public image has NVIDIA's modules but not its GSP firmware. No load, no offer, and the guard untouched.
+fresh; r=$T/drv-nofw; lab_root "$r"; rm -rf "$r/vendor/firmware/nvidia"
+drv "$r" boot
+check "dgpu-driver without GSP firmware: exit 0" "$r.rc" 0
+has "dgpu-driver without GSP firmware: said why" "$r.log" "no GSP firmware for NVIDIA's driver in this image"
+nothing_asked "dgpu-driver without GSP firmware: nothing asked"
+[ -e "$P/persist.vendor.openbook.dgpu_driver" ] && { echo "FAIL dgpu-driver without GSP firmware: guard written"; fails=$((fails + 1)); } ||
+  echo "ok   dgpu-driver without GSP firmware: guard untouched"
 
 echo "openbook-pc-setup-test: $fails failure(s)"
 [ $fails = 0 ]

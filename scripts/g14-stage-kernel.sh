@@ -11,8 +11,11 @@
 # scripts/kernel-nvidia-open-firmware.py's output (G14_NVIDIA_FIRMWARE, default <packaging>/firmware-nvidia-open),
 # into firmware-nvidia-open/; every file must match kernel/firmware/anybook-nvidia-open.tsv. nvidia.ko without its
 # firmware is refused: it could never start the GPU.
+# G14_NVIDIA_FIRMWARE=none is the public build (ANAL-320): NVIDIA's open modules ship (Dual MIT/GPL), its GSP firmware
+# does not (own-use licence, docs/nvidia-open.md), and openbook-pc-setup never loads the driver without it, so the RTX
+# stays unbound and dgpu-pm powers it off. Recorded in PROVENANCE.txt; scripts/release/make-release.sh checks the image.
 #
-# usage: [G14_NVIDIA_FIRMWARE=DIR] g14-stage-kernel.sh [DIST]     DIST defaults to anybook-g14-gbos-16302624
+# usage: [G14_NVIDIA_FIRMWARE=DIR|none] g14-stage-kernel.sh [DIST]     DIST defaults to anybook-g14-gbos-16302624
 set -euo pipefail
 R=$(cd "$(dirname "$0")/.." && pwd)
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}
@@ -32,8 +35,12 @@ for f in "${files[@]}"; do
   have=$(sha256sum "$K/images/$f" | cut -d' ' -f1)
   [ "$want" = "$have" ] || { echo "$f: sha256 $have, images.json says $want" >&2; exit 1; }
 done
-NVFW=
-if grep -q '^/vendor/lib/modules/nvidia\.ko:' "$K/lists/vendor_dlkm.bm.modules.dep" 2>/dev/null; then
+NVFW=; NVNONE=0
+if grep -q '^/vendor/lib/modules/nvidia\.ko:' "$K/lists/vendor_dlkm.bm.modules.dep" 2>/dev/null &&
+   [ "${G14_NVIDIA_FIRMWARE:-}" = none ]; then
+  NVNONE=1
+  echo "public build: NVIDIA's modules without their GSP firmware (G14_NVIDIA_FIRMWARE=none); the driver is never loaded"
+elif grep -q '^/vendor/lib/modules/nvidia\.ko:' "$K/lists/vendor_dlkm.bm.modules.dep" 2>/dev/null; then
   NVFW=${G14_NVIDIA_FIRMWARE:-$K/firmware-nvidia-open}
   [ -f "$NVFW/firmware-nvidia-open.mk" ] || {
     echo "$DIST carries nvidia.ko but no GSP firmware is staged at $NVFW:" >&2
@@ -65,6 +72,8 @@ fi
   echo "firmware: $(find "$O.new/firmware/vendor/firmware" -type f | wc -l) files"
   if [ -n "$NVFW" ]; then
     echo "nvidia firmware: $(find "$O.new/firmware-nvidia-open/vendor/firmware" -type f | wc -l) files from $NVFW"
+  elif [ $NVNONE = 1 ]; then
+    echo "nvidia firmware: none (public build, G14_NVIDIA_FIRMWARE=none: nvidia.ko ships and is never loaded)"
   else
     echo "nvidia firmware: none (no nvidia.ko in vendor_dlkm)"
   fi

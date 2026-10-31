@@ -42,3 +42,8 @@ type proc_openbook_nvidia, fs_type, proc_type;
 r_dir_file(openbook_pc_setup, proc_openbook_nvidia)
 allow openbook_pc_setup self:capability2 syslog;
 allow openbook_pc_setup kernel:system syslog_read;
+
+# dgpu-driver boot (ANAL-320): look for NVIDIA's GSP firmware before asking for the load, so a public image (which
+# has the modules but not the firmware) never tries. Listing and stat only; the kernel alone reads firmware files.
+allow openbook_pc_setup openbook_vendor_fw_file:dir r_dir_perms;
+allow openbook_pc_setup openbook_vendor_fw_file:file getattr;

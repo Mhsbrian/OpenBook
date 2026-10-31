@@ -44,6 +44,33 @@ opted in keeps the Radeon driver. CONFIRMED in AOSP 17's `GraphicsEnvironment.ja
   memory across suspend need exactly those, so `kernel/patches/build-kernel/0001` takes an explicit exception for
   the AnyBook list. The alternative, NVIDIA's own Android build mode, loses both features.
 
+## Public images: the modules without the firmware (ANAL-320)
+
+A public OpenBook image can't carry the GSP firmware (own use, above), and NVIDIA's driver can't start the GPU
+without it. So a public build ships the same kernel and modules, which are Dual MIT/GPL and redistributable with
+their source, and leaves the driver unloaded:
+
+- **Staging:** `G14_NVIDIA_FIRMWARE=none scripts/g14-stage-kernel.sh <dist>` stages the kernel without the firmware
+  and says so in `PROVENANCE.txt`. Without `none`, the staging still refuses `nvidia.ko` with no firmware.
+- **No load:** `openbook-pc-setup dgpu-driver boot` looks for `/vendor/firmware/nvidia/*/gsp_*.bin` first. With none
+  there, it logs why and returns, without touching the crash guard, so an image that has the firmware behaves as
+  before. `openbook_pc_setup` may list that folder and stat its files, and nothing more.
+- **The RTX powers off as before the driver existed:** at early init `dgpu-pm` finds the GPU unbound, unbinds
+  `snd_hda_intel` from its HDMI-audio function and sets `power/control=auto` on every function, so the root port can
+  take the slot to D3cold.
+- **The check:** `scripts/release/make-release.sh` refuses an image whose raw bytes hold a firmware file's directory
+  entry or NVIDIA's licence file. It ignores the firmware paths inside `nvidia.ko`, which every image with the
+  modules has.
+
+What has been shown, and what hasn't:
+
+| | Result | Evidence |
+|---|---|---|
+| The firmware is not in the public build | `/vendor/firmware` has no `nvidia` folder and `LICENSES` has no NVIDIA licence (`dump.erofs` on the vendor image inside the live image, same sha256) | `evidence/2026-10-31-public-preview/` |
+| The public build boots | standard G14 QEMU check 58/58; the image's own `openbook-pc-setup-test` 0 failures, with the no-firmware cases | same |
+| The unbound RTX reaches D3cold on the G14 | **2026-10-16, older build, same `dgpu-pm` hook:** both functions `D3cold`/`suspended` with no driver bound | `evidence/2026-10-16-installer/g14-live/SUMMARY.md` |
+| The same on this build's kernel | **not measured yet.** QEMU has no NVIDIA GPU, and the laptop's adb was off on 2026-10-31. Next: the stick's "save logs" entry on the G14 records it | |
+
 ## The kernel side
 
 All of it lives in `kernel/`, identical in both repositories.

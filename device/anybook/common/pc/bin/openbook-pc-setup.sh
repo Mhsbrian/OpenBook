@@ -36,6 +36,7 @@
 #            NVIDIA function in D0 (power/control=on); "auto" is dgpu-pm again. Refused while a driver drives the
 #            GPU. Then logs a dgpu-report. A reboot returns to the boot default (dgpu-pm).
 #   dgpu-driver boot|on|off
+#            (An image without NVIDIA's GSP firmware under /vendor/firmware/nvidia never loads the driver: ANAL-320.)
 #            NVIDIA's driver for apps (ANAL-247, docs/nvidia-offload-ruby.md). "boot" runs once the system is up in
 #            Hybrid (init.openbook.rc): it asks init for the lab's fixed nvidia-load command (nvidia-drm, which pulls
 #            in nvidia-modeset and nvidia), waits for nvidia_drm and for the GPU to bind, then sets
@@ -75,6 +76,7 @@
 # OPENBOOK_DMESG replaces dmesg -S.
 set -u
 SYS=${OPENBOOK_SYSFS_ROOT:-}/sys
+NVFW=${OPENBOOK_SYSFS_ROOT:-}/vendor/firmware/nvidia   # NVIDIA's GSP firmware; absent from public images (ANAL-320)
 POWER_SAVE=10
 LOGCMD=${OPENBOOK_LOGCMD-/vendor/bin/log}
 
@@ -430,6 +432,15 @@ dgpu_driver() {
     log "dgpu-driver: nouveau is loaded and drives the same GPU; NVIDIA's driver not loaded"; return 0
   fi
   if [ ! -d "$SYS/module/nvidia_drm" ]; then
+    # A public image carries NVIDIA's modules but not its GSP firmware (own-use licence, docs/nvidia-open.md), and
+    # the driver can't start the GPU without it. Don't try: the RTX stays unbound, and dgpu-pm has already let it
+    # power off. The guard property is left as it is, so an image that has the firmware loads as before.
+    fw=0
+    for f in "$NVFW"/*/gsp_*.bin; do [ -e "$f" ] && fw=1; done
+    if [ $fw = 0 ]; then
+      log "dgpu-driver: no GSP firmware for NVIDIA's driver in this image ($NVFW); not loading. The RTX stays unbound and powered off (dgpu-pm)"
+      return 0
+    fi
     setp $DRIVER_STATE loading
     setp vendor.openbook.lab.mod idle; setp vendor.openbook.lab.mod nvidia-load
     if lab_wait nvidia_drm present; then up=1; else up=0; fi
