@@ -58,7 +58,7 @@ HARD=(--read-only --tmpfs /tmp:size=16m --cap-drop ALL --security-opt no-new-pri
 docker run -d --name "$SEED-gate" --network "$NET" "${HARD[@]}" openbook-seeder > /dev/null
 for _ in $(seq 30); do docker exec "$SEED-gate" test -f /status/swarm.json 2>/dev/null && break; sleep 1; done
 n=$(docker exec "$SEED-gate" openbook-seeder status | jq '.torrents | length')
-docker logs "$SEED-gate" 2>&1 | grep -q "not seeding $VER/$FILE.torrent: its release.json is not public"
+docker logs "$SEED-gate" 2>&1 | grep -q "not seeding $VER/$FILE.torrent: not published"
 check $(( $? + n )) "the seeder refuses a release that is not public (torrents: $n)"
 docker rm -f "$SEED-gate" > /dev/null
 

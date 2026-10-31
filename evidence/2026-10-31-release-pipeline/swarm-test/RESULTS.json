@@ -15,9 +15,9 @@
   },
   "peer_only": {
     "complete": true,
-    "seconds": 8.0,
+    "seconds": 8.8,
     "bytes": 885136268,
-    "MBps": 110.4,
+    "MBps": 100.9,
     "sources": [
       "peer"
     ],
@@ -26,7 +26,7 @@
   },
   "swarm": {
     "schema": "openbook-swarm/1",
-    "updated": "2026-10-31T11:44:00Z",
+    "updated": "2026-10-31T11:51:47Z",
     "peer_port": 51413,
     "torrents": [
       {

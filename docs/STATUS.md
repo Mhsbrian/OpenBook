@@ -5,8 +5,10 @@
 New `scripts/release/` and `tools/release/seeder/` ([`docs/RELEASE.md`](RELEASE.md)). They turn a live image into a
 release folder for openbook.page. The image is compressed with xz -9 (885 MB from 2.99 GB, measured against xz -6
 and zstd). Alongside it go a hybrid v1 + v2 torrent with web seeds, a signed `SHA256SUMS`, and `release.json`, the
-record the website reads. A hardened Transmission container seeds from the NAS, and only releases whose
-`release.json` is public. `release.json` carries the publish gates. The script refuses an image that carries
+record the website reads. A hardened Transmission container seeds from the NAS, and only published releases.
+`release.json` carries the publish gates. The site (`Mhsbrian/openbook.page`, built by Atelier) publishes a release
+folder with `tools/publish-release.sh --from` (openbook.page PR #1), which refuses one that isn't public and links
+the direct download to the mirror. The script refuses an image that carries
 NVIDIA's own-use GSP firmware.
 
 **Checks:** torrents identical to libtorrent's own, 78/78. Swarm test on Docker, 9/9: the whole image from the web

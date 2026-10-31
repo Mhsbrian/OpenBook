@@ -24,3 +24,5 @@ decompress zst19 1516 ms
   Streams:           1
   Blocks:            15
   Streams:
+== zstd --long=31 decode check 2026-10-31T11:47:02Z
+img.zst-long31 : Decoding error (36) : Frame requires too much memory for decoding 

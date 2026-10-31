@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # openbook-seeder run | health | status
 #   run     write Transmission's settings from the environment, start it, then every SYNC_SECONDS:
-#           add each /releases/<version>/*.torrent whose release.json says "public": true (data from that folder,
-#           read-only), drop torrents whose release is gone or no longer public (never their data), and write
-#           /status/swarm.json for the website.
+#           add each published torrent (data from its own folder, read-only), drop torrents whose release is gone
+#           or no longer published (never their data), and write /status/swarm.json for the website.
+#           Published means: in a release folder (/releases/<version>/), its release.json says "public": true;
+#           in the site's flat folder (/releases/*.torrent), /releases/releases.json lists it and not "hidden".
 #   health  exit 0 when the RPC answers, swarm.json is fresh and no seeded torrent is in error.
 #   status  print swarm.json.
 # Environment: PEER_PORT (51413), SEED_UP_KBPS (0 = no limit), PEER_LIMIT (200), SYNC_SECONDS (60),
@@ -51,20 +52,24 @@ settings() {
   }' > "$CONF/settings.json"
 }
 
-public() { # public DIR: the release in DIR may be seeded
+public() { # public TORRENT: this torrent may be seeded
   [ "$SEED_UNPUBLISHED" = 1 ] && return 0
-  [ -f "$1/release.json" ] && [ "$(jq -r '.public == true' "$1/release.json" 2>/dev/null)" = true ]
+  if [ -f "${1%/*}/release.json" ]; then
+    jq -e '.public == true' "${1%/*}/release.json" > /dev/null 2>&1; return
+  fi
+  [ -f /releases/releases.json ] && jq -e --arg t "${1#/releases/}" \
+    '[.releases[]? | select(.hidden != true) | .torrent] | index($t) != null' /releases/releases.json > /dev/null 2>&1
 }
 
 sync_once() {
   have=$(rpc '{"method":"torrent-get","arguments":{"fields":["id","hashString","downloadDir","name"]}}') || return 1
   # add what should be seeded
-  for t in /releases/*/*.torrent; do
+  for t in /releases/*.torrent /releases/*/*.torrent; do
     [ -f "$t" ] || continue
     d=${t%/*}
-    if ! public "$d"; then
+    if ! public "$t"; then
       grep -qxF "$t" /tmp/openbook-seeder.skipped 2>/dev/null \
-        || { log "not seeding ${t#/releases/}: its release.json is not public"; echo "$t" >> /tmp/openbook-seeder.skipped; }
+        || { log "not seeding ${t#/releases/}: not published"; echo "$t" >> /tmp/openbook-seeder.skipped; }
       continue
     fi
     echo "$have" | jq -e --arg d "$d" --arg n "$(basename "$t" .torrent)" \
@@ -75,7 +80,7 @@ sync_once() {
   done
   # drop what should not be seeded any more (the data is never touched)
   echo "$have" | jq -r '.arguments.torrents[] | "\(.id)\t\(.downloadDir)\t\(.name)"' | while IFS="$(printf '\t')" read -r id d n; do
-    if [ ! -f "$d/$n.torrent" ] || ! public "$d"; then
+    if [ ! -f "$d/$n.torrent" ] || ! public "$d/$n.torrent"; then
       rpc "{\"method\":\"torrent-remove\",\"arguments\":{\"ids\":[$id],\"delete-local-data\":false}}" > /dev/null \
         && log "stopped seeding $n (release gone or not public)"
     fi
@@ -85,7 +90,7 @@ sync_once() {
     | jq --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --argjson port "$PEER_PORT" '{
         schema: "openbook-swarm/1", updated: $now, peer_port: $port,
         torrents: [.arguments.torrents[] | {
-          version: (.downloadDir | split("/") | last), name, infohash: .hashString,
+          version: (if .downloadDir == "/releases" then null else (.downloadDir | split("/") | last) end), name, infohash: .hashString,
           state: (if .error != 0 then "error" elif (.status == 1 or .status == 2) then "checking"
                   elif .percentDone < 1 then "incomplete" elif .status == 6 then "seeding" else "stopped" end),
           error: (if .error != 0 then .errorString else null end),

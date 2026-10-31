@@ -96,21 +96,23 @@ every piece (845/845 for the real file), and one flipped byte fails exactly one 
 
 ## 4. Hosting: three paths, each for what it does well
 
+The site is [`Mhsbrian/openbook.page`](https://github.com/Mhsbrian/openbook.page) (private): one Portainer stack
+on the Synology with a `web` container and a `seed` container. Both read the releases folder read-only.
+
 ```mermaid
 flowchart LR
-  user(("Visitor")) -->|"https: pages, release.json,<br/>.torrent, SHA256SUMS"| cf["Cloudflare<br/>tunnel"] --> web["NAS: web container<br/>(site repo)"]
-  user -->|"BitTorrent, TCP+UDP 51413<br/>(router port forward)"| seed["NAS: openbook-seeder"]
+  user(("Visitor")) -->|"https: pages, releases.json,<br/>.torrent, .sha256(.sig)"| cf["Cloudflare<br/>tunnel"] --> web["NAS: web<br/>(openbook.page)"]
+  user -->|"BitTorrent, TCP+UDP 51413<br/>(router port forward)"| seed["NAS: seed<br/>(Transmission)"]
   user -->|"direct download<br/>and web seed"| mirror["GitHub Releases<br/>or Cloudflare R2"]
-  web -.->|"reads, read-only"| rel[("/volume1/docker/openbook-page/releases")]
+  web -.->|"reads, read-only"| rel[("/volume1/docker/openbook/releases")]
   seed -.->|"reads, read-only"| rel
-  seed -.->|"swarm.json"| web
 ```
 
 | Path | Carries | Why this way |
 |---|---|---|
-| **openbook.page** via cloudflared to the NAS (`192.168.50.236:6666`) | the site, `index.json`, `release.json`, `.torrent`, `SHA256SUMS(.sig)`, `swarm.json` | small files, which suit the tunnel and the CDN |
-| **BitTorrent** from `openbook-seeder` on the NAS | the image, peer to peer | the NAS seeds without a CDN in the middle, and every downloader adds bandwidth |
-| **HTTP mirror**: a GitHub Release on `Mhsbrian/OpenBook` (or R2 at `dl.openbook.page`) | the direct-download button, and the torrent's web seed | keeps the 0.9 GB file off the tunnel (below) |
+| **openbook.page** via cloudflared to the NAS (`192.168.50.236:6666`) | the site, `releases.json`, `.torrent`, `<id>.sha256(.sig)` | small files, which suit the tunnel and the CDN |
+| **BitTorrent** from the stack's seed | the image, peer to peer | the NAS seeds without a CDN in the middle, and every downloader adds bandwidth |
+| **HTTP mirror**: a GitHub Release on `Mhsbrian/OpenBook` (or R2 at `dl.openbook.page`) | the direct-download button (`url` in `releases.json`), and the torrent's web seed | keeps the 0.9 GB file off the tunnel (below) |
 
 **Keep the `.img.xz` off the Cloudflare tunnel.** Cloudflare's terms say a non-Enterprise plan should serve video
 and other large files from a Cloudflare product built for them, such as R2 or Stream, not through the CDN in front
@@ -128,63 +130,73 @@ image would never be cached, and every download would come up the home connectio
 - **Cloudflare R2** behind `dl.openbook.page`: no egress fees, and it is the Cloudflare product meant for large
   files. It needs an R2 subscription on the account. Pass `--mirror https://dl.openbook.page/<V>/`.
 
-**The seeder** (`tools/release/seeder/`, image `openbook-seeder`):
-- Alpine 3.24 with Transmission 4.1.2. It runs as uid 10001 on a read-only root file system, with every capability
-  dropped and `no-new-privileges`. The releases folder is mounted read-only.
-- Its RPC listens on the container's own loopback, so nothing outside the container can reach it. UPnP and LAN
-  discovery are off. **The peer port (51413 TCP and UDP) is the only thing the stack exposes.** Forward it on the
-  router to the NAS, and allow it in DSM's firewall. cloudflared carries HTTP(S) only. Without the port forward the
-  seeder can still connect out to peers, and the web seed still finishes every download, but the NAS gives the swarm
-  far less.
-- It seeds a release only when that release's `release.json` says `"public": true`. It stops seeding a release
-  that is removed or no longer public, and never touches the release's data.
+**The seed.** The stack's `seed` service is `lscr.io/linuxserver/transmission:4.0.6`. It has its web UI on the LAN
+at port 9091, behind a password, and takes torrents from `releases/.watch/`. **`tools/release/seeder/`
+(`openbook-seeder`) is a stricter drop-in replacement** for it, if the owner wants one:
+- Alpine 3.24 with Transmission 4.1.2. It runs as uid 10001 from the start, with no root init and no added
+  capabilities, on a read-only root file system with every capability dropped and `no-new-privileges`. The releases
+  folder is mounted read-only.
+- Its RPC listens on the container's own loopback, so it has no web UI and no password to leak. UPnP and LAN
+  discovery are off. **The peer port (51413 TCP and UDP) is the only thing it exposes.**
+- It seeds only published releases. In the site's flat folder, that means a release `releases.json` lists and does
+  not hide. In a release folder (`/releases/<V>/`), it means `release.json` says `"public": true`. It stops seeding
+  a release that is removed, hidden or no longer public, and never touches the release's data. It needs no
+  `.watch` folder.
 - Every `SYNC_SECONDS` it writes `/status/swarm.json` (`openbook-swarm/1`): per torrent, its state, peer counts,
-  upload rate and total uploaded. It never includes peer addresses. The website can mount it read-only for a live
-  "seeding" line.
+  upload rate and total uploaded. It never includes peer addresses. The site could mount it for a live "seeding"
+  line.
 - `SEED_UP_KBPS` caps upload to protect the home connection (0 means no cap). It has a built-in health check.
-- Deploy it with [`compose.example.yml`](../tools/release/seeder/compose.example.yml), which builds from this
-  repository's git URL, or copy the folder into the site repo. Rebuild monthly with `docker compose build --pull`:
-  Transmission faces the internet.
+- To swap, replace `seed` in the stack with the service in
+  [`compose.example.yml`](../tools/release/seeder/compose.example.yml), which builds from this repository's git URL.
+  Rebuild it monthly with `docker compose build --pull`, because Transmission faces the internet.
 
-**On the NAS:**
+Either way, forward 51413 TCP and UDP on the router to the NAS, and allow it in DSM's firewall. cloudflared carries
+HTTP(S) only. Without the port forward the seed can still connect out to peers, and the web seed still finishes
+every download, but the NAS gives the swarm far less.
+
+**On the NAS**, the site stack's `RELEASES_DIR`, written by openbook.page's `tools/publish-release.sh --from`:
 
 ```text
-/volume1/docker/openbook-page/releases/
-  index.json                  scripts/release/release-index.py: public releases only, newest first
-  <V>/release.json  <V>/SHA256SUMS  <V>/SHA256SUMS.sig  <V>/openbook-release.pub
-  <V>/openbook-<V>-x86_64-live.img.xz  <V>/openbook-<V>-x86_64-live.img.xz.torrent
+/volume1/docker/openbook/releases/
+  releases.json                                    the downloads page's list (openbook-releases/1, the site's)
+  openbook-<V>-x86_64-live.img.xz                  for the seed; the site links the mirror instead
+  openbook-<V>-x86_64-live.img.xz.torrent          the release's own torrent, unchanged
+  openbook-<V>-x86_64-live.sha256(.sig)            SHA256SUMS and its signature, renamed per release
+  .watch/                                          torrents handed to the linuxserver seed
 ```
 
-The web container should serve only `*.json`, `*.torrent`, `SHA256SUMS*` and `*.pub` from this folder. The image is
-there for the seeder alone.
+## 5. What the website reads
 
-## 5. What the website reads (`openbook-release/1`)
+The downloads page reads the site's `releases.json` (`openbook-releases/1`, defined in openbook.page).
+`tools/publish-release.sh --from <release folder>` writes one entry per release from this repository's
+`release.json` (`openbook-release/1`). It refuses a release that is not `public`.
 
-`releases/index.json` (`openbook-releases/1`) has `latest` (the newest public version per channel) and `releases`
-(summaries, newest first). Each `releases/<V>/release.json` contains:
+| `release.json` (OpenBook) | `releases.json` entry (site) | On the page |
+|---|---|---|
+| `version` | `name` ("OpenBook <V>") | the release title |
+| `date`, `channel` | `date`, `channel` | the date line and a pill |
+| `hardware.first_target` | `target` | a pill |
+| `artifacts[0].file`, `.bytes`, `.sha256` | `file`, `size`, `sha256` | the size on the button; the checksum to copy |
+| `artifacts[0].urls[0]` | `url` | **Direct download**, from the mirror |
+| `artifacts[0].torrent.file`, `.magnet` | `torrent`, `magnet` | **Download .torrent**, **Open magnet link** |
+| `SHA256SUMS`, `SHA256SUMS.sig` | `checksums`, `signature` | **Checksums**, **Signature** |
+| (flags) `--summary`, `--note`, `--evidence` | `summary`, `notes`, `evidence` | the text and the evidence link |
 
-| Field | Use on the site |
-|---|---|
-| `version`, `channel` (`preview`, `stable`), `date` | the headline and the release list |
-| `public`, `audience`, `gates`, `blocking`, `waived` | show a download only when `public` is true. Otherwise show "not released yet", not a broken button |
-| `artifacts[0].file`, `.bytes`, `.sha256` | the file name, its size (885 MB), and the checksum to copy |
-| `artifacts[0].urls` | the direct-download button (the mirror) |
-| `artifacts[0].torrent.url`, `.magnet`, `.infohash_v1`, `.infohash_v2` | the torrent button, the magnet link, and the info hashes for the verify page |
-| `artifacts[0].image.bytes`, `.stick_min_gb`, `.install_min_gb` | "needs a 4 GB USB stick; installs on 64 GB" |
-| `checksums.url`, `checksums.signature.public_key` | the verify page (§2) |
-| `build.fingerprint`, `build.kernel`, `hardware` | "what's inside", and a link to the hardware status |
-
-`evidence/2026-10-31-release-pipeline/release-0.0.0-test.anal191i/release.json` is a real record to build the page
-against. It is unpublished on purpose (§7), and its signature is from a throwaway test key, not an OpenBook key.
+`release.json` also carries what the page doesn't show yet: both info hashes, the stick and install sizes
+(`stick_min_gb`, `install_min_gb`), the build fingerprint and kernel, the signing public key, and the gates.
+`evidence/2026-10-31-release-pipeline/release-0.0.0-test.anal191i/release.json` is a real record. It is
+unpublished on purpose (§7), and its signature is from a throwaway test key, not an OpenBook key.
 
 ## 6. Tests
 
 | Script | What it proves | Result, 2026-10-31 |
 |---|---|---|
 | `scripts/release/torrent-test.sh [FILE PIECE_KIB]` | our torrents equal libtorrent's own, and libtorrent's recheck passes (§3) | 78/78 |
-| `scripts/release/swarm-test.sh [RELEASE_DIR]` | on an isolated Docker network: the seeder refuses an unpublished release. A libtorrent client gets the whole 885 MB image from the web seed alone, through a 302 like GitHub's (2.0 s), and then from the Transmission seeder alone (8.0 s, 110 MB/s; local network, so the times say little about the internet). Both match the sha256. `swarm.json` counts the upload, the health check passes, and the seeder can write neither the releases nor its own root | 9/9 |
+| `scripts/release/swarm-test.sh [RELEASE_DIR]` | on an isolated Docker network: the seeder refuses an unpublished release. A libtorrent client gets the whole 885 MB image from the web seed alone, through a 302 like GitHub's (2.0 s), and then from the Transmission seeder alone (8.8 s, 101 MB/s; local network, so the times say little about the internet). Both match the sha256. `swarm.json` counts the upload, the health check passes, and the seeder can write neither the releases nor its own root | 9/9 |
 | `scripts/release/tracker-probe.py` | the default trackers answer a BEP 15 connect request | 3/3 |
 | `make-release.sh` on the NVIDIA image | refuses it, exits 1, and writes nothing | refused |
+| `openbook-seeder` on the site's flat folder | seeds a release `releases.json` lists; seeds nothing once the entry is `hidden` | as designed |
+| openbook.page `publish-release.sh --from` | refuses the unpublished test release; places a public test copy, and the downloads page renders it with the mirror link (headless Chromium) | as designed |
 
 Not tested: a download from the internet through the router's port forward, and the seeder on the Synology itself.
 Both need the deployed stack. A client behind NAT reaching the NAS is also untested.
@@ -201,8 +213,9 @@ Both need the deployed stack. A client behind NAT reaching the NAS is also untes
 | `source_offer` | `--source-url` points to the GPL/LGPL source for this exact build (INSTALL.md §9, item 7) | **no** |
 | `owner_approved` | `--owner-approved`: the owner signed off the checklist | no |
 
-`public` is true only when every gate passes or is waived. The seeder and `release-index.py` both enforce it, so an
-unready image can't reach the site or the swarm even if its folder is copied to the NAS.
+`public` is true only when every gate passes or is waived. openbook.page's `publish-release.sh --from` refuses a
+release that isn't public, so an unready image never reaches `releases.json`, the seed's watch folder or the
+downloads page. `openbook-seeder` checks the same thing again before it seeds.
 
 Today's images, `anal191i` and later, fail `release_keys`, `user_build`, `source_offer` and `owner_approved`.
 Images from 2026-10-30 on also fail `no_nvidia_firmware`. A public image needs a G14 product variant without
@@ -221,10 +234,10 @@ scripts/release/swarm-test.sh ~/anybook/release/out/<V>
 # 2. the mirror
 gh release create v<V> --repo Mhsbrian/OpenBook --prerelease --title "OpenBook <V>" --notes-file <notes> \
   ~/anybook/release/out/<V>/{openbook-<V>-x86_64-live.img.xz,openbook-<V>-x86_64-live.img.xz.torrent,SHA256SUMS,SHA256SUMS.sig,openbook-release.pub}
-# 3. the NAS: the folder, then the index (the seeder picks it up within SYNC_SECONDS)
-rsync -a ~/anybook/release/out/<V>/ <nas>:/volume1/docker/openbook-page/releases/<V>/
-scripts/release/release-index.py ~/anybook/release/out     # lists public releases only
-rsync -a ~/anybook/release/out/index.json <nas>:/volume1/docker/openbook-page/releases/
+# 3. the site: from a clone of openbook.page, with the NAS releases folder mounted (or on the NAS itself);
+#    it places the files, writes releases.json and hands the torrent to the seed
+RELEASES_DIR=/volume1/docker/openbook/releases tools/publish-release.sh --from ~/anybook/release/out/<V> \
+  --summary "..." --note "..." --evidence https://github.com/Mhsbrian/OpenBook/tree/main/evidence/<...>
 ```
 
 The release key is an ed25519 ssh key with a passphrase, kept by the owner and backed up offline. It is separate

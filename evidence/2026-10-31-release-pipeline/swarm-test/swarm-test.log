@@ -1,17 +1,17 @@
-== swarm-test.sh 0.0.0-test.anal191i (2026-10-31T11:43:29Z), repo c75832dd
+== swarm-test.sh 0.0.0-test.anal191i (2026-10-31T11:51:20Z), repo 13e24b9b
 PASS web-seeded and peer-only torrents share info hashes (03273397c53c45dafc73496638623adc398b9a20)
 PASS and match the release's own torrent
 PASS the seeder refuses a release that is not public (torrents: 0)
-PASS the seeder verifies the read-only image and seeds it in 7 s
+PASS the seeder verifies the read-only image and seeds it in 6 s
 libtorrent: added torrent: openbook-0.0.0-test.anal191i-x86_64-live.img.xz
 {"complete": true, "seconds": 2.0, "bytes": 885136268, "MBps": 442.2, "sources": ["web_seed"], "sha256_ok": true, "progress": 1.0}
 PASS web seed only (302 to the mirror): complete, sha256 ok, no peers used
 libtorrent: added torrent: openbook-0.0.0-test.anal191i-x86_64-live.img.xz
-{"complete": true, "seconds": 8.0, "bytes": 885136268, "MBps": 110.4, "sources": ["peer"], "sha256_ok": true, "progress": 1.0}
+{"complete": true, "seconds": 8.8, "bytes": 885136268, "MBps": 100.9, "sources": ["peer"], "sha256_ok": true, "progress": 1.0}
 PASS peer only (the seeder): complete, sha256 ok, no web seed used
 {
   "schema": "openbook-swarm/1",
-  "updated": "2026-10-31T11:44:00Z",
+  "updated": "2026-10-31T11:51:47Z",
   "peer_port": 51413,
   "torrents": [
     {
@@ -31,4 +31,4 @@ PASS peer only (the seeder): complete, sha256 ok, no web seed used
 PASS swarm.json counts the upload (885838593 of 885136268 bytes)
 PASS the seeder's health check passes
 PASS the seeder can write neither the releases nor its own root file system
-ALL PASS; results: /home/hive/anybook/release-test/swarm-20261031T114329Z/RESULTS.json
+ALL PASS; results: /home/hive/anybook/release-test/swarm-20261031T115120Z/RESULTS.json

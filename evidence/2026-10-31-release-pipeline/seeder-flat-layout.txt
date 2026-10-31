@@ -1,0 +1,6 @@
+# openbook-seeder on the site's flat releases folder (openbook.page 'publish-release.sh --from' output), 2026-10-31T11:51:01Z
+# gate: seed what /releases/releases.json lists and does not hide. SEED_UNPUBLISHED is not set.
+1. listed in releases.json -> state: seeding
+{"version":null,"name":"openbook-0.0.0-test.anal191i-x86_64-live.img.xz","state":"seeding","size_bytes":885136268}
+2. the same entry marked hidden -> torrents seeded: 0
+openbook-seeder: not seeding openbook-0.0.0-test.anal191i-x86_64-live.img.xz.torrent: not published
