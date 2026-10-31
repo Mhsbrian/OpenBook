@@ -19,6 +19,8 @@
 #   --mirror      a folder URL that will hold the .img.xz (e.g. a GitHub release's download/<tag>/); becomes a web
 #                 seed and a direct-download link. Repeatable.
 #   --site        where the site serves this release's small files (default https://openbook.page/releases/<V>/)
+#   --source-url  where the release's GPL/LGPL source is published (scripts/release/make-sources.sh writes it to
+#                 <out>/sources/; its files and hashes go into release.json). Required for the source_offer gate.
 #   --sign-key    an ssh private key (ed25519). It is read by ssh-keygen only; never copied or logged.
 #   --waive       release_keys and/or user_build: publish a developer preview on AOSP test keys or userdebug, on the
 #                 record. no_nvidia_firmware, source_offer and owner_approved can't be waived.
@@ -80,10 +82,15 @@ WANT=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["sha256"]
 echo "-- checking the image against $(basename "$BJ")"
 GOT=$(sha256sum "$IMG" | cut -d' ' -f1)
 [ "$GOT" = "$WANT" ] || die "image sha256 $GOT differs from its build record $WANT"
-# NVIDIA's GSP firmware names (kernel/firmware/anybook-nvidia-open.tsv). EROFS keeps directory entries
-# uncompressed, so the names are visible in the raw image; the G14 image of 2026-10-30 (anal319b) is caught this way.
-NV=0; for m in gsp_ga10x.bin gsp_tu10x.bin ucodes_ga10x.bin; do
-  if LC_ALL=C grep -a -q -F "$m" "$IMG"; then NV=1; echo "   found NVIDIA firmware: $m"; fi
+# NVIDIA's GSP firmware (kernel/firmware/anybook-nvidia-open.tsv) as files in the image. EROFS and ext4 keep directory
+# entries uncompressed, so a firmware file's name or its licence's name shows up in the raw image as a directory
+# entry. nvidia.ko itself names its firmware too ("nvidia/615.78.08/gsp_ga10x.bin", for modinfo and the loader), and a
+# public image ships nvidia.ko, so only a name not preceded by "/" counts: a directory entry, not a path string.
+# Checked on 2026-10-31: the G14 image of 2026-10-30 (anal319b, firmware in) matches; the public build and the
+# image of 2026-10-18 don't (evidence/2026-10-31-release-pipeline/).
+NV=0
+for m in '[^/]gsp_ga10x\.bin' '[^/]ucodes_ga10x\.bin' 'LICENSE\.nvidia-driver'; do
+  if LC_ALL=C grep -a -q -E "$m" "$IMG"; then NV=1; echo "   found NVIDIA firmware: $m"; fi
 done
 if [ $NV = 1 ] && [ $PRIVATE = 0 ]; then
   die "this image carries NVIDIA's GSP firmware, which the owner uses under its own-use terms (docs/nvidia-open.md). Build a public image without it, or use --private"
@@ -197,7 +204,9 @@ rel = {
                                  "public_key": open(f"{out}/openbook-release.pub").read().strip(),
                                  "method": "ssh-keygen -Y verify", "namespace": "openbook-release",
                                  "identity": "release@openbook.page"} if signed == "1" else None)},
-    "source": src or None,
+    "source": ({"url": src, "files": [{"file": l.split()[1], "sha256": l.split()[0]}
+                                       for l in open(f"{out}/sources/SHA256SUMS")]}
+               if src and os.path.exists(f"{out}/sources/SHA256SUMS") else (src or None)),
     "build": {"label": b["label"], "fingerprint": fp, "kernel": b["kernel_release"], "loader": b["loader"],
               "image_repo_commit": b["repo"]["commit"], "release_repo_commit": commit,
               "firmware_files": b["firmware"]["files"]},
