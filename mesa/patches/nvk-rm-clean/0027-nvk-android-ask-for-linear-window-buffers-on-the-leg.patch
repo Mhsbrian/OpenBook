@@ -1,0 +1,113 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Mon, 2 Nov 2026 19:30:00 +0000
+Subject: [PATCH 27/27] nvk/android: ask for linear window buffers on the
+ legacy usage path too
+
+0019 asks gralloc for a CPU usage with every buffer NVK uses, so that
+minigbm on amdgpu allocates linear buffers NVK can render into. It adds
+the usage in vk_image_usage_to_ahb_usage(), which Android's swapchain
+reaches through vkGetPhysicalDeviceImageFormatProperties2() and
+VkAndroidHardwareBufferUsageANDROID. The swapchain resolves that entry
+point through the app's instance. An instance created for Vulkan 1.0
+without VK_KHR_get_physical_device_properties2 does not have it, so the
+swapchain asks vkGetSwapchainGrallocUsage2ANDROID() instead, which never
+added the usage. Those window buffers came tiled, without a modifier,
+and NVK refused them ("gralloc reports no DRM format modifier, so the
+buffer's layout is unknown", VK_ERROR_INVALID_EXTERNAL_HANDLE): swapchain
+creation failed for every such app on the RTX in Hybrid, Sascha Willems'
+samples among them. ANGLE creates a Vulkan 1.1 or later instance and was
+not affected. (ANAL-349)
+
+setup_gralloc0_usage() now adds the CPU read and write fields of
+vk_android_extra_ahb_usage, which are the same bits in gralloc0, and
+vk_common_GetSwapchainGrallocUsage2ANDROID() passes them on as gralloc1
+producer CPU usage. Drivers that leave the extra usage at 0 are
+unchanged. The first such query in a process logs the usage it adds.
+
+Public sources: Mesa 26.2.5 src/vulkan/runtime/vk_android.c and
+vk_instance.c (vk_instance_get_proc_addr); AOSP 17
+frameworks/native/vulkan/libvulkan/swapchain.cpp (getProducerUsage,
+convertGralloc1ToBufferUsage) and driver.cpp; external/minigbm amdgpu.c.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Co-authored-by: multica-agent <github@multica.ai>
+---
+ src/vulkan/runtime/vk_android.c | 50 +++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
+
+diff --git a/src/vulkan/runtime/vk_android.c b/src/vulkan/runtime/vk_android.c
+index c7bda29..3a1ae38 100644
+--- a/src/vulkan/runtime/vk_android.c
++++ b/src/vulkan/runtime/vk_android.c
+@@ -50,6 +50,7 @@
+ #include <vndk/hardware_buffer.h>
+ #endif
+ 
++#include <inttypes.h>
+ #include <unistd.h>
+ 
+ static struct u_gralloc *_gralloc;
+@@ -403,6 +404,33 @@ setup_gralloc0_usage(VkFormat format, VkImageUsageFlags image_usage,
+    if (!gralloc_usage)
+       return VK_ERROR_FORMAT_NOT_SUPPORTED;
+ 
++#if ANDROID_API_LEVEL >= 26
++   /* The driver's extra usage (vk_android_extra_ahb_usage), as the
++    * VkAndroidHardwareBufferUsageANDROID path gives it: Android's swapchain
++    * asks these legacy queries instead when the app's instance cannot resolve
++    * vkGetPhysicalDeviceImageFormatProperties2 (Vulkan 1.0 without
++    * VK_KHR_get_physical_device_properties2) or that query fails.  The CPU
++    * usage fields of AHardwareBuffer and gralloc0 are the same bits.
++    */
++   STATIC_ASSERT(AHARDWAREBUFFER_USAGE_CPU_READ_MASK ==
++                 GRALLOC_USAGE_SW_READ_MASK);
++   STATIC_ASSERT(AHARDWAREBUFFER_USAGE_CPU_WRITE_MASK ==
++                 GRALLOC_USAGE_SW_WRITE_MASK);
++   const uint64_t extra_cpu_usage = vk_android_extra_ahb_usage &
++      (AHARDWAREBUFFER_USAGE_CPU_READ_MASK |
++       AHARDWAREBUFFER_USAGE_CPU_WRITE_MASK);
++   if (extra_cpu_usage) {
++      static bool logged;
++      if (!logged) {
++         logged = true;
++         mesa_logi("vk_android: swapchain gralloc usage from the legacy "
++                   "vkGetSwapchainGrallocUsage*ANDROID query; adding the "
++                   "driver's CPU usage 0x%" PRIx64, extra_cpu_usage);
++      }
++      gralloc_usage |= (int)extra_cpu_usage;
++   }
++#endif
++
+    *out_gralloc_usage = gralloc_usage;
+ 
+    return VK_SUCCESS;
+@@ -609,6 +637,28 @@ vk_common_GetSwapchainGrallocUsage2ANDROID(
+    if (gralloc_usage & GRALLOC_USAGE_HW_TEXTURE)
+       *grallocConsumerUsage |= GRALLOC1_CONSUMER_USAGE_GPU_TEXTURE;
+ 
++   /* The driver's extra CPU usage (setup_gralloc0_usage) */
++   switch (gralloc_usage & GRALLOC_USAGE_SW_READ_MASK) {
++   case GRALLOC_USAGE_SW_READ_NEVER:
++      break;
++   case GRALLOC_USAGE_SW_READ_RARELY:
++      *grallocProducerUsage |= GRALLOC1_PRODUCER_USAGE_CPU_READ;
++      break;
++   default:
++      *grallocProducerUsage |= GRALLOC1_PRODUCER_USAGE_CPU_READ_OFTEN;
++      break;
++   }
++   switch (gralloc_usage & GRALLOC_USAGE_SW_WRITE_MASK) {
++   case GRALLOC_USAGE_SW_WRITE_NEVER:
++      break;
++   case GRALLOC_USAGE_SW_WRITE_RARELY:
++      *grallocProducerUsage |= GRALLOC1_PRODUCER_USAGE_CPU_WRITE;
++      break;
++   default:
++      *grallocProducerUsage |= GRALLOC1_PRODUCER_USAGE_CPU_WRITE_OFTEN;
++      break;
++   }
++
+    /* for front buffer rendering */
+    if (swapchainImageUsage & VK_SWAPCHAIN_IMAGE_USAGE_SHARED_BIT_ANDROID)
+       *grallocProducerUsage |= vk_android_get_front_buffer_usage();

@@ -1,0 +1,17 @@
+# Repository paths that packed build files refer to but the source offer leaves out, each with its reason (ANAL-341).
+# Format: <path><TAB><reason>. A directory covers everything below it. scripts/release/source-closure.py fails on a
+# reference that is neither packed nor listed here, and on an entry nothing refers to any more.
+#
+# OpenBook's Android product tree (Apache-2.0, not under the GPL). The packed board files include these parts; the
+# boot-image parameters they set for the kernel are read back from the shipped images into boot-images.txt.
+device/anybook/common/addons	the Android product tree (Apache-2.0); not needed to rebuild or install the kernel
+device/anybook/common/bootsync	the Android product tree (Apache-2.0); not needed to rebuild or install the kernel
+device/anybook/common/gfx-mode	the Android product tree (Apache-2.0); not needed to rebuild or install the kernel
+device/anybook/common/graphics-amd	the Android product tree (Apache-2.0); not needed to rebuild or install the kernel
+device/anybook/common/installer	the Android product tree (Apache-2.0); not needed to rebuild or install the kernel
+device/anybook/common/native-bridge	the Android product tree (Apache-2.0); not needed to rebuild or install the kernel
+device/anybook/common/pc/sepolicy	SELinux policy of the Android product (Apache-2.0); not needed to rebuild or install the kernel
+# Named only in error messages, as what to run first in the development repository
+docs/g14-product.md	named in an error message; development documentation, not needed by SOURCES.md's steps
+# Test steps: they check what was built and make nothing that goes into the image
+scripts/kernel-g14-qemu.sh	kernel-g14-package.sh's QEMU boot check of the packaged kernel; it needs a separately built Cuttlefish product and makes nothing the image uses (kernel-g14-package.sh --only collect, or kernel-into-image.sh with the Kleaf dist, skips it)

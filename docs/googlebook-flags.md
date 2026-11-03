@@ -2,14 +2,14 @@
 
 As of 2026-10-18. Labels: **C** = confirmed (read from source or an image, or shown on a device), **HYPOTHESIS** = not tested. Backlog item B3 of [`googlebook-ui.md`](googlebook-ui.md) §4.
 
-The table of every flag is [`device/anybook/common/desktop/release/googlebook-triage.tsv`](../device/anybook/common/desktop/release/googlebook-triage.tsv); it is rendered at the end of this page. Evidence is in `evidence/2026-10-17-desktop-flags-v2/`.
+Googlebook turns on aconfig flags that AOSP 17 declares but leaves off. This doc records which of them OpenBook turns on, which it doesn't, and why. The record of every flag is [`device/anybook/common/desktop/release/googlebook-triage.tsv`](../device/anybook/common/desktop/release/googlebook-triage.tsv); the tables at the end of this page mirror it. When a decision changes, change both.
 
 ## Summary
 
 - **All 218 flags are triaged (C):** `googlebook-triage.tsv` gives each one its declaration, its readers in our tree, a category, a decision, a group and a reason.
-- **84 are enabled**, in six groups, through the existing value set. With ANAL-169's 79 it now holds **163 flags**. 43 are deferred, 89 skipped, and 2 were dropped after testing.
+- **84 are enabled**, in six groups, through the existing value set. With the reference image's 79 (`docs/aosp-desktop.md`) it holds **163 flags**. 43 are deferred, 89 skipped, and 2 were dropped after testing.
 - **23 of the 218 do nothing in AOSP 17 (C):** no source file in our tree reads them. That includes four of ANAL-201's headline flags: `perfect_edge`, `enable_taskbar_icon_desktop_clicks` (click to minimize), `enable_desktop_taskbar_in_fullscreen_mode` and `notification_animated_action_style_2026`. A fifth, `enable_no_resize_cursor`, is read, but nothing acts on what it reports.
-- **Two flags break the desktop in AOSP 17 and were dropped (C).** The issue warned of exactly this:
+- **Two flags break the desktop in AOSP 17 and are dropped (C):**
   - `com.android.window.flags.enable_add_window_decoration_to_all_tasks` crashes SystemUI when a minimized window is restored from the taskbar (`IllegalStateException: Expected non-null decoration container surface` in `DefaultWindowDecoration.updateDragResizeListenerIfNeeded`).
   - `com.android.systemui.start_on_gone_scene_if_no_lockscreen` leaves the notification shade empty. OpenBook disables the lock screen by default, so with this flag SystemUI starts on the Gone scene. The keyguard section that binds the notification stack never runs, and the rows are never laid out. With a PIN set, the same image shows them.
 - **What changes on screen (C, Cuttlefish on the Radeon 610M):**
@@ -19,27 +19,26 @@ The table of every flag is [`device/anybook/common/desktop/release/googlebook-tr
   - Quick Settings tiles get tooltips on hover;
   - the Cast tile works over Ethernet;
   - the power menu blurs what is behind it.
-- **Deviation from the issue's plan:** the groups were not built one at a time. Up to five sibling builds were queued on the shared lane, so all six groups went into one image (v2) and each group got its own checks. Each failure was traced to a single flag (stack trace, code, and a runtime A/B test), and the fixes were confirmed in two more images (v3, v4).
 
 ## Where the 218 flags come from
 
-- ANAL-201 read the aconfig storage of Googlebook's `ruby` image and of our G14 build (`evidence/2026-10-17-gbos-ui/flags/`).
+- ANAL-201 compared the aconfig storage of Googlebook's `ruby` image with our G14 build.
   - 728 flags are on in Googlebook and off for us.
-  - **218 of them are declared in our AOSP 17 tree** (`googlebook-on-openbook-off.tsv`, column `in_aosp_17`).
+  - **218 of them are declared in our AOSP 17 tree.**
   - The other 510 belong to code Google hasn't published.
-- In our cp2a builds a disabled read-only flag is compiled out. So these 218 can only be turned on at build time, through the value set ANAL-169 started (`docs/aosp-desktop.md` § aconfig flags).
+- In our cp2a builds a disabled read-only flag is compiled out. So these 218 can only be turned on at build time, through the value set (`docs/aosp-desktop.md` § aconfig flags).
 - **Googlebook runs in headless system user mode (C):** `ro.fw.mu.headless_system_user=true` in its `system_ext/etc/build.prop`. That is why it enables the `hsu_*` flags. OpenBook boots a normal system user, so they don't apply to us.
 
-## How each flag was triaged
+## How each flag is triaged
 
-1. **Declaration (C).** `scripts/ui/flag-facts.py` reads each flag's `.aconfig` entry in our tree (`~/anybook/aosp/src`, `android17-release`, synced 2026-10-15): namespace, purpose (`PURPOSE_BUGFIX` or feature), description, bug.
-2. **Readers (C).** The same script lists every non-test source file that reads the flag:
+1. **Declaration (C).** Each flag's `.aconfig` entry in our tree (`android17-release`, synced 2026-10-15): namespace, purpose (`PURPOSE_BUGFIX` or feature), description, bug.
+2. **Readers (C).** Every non-test source file that reads the flag:
    - the Java/Kotlin accessor (`Flags.enableFoo()`);
    - a wrapper such as `DesktopExperienceFlags.ENABLE_FOO`;
    - the C++/Rust accessor.
 
    Registries that only list flags (`DesktopExperienceFlags.java`, SurfaceFlinger's `FlagManager`) don't count. **23 flags have no reader at all**: the code they gate is not in AOSP 17, so turning them on changes nothing.
-3. **What it guards.** For every flag with readers, the reader lines were read to see what changes. Dependencies were checked too:
+3. **What it guards.** For every flag with readers, the reader lines show what changes. Dependencies matter too:
    - `blur_on_more_surfaces` also needs `config_enableBlurExpansion` (true by default);
    - the Compose status icons need `scene_container` and `new_status_bar_icons` (both on);
    - `bind_model_using_repository` needs `model_repository` and `simplified_launcher_model_binding` (both on);
@@ -47,7 +46,7 @@ The table of every flag is [`device/anybook/common/desktop/release/googlebook-tr
 4. **Category:** `visual` (polish), `desktop` (desktop behaviour), `bugfix`, `platform` (system internals with no intended UI change) or `n/a` (telephony, HSUM, Wear, AI services we don't have, and so on).
 5. **Decision and reason:**
    - `enable`, in one of six groups;
-   - `defer`: useful, but it needs hardware, an owner decision, a config value or a test this pass can't give it;
+   - `defer`: useful, but it needs hardware, an owner decision, a config value or a test the VM can't give it;
    - `skip`: no reader, not applicable, or no effect;
    - `drop`: enabled, tested, and broke something.
 
@@ -71,7 +70,7 @@ The nine single deferred items are: a games list the owner approves, lid-close d
 | 5 Remaining applicable bugfixes | 42 `PURPOSE_BUGFIX` flags in WM, WM Shell, SystemUI, Launcher3, SurfaceFlinger, media routing, accessibility and the framework | Each fixes a race, leak, flicker or misplacement; none should be visible | Everything above, plus the crash, ANR and SELinux buffers |
 | 6 Internal refactors and performance | `only_cache_low_res_task_snapshot`, `add_one_off_handler_leashes`, `status_bar_event_forwarding_modernization`, `enable_taskbar_ui_thread`, `bind_model_using_repository` | Googlebook ships them; no intended visible change | Everything above, plus the crash, ANR and SELinux buffers |
 
-Group 6 was not in the issue's proposal. These flags are neither bugfixes nor visible changes, so they didn't fit groups 1–5. But Googlebook ships them, and they touch the taskbar, the status bar and transitions all the time. They were tested like the rest.
+Group 6 holds flags that are neither bugfixes nor visible changes. Googlebook ships them, and they touch the taskbar, the status bar and transitions all the time, so they are on and tested like the rest.
 
 ## How the value set is written
 
@@ -82,32 +81,23 @@ scripts/desktop-flags.py --list device/anybook/common/desktop/release/googlebook
   ~/anybook/aosp/src device/anybook/common/desktop/release
 ```
 
-- It takes the rows with decision `enable`, limited to `--groups` if given. It writes one `ENABLED`/`READ_ONLY` value file per flag into the same value set as ANAL-169's 79 flags (`aconfig/cp2a/<package>/`).
+- It takes the rows with decision `enable`, limited to `--groups` if given (use it to bisect). It writes one `ENABLED`/`READ_ONLY` value file per flag into the same value set as the reference image's 79 flags (`aconfig/cp2a/<package>/`).
 - Each file's first line names its source (`# From googlebook-triage.tsv group N: reason`).
   - A later `--list` run replaces only the files from that list.
-  - Diff mode (`REF OURS SRC OUT`, as before) replaces only its own files (`# Declared in …`).
+  - Diff mode (`REF OURS SRC OUT`) replaces only its own files (`# Declared in …`).
 
-  So each source can be regenerated on its own. Diff mode, rerun on ANAL-169's dumps with `--extra com.android.providers.media.flags.enable_photopicker_desktop`, gives the same 79 flags as before.
+  So each source can be regenerated on its own.
 - A plain list, one `<package>.<flag>` per line, works too.
 - Declarations are looked up in one index of all `.aconfig` files (about 1.5 s), instead of a `grep -r` per flag.
 
-The value set now holds **163 flags**: 79 from ANAL-169 and 84 from this triage. The G14 product inherits `desktop.mk`, so it gets them too.
+The G14 product inherits `desktop.mk`, so it gets the same 163 flags.
 
 ## Testing
 
-**Images.** Four builds of `anybook_cf_x86_64_pc-cp2a-userdebug` (`CP2A.260605.016`) from this branch. Each was booted in Cuttlefish on the host's Radeon 610M (`CF_GPU=amd`, `gfxstream_guest_angle`, 1920×1080 at 160 dpi), with B3's VM name and ports:
-
-| Image | Value set | Build | Boot |
-|---|---|---|---|
-| baseline | ANAL-169's 79 flags (`c861cf4`) | 29 min | 26 s |
-| v2 | + groups 1–6, 87 flags (`38cf5ba`) | 31 min | 23 s |
-| v3 | v2 without `enable_add_window_decoration_to_all_tasks` and `use_android_ui_dispatcher`, 85 (`8ed9f5f`) | 30 min | 30 s |
-| **v4** (committed) | v3 without `start_on_gone_scene_if_no_lockscreen`, 84 (`d5d5acf`) | 29 min | 26 s |
-
-**Per image**, three steps:
-1. `scripts/ui/flag-checks.py --reset`. Android 17 restores desk windows, recent tasks and remembered window bounds after a reboot, so the reset deletes them and reboots.
+`scripts/ui/flag-checks.py` runs the targeted checks on a booted device (Cuttlefish: `CF_GPU=amd`, `gfxstream_guest_angle`, 1920×1080 at 160 dpi). Per image, three steps:
+1. `scripts/ui/flag-checks.py SERIAL --reset` (VM only). Android 17 restores desk windows, recent tasks and remembered window bounds after a reboot, so the reset deletes them and reboots.
 2. `scripts/desktop-capture.sh`, which opens Settings and Files as a user would.
-3. `scripts/ui/flag-checks.py`:
+3. `scripts/ui/flag-checks.py SERIAL OUTDIR`:
    - **Input as a user gives it.** The checks register a virtual USB mouse on the device with the `uinput` tool. WM Shell, Launcher and SystemUI see real hover, click, right-click and drag events, which `input` can't produce. The cursor is steered in a loop against the coordinates of its last event in `dumpsys input`, so pointer acceleration doesn't matter.
    - **Windows:**
      - focus Files by clicking its caption;
@@ -127,55 +117,41 @@ The value set now holds **163 flags**: 79 from ANAL-169 and 84 from this triage.
      - the crash buffer, `am_anr` events, `/data/anr` and tombstones;
      - SELinux denials.
 
+   It writes `results.tsv` (PASS, FAIL or INFO per check), `flag-state.tsv`, screenshots and dumps to OUTDIR.
+
 **Not testable in the VM:** a heads-up notification. The shell's notification channel has fixed default importance, and DeskClock's timer notification is default importance too. So `hun_timer_pause_on_hover` and `default_hun_expansion` are on the G14 checklist.
 
-## Results per group
+**Gotcha: bisect one flag at a time.** All six groups went into one image, and each failure was traced to a single flag with a stack trace, the code, and a runtime A/B test on the same image. Taking out two flags at once (as with `use_android_ui_dispatcher`) leaves one of them untested.
 
-Every enabled flag reads `enabled` in `aflags list` on v2, v3 and v4 (`flag-state.tsv` in each evidence directory). On the baseline all of them are compiled out.
+## What each group does (Cuttlefish, 2026-10-17)
 
-| Group | Result | Evidence |
-|---|---|---|
-| 1 Shadows and resizing | **Box shadows (C):** every desktop window layer carries `BoxShadowSettings` (two 24 px blurs: ambient at 10 % black, key at 20 % black 16 px down) and a 1 px border. The baseline has only the legacy elevation shadow.<br>Moving and resizing with the mouse pass on every image. `improve_fluid_resizing_performance`: resizing works, with no crash or ANR.<br>**`enable_no_resize_cursor` has no visible effect in AOSP 17 (C).** Dragging below the minimum size shows the same diagonal-resize pointer (type 1017) on every image, because `ResizeTaskPositioner` discards the size-violation result the flag turns on | `v4/sf-shadows.txt`, `cmp-windows.png`, `cmp-resize-below-minimum.png` |
-| 2 Blur | **The power menu blurs what is behind it (C):** v2–v4 blur its dim layer (`backgroundBlurRadius=34`).<br>The volume dialog is not blurred: AOSP blurs it only when the dialog is vertical, and the desktop one is horizontal.<br>The Quick Settings shade blurs on every image; that is the platform default, not this group | `v4-power-menu.png`, `v4/results.tsv` |
-| 3 Taskbar and desktop behaviour | **Stepped cascading (C):** Files opens 60 px right of and below Settings, and Calendar and Clock follow the same steps. The baseline puts Files at the right edge and Clock in the top-left corner.<br>**Consolidated window options (C):** the fullscreen/split/desktop pill moves from the app-chip menu into the maximize button's hover menu.<br>Maximize, restore, minimize and restoring from the taskbar pass on v3 and v4.<br>**`enable_add_window_decoration_to_all_tasks` dropped:** on v2, restoring a minimized window from the taskbar crashed SystemUI. With `ENABLE_ADD_WINDOW_DECORATION_TO_ALL_TASKS`, `relayout` calls `updateDragResizeListenerIfNeeded` even when the task has no decoration container surface | `cmp-cascade.png`, `cmp-maximize-menu.png`, `cmp-app-chip-menu.png`, `v2-all-groups/systemui-crash.txt` |
-| 4 Polish | **QS tile tooltips (C):** hovering the Wi-Fi tile shows "Wi-Fi" on v2–v4, and nothing on the baseline.<br>**The taskbar right-click menu** (`expandable_long_press_menu`) offers Add to Taskbar, App info, New Window, Manage Windows and Close.<br>All Apps opens from the taskbar button with `all_apps_surface`.<br>**Notifications:** hovering a row in the shade shows its X, as on the baseline. Right-clicking a row closes the shade on both images, so the inline settings of `inline_notification_settings_access` were not seen in the VM (G14 item 6). The two heads-up flags can't be tested in the VM | `cmp-qs-tooltip.png`, `cmp-taskbar-menu.png`, `cmp-shade.png` |
-| 5 Bugfixes | **The Cast tile no longer needs Wi-Fi (C):** on the baseline it is greyed out ("No Wi-Fi or Ethernet") on Cuttlefish's Ethernet; on v2–v4 it is available (`qs_cast_tile_skip_wifi_check`).<br>The rest have no intended visible effect, and none caused a crash, ANR or new SELinux denial | `cmp-quick-settings.png` |
-| 6 Internals | No problem from the five that stay on | `v4/results.tsv` |
+Every enabled flag reads `enabled` in `aflags list`; without the value set all of them are compiled out.
 
-**The empty notification shade, found on v2 (C).**
-- On v2 the shade opened as an empty box. Its rows existed but were never laid out (`0,0-0,0`). The placeholder view model had `expandFraction=1.0`, while the stack itself had `mExpansionFraction=0.0` and `mStackHeight=0.0`.
-- v3, without `use_android_ui_dispatcher`, still showed it.
+| Group | Result |
+|---|---|
+| 1 Shadows and resizing | **Box shadows (C):** every desktop window layer carries `BoxShadowSettings` (two 24 px blurs: ambient at 10 % black, key at 20 % black 16 px down) and a 1 px border. Without the group there is only the legacy elevation shadow.<br>Moving and resizing with the mouse work. `improve_fluid_resizing_performance`: resizing works, with no crash or ANR.<br>**`enable_no_resize_cursor` has no visible effect in AOSP 17 (C).** Dragging below the minimum size shows the same diagonal-resize pointer (type 1017) with or without it, because `ResizeTaskPositioner` discards the size-violation result the flag turns on |
+| 2 Blur | **The power menu blurs what is behind it (C):** its dim layer gets `backgroundBlurRadius=34`.<br>The volume dialog is not blurred: AOSP blurs it only when the dialog is vertical, and the desktop one is horizontal.<br>The Quick Settings shade blurs with or without the group; that is the platform default |
+| 3 Taskbar and desktop behaviour | **Stepped cascading (C):** Files opens 60 px right of and below Settings, and Calendar and Clock follow the same steps. Without it Files lands at the right edge and Clock in the top-left corner.<br>**Consolidated window options (C):** the fullscreen/split/desktop pill moves from the app-chip menu into the maximize button's hover menu.<br>Maximize, restore, minimize and restoring from the taskbar work.<br>**`enable_add_window_decoration_to_all_tasks` is dropped:** with it, restoring a minimized window from the taskbar crashes SystemUI, because `relayout` calls `updateDragResizeListenerIfNeeded` even when the task has no decoration container surface |
+| 4 Polish | **QS tile tooltips (C):** hovering the Wi-Fi tile shows "Wi-Fi".<br>**The taskbar right-click menu** (`expandable_long_press_menu`) offers Add to Taskbar, App info, New Window, Manage Windows and Close.<br>All Apps opens from the taskbar button with `all_apps_surface`.<br>**Notifications:** hovering a row in the shade shows its X, as without the group. Right-clicking a row closes the shade with or without it, so the inline settings of `inline_notification_settings_access` were not seen in the VM (G14 item 6). The two heads-up flags can't be tested in the VM |
+| 5 Bugfixes | **The Cast tile no longer needs Wi-Fi (C):** without the group it is greyed out ("No Wi-Fi or Ethernet") on Cuttlefish's Ethernet; with it, it is available (`qs_cast_tile_skip_wifi_check`).<br>The rest have no intended visible effect, and none causes a crash, ANR or new SELinux denial |
+| 6 Internals | No problem from the five that stay on |
+
+**Why `start_on_gone_scene_if_no_lockscreen` empties the shade (C).**
+- The shade opens as an empty box. Its rows exist but are never laid out (`0,0-0,0`). The placeholder view model has `expandFraction=1.0`, while the stack itself has `mExpansionFraction=0.0` and `mStackHeight=0.0`.
 - The binding that feeds the stack (`SharedNotificationContainerBinder` → `NotificationScrollViewBinder`) is called only from the keyguard blueprint's `NotificationStackScrollLayoutSection`.
-- OpenBook's framework overlay sets `config_disableLockscreenByDefault=true`. So `start_on_gone_scene_if_no_lockscreen` starts SystemUI on the Gone scene, and that section never binds.
-- **The A/B test, on the same v3 image:** after `locksettings set-pin 1234` and a reboot (initial scene Lockscreen), the rows are laid out, with `mExpansionFraction=1.0` and `mStackHeight=380`.
-- v4 drops the flag. On v4, with the lock screen disabled as shipped, the rows show (`cmp-shade.png`).
+- OpenBook's framework overlay sets `config_disableLockscreenByDefault=true`. So the flag starts SystemUI on the Gone scene, and that section never binds.
+- **A/B on the same image:** after `locksettings set-pin 1234` and a reboot (initial scene Lockscreen), the rows are laid out, with `mExpansionFraction=1.0` and `mStackHeight=380`. Without the flag, and with the lock screen disabled as shipped, the rows show.
 
-Evidence: `v3/shade-root-cause.txt`, `v2-all-groups/cmp-shade-baseline-vs-v2.png`.
+**Health in the VM.** No crash and no ANR with the committed set. SELinux denials are the same kinds as without it (bootanim `gpu_service`, `init` tracefs, `gceservice` `zygote_config_prop`), all present before this work.
 
-**Health.**
-- Crash buffer: baseline empty; v2 one SystemUI crash (the dropped decoration flag); v3 empty; v4 empty.
-- No ANR on any image.
-- SELinux denials: the same kinds on every image (bootanim `gpu_service`, `init` tracefs, `gceservice` `zygote_config_prop`), all present before this work. Nothing new.
+## On the G14
 
-## On the G14: the `anal192d` session (2026-10-18)
-
-The owner's `anal192d` stick (`main` `81578c1`) is the first G14 image with this flag set. Evidence: `evidence/2026-10-18-g14-anal192d-b3/`.
-
+As of 2026-10-18 (first G14 image with this flag set, `main` at `81578c1`):
 - **The flags are in the image (C):** all 84 read `ENABLED` in the image's own aconfig storage (read offline from its `super.img`), and both dropped flags are absent.
-- **Health, three boots (C):**
-  - SystemUI started once per boot and never died; no ANR; no native crash.
-  - The one app crash, in the wallpaper picker (`WallpaperPreviewActivity`), is an AOSP bug behind cp2a's own wallpaper flags, on before B3 as well. B4 has the fix on ANAL-192.
-  - The error kinds that remain (close-animation CUJ timeouts, `TransitionChain` mismatches) occur at the same rates as in the 2026-10-17 sessions without B3.
-- **Not yet shown on the G14:**
-  - Restoring a minimized window from the taskbar: one window was minimized and never restored.
-  - Stepped cascading: no stepped placement was logged, and Calendar wasn't opened.
-  - Everything visual (shadows, tooltips, the notification panel's rows, power-menu blur): no photos yet.
+- **Health over three boots (C):** SystemUI started once per boot and never died; no ANR; no native crash. The one app crash, in the wallpaper picker (`WallpaperPreviewActivity`), is an AOSP bug behind cp2a's own wallpaper flags, there before B3 as well (B4's fix, ANAL-192). Close-animation CUJ timeouts and `TransitionChain` mismatches occur at the same rates as without B3.
+- **Not yet shown on the G14:** restoring a minimized window from the taskbar, stepped cascading, and everything visual (shadows, tooltips, the notification panel's rows, power-menu blur). They are on the checklist below.
 
-  These stay on the next stick's checklist.
-
-## Open items and G14 checks
-
-**G14 check items** (posted on ANAL-192 for the next stick):
+**G14 checklist** (on ANAL-192):
 1. Window shadows: a box shadow and a 1 px border around every desktop window, in light and dark theme.
 2. New windows cascade in steps.
 3. Hover a Quick Settings tile: a tooltip appears after about a second.
@@ -186,8 +162,9 @@ The owner's `anal192d` stick (`main` `81578c1`) is the first G14 image with this
 8. Power menu over a window: the background blurs. **This needs B2's** `ro.surface_flinger.supports_background_blur=1` on the G14 product; without it nothing blurs.
 9. Health: `logcat -b crash` is empty, and there is no `am_anr`.
 
-**Open:**
-- `enable_no_resize_cursor` and the 23 flags with no reader need Google's newer code. Revisit them on the next AOSP drop; `scripts/ui/flag-facts.py` recounts the readers.
+## Open items
+
+- `enable_no_resize_cursor` and the 23 flags with no reader need Google's newer code. Revisit them on the next AOSP drop and recount their readers.
 - Recheck the two dropped flags on the next AOSP drop too:
   - The decoration crash looks like incomplete code.
   - `start_on_gone_scene_if_no_lockscreen` is what we'd want for a laptop without a lock screen, once the stack binding no longer depends on the keyguard.
@@ -196,33 +173,27 @@ The owner's `anal192d` stick (`main` `81578c1`) is the first G14 image with this
   - the laptop-hardware and graphics ones belong to the G14 tracks;
   - the wallpaper ones belong to B4/B6;
   - `launch_games_in_fullscreen_by_allowlist` needs an owner-approved games list (Googlebook ships 26 package names in `config_desktopLaunchInFullscreenPackages`).
-- No benchmark was run for groups 1 and 6 (`improve_fluid_resizing_performance`, `only_cache_low_res_task_snapshot`). The VM runs at 60 Hz on a shared host, so measure on the G14.
+- No benchmark covers groups 1 and 6 (`improve_fluid_resizing_performance`, `only_cache_low_res_task_snapshot`). The VM runs at 60 Hz on a shared host, so measure on the G14.
 
 ## Reproduce
 
 ```bash
-# Facts and the triage table (the decisions are hand-written in scripts/ui/flag-triage.py; the TSV is the record)
-scripts/ui/flag-facts.py evidence/2026-10-17-gbos-ui/flags/googlebook-on-openbook-off.tsv ~/anybook/aosp/src > facts.tsv
-scripts/ui/flag-triage.py facts.tsv > device/anybook/common/desktop/release/googlebook-triage.tsv
-scripts/ui/flag-triage-md.py device/anybook/common/desktop/release/googlebook-triage.tsv
 # Value set: every enabled group (what is committed), or --groups to bisect
 scripts/desktop-flags.py --list device/anybook/common/desktop/release/googlebook-triage.tsv ~/anybook/aosp/src \
   device/anybook/common/desktop/release
-# Build under the lane lock; snapshot the Cuttlefish product so the VM can boot after the lock is released
-flock ~/anybook/aosp/.lane.lock bash -c 'scripts/aosp-docker.sh /repo/scripts/aosp-build.sh anybook_cf_x86_64_pc-cp2a-userdebug &&
-  S=~/anybook/aosp/cf/b3-out O=~/anybook/aosp/src/out P=anybook_vsoc_x86_64 &&
-  mkdir -p $S/target/product/$P $S/host/linux-x86 &&
-  find $O/target/product/$P -maxdepth 1 -type f -exec cp --reflink=auto -t $S/target/product/$P {} + &&
-  cp --reflink=auto $O/host/linux-x86/cvd-host_package.tar.gz $S/host/linux-x86/'
-# Boot (B3's VM name and ports), capture, check, tear down
-export CF_OUT=~/anybook/aosp/cf/b3-out CF_NAME=anybook-cf-b3 CF_STAGE=~/anybook/aosp/cf/b3 CF_ADB_PORT=16533 \
-  CF_WEBRTC_PORT=11533 CF_DEVICE=anybook_vsoc_x86_64 CF_GPU=amd CF_GPU_MODE=gfxstream_guest_angle ANDROID_ADB_SERVER_PORT=5133
-scripts/cf-boot.sh up && scripts/cf-boot.sh wait && adb connect 127.0.0.1:16533
-scripts/ui/flag-checks.py 127.0.0.1:16533 --reset          # forget restored desks and recents, reboot
-scripts/desktop-capture.sh 127.0.0.1:16533 OUT/desktop
-scripts/ui/flag-checks.py 127.0.0.1:16533 OUT/checks
+# Build the Cuttlefish product (about 30 min)
+scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook_cf_x86_64_pc-cp2a-userdebug
+docker wait anybook-aosp-build
+# Boot, capture, check, tear down
+export CF_DEVICE=anybook_vsoc_x86_64 CF_GPU=amd CF_GPU_MODE=gfxstream_guest_angle ANDROID_ADB_SERVER_PORT=5047
+scripts/cf-boot.sh up && scripts/cf-boot.sh wait && adb connect 127.0.0.1:16520
+scripts/ui/flag-checks.py 127.0.0.1:16520 --reset          # forget restored desks and recents, reboot
+scripts/desktop-capture.sh 127.0.0.1:16520 OUT/desktop
+scripts/ui/flag-checks.py 127.0.0.1:16520 OUT/checks
 scripts/cf-boot.sh down
 ```
+
+On a shared build host, give each VM its own `CF_NAME`, `CF_STAGE`, `CF_ADB_PORT` and `CF_WEBRTC_PORT` (and `CF_ARGS=--vhost_user_vsock=true`; see the header of `scripts/cf-boot.sh`).
 
 ## The triage table
 

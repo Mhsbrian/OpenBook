@@ -35,7 +35,8 @@ runtime_resource_overlay {
 // No search box on the desktop (ANAL-206): Launcher3's hotseat search slot is empty, and AOSP's QuickSearchBox
 // app (its widget, global search and web search) is not installed. Nothing else needs it: Settings searches
 // through SettingsIntelligence, and SearchManager and the search key log and do nothing without a global search
-// activity. docs/googlebook-ui.md §2.6.
+// activity. docs/googlebook-ui.md §2.6. It also puts Launcher3 in its desktop form factor, as Googlebook does
+// (ANAL-352, docs/aosp-desktop.md).
 runtime_resource_overlay {
     name: "AnyBookDesktopLauncherOverlay",
     manifest: "overlays/launcher/AndroidManifest.xml",
@@ -43,6 +44,15 @@ runtime_resource_overlay {
     product_specific: true,
     sdk_version: "current",
     overrides: ["QuickSearchBox"],
+}
+
+// Launcher3 reads the wallpaper for Overview's desk tiles (ANAL-372).
+prebuilt_etc {
+    name: "privapp_whitelist_com.android.launcher3.overview",
+    system_ext_specific: true,
+    sub_dir: "permissions",
+    src: "privapp-permissions-launcher3-overview.xml",
+    filename_from_src: true,
 }
 
 // No keypress sound in the on-screen keyboard (ANAL-206).

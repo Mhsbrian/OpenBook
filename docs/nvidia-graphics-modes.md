@@ -1,27 +1,34 @@
 # Graphics modes on the Googlebook (Ruby) image: Eco, Hybrid and Ultimate, with automatic rollback (ANAL-241)
 
-> **OpenBook, 2026-10-30 (ANAL-319):** this design and its phase-1 switcher now ship in OpenBook's own G14 vendor
-> layer too (the `openbook-gfx-mode` service in `device/anybook/common/gfx-mode/`, the selector in `anybook_gpu_probe`
-> and the recovery entries in `openbook-bootsync`), identical to GoodBook's. The OpenBook Graphics app's source is
-> there too, but only the Ruby image installs it. With firmware writes off, OpenBook's switcher reads the mode and
-> keeps the graphics stack on the panel's GPU; it does not switch. On OpenBook, Hybrid also loads
-> NVIDIA's open driver after boot, for runtime power management only ([`nvidia-open.md`](nvidia-open.md)). The text
-> below is the Googlebook (Ruby) design record as approved; where it says "Ruby image", the vendor parts apply to both
-> tracks. Firmware writes stay off on both.
+This is the design for switching the G14's GPU modes safely, approved by B Honey on ANAL-241 (2026-10-25, decisions
+in §11). Phase 1 is built (ANAL-246, §13): the switcher, its SELinux domain and init steps, the selector in
+`anybook_gpu_probe` with the composer and gralloc pinned, the recovery entries, the update interlock and the OpenBook
+Graphics app.
 
-Status, 2026-10-25: **approved by B Honey** on ANAL-241, with the recommendations in §11. **Phase 1 is built
-(ANAL-246, §13):** the switcher, its SELinux domain and init steps, the selector in `anybook_gpu_probe` with the
-composer and gralloc pinned, the recovery entries, the update interlock and the OpenBook Graphics app, tested on the
-real Ruby image in QEMU. Nothing here has written the G14's firmware. The first real `gpu_mux_mode` or
-`dgpu_disable` write still needs its own approval naming the image, the operation and the device (epic ANAL-237).
+**Where it applies.**
+- The text is the Googlebook (Ruby) design record. Where it says "Ruby image", the vendor parts apply to both
+  tracks.
+- **OpenBook** carries the same vendor parts in its G14 vendor layer since ANAL-319 (2026-10-30): the
+  `openbook-gfx-mode` service in `device/anybook/common/gfx-mode/`, the selector in `anybook_gpu_probe` and the
+  recovery entries in `openbook-bootsync`.
+- Since ANAL-323 (2026-11-01) the OpenBook G14 product also installs the OpenBook Graphics app:
+  `/system_ext/priv-app/OpenBookGraphics`, platform-signed, in the same `openbook_graphics_app` domain (the platform
+  policy's own here, `gfx-mode/sepolicy/system_ext`). Its "Apps on the NVIDIA GPU" screen says that OpenBook has no
+  NVIDIA driver for apps and offers no choice.
+- On OpenBook, Hybrid also loads NVIDIA's open driver after boot, for runtime power management only
+  ([`nvidia-open.md`](nvidia-open.md)).
+- **Firmware writes are off on both tracks.** The switcher reads the mode and keeps the graphics stack on the panel's
+  GPU; it does not switch, and the app says so. Nothing has written the G14's firmware. The first real
+  `gpu_mux_mode` or `dgpu_disable` write needs its own approval naming the image, the operation and the device (epic
+  ANAL-237).
+- Ruby-only tools and docs named below (`scripts/googlebook/`, `build-gfx-mode-candidate.py`, `stick-entries.py`,
+  `rebase-google-build.py`, `openbook-adapt` and the Googlebook docs in "Sources") are not in this repository; the
+  Ruby track lives in GoodBook.
 
 Labels:
 - **CONFIRMED**: read in source we have, or seen in our own test output.
 - **REPORTED**: third parties, not reproduced by us.
 - **HYPOTHESIS**: not yet tested.
-
-Release impact: the design itself none; its phase-1 implementation (ANAL-246, §13) is **Ruby**: vendor, and the
-OpenBook layer of `system` for the app.
 
 ## Summary
 
@@ -37,12 +44,9 @@ OpenBook layer of `system` for the app.
   3. A new Ultimate must also be kept by the owner within 30 seconds, otherwise it goes back.
   4. If that is not enough, there is a "Restore Hybrid graphics" entry in the laptop's own boot menu and on the
      USB stick, then the firmware-level steps (§6).
-- **Prototype: `openbook-gfx-mode`.** 25 scenarios pass in two places:
-  - on the host, against a model of the kernel's rules;
-  - in QEMU on the **G14's own 6.18 kernel**, whose real `asus-nb-wmi` driver is bound to a fake ASUS WMI device.
-    That run made 82 guest boots, with real reboots and hard resets.
-
-  The kernel's own guards appear in the guest's log. §10 has the details.
+- **Tested without the laptop.** `openbook-gfx-mode` passes 25 scenarios on the host, against a model of the
+  kernel's rules, and in QEMU on the **G14's own 6.18 kernel**, whose real `asus-nb-wmi` driver is bound to a fake
+  ASUS WMI device (82 guest boots, with real reboots and hard resets). §10 and §13 have the details.
 - **Owner decisions** are in §11: approve the design, two tries plus the keep dialog, automatic restore, the update
   interlock, and an optional look in the BIOS.
 
@@ -59,9 +63,8 @@ What we know about the G14 itself:
 - **Today it is Hybrid** (`gpu_mux_mode=1`, `dgpu_disable=0`). CONFIRMED on Linux on 2026-10-16 and on Ruby on
   2026-10-22.
 - **HDMI is wired to the dGPU.** The iGPU has eDP and eight DP connectors, but no HDMI. CONFIRMED.
-- **Whether the iGPU stays enumerated with the MUX on the dGPU is UNKNOWN.** The issue called it "reported". I found
-  no G14 `lspci` in that mode (search, 2026-10-25). The design does not depend on the answer, and the prototype tests
-  both cases.
+- **Whether the iGPU stays enumerated with the MUX on the dGPU is UNKNOWN.** As of 2026-10-25 no G14 `lspci` in that
+  mode could be found. The design does not depend on the answer, and the prototype tests both cases.
 - **HYPOTHESIS:** amdgpu then reports its eDP as disconnected, because its HPD pin is muxed away (amdgpu's DC
   detects eDP through the HPD GPIO). If both GPUs ever claim a connected panel, the selector follows the MUX and
   logs it.
@@ -156,8 +159,30 @@ on early-init                                    # init.openbook.rc, in this ord
 | Eco → Ultimate | `dgpu_disable=0`, read back (store, PCI rescan, store again if needed) → record → `gpu_mux_mode=0` → restart |
 | Ultimate → Hybrid | record → `gpu_mux_mode=1` → restart |
 | Ultimate → Eco | record (with a deferred dGPU-off) → `gpu_mux_mode=1` → restart → early init writes `dgpu_disable=1`. The kernel refuses it before the MUX is back |
-| Hybrid → Eco | `dgpu_disable=1` now, if no GPU driver is bound to the dGPU; otherwise deferred to the next early init, before drivers bind |
+| Hybrid → Eco | `dgpu_disable=1` now, if nothing holds the dGPU; otherwise deferred to the next early init, before drivers bind |
 | Eco → Hybrid | `dgpu_disable=0` (with the rescan and second store if needed); the dGPU enumerates at the next boot |
+
+**`dgpu_disable=1` cuts the dGPU's power, so it is written only when nothing holds the dGPU** (ANAL-322): no driver
+bound to any of its PCI functions (NVIDIA's driver or nouveau on the GPU, `snd_hda_intel` on its HDMI audio), and
+neither NVIDIA's nor nouveau's module loaded (a load whose probe has not bound yet). Since R7, NVIDIA's driver drives
+the RTX in every Hybrid boot, so a switch to Eco is normally deferred. At early init no GPU driver has loaded, and init
+releases the HDMI audio (`openbook-pc-setup dgpu-hda`) before the switcher's `boot` step. If something still holds the
+dGPU there, Eco is not applied: the switcher records why, keeps Hybrid and does not try again by itself.
+
+**Every `dgpu_disable` write is crash-ordered** (ANAL-322), like the MUX writes: the attempt is recorded in `/metadata`
+before the write and cleared after it. A boot that ends inside the write (a firmware hang, a crash, a power cut) leaves
+the attempt behind, and the next boot keeps whatever the firmware kept and never repeats the write by itself; an Eco or
+Hybrid lock that asked for it is lifted. The early-init writes (the deferred Eco and a lock re-applied after a change
+outside OpenBook) therefore cannot become a boot loop.
+
+**Around the switch:**
+- NVIDIA's boot load (`nvidia-open.md`) follows the mode the boot *started* in (`vendor.openbook.dgpu.boot_mode`,
+  set once at early init), not the switcher's live `vendor.openbook.gfx.mode`. It never runs in a boot that began in
+  Eco, and after Eco → Hybrid it waits for the restart, when the RTX has enumerated again.
+- If enabling the dGPU needed the PCI rescan between two stores, the rescan can bring the dGPU's functions back in the
+  same boot. The switcher then sets `vendor.openbook.gfx.rescan`, and init runs `dgpu-pm`, which releases the HDMI
+  audio and lets the unbound RTX reach D3cold until the restart.
+- An orderly restart in NVIDIA's boot-load settle time is not counted as a crash by the boot load's guard.
 
 **Records.** Each switch records the firmware state before and after (`fw_before`, `fw_after`). A bounded history
 file in `/metadata/openbook/gfx/history` holds every event, and logcat gets the same lines. The app restarts the
@@ -173,14 +198,14 @@ Tested in `lock-hybrid`.
 
 **How the app reaches the service** (built in ANAL-246; the constraints are AOSP 17's `system/sepolicy`):
 - A platform app may set **no** vendor property: `compatible_property_only` in `private/property.te` forbids every
-  core domain except init to set one, `vendor_public_prop` included. The design's first idea (a vendor request
-  property) was wrong; the compile of the image's policy refused nothing yet, the AOSP source did.
+  core domain except init to set one, `vendor_public_prop` included. So a vendor request property cannot work, even
+  though the image's own policy compile does not refuse it.
 - A privileged app (`priv_app_all`) and an untrusted app may set **no property at all** (`private/priv_app_all.te`,
   `app_neverallows.te`). So OpenBook Graphics runs in an app domain of its own that is neither, as Google's own
   `traceur_app` does: a core app domain with the app API services and one property to set. Android still treats it
   as a privileged app for permissions (`/system/priv-app`, REBOOT).
-- init accepts a property trigger in a vendor `.rc` file only on a property `vendor_init` can read (the first Ruby VM
-  run logged `unexported property trigger found: openbook.gfx.request` and dropped the action).
+- init accepts a property trigger in a vendor `.rc` file only on a property `vendor_init` can read. Otherwise it logs
+  `unexported property trigger found: openbook.gfx.request` and drops the action.
 - A vendor domain may set `sys.powerctl`, which is `system_public_prop` and not under the vendor neverallow.
 
 So:
@@ -281,6 +306,20 @@ This is the risk that remains, so it gets its own rule.
 | 6 | BIOS setup (F2, then F7 for Advanced). On some ROG models: **Display Mode: dGPU Only / Dynamic** | the firmware's own screens | REPORTED (ASUS FAQ 1049763, for 2023 M16/Scar 16/Flow X16); **unknown for the GA403WR** |
 | 7 | EC reset: power off, charger in, hold the power button 30–40 s | — | REPORTED (ROG forum advice for black screens); its effect on the MUX is unknown |
 
+**Leaving Eco from outside OpenBook.** Eco never moves the MUX: the panel stays on the 890M, so none of the ways above
+is needed for a picture. But `dgpu_disable` is an ASUS firmware setting that the firmware keeps across restarts and
+operating systems, and Eco turns the HDMI port off (it is wired to the RTX). An image without the switcher (before R4,
+for example the USB stick RB-20261023-02) or another OS starts without the RTX until something writes
+`dgpu_disable=0`:
+- any OpenBook image with the switcher (R4 and later): OpenBook Graphics › Hybrid, then restart;
+- another Linux: `echo 0 | sudo tee /sys/devices/platform/asus-nb-wmi/dgpu_disable` (6.18 and older; newer kernels:
+  `…/asus-armoury/attributes/dgpu_disable/current_value`), then reboot. If it still reads 1, write it again after
+  `echo 1 | sudo tee /sys/bus/pci/rescan` (the kernel's own note, §1);
+- Windows: Armoury Crate's GPU mode (REPORTED).
+
+"Restore Hybrid graphics" (ways 3 and 4) restores the MUX only; on a laptop in Eco it changes no firmware. It does
+cancel an Eco switch that is still pending, so the entry never ends in Eco.
+
 **HYPOTHESIS:** the firmware's own screens (logo, F2 setup and the boot menu) show in either MUX position, because
 the GOP drives whichever GPU owns the panel. project-churro saw the GOP leave DSC on the panel in discrete mode, which
 fits (REPORTED). Ways 3, 4 and 6 depend on this; ways 1, 2 and 5 do not.
@@ -357,15 +396,20 @@ Only the owner (an admin user) can switch; other users see the mode. The app res
 | 22 | Unknown board or no `asus-wmi` | manifest or sysfs | no writes; stack chosen from the panel | the mode choice is not offered | — | `refuse-unknown-board` |
 | 23 | Unverified stack | manifest | Ultimate refused | "not available on this version" | — | `refuse-unverified-stack` |
 | 24 | Eco requested while a driver drives the dGPU | bound driver | deferred to the next early init | "restart to finish" | — | `eco-deferred-while-driven` |
+| 24a | Eco requested while NVIDIA's driver is still loading (module loaded, not bound) | loaded module | deferred, as 24 | "restart to finish" | — | `eco-deferred-while-nvidia-binds` |
+| 24b | At the deferred Eco step something still holds the dGPU (its HDMI audio) | bound driver at early init | Eco not applied, recorded, not retried | Hybrid, and the reason | ask again | `eco-deferred-hdmi-audio-held` |
+| 24c | A `dgpu_disable` write hangs the laptop or the power goes during it | the attempt left in `/metadata` | keep what the firmware kept; never repeat the write; lift a lock that asked for it | one hang, then Hybrid (or Eco, if it took) | hold power | `eco-write-hangs`, `eco-write-cut-after-firmware`, `eco-lock-write-hangs` |
+| 24d | "Restore Hybrid graphics" picked while Eco is pending | the entry | the pending Eco is cancelled | Hybrid | — | `restore-entry-cancels-eco` |
+| 24e | Eco → Hybrid needed the PCI rescan: the RTX is back in this boot | the switcher's rescan | init runs `dgpu-pm` (HDMI audio released, RTX to D3cold); NVIDIA's driver waits for the restart | "restart to finish" | — | `eco-to-hybrid-rescan` (QEMU) |
 | 25 | Lock bypassed from the BIOS or another OS | boot reconciliation | restored towards the iGPU modes only | a note | — | `lock-hybrid` |
 | 26 | Sleep in Ultimate (dGPU always on) | — | not this design: ANAL-244 must pass an s2idle gate before Ultimate ships | — | — | ANAL-244 |
 
-## 10. Prototype and evidence
+## 10. Prototype and tests
 
 **Code:**
 - `device/anybook/common/gfx-mode/`: `gfx_mode.{h,cpp}` and `main.cpp`. C++17 with no Android libraries, so the same
-  source builds statically for the QEMU guest and later as a vendor `cc_binary` (logcat and properties under
-  `__ANDROID__`). It has no `Android.bp` yet, so nothing is built into an image; ANAL-246 adds it.
+  source builds statically for the QEMU guest and as a vendor `cc_binary` (logcat and properties under
+  `__ANDROID__`; the image build is phase 1's, §13).
 - Commands:
   - `boot` and `select` (early init);
   - `frame`, `booted`, `keep`, `revert` and `deadline` (health);
@@ -377,26 +421,19 @@ Only the owner (an admin user) can switch; other users see the mode. The app res
 - **`scripts/googlebook/gfx-mode-test.py`** runs them on the host, against fake sysfs trees and a model of the 6.18
   `asus-wmi` guards. Every firmware write the binary makes is replayed against the guards, and a write the kernel
   would refuse fails the test. It also has unit checks: refused mode names, a corrupt record, and dry-run. It runs
-  in CI (`scripts/ci/unit-tests.sh`).
-- **`scripts/googlebook/gfx-mode-qemu.sh`** runs the same scenarios in QEMU/KVM. The kernel is the G14 kernel dist
-  `anybook-g14-gbos-16302624-anal257` (6.18.21, bzImage `d8590aee…`), with its own `wmi`, `asus-wmi` and
-  `asus-nb-wmi` modules.
+  in the Ruby track's CI (`scripts/ci/unit-tests.sh` there).
+- **`scripts/googlebook/gfx-mode-qemu.sh`** runs the same scenarios in QEMU/KVM on the G14's 6.18.21 kernel, with its
+  own `wmi`, `asus-wmi` and `asus-nb-wmi` modules.
   - The modules bind to `gfx-mode-qemu/fake-asus-wmi.asl`. It keeps the two switches in CMOS, which survives guest
     resets as firmware settings do, and it can inject a refused MUX write and the "store twice" behaviour.
   - `/metadata` is an ext4 virtio disk.
   - Power cuts and hangs are SysRq resets (no sync, no unmount).
   - `--judge` checks the serial log against the same expectations.
 
-**Results, 2026-10-25:**
-- Host: 25 of 25 scenarios and all unit checks pass.
-- QEMU: 25 of 25 scenarios, 82 guest boots, about 1–5 s per scenario. The guest's kernel log shows the real
-  driver at work:
-  - `asus_wmi: Can not switch MUX to dGPU mode when dGPU is disabled: -19`;
-  - `asus_wmi: Can not disable dGPU when the MUX is in dGPU mode: -19`;
-  - `asus-nb-wmi: Failed to set GPU MUX mode (result): 0x0`: once for a refused request, and three times while a
-    rollback retried a refused write.
-- Logs and hashes are in the evidence store, `~/anybook/evidence/goodbook/2026-10-25-anal241-gfx-modes/`, and on the
-  issue.
+**State (2026-10-25):** all 25 scenarios and unit checks pass on the host; in QEMU all 25 pass in 82 guest boots,
+about 1–5 s per scenario. The guest's kernel log shows the real driver's guards at work
+(`asus_wmi: Can not switch MUX to dGPU mode when dGPU is disabled: -19`, `asus_wmi: Can not disable dGPU when the MUX
+is in dGPU mode: -19`, and `asus-nb-wmi: Failed to set GPU MUX mode (result): 0x0` for refused writes).
 
 **Not covered by the prototype:**
 - the Android side: init, SELinux, the HWC hook, the app (built and tested since in ANAL-246, §13);
@@ -441,10 +478,11 @@ Decision 4 puts the switcher before Ultimate: the image used for the first MUX w
 
 ## 13. Phase 1 as built (ANAL-246)
 
-Release impact: **Ruby** (vendor; the OpenBook layer of `system` for the app). No boot-chain, partition-layout or
-data change; the stick gains one boot entry. Firmware writes are **off**: the image does not set
-`ro.vendor.openbook.gfx.fw_writes`, so the switcher shows and logs what it would write, and the app says that
-switching is not turned on yet. A release turns them on only with the owner's approval for the first real switch.
+Phase 1 touches the vendor and, on Ruby, the OpenBook layer of `system` (for the app); OpenBook carries the same
+vendor parts. It changes no boot chain, partition layout or data; the stick gains one boot entry. Firmware writes are
+**off**: the image does not set `ro.vendor.openbook.gfx.fw_writes`, so the switcher shows and logs what it would
+write, and the app says that switching is not turned on yet. A release turns them on only with the owner's approval
+for the first real switch.
 
 ### What is in the image
 
@@ -458,14 +496,21 @@ switching is not turned on yet. A release turns them on only with the owner's ap
 | The frame report | `aosp/patches/external/drm_hwcomposer/0002` | the first frame on an internal display: `vendor.hwc.openbook.first_present=cardN:CONNECTOR` |
 | "Restore Hybrid graphics" | `openbook-bootsync` on the laptop; `config/stick-entries/restore-hybrid.json` and `stick-entries.py` for the stick | §6 ways 3 and 4 ([`installer.md`](installer.md) §2.5) |
 | The update interlock | `openbook-bootsync activate`; `g14-ota.sh` | no slot switch while the panel is on the dGPU or a switch is under way (§5.4) |
-| OpenBook Graphics | `/system/priv-app/OpenBookGraphics-v1`, domain `openbook_graphics_app` (`device/anybook/common/gfx-mode/app`) | §7: Eco and Hybrid, Ultimate "not available on this version", the lock, the restart, the keep dialog, a notification after a rollback; a Settings entry under Display and a Quick Settings tile |
+| OpenBook Graphics | `/system/priv-app/OpenBookGraphics-v1` on Ruby; `/system_ext/priv-app/OpenBookGraphics` on OpenBook (ANAL-323); domain `openbook_graphics_app` (`device/anybook/common/gfx-mode/app`) | §7: Eco and Hybrid, Ultimate "not available on this version", the lock, the restart, the keep dialog, a notification after a rollback; a Settings entry under Display and a Quick Settings tile |
 | SELinux | `device/anybook/common/gfx-mode/sepolicy/vendor`, `graphics-amd/sepolicy`; for Ruby `gfx-mode/ruby/` | §8 as designed, with the corrections in §4. `gpu_mux_mode`, `dgpu_disable`, `egpu_enable` and the PCI rescan are `sysfs_openbook_gfx_fw`, which only `openbook_gfx_mode` (and init's own rules) may write; the lab helper and the selector read them |
 
 **How it reaches a Ruby release.** The Ruby vendor's policy is not the AOSP build's, so
 `build-gfx-mode-candidate.py` appends this change's vendor policy (`gfx-mode/ruby/vendor-sepolicy.cil`, made by
 `vendor-policy-delta.py` from two builds of the same tree) to the base's own, adds the AOSP-built files pinned in
 `gfx-mode/ruby/pins.json`, and compiles the new platform and vendor halves together with every neverallow. It
-refuses a base whose replaced files are not RB-20261025-01's originals. [`BUILD.md`](BUILD.md) has the commands.
+refuses a base whose replaced files are not RB-20261025-01's originals.
+
+**The adapter must carry every OpenBook section.** The platform policy's tail holds one OpenBook section per layer
+app (OpenBook Update's, then OpenBook Graphics'). `openbook-adapt` and `rebase-google-build.py` re-derive every
+section, each with its own block, and hold on a tail no builder writes. An adapter that re-derived only the first
+section dropped OpenBook Graphics' policy and would have held every later Google release (ANAL-295, fixed in the
+adapter pinned since R4). `adapter-fixed-point.sh` checks that each release's layer gives its `system` and `vbmeta`
+back from Google's build.
 
 ### Corrections the build found
 
@@ -479,44 +524,33 @@ refuses a base whose replaced files are not RB-20261025-01's originals. [`BUILD.
 
 ### Tested (2026-10-25)
 
-- **Host:**
-  - `gfx-mode-test.py`: 25/25 scenarios, plus checks of the channels, the summary, stack states, the watchdog and the
-    selector;
-  - `gfx-mode-qemu.sh`: the same 25 scenarios in 82 boots of the G14's 6.18 kernel with its own `asus-nb-wmi`;
-  - `anybook_gpu_probe_test`: 3/3 over 16 fixtures; `bootsync-gfx-test.py` 5/5; `stick-entries-test.py` 5/5;
-  - the app: 9/9 unit tests, lint clean, and a second release build byte-identical to the first.
-- **The candidate:** `build-gfx-mode-candidate.py` on RB-20261025-01's candidate compiles the platform and vendor
-  policy together with every neverallow and checks 31 rules with `sepolicy-analyze` (for example: only
-  `openbook_gfx_mode` writes the switches; the shell may not set `openbook.gfx.request`); checkseapp and checkfc pass.
-- **The Ruby VM** (`gfx-mode-vm.sh`: the real image under TCG, the fake ASUS WMI device, restarts in place; the judge
-  passed all 39 checks):
+- **Host:** `gfx-mode-test.py` (the 25 scenarios plus checks of the channels, the summary, stack states, the watchdog
+  and the selector), `gfx-mode-qemu.sh` (the same scenarios on the G14's 6.18 kernel with its own `asus-nb-wmi`),
+  `anybook_gpu_probe_test` (16 fixtures), `bootsync-gfx-test.py`, `stick-entries-test.py`, and the app's unit tests
+  and lint. A second release build of the app is byte-identical to the first. All pass.
+- **The candidate:** `build-gfx-mode-candidate.py` compiles the platform and vendor policy together with every
+  neverallow and checks 31 rules with `sepolicy-analyze` (for example: only `openbook_gfx_mode` writes the switches;
+  the shell may not set `openbook.gfx.request`); checkseapp and checkfc pass.
+- **The Ruby VM** (`gfx-mode-vm.sh`: the real image under TCG, the fake ASUS WMI device, restarts in place; its
+  judge has 39 checks, all passing):
   - Hybrid: the selector takes virtio and pins its card and render node; the composer's first frame reaches the
     switcher. The app switches to Eco and back through `asus-nb-wmi`, asks to restart for Hybrid, locks and unlocks.
     The shell may not set the app's property, and adb may not ask for Eco without the lab switch.
-  - Ultimate on the VM's development stack, through adb and the lab switch, then the app's own restart. Trial 1/2
-    loads nouveau's KMS list; with no frame after 120 s the watchdog restarts. Trial 2/2 rolls back
-    (`gpu_mux_mode=1`). The next boot reports the rollback, and the app shows a notification and a note on its screen.
-  - The restore entry: on Hybrid it changes nothing. After Ultimate is armed again, the owner's pick of "Restore
-    Hybrid graphics" in the boot menu makes early init write `gpu_mux_mode=1` and restart before Android starts.
-    `mark-good` makes the slot's entry the default again, so the restore entry is only ever a choice in the menu.
+  - Ultimate on the VM's development stack, through adb and the lab switch, then the app's own restart: trial 1/2
+    loads nouveau's KMS list and, with no frame after 120 s, the watchdog restarts; trial 2/2 rolls back
+    (`gpu_mux_mode=1`). The next boot reports the rollback, and the app shows a notification and a note on its
+    screen.
+  - The restore entry changes nothing on Hybrid. With Ultimate armed, picking "Restore Hybrid graphics" in the boot
+    menu makes early init write `gpu_mux_mode=1` and restart before Android starts. `mark-good` makes the slot's
+    entry the default again, so the restore entry is only ever a choice in the menu.
   - No new SELinux denials in the switcher's, the app's, the selector's, the composer's, the allocator's or boot
     control's domains.
-  - The Quick Settings tile opens the app. The Settings entry under Display is unconfirmed: it was not on the
-    page's first screen, and the check does not scroll.
-  - Every restart was an orderly one, except once: an earlier session B's first boot (Hybrid, the watchdog not
-    armed) reset during system_server's start with no kernel restart or panic line. The cause is UNEXPLAINED (TCG is
-    the HYPOTHESIS), and it did not recur in the rerun. The judge now fails a session on such a reset.
+  - The Quick Settings tile opens the app. The Settings entry under Display is unconfirmed: it is not on the page's
+    first screen, and the check does not scroll.
+  - The judge fails a session on any reset that is not an orderly restart. One unexplained reset during
+    system_server's start (Hybrid, watchdog not armed, no kernel restart or panic line) did not recur; HYPOTHESIS:
+    TCG.
 - **What the VM cannot show:** nouveau driving a panel, the G14's firmware and its timing.
-
-### The adapter (R4, 2026-10-26)
-
-R4's first build stopped at its layer re-embed (ANAL-295). R2's `openbook-adapt` (`40d2c16c`) derived only the
-first OpenBook section of the platform policy's tail again, OpenBook Update's, and dropped the rest. The rest is
-OpenBook Graphics' section, so the laptop would have held every later Google release. The adapter now carries
-every section, each with its own derived block, and holds on a tail no builder writes. `rebase-google-build.py`
-does the same. R4 is R3's candidate, then the graphics-mode step, then `build-adapter-candidate.py`, which
-installs the pinned adapter (`52a3b7d1`). With it, R2's, R3's and R4's layers each give their release's
-`system` and `vbmeta` back from Google's build (`adapter-fixed-point.sh`).
 
 ### Not in phase 1
 
@@ -527,7 +561,7 @@ installs the pinned adapter (`52a3b7d1`). With it, R2's, R3's and R4's layers ea
   every update path goes through, and in `g14-ota.sh`; OpenBook Update would report a held install as failed.
   Ultimate cannot be reached on a phase-1 image, so the friendlier screen comes with phase 2, in a new OpenBook
   Update release.
-- **The G14 itself**: nothing here ran on the laptop or wrote its firmware.
+- **The G14's firmware**: nothing in phase 1 has written it.
 
 ## Sources (read 2026-10-25)
 
@@ -543,8 +577,7 @@ installs the pinned adapter (`52a3b7d1`). With it, R2's, R3's and R4's layers ea
   - https://rog-forum.asus.com/t5/rog-zephyrus-series/black-screen-after-rog-logo-on-boot-zephyrus-g16-2025-gu605cr/td-p/1124245
   - https://rog-forum.asus.com/t5/rog-zephyrus-series/screen-goes-black-when-booting-up-a-game/m-p/1094427
 - **Our earlier work:**
-  - `docs/nvidia.md` (§1, §4, §5) and `docs/nvidia-googlebook.md` (project-churro review);
-  - `docs/installer.md` (systemd-boot, hidden menu);
-  - `docs/googlebook-on-device-updater.md` (the OpenBook layer, app domain, REBOOT);
-  - `docs/ruby-firmware-safety.md`;
+  - `docs/nvidia.md` (§1, §4, §5) and `docs/installer.md` (systemd-boot, hidden menu);
+  - the Ruby track's docs: `nvidia-googlebook.md` (project-churro review), `googlebook-on-device-updater.md` (the
+    OpenBook layer, app domain, REBOOT) and `ruby-firmware-safety.md`;
   - the 2026-10-16 GA403WR inventory.

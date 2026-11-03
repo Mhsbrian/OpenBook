@@ -1,0 +1,90 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Shiro836 <17294277+Shiro836@users.noreply.github.com>
+Date: Mon, 26 Oct 2026 10:01:09 -0400
+Subject: [PATCH 10/23] waydroid-nvidia: nvk-android-app-disk-cache
+
+nvidia-prolapse/driver-source/native/mesa/nvk-android-app-disk-cache.patch at waydroid-nvidia 788728d3d51c (v0.2.0-rc12), sha256 774b6b166e0f8a2cf54d218641d848f638ed809b7d7c6713c30406ad1903f324
+---
+ src/nouveau/vulkan/nvk_physical_device.c | 61 ++++++++++++++++++++++++
+ 1 file changed, 61 insertions(+)
+
+diff --git a/src/nouveau/vulkan/nvk_physical_device.c b/src/nouveau/vulkan/nvk_physical_device.c
+index 6c844f9..a7339d9 100644
+--- a/src/nouveau/vulkan/nvk_physical_device.c
++++ b/src/nouveau/vulkan/nvk_physical_device.c
+@@ -1402,6 +1402,51 @@ nvk_get_device_properties(const struct nvk_instance *instance,
+             "Mesa " PACKAGE_VERSION MESA_GIT_SHA1);
+ }
+ 
++#if defined(ENABLE_SHADER_CACHE) && DETECT_OS_ANDROID
++#include <stdio.h>
++#include <sys/stat.h>
++#include <unistd.h>
++#include "util/disk_cache_os.h"
++#include "util/log.h"
++
++/* The application's private code cache directory plus "/nvk_shader_cache",
++ * or NULL (isolated processes, system_server and native processes have no
++ * TMPDIR from the framework). The code_cache directory must exist, belong
++ * to this uid and be writable. */
++static char *
++nvk_android_app_cache_path(void)
++{
++   const char *tmpdir = getenv("TMPDIR");
++   if (!tmpdir || tmpdir[0] != '/')
++      return NULL;
++   size_t len = strlen(tmpdir);
++   while (len > 1 && tmpdir[len - 1] == '/')
++      len--;
++   while (len > 0 && tmpdir[len - 1] != '/')
++      len--;
++   while (len > 1 && tmpdir[len - 1] == '/')
++      len--;
++   if (len <= 1)
++      return NULL;
++
++   char *dir = NULL;
++   if (asprintf(&dir, "%.*s/code_cache", (int)len, tmpdir) < 0)
++      return NULL;
++   struct stat st;
++   if (stat(dir, &st) != 0 || !S_ISDIR(st.st_mode) || st.st_uid != getuid() ||
++       access(dir, W_OK | X_OK) != 0) {
++      free(dir);
++      return NULL;
++   }
++
++   char *path = NULL;
++   if (asprintf(&path, "%s/nvk_shader_cache", dir) < 0)
++      path = NULL;
++   free(dir);
++   return path;
++}
++#endif
++
+ static void
+ nvk_physical_device_init_pipeline_cache(struct nvk_physical_device *pdev)
+ {
+@@ -1445,7 +1490,23 @@ nvk_physical_device_init_pipeline_cache(struct nvk_physical_device *pdev)
+    _mesa_blake3_format(timestamp, instance->driver_build_sha);
+ 
+    const uint64_t driver_flags = nvk_physical_device_compiler_flags(pdev);
++#if DETECT_OS_ANDROID
++   char *path = nvk_android_app_cache_path();
++   if (path) {
++      pdev->vk.disk_cache = disk_cache_create_with_path(renderer, timestamp,
++                                                        driver_flags, path);
++      if (pdev->vk.disk_cache && !pdev->vk.disk_cache->path_init_failed) {
++         mesa_logi("nvk: shader cache at %s", path);
++      } else {
++         mesa_logw("nvk: shader cache at %s could not be opened (or "
++                   "MESA_SHADER_CACHE_DISABLE is set): compiled shaders are "
++                   "kept in memory for this process only", path);
++      }
++      free(path);
++   }
++#else
+    pdev->vk.disk_cache = disk_cache_create(renderer, timestamp, driver_flags);
++#endif
+    if (pdev->vk.disk_cache != NULL) {
+       pdev->vk.properties.pipelineBinaryInternalCache = true;
+       pdev->vk.properties.pipelineBinaryInternalCacheControl = true;

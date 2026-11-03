@@ -1,0 +1,75 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// OpenBook Graphics (org.openbook.graphics) in OpenBook's own AOSP image (ANAL-323): the same sources as the Gradle
+// project here, which builds the APK the Googlebook (Ruby) image installs (build.sh, signed with the OpenBook app
+// key). In AOSP it is built and signed as OpenBook's other apps are (installer, setup): a privileged system_ext app
+// with the platform certificate, so no key is kept in this tree. It runs in its own SELinux domain,
+// openbook_graphics_app (../sepolicy/system_ext/openbook_graphics_app.te, seapp_contexts), and is installed by the
+// G14 product only (../gfx-mode-app.mk). docs/nvidia-graphics-modes.md §7.
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+// The Gradle project gives the package name as its namespace (AGP refuses a package attribute in the manifest);
+// aapt2 needs it in the manifest.
+genrule {
+    name: "OpenBookGraphics-manifest",
+    srcs: ["app/src/main/AndroidManifest.xml"],
+    out: ["AndroidManifest.xml"],
+    cmd: "sed -e 's|^<manifest |<manifest package=\"org.openbook.graphics\" |' $(in) > $(out) && " +
+        "grep -q '^<manifest package=\"org.openbook.graphics\" ' $(out)",
+}
+
+android_app {
+    name: "OpenBookGraphics",
+    srcs: ["app/src/main/kotlin/**/*.kt"],
+    resource_dirs: ["app/src/main/res"],
+    manifest: ":OpenBookGraphics-manifest",
+    // Public API only, as in the Gradle build (compileSdk 37).
+    sdk_version: "current",
+    certificate: "platform",
+    privileged: true,
+    system_ext_specific: true,
+    // Keep equal to app/build.gradle.kts (versionCode, versionName).
+    aaptflags: [
+        "--version-code",
+        "4",
+        "--version-name",
+        "1.3",
+    ],
+    static_libs: [
+        "androidx.annotation_annotation",
+        "androidx.core_core-ktx",
+        "androidx.activity_activity",
+        "androidx.activity_activity-compose",
+        "androidx.compose.runtime_runtime",
+        "androidx.compose.ui_ui",
+        "androidx.compose.ui_ui-graphics",
+        "androidx.compose.ui_ui-text",
+        "androidx.compose.ui_ui-unit",
+        "androidx.compose.foundation_foundation",
+        "androidx.compose.foundation_foundation-layout",
+        "androidx.compose.animation_animation",
+        "androidx.compose.material3_material3",
+        "androidx.compose.material_material-icons-core",
+        "androidx.lifecycle_lifecycle-common",
+        "androidx.lifecycle_lifecycle-runtime",
+        "androidx.lifecycle_lifecycle-runtime-compose",
+        "androidx.lifecycle_lifecycle-viewmodel",
+        "androidx.lifecycle_lifecycle-viewmodel-compose",
+        "kotlinx-coroutines-android",
+        "kotlinx-coroutines-core",
+    ],
+    optimize: {
+        optimize: true,
+        shrink_resources: true,
+        proguard_flags_files: ["app/proguard-rules.pro"],
+    },
+    required: [
+        "privapp_whitelist_org.openbook.graphics",
+        "default_permissions_org.openbook.graphics",
+        "sysconfig_org.openbook.graphics",
+    ],
+}

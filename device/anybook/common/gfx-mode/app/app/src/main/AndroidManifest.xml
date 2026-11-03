@@ -5,8 +5,10 @@
 
   OpenBook Graphics: Eco, Hybrid and Ultimate on laptops with an ASUS MUX (ANAL-246,
   docs/nvidia-graphics-modes.md §7). A privileged system app in its own SELinux domain
-  (openbook_graphics_app), which alone may set openbook.gfx.request for openbook-gfx-mode. REBOOT is its only
-  privileged permission (privapp-permissions-org.openbook.graphics.xml).
+  (openbook_graphics_app), which alone may set openbook.gfx.request for openbook-gfx-mode. Its privileged
+  permissions (privapp-permissions-org.openbook.graphics.xml): REBOOT, and WRITE_SECURE_SETTINGS for the games rule
+  (ANAL-312, docs/nvidia-offload-ruby.md), which keeps Android's updatable-driver allow-list equal to the installed
+  games and writes the owner's per-app choices.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
@@ -16,6 +18,12 @@
     <!-- Restart after the owner confirms. Privileged: granted only to the allow-listed system app. -->
     <uses-permission android:name="android.permission.REBOOT"
         tools:ignore="ProtectedPermissions" />
+    <!-- The games rule: Settings.Global updatable_driver_*. Privileged: granted only to the allow-listed system app. -->
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+    <!-- Every installed app, to find the games (Android 11 package visibility). -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
 
     <application
         android:allowBackup="false"
@@ -55,6 +63,13 @@
                 android:resource="@drawable/ic_graphics" />
         </activity-alias>
 
+        <!-- Apps on the NVIDIA GPU: the games rule and each app's choice. Opened from the main screen. -->
+        <activity
+            android:name=".ui.AppsActivity"
+            android:exported="false"
+            android:label="@string/apps_title"
+            android:parentActivityName=".ui.MainActivity" />
+
         <!-- A Quick Settings tile showing the mode; a tap opens the app. -->
         <service
             android:name=".GraphicsTile"
@@ -67,13 +82,26 @@
             </intent-filter>
         </service>
 
-        <!-- Protected broadcast: only the system can send it. -->
+        <!-- Protected broadcasts: only the system can send them. Boot, this app's own update, and an app's removal
+             (PACKAGE_FULLY_REMOVED reaches manifest receivers; PACKAGE_ADDED does not since Android 8, so new games
+             are found by GamesJob). -->
         <receiver
             android:name=".BootReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED" />
+                <data android:scheme="package" />
             </intent-filter>
         </receiver>
+
+        <!-- The games rule's periodic sync (every 15 minutes, persisted across boots). -->
+        <service
+            android:name=".GamesJob"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 </manifest>

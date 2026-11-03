@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hygiene:
+    name: Repository hygiene
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      # The whole tree, on every pull request and every push to main (CONTRIBUTING.md, "What goes in this repository").
+      - run: python3 scripts/ci/check-hygiene.py
+
+  syntax:
+    name: Shell and Python syntax
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - run: scripts/ci/syntax-check.sh
+
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      # The fast host tests (tests/README.md): no hardware, images or containers.
+      - run: tests/run.sh

@@ -62,3 +62,30 @@ prebuilt_etc {
     sub_dir: "openbook",
     vendor: true,
 }
+
+// OpenBook Graphics' permission files (app/Android.bp, ANAL-323): its privileged permissions (REBOOT,
+// WRITE_SECURE_SETTINGS) and POST_NOTIFICATIONS from the first boot. The Ruby image installs the same files.
+prebuilt_etc {
+    name: "privapp_whitelist_org.openbook.graphics",
+    system_ext_specific: true,
+    sub_dir: "permissions",
+    src: "ruby/privapp-permissions-org.openbook.graphics.xml",
+    filename_from_src: true,
+}
+
+prebuilt_etc {
+    name: "default_permissions_org.openbook.graphics",
+    system_ext_specific: true,
+    sub_dir: "default-permissions",
+    src: "ruby/default-permissions-org.openbook.graphics.xml",
+    filename_from_src: true,
+}
+
+// Not stopped at its first install, so it gets BOOT_COMPLETED before anyone opens it (openbook-graphics-sysconfig.xml).
+prebuilt_etc {
+    name: "sysconfig_org.openbook.graphics",
+    system_ext_specific: true,
+    sub_dir: "sysconfig",
+    src: "openbook-graphics-sysconfig.xml",
+    filename: "openbook-graphics.xml",
+}

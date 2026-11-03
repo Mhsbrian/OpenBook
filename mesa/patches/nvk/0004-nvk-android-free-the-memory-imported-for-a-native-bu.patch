@@ -1,0 +1,44 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 09:03:23 -0400
+Subject: [PATCH 4/7] nvk/android: free the memory imported for a native buffer
+ image
+
+vk_android_import_anb() allocates a VkDeviceMemory for the gralloc buffer
+of a VkNativeBufferANDROID image and stores it in vk_image::anb_memory.
+Drivers that create their images with vk_image_create() free it in
+vk_image_destroy(). NVK allocates and frees its images itself, so that
+memory, with its imported BO and dma-buf reference, outlived every
+Android swapchain image.
+
+Free it in nvk_image_finish(), which also covers vkCreateImage() failing
+after the import.
+
+Fixes: b192c6927b0 ("nvk/android: Add support for ANDROID_native_buffer")
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/nvk_image.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/src/nouveau/vulkan/nvk_image.c b/src/nouveau/vulkan/nvk_image.c
+index 52563a9e69b..44a8df56804 100644
+--- a/src/nouveau/vulkan/nvk_image.c
++++ b/src/nouveau/vulkan/nvk_image.c
+@@ -1248,6 +1248,17 @@ nvk_image_finish(struct nvk_device *dev, struct nvk_image *image,
+ 
+    simple_mtx_destroy(&image->tiled_shadow_mutex);
+ 
++#ifdef VK_USE_PLATFORM_ANDROID_KHR
++   /* vk_android_import_anb() allocated this with vkCreateImage()'s
++    * allocator, which vkDestroyImage() gets again.
++    */
++   if (image->vk.anb_memory != VK_NULL_HANDLE) {
++      dev->vk.dispatch_table.FreeMemory(nvk_device_to_handle(dev),
++                                        image->vk.anb_memory, pAllocator);
++      image->vk.anb_memory = VK_NULL_HANDLE;
++   }
++#endif
++
+    vk_image_finish(&image->vk);
+ }
+ 

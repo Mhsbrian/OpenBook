@@ -8,7 +8,9 @@ A flagged file needs its source published unless every GPL/LGPL text it carries 
 licence collection whose GPL/LGPL entry is for something not in the binary. Each exemption says why and was checked
 by hand (ANAL-320, 2026-10-31). A new GPL binary in a later build is therefore included, not missed.
 
-usage: notice-scan.py PRODUCT_OUT AOSP_SRC [--json FILE]
+usage: notice-scan.py PRODUCT_OUT AOSP_SRC [--notice-root DIR] [--json FILE]
+  --notice-root  where {system,system_ext,product,vendor}/etc/NOTICE.xml.gz are read (default PRODUCT_OUT): the
+                 image's own partitions, extracted, once the product out directory holds a later build
 NOTICE.xml.gz is not well-formed XML (licence texts carry raw control characters), so it is read with patterns.
 """
 import argparse
@@ -62,9 +64,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("product_out")
     ap.add_argument("aosp_src")
+    ap.add_argument("--notice-root")
     ap.add_argument("--json")
     a = ap.parse_args()
-    files = scan(a.product_out)
+    files = scan(a.notice_root or a.product_out)
+    if not files:
+        sys.exit(f"notice-scan: no NOTICE.xml.gz under {a.notice_root or a.product_out}")
     mi = json.load(open(f"{a.product_out}/module-info.json"))
     marker = "/target/product/" + os.path.basename(os.path.normpath(a.product_out)) + "/"
     srcdirs = {}
@@ -109,7 +114,7 @@ def main():
         "not_included": [v for _, v in sorted(exc.items())] +
                         [{"project": p, "files": fs, "why": SEPARATE[p]} for p, fs in sorted(sep.items())] +
                         [{"project": p, "files": fs, "why": "OpenBook's own app (Apache-2.0); its GPL text is "
-                          "Kotlin's, as above. Source: the OpenBook repository"} for p, fs in sorted(own.items())],
+                          "Kotlin's, as above"} for p, fs in sorted(own.items())],
     }
     for v in out["included"]:
         print(f"source   {v['project']:40} {v['kinds']:8} {len(v['files']):3} files, e.g. {v['files'][0]}")

@@ -1,0 +1,116 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sun, 1 Nov 2026 00:00:00 +0000
+Subject: [PATCH 26/26] nvk: keep the program prefetch inside the program's own
+ allocation
+
+Clean-room item H2 (SPEC.md): on Ampere B and later NVK sets
+SET_PIPELINE_PROGRAM_PREFETCH to DIV_ROUND_UP(size, 256) blocks, at most 127,
+from the program address, while it packs programs at 0x80 alignment. The
+prefetch could therefore read up to 255 bytes past a program: bytes of a
+neighbouring program, possibly before that one is uploaded, or of a freed
+range.
+
+nvk_shader_prefetch_blocks() now computes the block count once, for both
+nvk_shader_fill_push() and nvk_shader_upload(). When a program is prefetched,
+nvk_shader_upload() aligns it to 256 bytes (so the prefetch starts on a block
+boundary whether the hardware counts blocks from the address or from the
+enclosing block) and pads its allocation to every block the prefetch covers,
+zero-filled. fill_push asserts both. Cost: at most 255 bytes of padding and
+up to 128 bytes of extra alignment per graphics program, only on Ampere B and
+later. Earlier GPUs and compute programs are unchanged.
+
+Public sources: Mesa 26.2.5 src/nouveau/vulkan/nvk_shader.c
+(nvk_shader_fill_push, nvk_shader_upload, nvk_shader_get_shader_size,
+nvk_shader_get_shader_alignment), nvk_heap.c; the class header clc797.h
+(SET_PIPELINE_PROGRAM_PREFETCH, SIZE_IN_BLOCKS 6:0).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/nvk_shader.c | 59 ++++++++++++++++++++++++++++-----
+ 1 file changed, 50 insertions(+), 9 deletions(-)
+
+diff --git a/src/nouveau/vulkan/nvk_shader.c b/src/nouveau/vulkan/nvk_shader.c
+index c0c586d..4ff3bde 100644
+--- a/src/nouveau/vulkan/nvk_shader.c
++++ b/src/nouveau/vulkan/nvk_shader.c
+@@ -668,6 +668,34 @@ nvk_shader_get_shader_size(struct nvk_device *dev, struct nvk_shader *shader,
+    return total_size;
+ }
+ 
++/* Clean-room item H2. On Ampere B and later, nvk_shader_fill_push() sets
++ * SET_PIPELINE_PROGRAM_PREFETCH for each graphics program: the hardware may
++ * prefetch that many 256-byte blocks from the program address, up to 127.
++ * Rounding the program size up to whole blocks lets the prefetch read up to
++ * 255 bytes past the program, and programs are packed at 0x80 alignment, so
++ * those bytes belong to a neighbouring program (perhaps not uploaded yet) or
++ * to a freed range. nvk_shader_upload() therefore starts such a program on a
++ * block boundary and pads its allocation to every block the prefetch covers.
++ */
++#define NVK_PROGRAM_PREFETCH_BLOCK_B 256
++#define NVK_PROGRAM_PREFETCH_MAX_BLOCKS 127
++
++/* Blocks nvk_shader_fill_push() asks to prefetch; 0 when it sets no prefetch. */
++static uint32_t
++nvk_shader_prefetch_blocks(struct nvk_device *dev, struct nvk_shader *shader)
++{
++   const struct nvk_physical_device *pdev = nvk_device_physical(dev);
++
++   if (pdev->info.cls_eng3d < AMPERE_B ||
++       shader->info.stage == MESA_SHADER_COMPUTE)
++      return 0;
++
++   const uint32_t shader_size =
++      nvk_shader_get_shader_size(dev, shader, NULL, NULL, NULL);
++   return MIN2(DIV_ROUND_UP(shader_size, NVK_PROGRAM_PREFETCH_BLOCK_B),
++               NVK_PROGRAM_PREFETCH_MAX_BLOCKS);
++}
++
+ static VkResult
+ nvk_shader_upload(struct nvk_device *dev, struct nvk_shader *shader)
+ {
+@@ -693,7 +721,19 @@ nvk_shader_upload(struct nvk_device *dev, struct nvk_shader *shader)
+       total_size += shader->data_size;
+    }
+ 
+-   char *data = malloc(total_size);
++   /* H2: the prefetch starts at the header (hdr_offset is 0 from Turing on)
++    * and must stay inside this allocation.
++    */
++   const uint32_t prefetch_blocks = nvk_shader_prefetch_blocks(dev, shader);
++   if (prefetch_blocks > 0) {
++      assert(hdr_offset == 0);
++      alignment = MAX2(alignment, NVK_PROGRAM_PREFETCH_BLOCK_B);
++      total_size = MAX2(total_size,
++                        prefetch_blocks * NVK_PROGRAM_PREFETCH_BLOCK_B);
++   }
++
++   /* Zeroed: padding is never uninitialised memory. */
++   char *data = calloc(1, total_size);
+    if (data == NULL)
+       return vk_error(dev, VK_ERROR_OUT_OF_HOST_MEMORY);
+ 
+@@ -831,14 +871,15 @@ nvk_shader_fill_push(struct nvk_device *dev,
+       P_NVC397_SET_PIPELINE_PROGRAM_ADDRESS_B(p, idx, addr);
+ 
+       /* On Ampere B and later, we can be prefetched for up to 127 blocks of a
+-       * shader. */
+-      if (pdev->info.cls_eng3d >= AMPERE_B) {
+-         uint32_t shader_size =
+-            nvk_shader_get_shader_size(dev, shader, NULL, NULL, NULL);
+-         uint32_t shader_prefetch_size_in_blocks =
+-            MIN2(DIV_ROUND_UP(shader_size, 256), 127);
+-         P_NVC797_SET_PIPELINE_PROGRAM_PREFETCH(p, idx,
+-                                                shader_prefetch_size_in_blocks);
++       * shader. nvk_shader_upload() keeps them inside the program's own
++       * allocation (H2).
++       */
++      const uint32_t prefetch_blocks = nvk_shader_prefetch_blocks(dev, shader);
++      if (prefetch_blocks > 0) {
++         assert(shader->hdr_addr % NVK_PROGRAM_PREFETCH_BLOCK_B == 0);
++         assert(shader->upload_size >=
++                prefetch_blocks * NVK_PROGRAM_PREFETCH_BLOCK_B);
++         P_NVC797_SET_PIPELINE_PROGRAM_PREFETCH(p, idx, prefetch_blocks);
+       }
+    } else {
+       assert(addr < 0xffffffff);

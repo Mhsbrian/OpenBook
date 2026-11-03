@@ -15,15 +15,23 @@ import org.openbook.graphics.ui.MainActivity
 
 /**
  * After a boot (docs/nvidia-graphics-modes.md §7): a new Ultimate that waits for the owner's Keep, or a failed one
- * the laptop came back from by itself, gets a notification that opens the app.
+ * the laptop came back from by itself, gets a notification that opens the app. After a boot, an update of this
+ * app and an app's removal, the games rule syncs (GamesJob); boot and update also schedule its periodic sync.
  */
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+        val why = when (intent.action) {
+            Intent.ACTION_BOOT_COMPLETED -> "boot"
+            Intent.ACTION_MY_PACKAGE_REPLACED -> "update"
+            Intent.ACTION_PACKAGE_FULLY_REMOVED -> "removed"
+            else -> return
+        }
         val pending = goAsync()
         Thread {
             try {
-                SystemBackend.read()?.let { notify(context, it) }
+                if (why == "boot") SystemBackend.read()?.let { notify(context, it) }
+                if (why != "removed") GamesJob.schedule(context)
+                GamesJob.sync(context, why)
             } finally {
                 pending.finish()
             }

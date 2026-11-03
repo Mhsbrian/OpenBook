@@ -1,0 +1,5 @@
+# ANAL-352: OpenBook Launcher, OpenBook's fork of AOSP Launcher3 (Apache-2.0). Its main branch is the pinned
+# android17-release commit plus OpenBook's commits; the three patches that used to live here are its first three.
+# aosp-patches.sh replaces this project's tree with this commit of the fork before every build.
+url https://github.com/Mhsbrian/OpenBookLauncher.git
+rev 99804150fbe1ecd41ea8b0b1b6abaddbbe60783c

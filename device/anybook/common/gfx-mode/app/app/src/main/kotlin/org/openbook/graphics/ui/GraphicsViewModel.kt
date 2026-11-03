@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.openbook.graphics.GamesJob
 import org.openbook.graphics.R
 import org.openbook.graphics.data.GfxBackend
 import org.openbook.graphics.data.GfxState
@@ -27,6 +28,7 @@ import org.openbook.graphics.data.Outcome
 import org.openbook.graphics.data.Rules
 import org.openbook.graphics.data.Switcher
 import org.openbook.graphics.data.SystemBackend
+import org.openbook.graphics.data.SystemDriverBackend
 
 data class Message(@StringRes val text: Int, val error: Boolean = false)
 
@@ -44,12 +46,18 @@ data class UiState(
     val restartPrompt: Boolean = false,
     /** The keep dialog's deadline (System.currentTimeMillis), once it was shown. */
     val keepDeadline: Long? = null,
+    /** An NVIDIA app driver is installed (GamesRule.hasAppDriver); read once, with the first state. */
+    val appDriver: Boolean = true,
+    /** "NVIDIA GPU for apps" (GamesRule.appsOn); read whenever the screen starts. */
+    val appsOn: Boolean = true,
+    /** This user may change which apps use the NVIDIA GPU (SystemDriverBackend.runsHere). */
+    val appsOwner: Boolean = false,
 )
 
 class GraphicsViewModel(app: Application) : AndroidViewModel(app) {
     private val backend: GfxBackend = SystemBackend
     private val switcher = Switcher(backend)
-    private val _state = MutableStateFlow(UiState(owner = isOwner(app)))
+    private val _state = MutableStateFlow(UiState(owner = isOwner(app), appsOwner = SystemDriverBackend.runsHere(app)))
     val state: StateFlow<UiState> = _state.asStateFlow()
     private var poller: Job? = null
 
@@ -57,6 +65,13 @@ class GraphicsViewModel(app: Application) : AndroidViewModel(app) {
     fun start() {
         if (poller?.isActive == true) return
         poller = viewModelScope.launch {
+            val rule = GamesJob.rule(getApplication<Application>())
+            if (_state.value.loading) {
+                val driver = withContext(Dispatchers.IO) { runCatching { rule.hasAppDriver() }.getOrDefault(false) }
+                _state.update { it.copy(appDriver = driver) }
+            }
+            val on = withContext(Dispatchers.IO) { runCatching { rule.appsOn() }.getOrDefault(true) }
+            _state.update { it.copy(appsOn = on) }
             while (isActive) {
                 val gfx = withContext(Dispatchers.IO) { backend.read() }
                 _state.update { it.copy(loading = false, gfx = gfx) }
@@ -71,6 +86,22 @@ class GraphicsViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun ask(mode: Mode) = _state.update { it.copy(confirm = mode, message = null) }
+
+    /** The "NVIDIA GPU for apps" switch (GamesRule.setAppsOn). */
+    fun setAppsOn(on: Boolean) {
+        if (!_state.value.appsOwner) return
+        _state.update { it.copy(busy = true, message = null) }
+        viewModelScope.launch {
+            val rule = GamesJob.rule(getApplication<Application>())
+            val ok = withContext(Dispatchers.IO) { rule.setAppsOn(on) }
+            val now = withContext(Dispatchers.IO) { runCatching { rule.appsOn() }.getOrDefault(on) }
+            Log.i(TAG, "NVIDIA GPU for apps ${if (on) "on" else "off"}: ${if (ok) "saved" else "refused"}")
+            _state.update {
+                it.copy(busy = false, appsOn = now,
+                        message = if (ok) Message(R.string.apps_saved) else Message(R.string.apps_refused, error = true))
+            }
+        }
+    }
 
     fun dismiss() = _state.update { it.copy(confirm = null, restartPrompt = false) }
 

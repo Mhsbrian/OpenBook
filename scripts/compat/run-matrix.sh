@@ -7,7 +7,8 @@
 # tombstones, take a screenshot, write a CSV row.
 #
 #   run-matrix.sh [-o OUTDIR] [-w WAIT_S] [-f REGEX] [--fresh] [--keep-emulator] [--keep-apps]
-#     -o   output dir (default <repo>/evidence/<date>-compat/run-<time>); if it already holds a
+#     -o   output dir (default $OPENBOOK_EVIDENCE/<date>-compat/run-<time>, OPENBOOK_EVIDENCE defaulting to
+#          ~/anybook/evidence/openbook; never inside the repository); if it already holds a
 #          results.csv the run resumes: finished APKs are skipped and new rows are appended
 #     -w   seconds to wait after launch (default 15)
 #     -f   only APK ids matching this regex (ids: probe-arm64, org.videolan.vlc@arm64-v8a, ...)
@@ -32,7 +33,7 @@ while [ $# -gt 0 ]; do
   esac; shift
 done
 RUN_ID=$(date +%Y%m%d-%H%M%S)
-OUT=${OUT:-$REPO/evidence/$(date +%F)-compat/run-$RUN_ID}
+OUT=${OUT:-${OPENBOOK_EVIDENCE:-$HOME/anybook/evidence/openbook}/$(date +%F)-compat/run-$RUN_ID}
 RESUME=0
 if [ -f "$OUT/results.csv" ]; then RESUME=1; R=$(sed -n 2p "$OUT/results.csv" | cut -d, -f1); RUN_ID=${R:-$RUN_ID}; fi
 mkdir -p "$OUT/screens" "$OUT/logs"

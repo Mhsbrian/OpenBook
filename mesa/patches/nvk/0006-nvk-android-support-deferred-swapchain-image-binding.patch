@@ -1,0 +1,175 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 09:06:26 -0400
+Subject: [PATCH 6/7] nvk/android: support deferred swapchain image binding
+
+With VK_ANDROID_native_buffer v8+, Android's loader can create a swapchain
+image without its gralloc buffer: for swapchains created with
+VK_SWAPCHAIN_CREATE_DEFERRED_MEMORY_ALLOCATION_BIT_EXT, and when an app
+creates an image with VkImageSwapchainCreateInfoKHR. The buffer then
+arrives as a VkNativeBufferANDROID in vkBindImageMemory2(), with no
+memory. NVK laid such images out as ordinary optimally tiled images and
+then treated the bind as already done, so they were never bound.
+
+Follow PanVK, RADV, Turnip and v3dv: keep the create info with
+vk_android_init_deferred_image(), and at bind time lay the image out from
+the native buffer (through the checks of the previous commit), import its
+memory with vk_android_import_anb_memory() and bind it. That memory is
+allocated with the device allocator, since vkBindImageMemory2() has none,
+and freed with it in nvk_image_finish(), which now also frees the deferred
+create info.
+
+Expected to fix:
+dEQP-VK.wsi.android.swapchain.create.image_swapchain_create_info
+dEQP-VK.wsi.android.swapchain.simulate_oom.image_swapchain_create_info
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/nvk_android.c | 33 +++++++++++++++++++++++++++
+ src/nouveau/vulkan/nvk_image.c   | 39 +++++++++++++++++++++++++++-----
+ src/nouveau/vulkan/nvk_image.h   |  8 +++++++
+ 3 files changed, 74 insertions(+), 6 deletions(-)
+
+diff --git a/src/nouveau/vulkan/nvk_android.c b/src/nouveau/vulkan/nvk_android.c
+index c348e1034fd..4f30de954b9 100644
+--- a/src/nouveau/vulkan/nvk_android.c
++++ b/src/nouveau/vulkan/nvk_android.c
+@@ -9,6 +9,7 @@
+ #include "nvk_private.h"
+ 
+ #include "nvk_device.h"
++#include "nvk_device_memory.h"
+ #include "nvk_entrypoints.h"
+ #include "nvk_format.h"
+ #include "nvk_image.h"
+@@ -254,6 +255,38 @@ nvk_android_init_anb_layout(struct nvk_device *dev, struct nvk_image *image,
+                                           anb->stride, &mod_info, layouts);
+ }
+ 
++VkResult
++nvk_android_import_deferred_anb(struct nvk_device *dev,
++                                struct nvk_image *image,
++                                const VkNativeBufferANDROID *anb,
++                                struct nvk_device_memory **mem_out)
++{
++   VkImageCreateInfo *create_info = image->vk.android_deferred_create_info;
++   VkResult result;
++
++   if (create_info == NULL) {
++      return vk_errorf(dev, VK_ERROR_UNKNOWN,
++                       "native buffer bound to an image that was not "
++                       "created for a swapchain");
++   }
++
++   if (image->vk.anb_memory == VK_NULL_HANDLE) {
++      result = nvk_android_init_anb_layout(dev, image, create_info, anb);
++      if (result != VK_SUCCESS)
++         return result;
++
++      /* vkBindImageMemory2() has no allocation callbacks */
++      result = vk_android_import_anb_memory(&dev->vk, &image->vk, anb,
++                                            &dev->vk.alloc);
++      if (result != VK_SUCCESS)
++         return result;
++   }
++
++   *mem_out = nvk_device_memory_from_handle(image->vk.anb_memory);
++
++   return VK_SUCCESS;
++}
++
+ VKAPI_ATTR VkResult VKAPI_CALL
+ nvk_QueueSignalReleaseImageANDROID(VkQueue _queue,
+                                    uint32_t waitSemaphoreCount,
+diff --git a/src/nouveau/vulkan/nvk_image.c b/src/nouveau/vulkan/nvk_image.c
+index 2b557eb49b6..d3f80e12cae 100644
+--- a/src/nouveau/vulkan/nvk_image.c
++++ b/src/nouveau/vulkan/nvk_image.c
+@@ -1234,13 +1234,19 @@ nvk_image_finish(struct nvk_device *dev, struct nvk_image *image,
+ 
+ #ifdef VK_USE_PLATFORM_ANDROID_KHR
+    /* vk_android_import_anb() allocated this with vkCreateImage()'s
+-    * allocator, which vkDestroyImage() gets again.
++    * allocator, which vkDestroyImage() gets again, and
++    * nvk_android_import_deferred_anb() with the device's.
+     */
+    if (image->vk.anb_memory != VK_NULL_HANDLE) {
++      const bool deferred = vk_image_is_android_native_buffer_alias(&image->vk);
+       dev->vk.dispatch_table.FreeMemory(nvk_device_to_handle(dev),
+-                                        image->vk.anb_memory, pAllocator);
++                                        image->vk.anb_memory,
++                                        deferred ? NULL : pAllocator);
+       image->vk.anb_memory = VK_NULL_HANDLE;
+    }
++   vk_free2(&dev->vk.alloc, pAllocator,
++            image->vk.android_deferred_create_info);
++   image->vk.android_deferred_create_info = NULL;
+ #endif
+ 
+    vk_image_finish(&image->vk);
+@@ -1271,7 +1277,18 @@ nvk_CreateImage(VkDevice _device,
+    nvk_image_init_common(dev, image, pCreateInfo);
+ 
+ #ifdef VK_USE_PLATFORM_ANDROID_KHR
+-   if (vk_image_is_android_native_buffer(&image->vk)) {
++   if (vk_image_is_android_native_buffer_alias(&image->vk)) {
++      /* The swapchain's gralloc buffer only arrives with
++       * vkBindImageMemory2(), which lays the image out.
++       */
++      result = vk_android_init_deferred_image(&dev->vk, &image->vk,
++                                              pCreateInfo, pAllocator);
++      if (result != VK_SUCCESS)
++         goto fail;
++
++      *pImage = nvk_image_to_handle(image);
++      return VK_SUCCESS;
++   } else if (vk_image_is_android_native_buffer(&image->vk)) {
+       const VkNativeBufferANDROID *anb =
+          vk_find_struct_const(pCreateInfo->pNext, NATIVE_BUFFER_ANDROID);
+       result = nvk_android_init_anb_layout(dev, image, pCreateInfo, anb);
+@@ -1675,13 +1692,23 @@ nvk_bind_image_memory(struct nvk_device *dev,
+    uint64_t offset_B = info->memoryOffset;
+    VkResult result;
+ 
+-#if DETECT_OS_ANDROID
++#ifdef VK_USE_PLATFORM_ANDROID_KHR
+    const VkNativeBufferANDROID *anb_info =
+       vk_find_struct_const(info->pNext, NATIVE_BUFFER_ANDROID);
+    if (anb_info != NULL && anb_info->handle != NULL) {
+-      /* We do the actual bind the end of CreateImage() */
+       assert(mem == NULL);
+-      return VK_SUCCESS;
++
++      /* Images created with their native buffer are bound at the end of
++       * vkCreateImage().
++       */
++      if (!vk_image_is_android_native_buffer_alias(&image->vk))
++         return VK_SUCCESS;
++
++      result = nvk_android_import_deferred_anb(dev, image, anb_info, &mem);
++      if (result != VK_SUCCESS)
++         return result;
++
++      offset_B = 0;
+    }
+ #endif
+ 
+diff --git a/src/nouveau/vulkan/nvk_image.h b/src/nouveau/vulkan/nvk_image.h
+index 4e1babb47f9..81b0c59a36c 100644
+--- a/src/nouveau/vulkan/nvk_image.h
++++ b/src/nouveau/vulkan/nvk_image.h
+@@ -246,6 +246,14 @@ VkResult nvk_android_init_anb_layout(struct nvk_device *dev,
+                                      struct nvk_image *image,
+                                      const VkImageCreateInfo *create_info,
+                                      const VkNativeBufferANDROID *anb);
++
++/* Lays out a swapchain image created without its gralloc buffer and imports
++ * that buffer, when vkBindImageMemory2() brings it.
++ */
++VkResult nvk_android_import_deferred_anb(struct nvk_device *dev,
++                                         struct nvk_image *image,
++                                         const VkNativeBufferANDROID *anb,
++                                         struct nvk_device_memory **mem_out);
+ #endif
+ 
+ bool nvk_image_plane_aligned_for_linear_attachment(const struct nvk_image_plane *plane,

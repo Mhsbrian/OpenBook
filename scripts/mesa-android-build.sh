@@ -4,11 +4,20 @@
 # skipped when its output already exists, and `ninja` resumes, so just rerun after a timeout.
 #
 #   scripts/mesa-android-build.sh [step ...] [-- tree ...]
-#     steps: fetch deps setup build install verify isa   (default: all, in that order)
-#     trees: upstream ag                                  (default: both)
+#     steps: fetch deps clc rm setup build install verify isa   (default: all, in that order)
+#     trees: upstream ag nvk-rm-clean                            (default: upstream ag)
 #
-# Runs on the host and re-executes itself inside the anybook-mesa-android image
-# (tools/Dockerfile.mesa-android); the `isa` step uses anybook-inspect (elfx86exts).
+# The nvk-rm-clean tree (ANAL-327, docs/nvk-openbook.md) is NVK, the Vulkan driver for NVIDIA GPUs, on NVIDIA's open
+# kernel driver: upstream's pin with mesa/patches/{upstream,nvk,nvk-rm-clean}, and the RM backend NVK links,
+# libnv_bionic_native.so, from mesa/nvk-rm-clean/backend. Both come from the clean-room tree of ANAL-324 (its
+# provenance: mesa/nvk-rm-clean/PROVENANCE.md). Its two extra steps: clc builds Mesa's build-time compilers
+# (mesa_clc, vtn_bindgen2) for the build host from the same source, and rm builds the backend. Both are no-ops for
+# the other trees. The tree builds only after its provenance gate passes (scripts/nvk-provenance-check.sh). Its
+# directories (src/, build/ and out/nvk-rm-clean) and patch commits are those of the clean-room build, so the same
+# inputs give the same bytes as the 2b-tested build (ANAL-326).
+#
+# Runs on the host and re-executes itself inside the anybook-mesa-android image (anybook-mesa-android-rust for the
+# nvk-rm-clean tree; both from tools/Dockerfile.mesa-android); the `isa` step uses anybook-inspect (elfx86exts).
 # Sources, builds and artifacts live in ~/anybook/mesa, logs in ~/anybook/logs/mesa.
 # Env: STEP_TIMEOUT (s, per step, default 3000), JOBS (default nproc), API (default 37),
 #      CCACHE_DISABLE=1 for a clean compile,
@@ -26,10 +35,24 @@ set -euo pipefail
 
 # ---- pins -------------------------------------------------------------------------------
 declare -A URL=([upstream]=https://gitlab.freedesktop.org/mesa/mesa.git
-                [ag]=https://github.com/Android-Generic/external_mesa.git)
-declare -A REF=([upstream]=mesa-26.2.5 [ag]=26.0/main)
+                [ag]=https://github.com/Android-Generic/external_mesa.git
+                [nvk-rm-clean]=https://gitlab.freedesktop.org/mesa/mesa.git)
+declare -A REF=([upstream]=mesa-26.2.5 [ag]=26.0/main [nvk-rm-clean]=mesa-26.2.5)
 declare -A SHA=([upstream]=ddaf85e353442d9d7f192fdcf1823e652e3f2ee3   # tag mesa-26.2.5
-                [ag]=b14bf42d23ef1f9625eddb005cd568ab3873f11d)        # 26.0/main, 2026-09-30
+                [ag]=b14bf42d23ef1f9625eddb005cd568ab3873f11d         # 26.0/main, 2026-09-30
+                [nvk-rm-clean]=ddaf85e353442d9d7f192fdcf1823e652e3f2ee3)  # the same tag as upstream
+# mesa/patches/<dir>/*.patch applied on top of the pin, directory by directory.
+declare -A PATCHDIRS=([upstream]=upstream [ag]=ag [nvk-rm-clean]="upstream nvk nvk-rm-clean")
+declare -A IMAGES=([upstream]=anybook-mesa-android [ag]=anybook-mesa-android [nvk-rm-clean]=anybook-mesa-android-rust)
+has_rm(){ [[ $1 == nvk-rm-clean ]]; }   # NVK on NVIDIA's open kernel driver, with its RM backend
+# The NVIDIA kernel driver release the backend is built for: the image pins NVIDIA's open kernel modules, their GSP
+# firmware and this userspace to one release, and the backend's strict version check refuses any other module.
+RM_DRIVER_VERSION=615.78.08
+# The clean-room build's commit identity for the patch commits (scripts/build-clean.sh of ANAL-324's tree): Mesa
+# compiles the patched HEAD's hash into the driver ("Mesa 26.2.5 (git-09036ef459)"), so the same identity and dates
+# give the same bytes.
+RM_COMMITTER_NAME='B Honey'; RM_COMMITTER_EMAIL='9922368+Mhsbrian@users.noreply.github.com'
+RM_COMMITTER_DATE='2026-11-01T00:00:00Z'
 AG_BASE=mesa-26.0.8   # upstream tag AG's 26.0/main is based on (merge-base 60e95b78)
 # radeonsi needs libelf, which the NDK lacks: build AOSP's own elfutils (0.193) the way its
 # Android.bp builds `libelf` (+ `libeu`), minus zstd. LGPL-3.0-or-later (docs/mesa.md): built both
@@ -39,7 +62,6 @@ ELFUTILS_REF=android-17.0.0_r1; ELFUTILS_SHA=219c3a368b121307f2e05593cee89b8591c
 API=${API:-37}; STEP_TIMEOUT=${STEP_TIMEOUT:-3000}; LIBELF=${LIBELF:-shared}; ANDROID_STRICT=${ANDROID_STRICT:-false}
 V=${MESA_VARIANT:-}
 [[ $V =~ ^(-[a-z0-9]+)?$ ]] || { echo "MESA_VARIANT must be empty or -<lowercase letters and digits>" >&2; exit 2; }
-IMAGE=anybook-mesa-android
 
 # --datadir=etc: libdrm_amdgpu's compiled-in marketing-name table becomes /vendor/etc/libdrm/amdgpu.ids
 # (AOSP keeps vendor data under /vendor/etc; Soong has no module type that installs to /vendor/share).
@@ -57,21 +79,58 @@ MESON_OPTS=(
   -Dbuild-tests=false -Dtools=
 )
 
+# The nvk-rm-clean tree builds NVK alone (no radeonsi, RADV, GL, EGL or GBM); mesa_clc and vtn_bindgen2 come from its
+# clc step.
+tree_opts(){ local o
+  for o in "${MESON_OPTS[@]}"; do
+    if has_rm "$1"; then
+      case $o in -Dgallium-drivers=*) o=-Dgallium-drivers= ;; -Dvulkan-drivers=*) o=-Dvulkan-drivers=nouveau ;;
+        -Degl=*|-Dgles1=*|-Dgles2=*|-Dgbm=*) o=${o%%=*}=disabled ;; esac
+    fi
+    printf '%s\n' "$o"
+  done
+  if has_rm "$1"; then printf '%s\n' -Dopengl=false -Dmesa-clc=system; fi
+}
+
 steps=(); trees=()
 while (($#)); do [[ $1 == -- ]] && { shift; trees=("$@"); break; }; steps+=("$1"); shift; done
-((${#steps[@]})) || steps=(fetch deps setup build install verify isa)
+((${#steps[@]})) || steps=(fetch deps clc rm setup build install verify isa)
 ((${#trees[@]})) || trees=(upstream ag)
 
-# ---- host side: run container steps, then the isa step --------------------------------
+# ---- host side: the provenance gate and the rm step, then the container steps, then the isa step ------------
 if [[ ! -d /opt/android-ndk ]]; then
   A=${ANYBOOK_HOME:-$HOME/anybook}; repo=$(cd "$(dirname "$0")/.." && pwd)
-  mkdir -p "$A/mesa"/{src,build,out,ccache,evidence,home} "$A/logs/mesa"
-  cstep=(); want_isa=0
-  for s in "${steps[@]}"; do [[ $s == isa ]] && want_isa=1 || cstep+=("$s"); done
+  mkdir -p "$A/mesa"/{src,build,out,ccache,evidence,home,cargo} "$A/logs/mesa"
+  cstep=(); want_isa=0; want_rm=0
+  for s in "${steps[@]}"; do
+    case $s in isa) want_isa=1 ;; rm) want_rm=1 ;; *) cstep+=("$s") ;; esac
+  done
+  for t in "${trees[@]}"; do
+    [[ -n ${IMAGES[$t]:-} ]] || { echo "unknown tree: $t" >&2; exit 2; }
+    has_rm "$t" || continue
+    # Nothing that ties behaviour to NVIDIA's closed userspace driver may enter the build (ANAL-324).
+    "$repo/scripts/nvk-provenance-check.sh"
+    if ((want_rm)); then
+      # The RM backend, as a cdylib for x86_64-linux-android, offline, with the crate's own release profile (unwinding,
+      # line tables; stripped at install). mesa/nvk-rm-clean is mounted as /repo, the clean-room tree's own layout:
+      # the line tables, and with them the linker's build ID, name the directory the crate was built in.
+      echo "== $t$V rm: RM backend (cargo, x86_64-linux-android, driver $RM_DRIVER_VERSION)" | tee -a "$A/logs/mesa/$t$V-rm.log"
+      docker run --rm --network none -u "$(id -u):$(id -g)" -e CARGO_HOME=/a/mesa/cargo \
+        -e NV_RM_DRIVER_VERSION=$RM_DRIVER_VERSION \
+        -e CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER=/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android${API}-clang \
+        -v "$A/mesa:/a/mesa" -v "$repo/mesa/nvk-rm-clean:/repo:ro" "${IMAGES[$t]}" sh -c \
+        "HOME=/tmp cargo build --offline --locked --release --lib --target x86_64-linux-android --target-dir /a/mesa/build/$t$V-rm --manifest-path /repo/backend/Cargo.toml" \
+        2>&1 | tee -a "$A/logs/mesa/$t$V-rm.log"
+      [[ ${PIPESTATUS[0]} == 0 && -f $A/mesa/build/$t$V-rm/x86_64-linux-android/release/libnv_bionic_native.so ]] ||
+        { echo "rm: the backend build failed ($A/logs/mesa/$t$V-rm.log)" >&2; exit 1; }
+    fi
+  done
   if ((${#cstep[@]})); then
-    docker run --rm -u "$(id -u):$(id -g)" -e HOME=/a/mesa/home -e CCACHE_DIR=/a/mesa/ccache \
-      -e STEP_TIMEOUT -e JOBS -e API -e CCACHE_DISABLE -e LIBELF -e ANDROID_STRICT -e MESA_VARIANT -v "$A/mesa:/a/mesa" -v "$A/logs/mesa:/a/logs" -v "$repo:/repo:ro" \
-      "$IMAGE" /repo/scripts/mesa-android-build.sh "${cstep[@]}" -- "${trees[@]}"
+    for t in "${trees[@]}"; do
+      docker run --rm -u "$(id -u):$(id -g)" -e HOME=/a/mesa/home -e CCACHE_DIR=/a/mesa/ccache \
+        -e STEP_TIMEOUT -e JOBS -e API -e CCACHE_DISABLE -e LIBELF -e ANDROID_STRICT -e MESA_VARIANT -v "$A/mesa:/a/mesa" -v "$A/logs/mesa:/a/logs" -v "$repo:/repo:ro" \
+        "${IMAGES[$t]}" /repo/scripts/mesa-android-build.sh "${cstep[@]}" -- "$t"
+    done
   fi
   if ((want_isa)); then
     for t in "${trees[@]}"; do
@@ -96,23 +155,37 @@ run(){ local name=$1; shift; log "$name: $*" | tee -a "$L/$name.log"
        timeout "$STEP_TIMEOUT" "$@" 2>&1 | tee -a "$L/$name.log"; }
 
 fetch(){ local t=$1 d=$M/src/$1
+  if has_rm "$t" && [[ ! -d $d/.git && -d $M/src/upstream/.git ]]; then
+    # The same Mesa as the upstream tree: share its objects (the relative path also resolves in the containers).
+    git clone -q --shared --no-checkout "$M/src/upstream" "$d"
+    echo '../../../upstream/.git/objects' > "$d/.git/objects/info/alternates"
+    git -C "$d" remote set-url origin "${URL[$t]}"
+  fi
   [[ -d $d/.git ]] || { git init -q "$d"; git -C "$d" remote add origin "${URL[$t]}"; }
   if ! git -C "$d" cat-file -e "${SHA[$t]}^{commit}" 2>/dev/null; then
     run "$t-fetch" git -C "$d" fetch --filter=blob:none origin "${REF[$t]}" ||
     run "$t-fetch" git -C "$d" fetch --filter=blob:none origin "${SHA[$t]}"
   fi
-  # OpenBook's patches (mesa/patches/<tree>/*.patch) on top of the pin, applied with git am, a fixed
-  # committer and date, so the patched HEAD is reproducible. Skipped when HEAD already carries them.
-  local p=/repo/mesa/patches/$t want have
-  want=$(cat "$p"/*.patch 2>/dev/null | git patch-id --stable | cut -d' ' -f1)
-  have=$(git -C "$d" log --reverse -p --format='commit %H' "${SHA[$t]}..HEAD" 2>/dev/null | git patch-id --stable | cut -d' ' -f1)
-  if [[ $want != "$have" ]] || ! git -C "$d" diff --quiet HEAD; then
+  # OpenBook's patches (mesa/patches/<dir>/*.patch for each of the tree's PATCHDIRS) on top of the pin, applied
+  # with git am, a fixed committer and date, so the patched HEAD is reproducible. Skipped when HEAD already
+  # carries them with that committer.
+  local pd f patches=() want have who
+  for pd in ${PATCHDIRS[$t]}; do
+    for f in /repo/mesa/patches/"$pd"/*.patch; do [[ -e $f ]] && patches+=("$f"); done
+  done
+  local -a am=(env GIT_COMMITTER_NAME="OpenBook mesa-android-build.sh" GIT_COMMITTER_EMAIL=noreply@openbook.invalid
+               GIT_COMMITTER_DATE=2026-10-17T00:00:00+00:00 git -C "$d" am -q)
+  if has_rm "$t"; then
+    am=(env GIT_COMMITTER_NAME="$RM_COMMITTER_NAME" GIT_COMMITTER_EMAIL="$RM_COMMITTER_EMAIL"
+        GIT_COMMITTER_DATE="$RM_COMMITTER_DATE" git -C "$d" am -q --committer-date-is-author-date)
+  fi
+  want=$( ((${#patches[@]})) && cat "${patches[@]}" | git patch-id --stable | cut -d' ' -f1 || true)
+  have=$(git -C "$d" log --reverse -p --format='commit %H' "${SHA[$t]}..HEAD" 2>/dev/null | git patch-id --stable | cut -d' ' -f1 || true)
+  who=$(git -C "$d" log --format='%cn <%ce>' "${SHA[$t]}..HEAD" 2>/dev/null | sort -u)
+  if has_rm "$t" && [[ -n $who && $who != "$RM_COMMITTER_NAME <$RM_COMMITTER_EMAIL>" ]]; then have=; fi
+  if [[ $want != "$have" ]] || ! git -C "$d" diff --quiet HEAD 2>/dev/null; then
     git -C "$d" checkout -q -f --detach "${SHA[$t]}"
-    for f in "$p"/*.patch; do
-      [[ -e $f ]] || continue
-      GIT_COMMITTER_NAME="OpenBook mesa-android-build.sh" GIT_COMMITTER_EMAIL=noreply@openbook.invalid \
-        GIT_COMMITTER_DATE=2026-10-17T00:00:00+00:00 git -C "$d" am -q "$f"
-    done
+    for f in "${patches[@]}"; do "${am[@]}" "$f"; done
   fi
   log "fetch: $t at $(git -C "$d" rev-parse HEAD) ($(cat "$d/VERSION")), ${SHA[$t]:0:12} + $(git -C "$d" rev-list --count "${SHA[$t]}..HEAD") patches"
   if [[ $t == ag ]]; then   # record what AG carries on top of upstream
@@ -159,7 +232,38 @@ libelf_pc(){ local lib; case $LIBELF in static) lib='-lelf -lz' ;; shared) lib='
     > "$DEPS/lib/pkgconfig/libelf.pc"
 }
 
+# NVK's build-time compilers: mesa_clc (OpenCL C -> SPIR-V, LLVM 18 + SPIRV-LLVM-Translator + libclc) and
+# vtn_bindgen2, built for the build host from the tree's own source and installed into build/<tree>-clc/inst.
+# Rebuilt when the source HEAD changes (anybook-src.txt). A no-op for trees without NVK.
+clc(){ local t=$1 b=$M/build/$1-clc head
+  has_rm "$t" || { log "clc: $t has no NVK, nothing to build"; return; }
+  head=$(git -C "$M/src/$t" rev-parse HEAD)
+  if [[ -x $b/inst/bin/mesa_clc && -x $b/inst/bin/vtn_bindgen2 && $(cat "$b/anybook-src.txt" 2>/dev/null) == "$head" ]]; then
+    log "clc: $t mesa_clc already built for $head"; return
+  fi
+  rm -rf "$b"; : > "$L/$t-clc.log"
+  ( unset PKG_CONFIG_LIBDIR   # a build-host compile: the build host's LLVM, SPIRV-Tools and zlib
+  run "$t-clc" meson setup "$b" "$M/src/$t" --prefix="$b/inst" --libdir=lib --buildtype=release -Dstrip=true \
+    -Dplatforms= -Dgallium-drivers= -Dvulkan-drivers= -Dmesa-clc=enabled -Dinstall-mesa-clc=true -Dllvm=enabled -Dshared-llvm=enabled \
+    -Dglx=disabled -Degl=disabled -Dgbm=disabled -Dgles1=disabled -Dgles2=disabled -Dopengl=false -Dxmlconfig=disabled \
+    -Dexpat=disabled -Dvalgrind=disabled -Dlibunwind=disabled -Dlmsensors=disabled -Dzstd=disabled -Dbuild-tests=false -Dtools=
+  run "$t-clc" ninja -C "$b" -j "$JOBS" install )
+  [[ -x $b/inst/bin/mesa_clc && -x $b/inst/bin/vtn_bindgen2 ]] || { log "clc: $t: mesa_clc or vtn_bindgen2 missing"; exit 1; }
+  echo "$head" > "$b/anybook-src.txt"
+  log "clc: $t mesa_clc and vtn_bindgen2 -> $b/inst/bin"
+}
+
+# Run a command with the tree's mesa_clc and vtn_bindgen2 first in PATH (the nvk-rm-clean tree only).
+clc_path(){ local t=$1; shift
+  if has_rm "$t"; then PATH=$M/build/$t-clc/inst/bin:$PATH "$@"; else "$@"; fi; }
+
+# The nvk-rm-clean tree's cross file adds Rust: rustc for x86_64-linux-android with -C panic=abort (no unwinder in
+# the driver), and bindgen on the NDK's libclang. Meson passes rustc's unversioned --target to bindgen unless the
+# cross file names one, and bionic refuses unversioned Android triples, so name the API level here. libclang also
+# needs the NDK clang's resource directory spelled out to find its own headers (stddef.h, float.h). NVK links the RM
+# backend (-lnv_bionic_native, mesa/patches/nvk-rm-clean), the rm step's output.
 cross_file(){ local f=$M/build/android-x86_64-api$API.ini
+  has_rm "${1:-}" && f=$M/build/android-x86_64-api$API-$1$V.ini   # its own: other trees' cross files stay theirs
   cat > "$f" <<EOF
 [constants]
 toolchain = '$TC/bin'
@@ -177,18 +281,31 @@ cpu_family = 'x86_64'
 cpu = 'x86_64'
 endian = 'little'
 EOF
+  if has_rm "${1:-}"; then
+    local res; res=$("$TC/bin/clang" -print-resource-dir)
+    sed -i "/^pkg-config = /i rust = ['rustc', '--target', 'x86_64-linux-android']" "$f"
+    cat >> "$f" <<EOF
+[properties]
+bindgen_clang_arguments = ['--target=x86_64-linux-android$API', '--sysroot', '$TC/sysroot', '-resource-dir', '$res']
+[built-in options]
+rust_args = ['-C', 'panic=abort']
+EOF
+    printf "%s_link_args = ['-L$M/build/$1$V-rm/x86_64-linux-android/release']\n" c cpp >> "$f"   # NVK links as C++
+  fi
   echo "$f"; }
 
 # The build directory is kept only while its configuration (options + LIBELF) is unchanged.
-setup(){ local t=$1 b=$M/build/$1$V cfg="LIBELF=$LIBELF ${MESON_OPTS[*]}"
+setup(){ local t=$1 b=$M/build/$1$V opts cfg cf
+  mapfile -t opts < <(tree_opts "$t"); cf=$(cross_file "$t"); cfg="LIBELF=$LIBELF ${opts[*]}"
+  has_rm "$t" && cfg+=" cross-file=$(sha256sum < "$cf" | cut -c1-16)"   # its Rust and bindgen settings
   [[ -f $b/build.ninja && $(cat "$b/anybook-config.txt" 2>/dev/null) == "$cfg" ]] &&
     { log "setup: $t already configured ($b, LIBELF=$LIBELF)"; return; }
-  rm -rf "$b"; : > "$L/$t$V-setup.log"; local cf; cf=$(cross_file); libelf_pc
-  run "$t$V-setup" meson setup "$b" "$M/src/$t" --cross-file "$cf" "${MESON_OPTS[@]}"
+  rm -rf "$b"; : > "$L/$t$V-setup.log"; libelf_pc
+  clc_path "$t" run "$t$V-setup" meson setup "$b" "$M/src/$t" --cross-file "$cf" "${opts[@]}"
   echo "$cfg" > "$b/anybook-config.txt"
 }
 
-build(){ local t=$1; run "$t$V-build" ninja -C "$M/build/$t$V" -j "$JOBS"; }
+build(){ local t=$1; clc_path "$t" run "$t$V-build" ninja -C "$M/build/$t$V" -j "$JOBS"; }
 
 install_(){ local t=$1 b=$M/build/$1$V o=$M/out/$1$V
   rm -rf "$o"; mkdir -p "$o"
@@ -196,24 +313,35 @@ install_(){ local t=$1 b=$M/build/$1$V o=$M/out/$1$V
   # Android vendor layout: EGL/GLES under lib64/egl (ro.hardware.egl=mesa), the gallium
   # megadriver, GBM and libdrm in lib64, GBM's DRI backend in lib64/gbm (libgbm_mesa's compiled-in
   # backends path), Vulkan HAL as lib64/hw/vulkan.radv.so (ro.hardware.vulkan=radv).
+  # The nvk-rm-clean tree: NVK as lib64/hw/vulkan.nouveau.so, with the RM backend it links, Mesa's libdrm and
+  # libelf_mesa next to it. The OpenBook NVK driver package (device/anybook/common/nvk) carries these four.
   local s=$o/staging/vendor/lib64 v=$o/vendor/lib64 f old
-  mkdir -p "$v/egl" "$v/hw" "$v/gbm"
-  for f in libEGL_mesa libGLESv1_CM_mesa libGLESv2_mesa; do cp -L "$s/$f.so" "$v/egl/"; done
-  for f in "$s"/libgallium*.so; do [[ -e $f ]] && cp -L "$f" "$v/"; done
-  # libdrm_amdgpu becomes libdrm_amdgpu_mesa.so: AOSP's external/libdrm (2.4.124, too old for Mesa
-  # 26.2) owns the libdrm_amdgpu.so name and install path. The SONAME loop below follows the rename.
-  cp -L "$s/libdrm.so" "$s/libgbm_mesa.so" "$v/"; cp -L "$s/libdrm_amdgpu.so" "$v/libdrm_amdgpu_mesa.so"
-  cp -L "$s/gbm/dri_gbm.so" "$v/gbm/"
-  cp -L "$s/libvulkan_radeon.so" "$v/hw/vulkan.radv.so"
+  mkdir -p "$v/hw"
+  if ! has_rm "$t"; then
+    mkdir -p "$v/egl" "$v/gbm"
+    for f in libEGL_mesa libGLESv1_CM_mesa libGLESv2_mesa; do cp -L "$s/$f.so" "$v/egl/"; done
+    for f in "$s"/libgallium*.so; do [[ -e $f ]] && cp -L "$f" "$v/"; done
+    # libdrm_amdgpu becomes libdrm_amdgpu_mesa.so: AOSP's external/libdrm (2.4.124, too old for Mesa
+    # 26.2) owns the libdrm_amdgpu.so name and install path. The SONAME loop below follows the rename.
+    cp -L "$s/libgbm_mesa.so" "$v/"; cp -L "$s/libdrm_amdgpu.so" "$v/libdrm_amdgpu_mesa.so"
+    cp -L "$s/gbm/dri_gbm.so" "$v/gbm/"
+    cp -L "$s/libvulkan_radeon.so" "$v/hw/vulkan.radv.so"
+  fi
+  cp -L "$s/libdrm.so" "$v/"
+  if has_rm "$t"; then
+    cp -L "$s/libvulkan_nouveau.so" "$v/hw/vulkan.nouveau.so"
+    cp "$M/build/$t$V-rm/x86_64-linux-android/release/libnv_bionic_native.so" "$v/"
+    "$TC/bin/llvm-strip" --strip-unneeded "$v/libnv_bionic_native.so"
+  fi
   if [[ $LIBELF == shared ]]; then cp -L "$DEPS/lib/libelf_mesa.so" "$v/"; "$TC/bin/llvm-strip" --strip-unneeded "$v/libelf_mesa.so"; fi
   # libdrm_amdgpu reads marketing names from its compiled-in ${datadir}: /vendor/etc/libdrm/amdgpu.ids
-  mkdir -p "$o/vendor/etc/libdrm"; cp "$o/staging/vendor/etc/libdrm/amdgpu.ids" "$o/vendor/etc/libdrm/"
+  if ! has_rm "$t"; then mkdir -p "$o/vendor/etc/libdrm"; cp "$o/staging/vendor/etc/libdrm/amdgpu.ids" "$o/vendor/etc/libdrm/"; fi
   # Android names libraries without version suffixes (AOSP's libdrm is "libdrm.so"): make every
-  # SONAME equal its file name and rewrite NEEDED entries that pointed at the old names.
+  # SONAME equal its file name (the backend has none) and rewrite NEEDED entries that pointed at the old names.
   local -A ren=()
   for f in $(find "$v" -name '*.so' | sort); do
     old=$(patchelf --print-soname "$f"); [[ $old == "$(basename "$f")" ]] && continue
-    ren[$old]=$(basename "$f"); patchelf --set-soname "$(basename "$f")" "$f"
+    patchelf --set-soname "$(basename "$f")" "$f"; [[ -n $old ]] && ren[$old]=$(basename "$f")
   done
   for f in $(find "$v" -name '*.so' | sort); do
     for old in "${!ren[@]}"; do
@@ -237,7 +365,7 @@ verify(){ local t=$1 b=$M/build/$1$V o=$M/out/$1$V e=$M/evidence/$1$V
   for f in "${libs[@]}"; do echo "== $f"; "$TC/bin/llvm-readelf" -d "$f"; done > "$e/readelf-d.txt"
   python3 /repo/scripts/elf-needed-check.py --nm "$TC/bin/llvm-nm" --readelf "$TC/bin/llvm-readelf" \
     --sysroot "$SYSLIB" --stub "$b/src/android_stub" "${libs[@]}" > "$e/needed-check.txt" || true
-  { for f in ./lib64/hw/vulkan.radv.so; do echo "== $f (Vulkan HAL: HMI + loader ICD entry points)"
+  { for f in ./lib64/hw/vulkan.*.so; do echo "== $f (Vulkan HAL: HMI + loader ICD entry points)"
       "$TC/bin/llvm-nm" -D --defined-only "$f" | grep -E ' (HMI|vk_icd[A-Za-z]*|vkGetInstanceProcAddr|vkGetDeviceProcAddr)$'
       echo "exported symbols: $("$TC/bin/llvm-nm" -D --defined-only "$f" | wc -l)"; done
     for f in ./lib64/egl/*.so ./lib64/libgallium*.so ./lib64/libdrm*.so ./lib64/libgbm_mesa.so ./lib64/gbm/*.so ./lib64/libelf_mesa.so; do [[ -f $f ]] || continue
@@ -265,14 +393,19 @@ verify(){ local t=$1 b=$M/build/$1$V o=$M/out/$1$V e=$M/evidence/$1$V
     done
   } > "$e/isa-wide-vector-functions.txt"
   { echo "tree: $t ${REF[$t]} ${SHA[$t]} ($(cat "$M/src/$t/VERSION"))"
-    echo "patches: $(git -C "$M/src/$t" rev-list --count "${SHA[$t]}..HEAD") (mesa/patches/$t), HEAD $(git -C "$M/src/$t" rev-parse HEAD)"
+    echo "patches: $(git -C "$M/src/$t" rev-list --count "${SHA[$t]}..HEAD") (mesa/patches/{${PATCHDIRS[$t]// /,}}), HEAD $(git -C "$M/src/$t" rev-parse HEAD)"
     git -C "$M/src/$t" log --reverse --format='  %h %s' "${SHA[$t]}..HEAD"
     echo "ndk: $(grep Pkg.Revision "$NDK/source.properties" | cut -d' ' -f3) ($NDK_VERSION), api $API"
     echo "clang: $("$TC/bin/clang" --version | head -1)"
     echo "meson: $(meson --version)  ninja: $(ninja --version)  glslang: $(glslangValidator --version | head -1)"
     echo "libdrm: $(sed -n 's/^directory = //p' "$M/src/$t/subprojects/libdrm.wrap") (meson wrap, shared)"
     echo "libelf: elfutils $(cat "$DEPS/libelf.version") ($ELFUTILS_REF), LIBELF=$LIBELF"
-    echo "options: ${MESON_OPTS[*]}"
+    if has_rm "$t"; then
+      echo "rust: $(rustc --version), x86_64-linux-android std, -C panic=abort"
+      echo "mesa_clc: built for the build host from this tree (HEAD $(cat "$M/build/$t-clc/anybook-src.txt")), LLVM $(llvm-config-18 --version)"
+      echo "rm: mesa/nvk-rm-clean/backend, cargo build --offline --locked --release --lib, driver $RM_DRIVER_VERSION"
+    fi
+    echo "options: $(tree_opts "$t" | tr '\n' ' ')"
     echo "variant: ${V:-(none)}"
   } > "$e/versions.txt"
   gzip -c "$L/$t$V-setup.log" > "$e/setup.log.gz"; gzip -c "$L/$t$V-build.log" > "$e/build.log.gz"
@@ -283,7 +416,7 @@ verify(){ local t=$1 b=$M/build/$1$V o=$M/out/$1$V e=$M/evidence/$1$V
 for t in "${trees[@]}"; do
   [[ -n ${URL[$t]:-} ]] || { echo "unknown tree: $t" >&2; exit 2; }
   for s in "${steps[@]}"; do
-    case $s in fetch|setup|build|verify) "$s" "$t" ;; install) install_ "$t" ;; deps) deps ;;
+    case $s in fetch|clc|setup|build|verify) "$s" "$t" ;; install) install_ "$t" ;; deps) deps ;;
       *) echo "unknown step: $s" >&2; exit 2 ;; esac
   done
 done

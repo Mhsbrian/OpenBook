@@ -1,0 +1,58 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Wed, 28 Oct 2026 14:31:34 -0400
+Subject: [PATCH 23/23] nvk: optionally report the NVIDIA kernel driver's
+ version as driverVersion
+
+With VK_VENDOR_ID 0x10de, apps and layers decode driverVersion the way
+NVIDIA's driver encodes it (10.8.8.6 bits). Mesa's 26.2.5 then reads as
+NVIDIA driver 26.0.128.5, and ANGLE applies every workaround for NVIDIA
+drivers older than 421 to 535: no graphics pipeline libraries, no SPIR-V
+1.4, a wait for submissions before query results, an externally
+synchronized pipeline cache, a point-size clamp.
+
+NVK_NVIDIA_DRIVER_VERSION=MAJOR.MINOR[.PATCH] (on Android also
+debug.mesa.nvk.nvidia.driver.version) reports that version in NVIDIA's
+encoding instead, e.g. the kernel driver's 615.78.08. Off by default; for
+the A/B of ANGLE's NVIDIA conditions on the G14 (Ruby's ANGLE ignores
+its own debug.angle.feature_overrides_* for Vulkan features).
+
+ANAL-311 (GoodBook).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/nvk_physical_device.c | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/src/nouveau/vulkan/nvk_physical_device.c b/src/nouveau/vulkan/nvk_physical_device.c
+index 1a5b9a4..2547564 100644
+--- a/src/nouveau/vulkan/nvk_physical_device.c
++++ b/src/nouveau/vulkan/nvk_physical_device.c
+@@ -850,9 +850,26 @@ nvk_get_device_properties(const struct nvk_instance *instance,
+       supported_shader_stages |=
+          VK_SHADER_STAGE_TASK_BIT_EXT | VK_SHADER_STAGE_MESH_BIT_EXT;
+ 
++   /* VK_VENDOR_ID 0x10de makes apps and layers read driverVersion the way
++    * NVIDIA encodes it (10.8.8.6 bits), so Mesa's 26.2.5 reads as NVIDIA
++    * driver 26.0.128.5 and ANGLE applies every workaround for NVIDIA drivers
++    * older than 421 to 535 (no graphics pipeline libraries, no SPIR-V 1.4,
++    * waits for query results).  NVK_NVIDIA_DRIVER_VERSION=MAJOR.MINOR[.PATCH]
++    * (on Android also debug.mesa.nvk.nvidia.driver.version) reports that
++    * version in NVIDIA's encoding instead, e.g. the kernel driver's 615.78.08.
++    */
++   uint32_t driver_version = vk_get_driver_version();
++   const char *nvidia_version = os_get_option("NVK_NVIDIA_DRIVER_VERSION");
++   unsigned nv_major, nv_minor, nv_patch = 0;
++   if (nvidia_version != NULL &&
++       sscanf(nvidia_version, "%u.%u.%u", &nv_major, &nv_minor,
++              &nv_patch) >= 2 &&
++       nv_major < 1024 && nv_minor < 256 && nv_patch < 256)
++      driver_version = (nv_major << 22) | (nv_minor << 14) | (nv_patch << 6);
++
+    *properties = (struct vk_properties) {
+       .apiVersion = nvk_get_vk_version(info),
+-      .driverVersion = vk_get_driver_version(),
++      .driverVersion = driver_version,
+       .vendorID = instance->drirc.debug.force_vk_vendor != 0 ?
+                   instance->drirc.debug.force_vk_vendor : NVIDIA_VENDOR_ID,
+       .deviceID = info->device_id,

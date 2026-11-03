@@ -1,0 +1,2 @@
+# OpenBook Graphics (ANAL-323): only the privileged, platform-signed org.openbook.graphics runs in its own domain.
+user=_app seinfo=platform isPrivApp=true name=org.openbook.graphics domain=openbook_graphics_app type=app_data_file levelFrom=all

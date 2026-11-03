@@ -7,7 +7,7 @@
 #   steps, in order: apply build lists sigcheck firmware qemu collect
 #   Resumable: each finished step leaves OUT/.stamps/<step>; a rerun skips those whose inputs did not change
 #   (the stamp holds a hash of them). --from STEP reruns STEP and everything after it.
-#   --evidence DIR  also copy the reports (no images, no firmware blobs) into DIR, e.g. evidence/<date>-kernel-g14
+#   --evidence DIR  also copy the reports (no images, no firmware blobs) into DIR, e.g. $OPENBOOK_EVIDENCE/<date>-kernel-g14 (never the checkout)
 # env: G14_LABEL (default anybook-g14-<synced target>), ANYBOOK_KERNEL_JOBS / BAZEL_ARGS as for kernel-build.sh,
 #      ANYBOOK_KERNEL_SRC the kernel tree (default ~/anybook/kernel/src).
 #      While an anybook-aosp-build container runs, the build step caps Bazel at 16 jobs and 16 GiB unless

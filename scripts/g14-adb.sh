@@ -48,6 +48,8 @@
 #                           to the running slot)
 #
 # Env: OPENBOOK_G14_ADDR      ADDR[:PORT] (default: the first "OpenBook on ..." device found by mDNS, port 5555)
+#      OPENBOOK_G14_OWNER     the task holding the G14 lock (g14-lock.sh) while a command runs; default g14-adb
+#      OPENBOOK_G14_LOCK_WAIT seconds to wait for another task's session to end (default: stop at once, exit 75)
 #      ADB                    default <data dir>/android-sdk/platform-tools/adb
 #      ANDROID_ADB_SERVER_PORT default 5222, a private adb server, so other runs' servers are untouched
 # Read-only on the G14, except: capture makes adbd root (adb root, undone at the end) and mounts debugfs (as the
@@ -62,8 +64,15 @@ ADB=${ADB:-$A/android-sdk/platform-tools/adb}
 export ANDROID_ADB_SERVER_PORT=${ANDROID_ADB_SERVER_PORT:-5222}
 ADDR=${OPENBOOK_G14_ADDR:-}
 D=/data/local/tmp/openbook-adb
+ARGS=("$@")
 [ "${1:-}" = -a ] && { ADDR=$2; shift 2; }
 CMD=${1:?usage: g14-adb.sh [-a ADDR[:PORT]] find|connect|shell|wait|capture|logcat|persist-logs|pair|state|ota|ota-status|ota-cancel ...}; shift
+# One G14 session at a time (g14-lock.sh): outside a session, each command holds the lock while it runs and stops
+# at once if another task holds it (OPENBOOK_G14_LOCK_WAIT=SECONDS waits instead). OPENBOOK_G14_OWNER names the task.
+if [ "$CMD" != find ] && [ -z "${OPENBOOK_G14_LOCK_OWNER:-}" ]; then
+  exec "$R/scripts/g14-lock.sh" run "${OPENBOOK_G14_OWNER:-g14-adb}" ${OPENBOOK_G14_LOCK_WAIT:+-w "$OPENBOOK_G14_LOCK_WAIT"} \
+    -- "$R/scripts/g14-adb.sh" "${ARGS[@]}"
+fi
 [ -x "$ADB" ] || { echo "no adb at $ADB (set ADB=)" >&2; exit 2; }
 utc() { date -u +%Y%m%dT%H%M%SZ; }
 

@@ -1,0 +1,52 @@
+# OpenBook's own files that control compiling and installing the image's copyleft parts (GPLv2 §3, LGPLv3 §4,
+# ANAL-341). make-sources.sh packs them, at the commit that built the image, into openbook-<V>-source-build.tar.xz.
+# One git pathspec per line; '#' starts a comment. A listed path missing at that commit stops the script.
+# The set must be closed: every repository path a packed file refers to is packed too, or is listed with its reason
+# in source-build-excluded.txt. make-sources.sh checks that (source-closure.py) and stops otherwise.
+
+# the kernel: Kleaf workspace, container, patch and module trees as the scripts apply them, the build entry point
+manifests/kernel/gbos-16302624.xml
+tools/Dockerfile.kernel
+scripts/kernel-docker.sh
+scripts/kernel-sync.sh
+scripts/kernel-build.sh
+scripts/kernel-info.py
+scripts/kernel-amd-apply.sh
+scripts/kernel-nouveau-apply.sh
+scripts/kernel-nvidia-open-apply.sh
+scripts/kernel-g14-modlists.py
+scripts/kernel-g14-package.sh
+scripts/kernel-g14-sigcheck.py
+scripts/kernel-g14-firmware.py
+scripts/kernel-firmware-subset.py
+kernel/firmware
+kernel/patches
+kernel/devices/anybook
+scripts/power/lps0-test.asl
+# installing the kernel: the board fragments that put it into the boot images (their other includes are OpenBook's
+# Android product tree; the parameters they set are read back from the shipped images into boot-images.txt), and
+# the live image built from the five Android images, with its container, init and stick writer
+scripts/g14-stage-kernel.sh
+scripts/kernel-nvidia-open-firmware.py
+device/anybook/g14/kernel.mk
+device/anybook/common/pc/BoardConfig.mk
+device/anybook/g14/anybook_g14/BoardConfig.mk
+tools/Dockerfile.installer
+scripts/installer-image.sh
+scripts/installer/inst-docker.sh
+scripts/installer/mklive.py
+scripts/installer/mkproto.py
+scripts/installer/bootconfig.py
+scripts/installer/live-init.c
+scripts/installer/live-init-test.sh
+scripts/installer/write-stick.sh
+# Mesa's libelf (elfutils, LGPL-3.0+): the NDK container, the libelf and Mesa cross-build, OpenBook's Mesa patches
+tools/Dockerfile.mesa-android
+scripts/mesa-android-build.sh
+scripts/elf-needed-check.py
+mesa/patches/upstream
+scripts/graphics-amd-stage-mesa.sh
+device/anybook/common/graphics-amd/graphics-amd.mk
+device/anybook/common/graphics-amd/BoardConfig.mk
+# the Android projects: the container the AOSP build runs in
+tools/Dockerfile.aosp

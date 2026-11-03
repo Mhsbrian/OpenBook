@@ -1,0 +1,26 @@
+[package]
+name = "nv-bionic-native"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Native NVIDIA RM backend, built directly against Android bionic"
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[profile.release]
+# WorkerLiveness publishes loss and retains teardown ownership while unwinding.
+# Optimization must not replace this contract with process-wide panic abort.
+panic = "unwind"
+debug = 1
+
+[dependencies]
+ash = { version = "=0.38.0", default-features = false, features = ["std", "debug"] }
+
+[features]
+default = []
+# Not part of this tree: the standalone prototype Vulkan frontend, the video
+# decoder and the hardware probes are absent; these features stay off.
+prototype-vulkan = []
+video = []
+diagnostics = []

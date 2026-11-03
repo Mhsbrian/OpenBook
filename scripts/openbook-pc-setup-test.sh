@@ -46,6 +46,25 @@ check "g14-d0: dGPU runtime PM auto" "$r/sys/devices/pci0000:00/0000:00:03.1/000
 check "g14-d0: HDMI audio runtime PM auto" "$r/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.1/power/control" auto
 check "g14-d0: snd_hda_intel power_save" "$r/sys/module/snd_hda_intel/parameters/power_save" 10
 
+# 1b. dgpu-hda (ANAL-322), at early init before the switcher's boot step: only the HDMI audio comes off
+#     snd_hda_intel; runtime PM, power_save and the GPU function stay as they are (dgpu-pm does those later).
+r=$T/g14-hda
+pci "$r" 0000:64:00.0 0x10de 0x030000
+pci "$r" 0000:64:00.1 0x10de 0x040300 snd_hda_intel
+pci "$r" 0000:65:00.1 0x1022 0x040300 snd_hda_intel
+w "$r/sys/module/snd_hda_intel/parameters/power_save" 0
+run "$r" dgpu-hda
+check "dgpu-hda: exit 0" "$r.rc" 0
+check "dgpu-hda: NVIDIA HDMI audio unbound, AMD audio kept" "$r/sys/bus/pci/drivers/snd_hda_intel/unbind" 0000:64:00.1
+check "dgpu-hda: dGPU runtime PM untouched" "$r/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.0/power/control" on
+check "dgpu-hda: HDMI audio runtime PM untouched" "$r/sys/devices/pci0000:00/0000:00:03.1/0000:64:00.1/power/control" on
+check "dgpu-hda: power_save untouched" "$r/sys/module/snd_hda_intel/parameters/power_save" 0
+r=$T/g14-hda-off
+pci "$r" 0000:65:00.1 0x1022 0x040300 snd_hda_intel
+run "$r" dgpu-hda
+check "dgpu-hda without the dGPU (Eco): exit 0" "$r.rc" 0
+check "dgpu-hda without the dGPU (Eco): nothing unbound" "$r/sys/bus/pci/drivers/snd_hda_intel/unbind" ""
+
 # 2. dgpu_disable=1 (the default): the dGPU is not enumerated. Nothing may be written.
 r=$T/g14-off
 mkdir -p "$r/sys/bus/pci/devices"
@@ -299,6 +318,7 @@ labrun() {  # labrun ROOT ARGS...: the lab with the stubs; the property store is
 lab_root() {  # a G14 with the dGPU in D3cold, an RTC, the suspend files and NVIDIA's GSP firmware
   g14_d3cold "$1"
   w "$1/vendor/firmware/nvidia/615.78.08/gsp_ga10x.bin" stub
+  w "$1/vendor/app/OpenBookNvk/OpenBookNvk.apk" stub   # the OpenBook NVK driver package (ANAL-327)
   w "$1/sys/class/rtc/rtc0/wakealarm" ""; w "$1/sys/power/state" ""
   w "$1/sys/power/suspend_stats/success" 7; w "$1/sys/power/suspend_stats/last_hw_sleep" 0
 }
@@ -397,9 +417,9 @@ drv() {  # drv ROOT ARGS...: dgpu-driver with the stubs and no settle delay
     > "$r.log" 2>&1
   echo $? > "$r.rc"
 }
-fresh() { rm -f "$P"/* "$P/.log"; : > "$P/.log"; }
+fresh() { rm -f "$P"/* "$P/.log"; : > "$P/.log"; echo radv > "$P/ro.hardware.vulkan"; }   # the Radeon's Vulkan name
 nothing_asked() {  # nothing_asked NAME: init was never asked to load, and the package never offered
-  if grep -Eq 'lab.mod=nvidia-load|dgpu.ready' "$P/.log"; then echo "FAIL $1: $(cat "$P/.log")"; fails=$((fails + 1))
+  if grep -Eq 'lab.mod=nvidia-load|dgpu.ready|nvk.offer' "$P/.log"; then echo "FAIL $1: $(cat "$P/.log")"; fails=$((fails + 1))
   else echo "ok   $1"; fi
 }
 
@@ -416,10 +436,11 @@ check "dgpu-driver boot: guard, load, offer in order" "$P/.log" "persist.vendor.
 has "dgpu-driver boot: asked init for the lab's nvidia-load" "$P/.log" '^vendor.openbook.lab.mod=nvidia-load$'
 check "dgpu-driver boot: request reset" "$P/vendor.openbook.lab.mod" idle
 check "dgpu-driver boot: guard cleared" "$P/persist.vendor.openbook.dgpu_driver" on
-check "dgpu-driver boot: package offered" "$P/vendor.openbook.dgpu.ready" nvidia
-if [ "$(tail -n 1 "$P/.log")" = vendor.openbook.dgpu.ready=nvidia ]; then echo "ok   dgpu-driver boot: offered last"
+check "dgpu-driver boot: NVIDIA's driver ready" "$P/vendor.openbook.dgpu.ready" nvidia
+check "dgpu-driver boot: package offered" "$P/vendor.openbook.nvk.offer" 1
+if [ "$(tail -n 1 "$P/.log")" = vendor.openbook.nvk.offer=1 ]; then echo "ok   dgpu-driver boot: offered last"
 else echo "FAIL dgpu-driver boot: offered last: $(cat "$P/.log")"; fails=$((fails + 1)); fi
-has "dgpu-driver boot: said so" "$r.log" 'dgpu-driver: NVIDIA.s driver drives 0000:64:00.0; OpenBook NVK is offered'
+has "dgpu-driver boot: said so" "$r.log" 'dgpu-driver: NVIDIA.s driver drives 0000:64:00.0; OpenBook NVK \(org.openbook.nvk\) is offered'
 has "dgpu-driver boot: report after" "$r.log" 'dgpu-report: '
 # Already loaded (the lab, or a second start): no second load, offered.
 : > "$P/.log"
@@ -427,7 +448,7 @@ drv "$r" boot
 check "dgpu-driver already loaded: exit 0" "$r.rc" 0
 grep -q 'lab.mod=nvidia-load' "$P/.log" && { echo "FAIL dgpu-driver already loaded: asked init again"; fails=$((fails + 1)); } ||
   echo "ok   dgpu-driver already loaded: init not asked again"
-has "dgpu-driver already loaded: offered" "$P/.log" '^vendor.openbook.dgpu.ready=nvidia$'
+has "dgpu-driver already loaded: offered" "$P/.log" '^vendor.openbook.nvk.offer=1$'
 # The lab's nvidia-unload warns once the package is offered.
 w "$P/persist.vendor.openbook.lab" 1
 labrun "$r" lab nvidia-unload
@@ -457,14 +478,31 @@ has "dgpu-driver while failed: said how to retry" "$r.log" "earlier boot load fa
 drv "$r" on
 check "dgpu-driver on: clears failed" "$P/persist.vendor.openbook.dgpu_driver" on
 drv "$r" boot
-check "dgpu-driver on, then boot: offered" "$P/vendor.openbook.dgpu.ready" nvidia
+check "dgpu-driver on, then boot: offered" "$P/vendor.openbook.nvk.offer" 1
+
+# The package is offered only when the image has it (ANAL-327; the G14 found the offer without it on 2026-11-02,
+# ANAL-331), and only when Android's loader asks for the name its library has (ro.hardware.vulkan=radv).
+fresh; r=$T/drv-nopkg; lab_root "$r"; rm "$r/vendor/app/OpenBookNvk/OpenBookNvk.apk"
+drv "$r" boot
+check "dgpu-driver without the package: exit 0" "$r.rc" 0
+check "dgpu-driver without the package: NVIDIA's driver ready" "$P/vendor.openbook.dgpu.ready" nvidia
+[ -e "$P/vendor.openbook.nvk.offer" ] && { echo "FAIL dgpu-driver without the package: offered"; fails=$((fails + 1)); } ||
+  echo "ok   dgpu-driver without the package: not offered"
+has "dgpu-driver without the package: said so" "$r.log" 'this image has no OpenBook NVK package .*every app uses the Radeon'
+grep -q 'NVK (org.openbook.nvk) is offered' "$r.log" && { echo "FAIL dgpu-driver without the package: log says offered"; fails=$((fails + 1)); } ||
+  echo "ok   dgpu-driver without the package: log does not say offered"
+fresh; r=$T/drv-vk; lab_root "$r"; echo pastel > "$P/ro.hardware.vulkan"
+drv "$r" boot
+[ -e "$P/vendor.openbook.nvk.offer" ] && { echo "FAIL dgpu-driver with another Vulkan name: offered"; fails=$((fails + 1)); } ||
+  echo "ok   dgpu-driver with another Vulkan name: not offered"
+has "dgpu-driver with another Vulkan name: said so" "$r.log" "ro.hardware.vulkan is 'pastel', not radv"
 
 fresh; r=$T/drv-noinit; lab_root "$r"
 FAKE_INIT=0 WAIT=1 drv "$r" boot
 check "dgpu-driver module never came: exit 5" "$r.rc" 5
 check "dgpu-driver module never came: failed" "$P/persist.vendor.openbook.dgpu_driver" failed
 check "dgpu-driver module never came: request reset" "$P/vendor.openbook.lab.mod" idle
-[ -e "$P/vendor.openbook.dgpu.ready" ] && { echo "FAIL dgpu-driver module never came: offered"; fails=$((fails + 1)); } ||
+[ -e "$P/vendor.openbook.nvk.offer" ] || [ -e "$P/vendor.openbook.dgpu.ready" ] && { echo "FAIL dgpu-driver module never came: offered"; fails=$((fails + 1)); } ||
   echo "ok   dgpu-driver module never came: not offered"
 
 fresh; r=$T/drv-nobind; lab_root "$r"
@@ -472,7 +510,7 @@ FAKE_BIND=0 WAIT=1 drv "$r" boot
 check "dgpu-driver loaded but not bound: exit 5" "$r.rc" 5
 check "dgpu-driver loaded but not bound: failed" "$P/persist.vendor.openbook.dgpu_driver" failed
 has "dgpu-driver loaded but not bound: said so" "$r.log" "did not bind 0000:64:00.0"
-[ -e "$P/vendor.openbook.dgpu.ready" ] && { echo "FAIL dgpu-driver not bound: offered"; fails=$((fails + 1)); } ||
+[ -e "$P/vendor.openbook.nvk.offer" ] || [ -e "$P/vendor.openbook.dgpu.ready" ] && { echo "FAIL dgpu-driver not bound: offered"; fails=$((fails + 1)); } ||
   echo "ok   dgpu-driver not bound: not offered"
 
 fresh; r=$T/drv-nouveau; lab_root "$r"; mkdir -p "$r/sys/module/nouveau"
@@ -489,6 +527,26 @@ has "dgpu-driver without GSP firmware: said why" "$r.log" "no GSP firmware for N
 nothing_asked "dgpu-driver without GSP firmware: nothing asked"
 [ -e "$P/persist.vendor.openbook.dgpu_driver" ] && { echo "FAIL dgpu-driver without GSP firmware: guard written"; fails=$((fails + 1)); } ||
   echo "ok   dgpu-driver without GSP firmware: guard untouched"
+
+# dgpu-driver shutdown (ANAL-322): init's shutdown trigger, reached only by an orderly restart or power-off. A guard
+# still "loading" with NVIDIA's driver bound is no crash; one whose load never bound stays for the next boot.
+fresh; r=$T/drv-shutdown; lab_root "$r"
+FAKE_SYS=$r PROPS=$P "$T/setprop" vendor.openbook.lab.mod nvidia-load   # the boot load bound the GPU...
+w "$P/persist.vendor.openbook.dgpu_driver" loading                        # ...and is still in its settle time
+drv "$r" shutdown
+check "dgpu-driver shutdown in the settle time: exit 0" "$r.rc" 0
+check "dgpu-driver shutdown in the settle time: guard cleared" "$P/persist.vendor.openbook.dgpu_driver" on
+has "dgpu-driver shutdown in the settle time: said why" "$r.log" "not a crash; guard cleared"
+drv "$r" boot
+check "dgpu-driver shutdown, next boot: loads again" "$P/vendor.openbook.dgpu.ready" nvidia
+fresh; r=$T/drv-shutdown-unbound; lab_root "$r"; w "$P/persist.vendor.openbook.dgpu_driver" loading
+drv "$r" shutdown
+check "dgpu-driver shutdown before the bind: guard kept" "$P/persist.vendor.openbook.dgpu_driver" loading
+has "dgpu-driver shutdown before the bind: said so" "$r.log" "guard stays 'loading'"
+fresh; r=$T/drv-shutdown-idle; lab_root "$r"; w "$P/persist.vendor.openbook.dgpu_driver" failed
+drv "$r" shutdown
+check "dgpu-driver shutdown, guard failed: exit 0" "$r.rc" 0
+check "dgpu-driver shutdown, guard failed: kept" "$P/persist.vendor.openbook.dgpu_driver" failed
 
 echo "openbook-pc-setup-test: $fails failure(s)"
 [ $fails = 0 ]

@@ -84,4 +84,40 @@
     <string name="channel_name">Graphics mode</string>
     <string name="notify_keep">Ultimate graphics started. Open to keep them, or the laptop goes back to Hybrid.</string>
     <string name="notify_rolled_back">Ultimate graphics didn\'t start, so the laptop went back to Hybrid. Nothing was lost.</string>
+
+    <!-- Apps on the NVIDIA GPU (ANAL-312) -->
+    <string name="apps_title">Apps on the NVIDIA GPU</string>
+    <string name="apps_summary">In Hybrid, games use the NVIDIA GPU automatically and other apps use the Radeon, to save battery. You can choose for each app.</string>
+    <string name="action_choose_apps">Choose apps</string>
+    <string name="apps_switch_title">NVIDIA GPU for apps</string>
+    <string name="apps_switch_on">On: games and the apps you choose use the NVIDIA GPU in Hybrid. A change applies the next time an app starts.</string>
+    <string name="apps_switch_off">Off: every app uses the Radeon. Your choices are kept for when you turn it back on.</string>
+    <string name="action_back">Back</string>
+    <string name="action_use_games_rule">Use the NVIDIA GPU for games only</string>
+    <string name="games_title">Games use the NVIDIA GPU</string>
+    <string name="games_on">On: apps Android lists as games start on the NVIDIA GPU. Other apps use the Radeon.</string>
+    <string name="games_off">Off: only the apps you choose below use the NVIDIA GPU.</string>
+    <string name="apps_explain">Your choice for an app always wins. A change applies the next time the app starts. Android\'s built-in apps always use the Radeon.</string>
+    <string name="apps_not_owner">Only the laptop\'s owner can change which apps use the NVIDIA GPU.</string>
+    <string name="apps_summary_no_driver">Not in this version of OpenBook. It has no NVIDIA driver for apps, so every app uses the Radeon.</string>
+    <string name="apps_no_driver">This version of OpenBook has no NVIDIA driver for apps, so every app uses the Radeon. There is nothing to choose here yet.</string>
+    <string name="apps_not_offered">The NVIDIA GPU is not available to apps right now. It is, in Hybrid, once its driver has loaded. Until then every app uses the Radeon.</string>
+    <string name="apps_all_on">Developer options are set to put every app on the NVIDIA GPU. That wakes it for every window and costs battery, and your choices below are not used.</string>
+    <string name="apps_all_prerelease">Developer options are set to a driver OpenBook does not have, so every app uses the Radeon.</string>
+    <string name="apps_none">No apps that can use the NVIDIA GPU are installed.</string>
+    <string name="apps_saved">Saved. It applies the next time the app starts.</string>
+    <string name="apps_refused">Android did not accept the change. Nothing was changed.</string>
+    <string name="choice_automatic">Automatic</string>
+    <string name="choice_nvidia">NVIDIA</string>
+    <string name="choice_radeon">Radeon</string>
+    <string name="where_game">Game: NVIDIA GPU</string>
+    <string name="where_game_chosen_radeon">Game: Radeon, as you chose</string>
+    <string name="where_game_rule_off">Game: Radeon (games rule off)</string>
+    <string name="where_not_game">Radeon</string>
+    <string name="where_chosen_nvidia">NVIDIA GPU, as you chose</string>
+    <string name="where_chosen_radeon">Radeon, as you chose</string>
+    <string name="where_all_apps">NVIDIA GPU (every app, Developer options)</string>
+    <string name="where_denylisted">Radeon: this app is known not to work with the NVIDIA driver</string>
+    <string name="where_radeon">Radeon</string>
+    <string name="where_apps_off">Radeon (NVIDIA GPU for apps is off)</string>
 </resources>

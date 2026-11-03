@@ -3,10 +3,14 @@
 How a built live USB image becomes a download on openbook.page: the file format, the torrent, the mirrors, the
 seeder on the NAS, the record the website reads, and the gates that keep anything unready off the site. ANAL-320.
 
+The tools here start from a live image that is already built (`scripts/installer-image.sh`, see
+[`BUILD.md`](BUILD.md)). `scripts/release/make-release.sh` packages that image; it does not build the OS.
+
 > [!IMPORTANT]
-> **Nothing is published yet.** Every OpenBook image so far fails at least four of the gates in §7. The tooling
-> here runs end to end on real images (evidence in `evidence/2026-10-31-release-pipeline/`), but it never
-> uploads anything. Publishing is the owner's step, after the release checklist in [`INSTALL.md`](INSTALL.md) §9.
+> The tooling never uploads anything. Publishing is a public action: it needs the owner's approval of that exact
+> release, after the release checklist in [`INSTALL.md`](INSTALL.md) §9. Developer previews (`userdebug`, AOSP test
+> keys) are published with the owner's waiver of the `release_keys` and `user_build` gates in §7; 0.1.0-preview.2
+> (2026-10-31) is the latest.
 
 ## 1. What people download
 
@@ -23,8 +27,8 @@ Imager, GNOME Disks and Fedora Media Writer. On the command line:
 
 ### Compression, measured
 
-The `anal191i` live image of 2026-10-18 (2,989,490,176 bytes, 1.43 GB of it data) on a 32-thread Ryzen, 2026-10-31
-(`evidence/2026-10-31-release-pipeline/compress-bench.log`):
+A G14 live image of 2026-10-18 (2,989,490,176 bytes, 1.43 GB of it data), measured on a 32-thread Ryzen on
+2026-10-31:
 
 | Format | Bytes | Of the image | Compress | Decompress, all cores / 1 core |
 |---|---:|---:|---:|---:|
@@ -61,8 +65,7 @@ for size, and would need measuring first. Neither has been measured.
 The script first checks the image against its build record (`<label>.build.json`), then looks for NVIDIA's GSP
 firmware. A firmware file's name, or its licence's name, shows in the raw image as a directory entry. `nvidia.ko`
 names its firmware too, as a path (`nvidia/615.78.08/gsp_ga10x.bin`), so only a name not preceded by `/` counts.
-The 2026-10-30 G14 image matches; an image built without the firmware and the 2026-10-18 image don't
-(`evidence/…/nvidia-refusal.txt`, `evidence/2026-10-31-public-preview/`).
+Checked on G14 images with and without the firmware: only the image with it matches.
 
 An image with the firmware is published only under NVIDIA's distribution terms (the Agreement's §1.1(d), the owner's
 decision of 2026-10-31, [`nvidia-open.md`](nvidia-open.md#licences-and-the-owners-decisions)): `--nvidia-licence`
@@ -119,9 +122,9 @@ flowchart LR
 
 | Path | Carries | Why this way |
 |---|---|---|
-| **openbook.page** via cloudflared to the NAS (`192.0.2.236:6666`) | the site, `releases.json`, `.torrent`, `<id>.sha256(.sig)` | small files, which suit the tunnel and the CDN |
+| **openbook.page** via cloudflared to the NAS | the site, `releases.json`, `.torrent`, `<id>.sha256(.sig)` | small files, which suit the tunnel and the CDN |
 | **BitTorrent** from the stack's seed | the image, peer to peer | the NAS seeds without a CDN in the middle, and every downloader adds bandwidth |
-| **HTTP mirror**: a GitHub Release on `Mhsbrian/OpenBook` (or R2 at `dl.openbook.page`) | the direct-download button (`url` in `releases.json`), and the torrent's web seed | keeps the 0.9 GB file off the tunnel (below) |
+| **HTTP mirror**: a GitHub Release on `Mhsbrian/openbook-releases`, a public repository that holds only release files (or R2 at `dl.openbook.page`) | the direct-download button (`url` in `releases.json`), and the torrent's web seed | keeps the 0.9 GB file off the tunnel (below) |
 
 **Keep the `.img.xz` off the Cloudflare tunnel.** Cloudflare's terms say a non-Enterprise plan should serve video
 and other large files from a Cloudflare product built for them, such as R2 or Stream, not through the CDN in front
@@ -193,23 +196,57 @@ The downloads page reads the site's `releases.json` (`openbook-releases/1`, defi
 
 `release.json` also carries what the page doesn't show yet: both info hashes, the stick and install sizes
 (`stick_min_gb`, `install_min_gb`), the build fingerprint and kernel, the signing public key, and the gates.
-`evidence/2026-10-31-release-pipeline/release-0.0.0-test.anal191i/release.json` is a real record. It is
-unpublished on purpose (§7), and its signature is from a throwaway test key, not an OpenBook key.
 
 ## 6. Tests
 
-| Script | What it proves | Result, 2026-10-31 |
+All passed as of 2026-10-31. `tracker-probe.py` and `swarm-test.sh` are also part of the publish steps (§8).
+
+| Script | What it proves | Checks |
 |---|---|---|
-| `scripts/release/torrent-test.sh [FILE PIECE_KIB]` | our torrents equal libtorrent's own, and libtorrent's recheck passes (§3) | 78/78 |
-| `scripts/release/swarm-test.sh [RELEASE_DIR]` | on an isolated Docker network: the seeder refuses an unpublished release. A libtorrent client gets the whole 885 MB image from the web seed alone, through a 302 like GitHub's (2.0 s), and then from the Transmission seeder alone (8.8 s, 101 MB/s; local network, so the times say little about the internet). Both match the sha256. `swarm.json` counts the upload, the health check passes, and the seeder can write neither the releases nor its own root | 9/9 |
-| `scripts/release/tracker-probe.py` | the default trackers answer a BEP 15 connect request | 3/3 |
-| `make-release.sh` on the NVIDIA image | refuses it, exits 1, and writes nothing | refused |
-| `scripts/release/make-sources.sh` on `0.1.0-preview.1` | the kernel exactly as built, 14 AOSP projects found by `notice-scan.py`, Mesa's libelf and Mesa, systemd-boot 262-1 | 3 tarballs, 296 MB (`evidence/2026-10-31-public-preview/sources/`) |
-| `openbook-seeder` on the site's flat folder | seeds a release `releases.json` lists; seeds nothing once the entry is `hidden` | as designed |
-| openbook.page `publish-release.sh --from` | refuses the unpublished test release; places a public test copy, and the downloads page renders it with the mirror link (headless Chromium) | as designed |
+| `scripts/release/torrent-test.sh [FILE PIECE_KIB]` | our torrents equal libtorrent's own, and libtorrent's recheck passes (§3) | 78 |
+| `scripts/release/swarm-test.sh [RELEASE_DIR]` | on an isolated Docker network: the seeder refuses an unpublished release. A libtorrent client gets the whole image from the web seed alone, through a 302 like GitHub's, and then from the Transmission seeder alone. Both match the sha256. `swarm.json` counts the upload, the health check passes, and the seeder can write neither the releases nor its own root | 9 |
+| `scripts/release/tracker-probe.py` | the default trackers answer a BEP 15 connect request | 3 |
+| `make-release.sh` on an image with NVIDIA's firmware and no `--nvidia-licence` | refuses it, exits 1, and writes nothing | |
+| `openbook-seeder` on the site's flat folder | seeds a release `releases.json` lists; seeds nothing once the entry is `hidden` | |
+| openbook.page `publish-release.sh --from` | refuses an unpublished release; places a public one, and the downloads page renders it with the mirror link (headless Chromium) | |
+
+`scripts/release/make-sources.sh` makes the source bundle: the kernel exactly as built, the AOSP projects that
+`notice-scan.py` finds in the build's NOTICE files, Mesa's libelf and Mesa, systemd-boot, and OpenBook's own build
+files, with a `SOURCES.md` that stands alone (§6a). For `0.1.0-preview.2` that is 4 tarballs, about 300 MB. The
+kernel and libelf were rebuilt from them alone.
 
 Not tested: a download from the internet through the router's port forward, and the seeder on the Synology itself.
 Both need the deployed stack. A client behind NAT reaching the NAS is also untested.
+
+## 6a. The source offer (`make-sources.sh`, ANAL-341)
+
+The source folder is published to people who can't see this repository, so it must stand on its own:
+
+- **Four tarballs and `SOURCES.md`.** The kernel as built, the GPL/LGPL Android projects with Mesa's libelf, systemd-boot,
+  and `openbook-<V>-source-build.tar.xz`: OpenBook's own scripts and configuration that compiled and installed those
+  parts (`scripts/release/source-build-files.txt`), taken from the commit that built the image. `SOURCES.md` says how
+  to build each part from these files and public sources only, and the script refuses one that points here.
+- **No private identity.** The owner's attribution in patch headers and trailers is written with this machine's
+  no-reply git identity (ANAL-319); upstream authors are kept. Then `scripts/release/identity-scan.py` searches every
+  output, inside every archive, and the script fails on a hit. It needs the private list of hashes, outside Git:
+  `scripts/release/identity-scan.py --add email` (and `--add word` for a name), once per machine. The list holds
+  SHA-256 hashes, never the values, and the scan prints only where a hit is.
+- **Closed build files.** `scripts/release/source-closure.py` checks that every repository path a packed file refers to
+  is packed too, or listed with its reason in `source-build-excluded.txt` (OpenBook's Android product tree, which isn't
+  under the GPL). The report and the list go into the tarball as `CLOSURE.txt` and `EXCLUDED.txt`.
+- **Installing the kernel.** The tarball carries `boot-images.txt` (the shipped boot images' `mkbootimg` arguments,
+  AVB footers, vbmeta and `super` layout, read back from the image) and, in `inputs/`, the firmware manifests that
+  `installer-image.sh` reads. For preview.2, the packed files alone rebuilt the shipped live image byte for byte from
+  its five Android images.
+- **The copyleft list comes from the image itself:** `image-notice.py` reads its NOTICE files from its own partitions.
+- **The patch series is checked:** `git am` on the public revisions must give the shipped `common` and `build/kernel`
+  trees. The commit ids differ from the build's, because the author lines changed.
+- **`--reuse <earlier folder>`** keeps the userspace and systemd-boot tarballs of an earlier run of the same version
+  when the AOSP tree has moved on since (their projects must still be the image's copyleft list), and repairs the
+  symlinks of tarballs made before the fix below. **`--notice-root`** reads the NOTICE files from the image's own
+  partitions instead of the product out directory, which holds only the latest build.
+- **Symlinks:** until ANAL-341, `pack()`'s `--transform` also rewrote symlink targets, so every relative symlink in
+  the preview.1 and preview.2 tarballs pointed nowhere (62 of 92 in the kernel, 18 of 28 in userspace).
 
 ## 7. Publish gates (in `release.json`)
 
@@ -228,11 +265,11 @@ Both need the deployed stack. A client behind NAT reaching the NAS is also untes
 release that isn't public, so an unready image never reaches `releases.json`, the seed's watch folder or the
 downloads page. `openbook-seeder` checks the same thing again before it seeds.
 
-**`0.1.0-preview.1` (2026-10-31)** is the first public build: the G14 product with NVIDIA's open driver and its
-firmware (the owner's decision of 2026-10-31), with its source bundle. It passes `nvidia_firmware_terms`,
+**As of 2026-10-31, the first public candidate is `0.1.0-preview.1`:** the G14 product with NVIDIA's open driver
+and its firmware (the owner's decision of 2026-10-31), with its source bundle. It passes `nvidia_firmware_terms`,
 `firmware_licences` and `source_offer`. It is blocked on `release_keys` and `user_build` (a `userdebug` build on
 AOSP's test keys: waive both on the record for a labelled developer preview, or build with release keys),
-`checksums_signed` (the owner's key) and `owner_approved` (`evidence/2026-10-31-public-preview/SUMMARY.md`).
+`checksums_signed` (the owner's key) and `owner_approved`.
 
 ## 8. Publishing, once the gates pass (the owner's steps)
 
@@ -243,8 +280,8 @@ scripts/installer-image.sh --label <label> --no-xz
 # 1. the source offer, then the release folder (the mirror URL is baked into the torrent as its web seed)
 scripts/release/make-sources.sh --version <V> --image ~/anybook/installer/out/<label>.img
 scripts/release/make-release.sh --image ~/anybook/installer/out/<label>.img --version <V> --channel preview \
-  --mirror https://github.com/Mhsbrian/OpenBook/releases/download/v<V>/ \
-  --source-url https://github.com/Mhsbrian/OpenBook/releases/tag/v<V> \
+  --mirror https://github.com/Mhsbrian/openbook-releases/releases/download/v<V>/ \
+  --source-url https://github.com/Mhsbrian/openbook-releases/releases/tag/v<V> \
   --nvidia-licence <firmware dir>/vendor/firmware/LICENSES/LICENSE.nvidia-driver-615.78.08 \
   --owner-approved [--waive release_keys,user_build]
 # the owner signs in their own terminal (the key has a passphrase), then the folder is finalised with that signature
@@ -253,17 +290,17 @@ scripts/release/make-release.sh <the same arguments> --sign-pub keys/openbook-re
 scripts/release/tracker-probe.py
 scripts/release/swarm-test.sh ~/anybook/release/out/<V>
 # 2. the mirror
-gh release create v<V> --repo Mhsbrian/OpenBook --prerelease --title "OpenBook <V>" --notes-file <notes> \
+gh release create v<V> --repo Mhsbrian/openbook-releases --prerelease --title "OpenBook <V>" --notes-file <notes> \
   ~/anybook/release/out/<V>/{openbook-<V>-x86_64-live.img.xz,openbook-<V>-x86_64-live.img.xz.torrent,SHA256SUMS,SHA256SUMS.sig,openbook-release.pub,LICENSE.nvidia-driver-615.78.08} \
-  ~/anybook/release/out/<V>/sources/{openbook-<V>-source-kernel.tar.xz,openbook-<V>-source-userspace.tar.xz,openbook-<V>-source-systemd-boot.tar.xz,aosp-manifest.xml,SOURCES.md}
+  ~/anybook/release/out/<V>/sources/{openbook-<V>-source-kernel.tar.xz,openbook-<V>-source-userspace.tar.xz,openbook-<V>-source-systemd-boot.tar.xz,openbook-<V>-source-build.tar.xz,aosp-manifest.xml,SOURCES.md}
 # 3. the site: publish-release.sh (openbook.page) into a local copy of the NAS folder, then copy it over with the
 #    build machine's NAS key (~/.ssh/openbook-nas-publish, installed by the owner with ssh-copy-id): data first,
-#    then releases.json, then the torrent into .watch/ for the seed
-N="ssh -i ~/.ssh/openbook-nas-publish -o IdentitiesOnly=yes -o BatchMode=yes"; NAS=bhoney:/volume1/docker/openbook/releases
+#    then releases.json, then the torrent into .watch/ for the seed. <nas> is the NAS's ssh host.
+N="ssh -i ~/.ssh/openbook-nas-publish -o IdentitiesOnly=yes -o BatchMode=yes"; NAS=<nas>:/volume1/docker/openbook/releases
 S=~/anybook/release/work/nas-releases; mkdir -p $S/.watch; rsync -a -e "$N" $NAS/releases.json $S/
 tools/publish-release.sh --from ~/anybook/release/out/<V> --releases-dir $S --summary "..." --note "..." --evidence ...
 rsync -tp --chmod=F644 -e "$N" $S/openbook-<V>-* $NAS/
-$N bhoney chmod 640 /volume1/docker/openbook/releases/openbook-<V>-x86_64-live.img.xz   # see below
+$N <nas> chmod 640 /volume1/docker/openbook/releases/openbook-<V>-x86_64-live.img.xz   # see below
 rsync -t --chmod=F644 -e "$N" $S/releases.json $NAS/ && rsync -t --chmod=F644 -e "$N" $S/.watch/*.torrent $NAS/.watch/
 ```
 

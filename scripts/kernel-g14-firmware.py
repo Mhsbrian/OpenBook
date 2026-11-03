@@ -27,7 +27,7 @@ import subprocess
 
 URL = "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/tree/{path}?id={commit}"
 
-# What the GA403WR loads (evidence/2026-10-16-ga403wr-inventory): Strix Point GPU (GC 11.5.0, PSP 14.0.0,
+# What the GA403WR loads (evidence store: repo-evidence/2026-10-16-ga403wr-inventory): Strix Point GPU (GC 11.5.0, PSP 14.0.0,
 # DCN 3.5, SDMA 6.1.0, VCN 4.0.5, VPE 6.1.0, UMSCH 4.0.0), NPU 1022:17f0 rev 10, MT7925 Wi-Fi and Bluetooth, and
 # the CS35L56 tuning for codec SSID 1043:1024 with speaker ID 1 (the root inventory run saw it load), and, when
 # nouveau drives the dGPU (ANAL-239), the RTX 5070 Ti Laptop's GSP-RM firmware (GB205).

@@ -11,10 +11,14 @@
 *.tgz
 /dl/
 /work/
+# Results, logs and captures go on the issue and into the evidence store, never into Git (CONTRIBUTING.md)
+/evidence/
 
 # Python bytecode
 __pycache__/
 *.pyc
 docs/installer-design/fonts
 assets/src/fonts
+assets/src/inputs
 docs/quire-design/fonts
+docs/launcher-design/fonts

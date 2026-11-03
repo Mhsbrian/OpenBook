@@ -1,0 +1,44 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Wed, 28 Oct 2026 11:58:57 -0400
+Subject: [PATCH 22/23] nvk/android: render swapchain images in VRAM by default
+
+Measured on the G14 (RTX 5070 Ti Laptop, window buffers linear in system
+memory for the Radeon): GPU Check's full-window ALU shader 510 fps with
+VRAM swapchain images against 361 rendering into the window buffer (the
+Radeon 890M: 377-393), its clear-only frames 950-979 fps against 375-777;
+three apps (Photos, Kindle, Plex), two runs each in alternating order,
+within run-to-run noise of the old path; the RTX still reaches D3cold
+with such an app in the background.  NVK_ANB_VRAM=0 restores 0037's
+direct rendering.
+
+ANAL-309 (GoodBook).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/nvk_physical_device.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/nouveau/vulkan/nvk_physical_device.c b/src/nouveau/vulkan/nvk_physical_device.c
+index 6a01d26..1a5b9a4 100644
+--- a/src/nouveau/vulkan/nvk_physical_device.c
++++ b/src/nouveau/vulkan/nvk_physical_device.c
+@@ -1695,13 +1695,13 @@ nvk_create_drm_physical_device(struct vk_instance *_instance,
+    /* On a hybrid laptop the window buffer is linear system memory, which the
+     * other GPU scans out; rendering into it sends every pixel write and blend
+     * read over PCIe, and with a depth/stencil attachment NVK copies it in and
+-    * out of a tiled shadow at every render pass.  NVK_ANB_VRAM=1 (on Android
+-    * also debug.mesa.nvk.anb.vram) renders swapchain images in VRAM and copies
+-    * each frame into its window buffer once, in the release submission (so
+-    * only with the release fence).
++    * out of a tiled shadow at every render pass.  So swapchain images are
++    * rendered in VRAM and each frame is copied into its window buffer once, in
++    * the release submission (so only with the release fence).  NVK_ANB_VRAM=0
++    * (on Android also debug.mesa.nvk.anb.vram) renders into the window buffer.
+     */
+    pdev->anb_vram = pdev->anb_release_fence &&
+-                    debug_get_bool_option("NVK_ANB_VRAM", false);
++                    debug_get_bool_option("NVK_ANB_VRAM", true);
+ #endif
+ 
+    pdev->nak = nak_compiler_create(&pdev->info);

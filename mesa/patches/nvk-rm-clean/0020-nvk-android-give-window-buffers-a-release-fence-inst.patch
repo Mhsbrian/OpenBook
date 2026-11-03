@@ -1,0 +1,99 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Wed, 28 Oct 2026 08:03:11 -0400
+Subject: [PATCH 20/23] nvk/android: give window buffers a release fence
+ instead of waiting idle
+
+nvk_QueueSignalReleaseImageANDROID waits for the queue to go idle in
+every present and hands Android -1, a workaround for nouveau's GL
+lacking native fence sync.  On Android with EGL on ANGLE nothing needs
+that, and the wait costs every frame: the CPU cannot record frame N+1
+while the GPU draws frame N, and the frame's GPU time is hidden in its
+CPU time (HWUI reports a flat 1 ms GPU time on the G14's RTX).
+
+When the kernel driver exports sync files (NVIDIA's, through the RM
+backend), use Mesa's common path: a submission that waits on the
+present's semaphores and signals one exported as a sync file, which
+SurfaceFlinger and the display wait on.  A present without semaphores
+keeps the idle wait.  NVK_ANB_FENCE=0 (debug.mesa.nvk.anb.fence)
+restores the old behaviour.
+
+ANAL-310 (GoodBook): NVK per-frame cost on the G14.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/nvk_android.c         | 15 +++++++++++++++
+ src/nouveau/vulkan/nvk_physical_device.c | 13 +++++++++++++
+ src/nouveau/vulkan/nvk_physical_device.h |  2 ++
+ 3 files changed, 30 insertions(+)
+
+diff --git a/src/nouveau/vulkan/nvk_android.c b/src/nouveau/vulkan/nvk_android.c
+index 2e2c826..f24d7a2 100644
+--- a/src/nouveau/vulkan/nvk_android.c
++++ b/src/nouveau/vulkan/nvk_android.c
+@@ -15,6 +15,7 @@
+ #include "nvk_image.h"
+ #include "nvk_physical_device.h"
+ #include "vk_android.h"
++#include "vk_common_entrypoints.h"
+ 
+ #include "vk_device.h"
+ #include "vk_device_memory.h"
+@@ -519,6 +520,20 @@ nvk_QueueSignalReleaseImageANDROID(VkQueue _queue,
+ {
+    VK_FROM_HANDLE(vk_queue, queue, _queue);
+    struct vk_device *device = queue->base.device;
++   const struct nvk_physical_device *pdev =
++      container_of(device->physical, struct nvk_physical_device, vk);
++
++   /* With wait semaphores, Mesa's common path submits a wait on them and
++    * exports its signal as a sync file, which SurfaceFlinger and the display
++    * wait on; the CPU does not wait for the GPU.  Without any, the app's work
++    * may still be running: keep the idle wait below.
++    */
++   if (pdev->anb_release_fence && waitSemaphoreCount > 0) {
++      return vk_common_QueueSignalReleaseImageANDROID(_queue,
++                                                      waitSemaphoreCount,
++                                                      pWaitSemaphores,
++                                                      image, pNativeFenceFd);
++   }
+ 
+    /* This is to workaround nouveau not supporting native_fence_fd cap. On
+     * Android, the platform SurfaceFlinger RenderEngine has required
+diff --git a/src/nouveau/vulkan/nvk_physical_device.c b/src/nouveau/vulkan/nvk_physical_device.c
+index a8b08e6..7f7952d 100644
+--- a/src/nouveau/vulkan/nvk_physical_device.c
++++ b/src/nouveau/vulkan/nvk_physical_device.c
+@@ -1680,6 +1680,19 @@ nvk_create_drm_physical_device(struct vk_instance *_instance,
+       vk_android_extra_ahb_usage = AHARDWAREBUFFER_USAGE_CPU_READ_RARELY;
+ #endif
+ 
++#if defined(VK_USE_PLATFORM_ANDROID_KHR)
++   /* When the kernel driver exports sync files, a window buffer goes back to
++    * Android with a fence that signals when the frame's GPU work is done,
++    * instead of NVK waiting for the queue to go idle in every present
++    * (nvk_QueueSignalReleaseImageANDROID).  NVK_ANB_FENCE=0 (on Android also
++    * the property debug.mesa.nvk.anb.fence) keeps the wait.
++    */
++   for (const struct vk_sync_type *const *t = nvkmd->sync_types; *t; t++) {
++      if ((*t)->export_sync_file != NULL)
++         pdev->anb_release_fence = debug_get_bool_option("NVK_ANB_FENCE", true);
++   }
++#endif
++
+    pdev->nak = nak_compiler_create(&pdev->info);
+    if (pdev->nak == NULL) {
+       result = vk_error(instance, VK_ERROR_OUT_OF_HOST_MEMORY);
+diff --git a/src/nouveau/vulkan/nvk_physical_device.h b/src/nouveau/vulkan/nvk_physical_device.h
+index 06d4cc3..c336496 100644
+--- a/src/nouveau/vulkan/nvk_physical_device.h
++++ b/src/nouveau/vulkan/nvk_physical_device.h
+@@ -40,6 +40,8 @@ struct nvk_physical_device {
+    struct nv_device_info info;
+    enum nvk_debug debug_flags;
+    bool ssbo_align_4b;
++   /* Android: give window buffers a release fence (NVK_ANB_FENCE) */
++   bool anb_release_fence;
+ 
+    struct nvkmd_pdev *nvkmd;
+ 

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.openbook.graphics.ui
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,7 +22,9 @@ class MainActivity : ComponentActivity() {
                 val ui by vm.state.collectAsStateWithLifecycle()
                 GraphicsScreen(ui, onAsk = vm::ask, onSwitch = vm::switchTo, onLock = vm::lock, onRestart = vm::restart,
                                onDismiss = vm::dismiss, onDismissMessage = vm::dismissMessage, onKeep = vm::keep,
-                               onGoBack = vm::goBack)
+                               onGoBack = vm::goBack,
+                               onApps = { startActivity(Intent(this, AppsActivity::class.java)) },
+                               onAppsOn = vm::setAppsOn)
             }
         }
     }

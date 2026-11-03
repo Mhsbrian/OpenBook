@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<!--
+  OpenBook Launcher: the desk (ANAL-364). The spec is docs/launcher-design.md.
+
+  This file is the clickable prototype and the source of every render. The desktop, the windows, the apps and every
+  value on screen are sample data. App icons are stand-ins drawn as OpenBook's circle icons.
+
+  One screen:  index.html?screen=<id>[&theme=dark][&wall=folio|bloom|strata|tide][&glass=0]
+     screens:  desktop, taskbar, allapps, allapps-focus, allapps-search, menu-desktop, menu-taskbar, overview, overview-focus, motion
+  Play:        index.html?play=1[&theme=dark]
+     click the apps pill (or press Meta), type on the desktop, right-click the desktop or a taskbar icon, Tab and the
+     arrow keys in All Apps, Esc to close. The HUD toggles Remove animations and Blur off.
+  Render:      scripts/ui/render-launcher-design.sh
+  Fonts:       fonts/ (not committed; the render script links the same OFL/Apache fonts Quire's renders use).
+
+  Colour roles are the Material 3 TonalSpot scheme Android 17 derives from the Folio wallpapers (assets/wallpapers/
+  monet.json; the same values as docs/quire-design/index.html). The launcher has no brand colour of its own: every
+  colour is a role, so it follows the wallpaper. ?wall= swaps the backdrop; the roles stay Folio's, as a stand-in.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OpenBook Launcher: the desk</title>
+<style>
+@font-face { font-family: "OB Sans Flex"; src: url("fonts/GoogleSansFlex.ttf") format("truetype"); font-weight: 100 1000; font-display: block; }
+@font-face { font-family: "OB Symbols"; src: url("fonts/MaterialSymbolsRounded.ttf") format("truetype"); font-weight: 100 700; font-display: block; }
+
+/* ============================================================================================
+   Tokens. Names mirror docs/launcher-design.md (§6) so the build maps them to resources one to one.
+   Glass, paper, ink, focus ring and springs are Quire's (docs/quire-design.md §4, §5, §7): one system.
+   ============================================================================================ */
+:root {
+  /* grid: 4 dp base */
+  --u: 4px;
+  /* shape */
+  --r-panel: 28px; --r-menu: 16px; --r-tile: 14px; --r-cell: 16px; --r-row: 10px; --r-field: 24px; --r-desk: 20px; --r-task: 16px;
+  /* taskbar (§2) */
+  --tb-h: 56px; --tb-target: 48px; --tb-icon: 40px; --tb-gap: 4px; --tb-pill-w: 56px; --tb-pill-h: 40px;
+  --ind-h: 3px; --ind-run: 6px; --ind-front: 16px; --ind-dot: 3px; --ind-y: -4px; --tb-lift: 4px;
+  /* All Apps (§3) */
+  --aa-cols: 6; --aa-cell-w: 112px; --aa-cell-h: 104px; --aa-icon: 52px; --aa-pad: 24px; --aa-gap-taskbar: 12px; --aa-max-h: 640px;
+  /* menus (§4) */
+  --mn-min: 224px; --mn-pad: 6px; --mn-row: 36px; --mn-row-pad: 12px; --mn-icon: 20px;
+  /* glass (Quire §4.1): the system's background blur at the shade's radius, the surface's own colour at 80 % */
+  --glass-blur: 34px; --glass-a: .80; --bar-a: .80;
+  /* motion (§5): durations with Material 3 easing; springs are drawn with CSS linear() curves solved in the script */
+  --d-hover-in: 100ms; --d-hover-out: 150ms; --d-fade: 120ms; --d-exit: 150ms; --d-menu-out: 100ms;
+  --e-standard: cubic-bezier(.2, 0, 0, 1); --e-emph-decel: cubic-bezier(.05, .7, .1, 1); --e-emph-accel: cubic-bezier(.3, 0, .8, .15);
+  --spring-panel: var(--e-emph-decel); --spring-settle: var(--e-standard); --spring-tick: var(--e-standard);
+  --t-panel: 280ms; --t-settle: 170ms; --t-tick: 150ms;
+}
+/* ---- Material 3 roles, TonalSpot from the Folio light wallpaper (seed #959DE5) ---- */
+:root, [data-theme="light"] {
+  --primary: #565B8C; --on-primary: #FBF8FF; --primary-container: #C0C5FD; --on-primary-container: #393E6D;
+  --secondary-container: #E0E0F9; --on-secondary-container: #4F5065;
+  --error: #A8364B;
+  --surface: #FBF8FE; --surface-lowest: #FFFFFF; --surface-low: #F5F2FB; --surface-container: #EFECF6; --surface-high: #E9E7F1; --surface-highest: #E3E1ED;
+  --on-surface: #31323B; --on-surface-variant: #5E5E68; --outline: #7A7A84; --outline-variant: #B2B1BC;
+  --inverse-surface: #0E0E12; --inverse-on-surface: #E9E3EF;
+  --ink: var(--on-surface); --ink-soft: #4F5058;
+  --tint: 251, 248, 254;                       /* surface */
+  --glass: rgba(var(--tint), var(--glass-a)); --glass-solid: rgba(var(--tint), .96);
+  --bar: rgba(var(--tint), var(--bar-a));
+  --glass-outline: rgba(255, 255, 255, .55); --specular: rgba(255, 255, 255, .75); --hairline: rgba(122, 122, 132, .22);
+  --glass-shadow: 0 24px 48px rgba(27, 27, 33, .22), 0 2px 6px rgba(27, 27, 33, .08), 0 0 0 .5px rgba(27, 27, 33, .06);
+  --menu-shadow: 0 12px 32px rgba(27, 27, 33, .20), 0 2px 6px rgba(27, 27, 33, .08), 0 0 0 .5px rgba(27, 27, 33, .06);
+  --field: rgba(255, 255, 255, .80); --field-solid: #FFFFFF; --field-outline: rgba(178, 177, 188, .40);
+  --state: 49, 50, 59;                         /* onSurface, for state layers */
+  --wall: url("../../assets/wallpapers/1920x1080/openbook-folio-light.jpg") center / cover;
+  --win-bg: #FBF8FE; --win-caption: #EFECF6; --win-line: #E3E1ED; --win-shadow: 0 24px 64px rgba(27, 27, 33, .22), 0 4px 12px rgba(27, 27, 33, .08);
+  --overview-scrim: rgba(251, 248, 254, .18);
+}
+/* ---- TonalSpot from the Folio dark wallpaper (seed #9F87FE) ---- */
+[data-theme="dark"] {
+  --primary: #CBC0ED; --on-primary: #423B5F; --primary-container: #554D73; --on-primary-container: #E7DFFF;
+  --secondary-container: #3D394D; --on-secondary-container: #C3BCD4;
+  --error: #F97386;
+  --surface: #0F0E12; --surface-lowest: #000000; --surface-low: #141318; --surface-container: #1A191F; --surface-high: #201F26; --surface-highest: #27252D;
+  --on-surface: #E9E3EF; --on-surface-variant: #AEA9B5; --outline: #77747E; --outline-variant: #494650;
+  --inverse-surface: #FDF8FE; --inverse-on-surface: #31323B;
+  --ink: var(--on-surface); --ink-soft: #CAC5D0;
+  --tint: 26, 25, 31;                          /* surfaceContainer */
+  --glass: rgba(var(--tint), var(--glass-a)); --glass-solid: rgba(var(--tint), .96); --bar: rgba(var(--tint), var(--bar-a));
+  --glass-outline: rgba(255, 255, 255, .14); --specular: rgba(255, 255, 255, .18); --hairline: rgba(255, 255, 255, .08);
+  --glass-shadow: 0 24px 48px rgba(0, 0, 0, .55), 0 2px 6px rgba(0, 0, 0, .3);
+  --menu-shadow: 0 12px 32px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .3);
+  --field: rgba(39, 37, 45, .85); --field-solid: #27252D; --field-outline: rgba(73, 70, 80, .6);
+  --state: 233, 227, 239;
+  --wall: url("../../assets/wallpapers/1920x1080/openbook-folio-dark.jpg") center / cover;
+  --win-bg: #141318; --win-caption: #1A191F; --win-line: #27252D; --win-shadow: 0 24px 64px rgba(0, 0, 0, .6), 0 4px 12px rgba(0, 0, 0, .35);
+  --overview-scrim: rgba(15, 14, 18, .30);
+}
+[data-wall="bloom"][data-theme="light"]  { --wall: url("../../assets/wallpapers/1920x1080/openbook-bloom-light.jpg") center / cover; }
+[data-wall="bloom"][data-theme="dark"]   { --wall: url("../../assets/wallpapers/1920x1080/openbook-bloom-dark.jpg") center / cover; }
+[data-wall="strata"][data-theme="light"] { --wall: url("../../assets/wallpapers/1920x1080/openbook-strata-light.jpg") center / cover; }
+[data-wall="strata"][data-theme="dark"]  { --wall: url("../../assets/wallpapers/1920x1080/openbook-strata-dark.jpg") center / cover; }
+[data-wall="tide"][data-theme="light"]   { --wall: url("../../assets/wallpapers/1920x1080/openbook-tide-light.jpg") center / cover; }
+[data-wall="tide"][data-theme="dark"]    { --wall: url("../../assets/wallpapers/1920x1080/openbook-tide-dark.jpg") center / cover; }
+
+/* ---- base ---- */
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: #000; }
+body { font-family: "OB Sans Flex", "Google Sans Flex", "Google Sans", system-ui, sans-serif; color: var(--ink);
+  -webkit-font-smoothing: antialiased; font-optical-sizing: auto; }
+.ms { font-family: "OB Symbols"; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none;
+  display: inline-block; white-space: nowrap; direction: ltr; font-feature-settings: "liga"; font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 20; }
+.ms.fill { font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24; }
+
+.stage { position: relative; width: 1920px; height: 1200px; overflow: hidden; background: var(--wall); }
+.status { position: absolute; top: 0; left: 0; right: 0; height: 32px; padding: 0 20px; display: flex; align-items: center; gap: 12px;
+  font-size: 14px; font-weight: 500; color: var(--ink); }
+.status .sp { flex: 1; }
+.status .ms { font-size: 18px; }
+
+/* ---- glass: one material for the taskbar, All Apps, menus and Overview's chrome ---- */
+.glass { background: var(--glass); backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: inset 0 1px 0 var(--specular), inset 0 0 0 1px var(--glass-outline), var(--glass-shadow); }
+[data-glass="0"] .glass { background: var(--glass-solid); backdrop-filter: none; -webkit-backdrop-filter: none;
+  box-shadow: inset 0 0 0 1px var(--glass-outline), var(--glass-shadow); }
+
+/* ---- windows (stand-ins) ---- */
+.win { position: absolute; border-radius: 16px; overflow: hidden; background: var(--win-bg); box-shadow: var(--win-shadow); }
+.win .cap { height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 14px; background: var(--win-caption); font-size: 13px; font-weight: 500; }
+.win .cap .sp { flex: 1; }
+.win .cap .ms { font-size: 18px; color: var(--on-surface-variant); width: 32px; text-align: center; }
+.win .cap .ico { width: 20px; height: 20px; }
+.win .cap .ico .ms { font-size: 13px; width: auto; color: #fff; }
+.win .body { padding: 18px 22px; display: grid; gap: 10px; }
+.win .body i { display: block; height: 12px; border-radius: 6px; background: var(--win-line); }
+.win .body i.h { height: 20px; width: 40%; background: var(--surface-highest); }
+.win.back { filter: saturate(.96); }
+
+/* ---- app icon (stand-in for OpenBook's circle icons) ---- */
+.ico { border-radius: 50%; display: grid; place-items: center; color: #fff; flex: none;
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.12); }
+.ico .ms { font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24; }
+
+/* ============================================================================================
+   §2 Taskbar
+   ============================================================================================ */
+/* the row sits 2 dp above centre (2 dp over it, 6 dp under it), so each state line lies on the bar, 1 dp under its target and
+   outside every state layer (§2.3) */
+.taskbar { position: absolute; left: 0; right: 0; bottom: 0; height: var(--tb-h); display: flex; align-items: center; justify-content: center; padding-bottom: var(--tb-lift);
+  background: var(--bar); backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: inset 0 1px 0 var(--specular), 0 -1px 0 var(--hairline); z-index: 30; }
+[data-glass="0"] .taskbar { background: var(--glass-solid); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.tb-row { display: flex; align-items: center; gap: var(--tb-gap); }
+.tb-pill { width: var(--tb-pill-w); height: var(--tb-pill-h); border-radius: 999px; display: grid; place-items: center; position: relative;
+  background: var(--secondary-container); color: var(--on-secondary-container);
+  transition: background var(--d-fade) var(--e-standard), color var(--d-fade) var(--e-standard), transform var(--t-tick) var(--spring-tick); }
+.tb-pill::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: rgb(var(--state)); opacity: 0;
+  transition: opacity var(--d-hover-out) var(--e-standard); }
+.tb-pill.hover::before, .tb-pill:hover::before { opacity: .08; transition-duration: var(--d-hover-in); }
+.tb-pill.open { background: var(--primary); color: var(--on-primary); }
+.tb-pill.pressed { transform: scale(.92); }
+.tb-pill svg { width: 20px; height: 20px; position: relative; }
+.tb-div { width: 1px; height: 24px; background: var(--outline-variant); opacity: .7; margin: 0 8px; }
+.tb-app { width: var(--tb-target); height: var(--tb-target); border-radius: var(--r-tile); display: grid; place-items: center; position: relative; }
+.tb-app::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: rgb(var(--state)); opacity: 0;
+  transition: opacity var(--d-hover-out) var(--e-standard); }
+.tb-app.front::before { opacity: .06; }
+.tb-app.hover::before, .tb-app:hover::before { opacity: .08; transition-duration: var(--d-hover-in); }
+.tb-app.front.hover::before, .tb-app.front:hover::before { opacity: .12; }
+.tb-app.pressed::before { opacity: .12; }
+.tb-app .ico { width: var(--tb-icon); height: var(--tb-icon); position: relative; transition: transform var(--t-tick) var(--spring-tick); }
+.tb-app .ico .ms { font-size: 22px; }
+.tb-app.pressed .ico { transform: scale(.92); }
+.tb-app.kfocus, .tb-pill.kfocus, .cell.kfocus, .row.kfocus, .tile.kfocus { outline: 2px solid var(--primary); outline-offset: 2px; }
+/* indicators (§2.3): run = 6×3 onSurfaceVariant; front = 16×3 primary; + a 3×3 dot for more windows; minimized = hollow */
+.ind { position: absolute; bottom: var(--ind-y); left: 50%; transform: translateX(-50%); display: flex; gap: 3px; align-items: center; height: var(--ind-h); }
+.ind b { display: block; height: var(--ind-h); width: var(--ind-run); border-radius: 2px; background: var(--on-surface-variant);
+  transition: width var(--t-settle) var(--spring-settle), background var(--d-fade) var(--e-standard); }
+.ind i { display: none; width: var(--ind-dot); height: var(--ind-dot); border-radius: 50%; background: var(--on-surface-variant); }
+.tb-app.multi .ind i { display: block; }
+.tb-app.front .ind b { width: var(--ind-front); background: var(--primary); }
+.tb-app.front.multi .ind i { background: var(--primary); }
+.tb-app.min .ind b { background: transparent; box-shadow: inset 0 0 0 1px var(--on-surface-variant); width: 8px; }
+.tb-app:not(.run):not(.front):not(.min) .ind { display: none; }
+/* tooltip */
+.tip { position: absolute; bottom: calc(var(--tb-h) + 8px); transform: translateX(-50%); height: 28px; padding: 0 12px; border-radius: 999px;
+  display: flex; align-items: center; font-size: 12px; font-weight: 500; letter-spacing: .01em; white-space: nowrap;
+  background: var(--inverse-surface); color: var(--inverse-on-surface); z-index: 40; box-shadow: 0 4px 12px rgba(0,0,0,.18); }
+
+/* ============================================================================================
+   §3 All Apps panel
+   ============================================================================================ */
+.allapps { position: absolute; left: 50%; bottom: calc(var(--tb-h) + var(--aa-gap-taskbar)); width: calc(var(--aa-cols) * var(--aa-cell-w) + 2 * var(--aa-pad));
+  height: var(--aa-h, var(--aa-max-h)); max-height: var(--aa-max-h); border-radius: var(--r-panel); display: none; flex-direction: column; z-index: 20;
+  transform: translateX(-50%); transform-origin: 50% 100%; }
+.allapps.show { display: flex; }
+.aa-head { padding: var(--aa-pad) var(--aa-pad) 12px; }
+.field { height: 48px; border-radius: var(--r-field); display: flex; align-items: center; gap: 12px; padding: 0 8px 0 16px;
+  background: var(--field); box-shadow: inset 0 0 0 1px var(--field-outline), inset 0 1px 0 rgba(255,255,255,.6); font-size: 16px; line-height: 24px; }
+[data-theme="dark"] .field { box-shadow: inset 0 0 0 1px var(--field-outline), inset 0 1px 0 rgba(255,255,255,.06); }
+[data-glass="0"] .field { background: var(--field-solid); }
+.field .ms { font-size: 20px; color: var(--on-surface-variant); }
+.field .ph { color: var(--ink-soft); flex: 1; }
+.field .tx { flex: 1; display: flex; align-items: center; }
+.field .caret { display: inline-block; width: 2px; height: 22px; background: var(--primary); margin-left: 1px; border-radius: 1px; }
+.field .clear { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; }
+.field.focused { box-shadow: inset 0 0 0 2px var(--primary); }
+.aa-hint { margin-top: 10px; padding-left: 16px; font-size: 12px; line-height: 16px; color: var(--ink-soft); }
+.aa-grid { flex: 1; overflow: hidden; padding: 4px var(--aa-pad) var(--aa-pad); display: grid; position: relative;
+  grid-template-columns: repeat(var(--aa-cols), var(--aa-cell-w)); grid-auto-rows: var(--aa-cell-h); align-content: start; }
+.cell { border-radius: var(--r-cell); display: flex; flex-direction: column; align-items: center; padding-top: 12px; gap: 8px; position: relative; }
+.cell::before { content: ""; position: absolute; inset: 2px; border-radius: inherit; background: rgb(var(--state)); opacity: 0; transition: opacity var(--d-hover-out) var(--e-standard); }
+.cell.hover::before, .cell:hover::before { opacity: .08; transition-duration: var(--d-hover-in); }
+.cell.top::before { opacity: .10; }
+.cell.kfocus { outline-offset: -2px; }
+.cell .ico { width: var(--aa-icon); height: var(--aa-icon); position: relative; }
+.cell .ico .ms { font-size: 28px; }
+.cell .lb { position: relative; width: 100px; text-align: center; font-size: 13px; line-height: 16px; font-weight: 450; color: var(--ink);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.aa-empty { grid-column: 1 / -1; text-align: center; padding-top: 120px; font-size: 14px; line-height: 20px; color: var(--ink-soft); }
+.aa-scroll { position: absolute; right: 8px; top: 96px; width: 4px; height: 160px; border-radius: 2px; background: var(--on-surface-variant); }   /* §3.2: 3:1 on glass */
+mark { background: none; color: inherit; font-weight: 650; }
+
+/* ============================================================================================
+   §4 Menus
+   ============================================================================================ */
+.menu { position: absolute; min-width: var(--mn-min); padding: var(--mn-pad); border-radius: var(--r-menu); display: none; z-index: 35;
+  box-shadow: inset 0 1px 0 var(--specular), inset 0 0 0 1px var(--glass-outline), var(--menu-shadow); }
+.menu.show { display: block; }
+.menu .row { height: var(--mn-row); border-radius: var(--r-row); display: flex; align-items: center; gap: 12px; padding: 0 var(--mn-row-pad);
+  font-size: 14px; line-height: 20px; font-weight: 450; position: relative; white-space: nowrap; }
+.menu .row::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: rgb(var(--state)); opacity: 0; transition: opacity var(--d-hover-out) var(--e-standard); }
+.menu .row.hover::before, .menu .row:hover::before { opacity: .08; transition-duration: var(--d-hover-in); }
+.menu .row > * { position: relative; }
+.menu .row .ms { font-size: var(--mn-icon); color: var(--on-surface-variant); width: var(--mn-icon); }
+.menu .row .sp { flex: 1; }
+.menu .row .kb { font-size: 12px; line-height: 16px; color: var(--ink-soft); font-weight: 400; }
+.menu .row.hover .kb, .menu .row:hover .kb { color: var(--ink); }   /* §4: soft ink over the hover layer is under 4.5:1 */
+.menu .row.head { height: 44px; font-weight: 600; gap: 10px; }
+.menu .row.head::before { display: none; }
+.menu .row.head .ico { width: 24px; height: 24px; }
+.menu .row.head .ico .ms { font-size: 15px; color: #fff; width: auto; }
+.menu .row.wrow .thumb { width: 20px; height: 14px; border-radius: 3px; background: var(--surface-highest); box-shadow: inset 0 0 0 1px var(--outline-variant); }
+.menu .row.wrow.cur { font-weight: 600; }
+.menu .row.wrow.cur .thumb { box-shadow: inset 0 0 0 1.5px var(--primary); }
+.menu hr { border: 0; height: 1px; margin: 6px 12px; background: var(--outline-variant); opacity: .5; }
+.pointer { position: absolute; width: 18px; height: 24px; z-index: 60; pointer-events: none; }
+
+/* ============================================================================================
+   §5 Overview for desks
+   ============================================================================================ */
+.overview { position: absolute; inset: 0; display: none; z-index: 25; }
+.overview.show { display: block; }
+.overview .back { position: absolute; inset: -60px; background: var(--wall); filter: blur(34px); transform: scale(1.04); }
+.overview .scrim { position: absolute; inset: 0; background: var(--overview-scrim); }
+.ov-row { position: absolute; left: 0; right: 0; top: 400px; display: flex; justify-content: center; align-items: flex-start; gap: 40px; }
+.tile { position: relative; display: flex; flex-direction: column; gap: 12px; border-radius: var(--r-desk); }
+.tile .lbl { display: flex; align-items: center; gap: 8px; height: 28px; font-size: 13px; line-height: 18px; font-weight: 500; color: var(--ink);
+  align-self: flex-start; padding: 0 12px 0 4px; border-radius: 999px; }   /* §5.2: a glass chip, so the label never sits on the wallpaper */
+.tile .lbl > .ms { margin-left: 2px; }
+.tile .lbl .ico { width: 20px; height: 20px; }
+.tile .lbl .ico .ms { font-size: 12px; }
+.tile .lbl .n { color: var(--ink-soft); font-weight: 400; }
+.tile .pic { position: relative; border-radius: var(--r-desk); overflow: hidden; box-shadow: 0 16px 40px rgba(0,0,0,.20), 0 0 0 1px var(--glass-outline);
+  transition: transform var(--t-settle) var(--spring-settle), box-shadow var(--t-settle) var(--spring-settle); }
+.tile.desk .pic { background: var(--wall); background-size: cover; }
+.tile.desk.nowall .pic { background: var(--surface-container); }
+.tile.task .pic { border-radius: var(--r-task); background: var(--win-bg); }
+.tile.hover .pic { transform: translateY(-4px); box-shadow: 0 24px 56px rgba(0,0,0,.26), 0 0 0 1px var(--glass-outline); }
+.tile.kfocus { outline: none; }
+/* §5.2 focus: a two-colour ring (WCAG technique C40), 2 dp each: surfaceContainerLowest, onPrimaryContainer, surfaceContainerLowest.
+   The two colours are ≥ 9:1 apart, so one band is ≥ 3:1 against any wallpaper behind it */
+.tile.kfocus .pic { box-shadow: 0 0 0 2px var(--surface-lowest), 0 0 0 4px var(--on-primary-container), 0 0 0 6px var(--surface-lowest), 0 16px 40px rgba(0,0,0,.20); }
+.tile .mini { position: absolute; border-radius: 6px; overflow: hidden; background: var(--win-bg); box-shadow: 0 6px 16px rgba(0,0,0,.18); }
+.tile .mini .c { height: 12px; background: var(--win-caption); }
+.tile .mini .b { padding: 6px 8px; display: grid; gap: 4px; }
+.tile .mini .b i { display: block; height: 4px; border-radius: 2px; background: var(--win-line); }
+.ov-actions { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(var(--tb-h) + 40px); display: flex; gap: 12px; }
+.chip { height: 40px; padding: 0 18px 0 14px; border-radius: 999px; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+.chip .ms { font-size: 18px; }
+
+/* ============================================================================================
+   Specimen boards (taskbar states, motion)
+   ============================================================================================ */
+.board { position: absolute; inset: 0; display: none; padding: 72px 96px; z-index: 50; background: var(--surface-low); color: var(--ink); }
+.board.show { display: block; }
+.board h1 { font-size: 32px; line-height: 40px; font-weight: 500; margin: 0 0 4px; font-variation-settings: "wdth" 100; }
+.board .sub { font-size: 15px; line-height: 22px; color: var(--ink-soft); margin: 0 0 40px; max-width: 1100px; }
+.specs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; }
+.spec { border-radius: 20px; overflow: hidden; background: var(--surface-lowest); box-shadow: 0 0 0 1px var(--outline-variant); }
+[data-theme="dark"] .spec { background: var(--surface-container); }
+.spec .shot { height: 136px; display: grid; place-items: center; background: var(--wall); background-size: 1920px 1200px; background-position: 50% 100%; position: relative; }
+.spec .shot .mini-bar { width: 100%; height: 80px; position: absolute; bottom: 0; display: grid; place-items: center;
+  background: var(--bar); backdrop-filter: blur(var(--glass-blur)); box-shadow: inset 0 1px 0 var(--specular), 0 -1px 0 var(--hairline); }
+.spec .shot .zoom { transform: scale(1.5); transform-origin: 50% 50%; display: flex; gap: 4px; align-items: center; }
+.spec .cap { padding: 14px 16px 16px; }
+.spec .cap b { display: block; font-size: 14px; line-height: 20px; font-weight: 600; }
+.spec .cap span { display: block; font-size: 12px; line-height: 16px; color: var(--ink-soft); margin-top: 2px; }
+.curves { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.curve { border-radius: 20px; padding: 20px; background: var(--surface-lowest); box-shadow: 0 0 0 1px var(--outline-variant); }
+[data-theme="dark"] .curve { background: var(--surface-container); }
+.curve svg { width: 100%; height: 200px; display: block; }
+.curve b { display: block; font-size: 15px; line-height: 22px; font-weight: 600; margin-top: 12px; }
+.curve span { display: block; font-size: 12px; line-height: 17px; color: var(--ink-soft); margin-top: 4px; }
+.timeline { margin-top: 32px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+.frame { border-radius: 16px; overflow: hidden; height: 220px; position: relative; background: var(--wall); background-size: 1920px 1200px; background-position: 50% 100%;
+  box-shadow: 0 0 0 1px var(--outline-variant); }
+.frame .p { position: absolute; left: 50%; bottom: 34px; width: 150px; height: 128px; border-radius: 12px; transform-origin: 50% 100%; }
+.frame .fb { position: absolute; left: 0; right: 0; bottom: 0; height: 26px; background: var(--bar); box-shadow: 0 -1px 0 var(--hairline); }
+.frame .fb::after { content: ""; position: absolute; left: 50%; top: 7px; width: 22px; height: 12px; margin-left: -11px; border-radius: 6px; background: var(--primary); }
+.frame .t { position: absolute; top: 10px; left: 12px; font-size: 12px; font-weight: 600; color: var(--ink); background: var(--glass); padding: 2px 8px; border-radius: 999px; }
+
+/* ---- play HUD ---- */
+.hud { position: fixed; right: 16px; top: 44px; z-index: 100; display: none; gap: 8px; padding: 8px; border-radius: 14px; font-size: 13px; }
+[data-play="1"] .hud { display: flex; }
+.hud label { display: flex; align-items: center; gap: 6px; padding: 4px 8px; }
+[data-motion="off"] *, [data-motion="off"] *::before { transition: none !important; animation: none !important; }
+@keyframes aa-in { from { opacity: 0; transform: translateX(-50%) translateY(16px) scale(.96); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+@keyframes aa-out { from { opacity: 1; transform: translateX(-50%) scale(1); } to { opacity: 0; transform: translateX(-50%) translateY(8px) scale(.98); } }
+@keyframes mn-in { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.allapps.anim-in { animation: aa-in var(--t-panel) var(--spring-panel) both; }
+.allapps.anim-in .aa-grid { animation: fade-in var(--d-fade) var(--e-standard) 40ms both; }
+.allapps.anim-out { animation: aa-out var(--d-exit) var(--e-emph-accel) both; }
+.menu.anim-in { animation: mn-in var(--d-exit) var(--e-emph-decel) both; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="status"><span id="clock">10:24</span><span>Tue, Nov 3</span><span class="sp"></span>
+    <span class="ms">notifications</span><span class="ms">wifi</span><span class="ms">battery_5_bar</span></div>
+  <div id="windows"></div>
+  <div class="overview" id="overview"><div class="back"></div><div class="scrim"></div><div class="ov-row" id="ov-row"></div>
+    <div class="ov-actions"><div class="chip glass"><span class="ms">clear_all</span>Clear all</div></div></div>
+  <div class="allapps glass" id="allapps">
+    <div class="aa-head"><div class="field" id="field"><span class="ms">search</span><span class="ph" id="ph">Search apps</span><span class="tx" id="tx" hidden></span><span class="clear" id="clear" hidden><span class="ms">close</span></span></div></div>
+    <div class="aa-grid" id="grid"></div>
+  </div>
+  <div class="menu glass" id="menu-desktop"></div>
+  <div class="menu glass" id="menu-taskbar"></div>
+  <div id="tip"></div>
+  <div class="taskbar" id="taskbar"><div class="tb-row" id="tb-row"></div></div>
+  <svg class="pointer" id="pointer" viewBox="0 0 18 24" hidden><path d="M1.5 1.5 L1.5 19 L6 14.8 L9.2 22 L12.2 20.7 L9.1 13.6 L15 13.6 Z" fill="#111" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>
+  <div class="board" id="board-taskbar"></div>
+  <div class="board" id="board-motion"></div>
+</div>
+<div class="hud glass" id="hud"><label><input type="checkbox" id="h-motion"> Remove animations</label><label><input type="checkbox" id="h-glass"> Blur off</label></div>
+
+<script>
+"use strict";
+const Q = new URLSearchParams(location.search);
+const B = document.body;
+B.dataset.theme = Q.get("theme") || "light";
+B.dataset.wall = Q.get("wall") || "folio";
+B.dataset.glass = Q.get("glass") === "0" ? "0" : "1";
+B.dataset.play = Q.get("play") === "1" ? "1" : "0";
+const SCREEN = Q.get("screen") || (B.dataset.play === "1" ? "desktop" : "desktop");
+const $ = (id) => document.getElementById(id);
+
+/* ---- the launcher's own glyph for the apps pill: four rounded squares, the lower right one turned 45° (§2.2) ---- */
+const PILL_GLYPH = `<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+  <rect x="2" y="2" width="6.5" height="6.5" rx="2"/><rect x="11.5" y="2" width="6.5" height="6.5" rx="2"/>
+  <rect x="2" y="11.5" width="6.5" height="6.5" rx="2"/><rect x="11.4" y="11.4" width="6.2" height="6.2" rx="2" transform="rotate(45 14.5 14.5)"/></svg>`;
+
+/* ---- sample apps (stand-ins). Colours are the stand-ins' own, not launcher tokens ---- */
+const APPS = [
+  ["Browser", "public", "#2F6FDB"], ["Calculator", "calculate", "#5B6170"], ["Calendar", "calendar_month", "#3A7BD5"],
+  ["Camera", "photo_camera", "#4E5BC6"], ["Clock", "schedule", "#3E4A8C"], ["Contacts", "person", "#2C8C7E"],
+  ["Documents", "description", "#3B82C4"], ["Files", "folder", "#2F7DE1"], ["Gallery", "photo_library", "#D9534F"],
+  ["Graphics", "tune", "#7C4DCC"], ["Linux development environment", "terminal", "#2D3340"], ["Mail", "mail", "#C2453D"],
+  ["Maps", "map", "#2E9A5A"], ["Messages", "chat", "#2B7FD9"], ["Music", "music_note", "#E2576E"],
+  ["Notes", "edit_note", "#E3A21A"], ["Podcasts", "podcasts", "#8E4FC2"], ["Screen Recorder", "screen_record", "#C2185B"],
+  ["Settings", "settings", "#55607A"], ["Sound Recorder", "mic", "#D2453A"], ["Translate", "translate", "#3F7FE0"],
+  ["Video Player", "movie", "#E0702A"], ["Weather", "partly_cloudy_day", "#3C9BE0"], ["Web Apps", "apps", "#4C8C6B"],
+];
+const app = (n) => APPS.find((a) => a[0] === n);
+const icon = (n, size) => { const a = app(n); return `<span class="ico" style="background:${a[2]}${size ? `;width:${size}px;height:${size}px` : ""}"><span class="ms">${a[1]}</span></span>`; };
+
+/* ---- taskbar: pinned apps, then running apps that aren't pinned (§2.1) ---- */
+const TASKBAR = [
+  { n: "Files", s: "front" }, { n: "Browser", s: "run multi" }, { n: "Settings", s: "run" }, { n: "Calendar", s: "min" },
+  { n: "Gallery", s: "" }, { n: "Camera", s: "" }, { n: "Linux development environment", s: "" },
+  { div: true }, { n: "Calculator", s: "run" },
+];
+function buildTaskbar(states = {}) {
+  const row = $("tb-row");
+  row.innerHTML = `<div class="tb-pill ${states.pill || ""}" id="pill" title="All apps">${PILL_GLYPH}</div><div class="tb-div"></div>` +
+    TASKBAR.map((t, i) => t.div ? `<div class="tb-div"></div>` :
+      `<div class="tb-app ${t.s} ${(states[t.n] || "")}" data-app="${t.n}" data-i="${i}">${icon(t.n)}<span class="ind"><b></b><i></i></span></div>`).join("");
+}
+
+/* ---- windows on the desk (sample) ---- */
+function buildWindows(kind) {
+  const w = $("windows");
+  if (kind === "none") { w.innerHTML = ""; return; }
+  const lines = (n, h) => `<i class="h"></i>` + Array.from({ length: n }, (_, i) => `<i style="width:${60 + ((i * 37) % 38)}%"></i>`).join("");
+  w.innerHTML = `
+  <div class="win back" style="left:180px;top:96px;width:760px;height:560px">
+    <div class="cap">${icon("Settings", 20)}<span>Settings</span><span class="sp"></span><span class="ms">minimize</span><span class="ms">crop_square</span><span class="ms">close</span></div>
+    <div class="body">${lines(14)}</div></div>
+  <div class="win" style="left:620px;top:200px;width:880px;height:600px">
+    <div class="cap">${icon("Files", 20)}<span>Files</span><span class="sp"></span><span class="ms">minimize</span><span class="ms">crop_square</span><span class="ms">close</span></div>
+    <div class="body">${lines(16)}</div></div>`;
+}
+
+/* ---- All Apps (§3) ---- */
+function buildGrid(query, focusName, hoverName, topHit) {
+  const g = $("grid");
+  const q = (query || "").toLowerCase();
+  const list = q ? APPS.filter((a) => a[0].toLowerCase().split(/\s+/).some((w) => w.startsWith(q)) || a[0].toLowerCase().startsWith(q)) : APPS;
+  if (!list.length) { g.innerHTML = `<div class="aa-empty">No apps match “${query}”</div>`; return; }
+  g.innerHTML = list.map((a) => {
+    let lb = a[0];
+    if (q) { const re = new RegExp(`(^|\\s)(${q.replace(/[^a-z0-9]/g, "")})`, "i"); lb = lb.replace(re, "$1<mark>$2</mark>"); }
+    return `<div class="cell ${a[0] === focusName ? "kfocus" : ""} ${a[0] === hoverName ? "hover" : ""} ${topHit && a === list[0] ? "top" : ""}" tabindex="-1" data-app="${a[0]}">${icon(a[0])}<span class="lb">${lb}</span></div>`;
+  }).join("");
+}
+function sizePanel() { const rows = Math.ceil(APPS.length / 6); $("allapps").style.setProperty("--aa-h", `${84 + 4 + rows * 104 + 24}px`); }
+function setField(text, focused) {
+  $("field").classList.toggle("focused", !!focused);
+  $("ph").hidden = !!text; $("tx").hidden = !text; $("clear").hidden = !text;
+  $("tx").innerHTML = text ? `${text}<span class="caret"></span>` : "";
+  if (!text && focused) $("ph").innerHTML = `<span class="caret" style="margin:0 2px -5px 0"></span>Search apps`;
+}
+
+/* ---- menus (§4) ---- */
+const row = (ms, label, kb, cls = "") => `<div class="row ${cls}"><span class="ms">${ms}</span><span>${label}</span><span class="sp"></span>${kb ? `<span class="kb">${kb}</span>` : ""}</div>`;
+function buildMenus(hoverDesktop, hoverTaskbar) {
+  $("menu-desktop").innerHTML =
+    row("wallpaper", "Wallpaper and style", "", hoverDesktop === 0 ? "hover" : "") + row("widgets", "Widgets") +
+    `<hr>` + row("desktop_windows", "Display settings") + row("home", "Home screen settings");
+  $("menu-taskbar").innerHTML =
+    `<div class="row head">${icon("Browser")}<span>Browser</span></div>` +
+    `<div class="row wrow cur"><span class="thumb"></span><span>Release notes · openbook.page</span></div>` +
+    `<div class="row wrow ${hoverTaskbar === 1 ? "hover" : ""}"><span class="thumb"></span><span>Pull request #170</span></div>` +
+    `<hr>` + row("open_in_new", "New window", "Middle-click", hoverTaskbar === 2 ? "hover" : "") + row("keep_off", "Unpin from taskbar") + row("info", "App info") +
+    `<hr>` + row("close", "Close 2 windows");
+}
+
+/* ---- Overview for desks (§5) ---- */
+function mini(l, t, w, h, n) { return `<div class="mini" style="left:${l}%;top:${t}%;width:${w}%;height:${h}%"><div class="c"></div><div class="b">${"<i></i>".repeat(n)}</div></div>`; }
+function buildOverview(focusIdx, hoverIdx) {
+  const W = 480, H = 300; /* 16:10, the display's ratio; every tile the same size */
+  const tiles = [
+    { k: "desk", lbl: `<span class="ms" style="font-size:18px;color:var(--on-surface-variant)">desktop_windows</span>Desk <span class="n">· Files, Settings, Browser</span>`,
+      pic: mini(9, 8, 40, 46, 7) + mini(32, 17, 46, 50, 8) + mini(54, 30, 36, 44, 6) },
+    { k: "task", lbl: `${icon("Gallery", 20)}Gallery`, pic: `<div style="position:absolute;inset:0;background:linear-gradient(135deg,#C9D3F5,#E9D6F2 55%,#F6E2D8)"></div>` },
+    { k: "task", lbl: `${icon("Linux development environment", 20)}Linux development environment`, pic: `<div style="position:absolute;inset:0;background:#1F232B"></div><div style="position:absolute;left:18px;top:16px;right:18px;display:grid;gap:7px">${'<i style="display:block;height:6px;border-radius:3px;background:#3A4150"></i>'.repeat(9)}</div>` },
+  ];
+  $("ov-row").innerHTML = tiles.map((t, i) => `<div class="tile ${t.k} ${i === focusIdx ? "kfocus" : ""} ${i === hoverIdx ? "hover" : ""}">
+      <div class="lbl glass">${t.lbl}</div><div class="pic" style="width:${W}px;height:${H}px">${t.pic}</div></div>`).join("");
+}
+
+/* ---- specimen board: taskbar states (§2) ---- */
+function buildTaskbarBoard() {
+  const cell = (inner, title, note) => `<div class="spec"><div class="shot"><div class="mini-bar"><div class="zoom">${inner}</div></div></div><div class="cap"><b>${title}</b><span>${note}</span></div></div>`;
+  const a = (n, s, extra = "") => `<div class="tb-app ${s}" ${extra}>${icon(n)}<span class="ind"><b></b><i></i></span></div>`;
+  const p = (s) => `<div class="tb-pill ${s}">${PILL_GLYPH}</div>`;
+  $("board-taskbar").innerHTML = `<h1>Taskbar states</h1><p class="sub">Shown at 1.5× on the Folio wallpaper. Every value is a token in docs/launcher-design.md §2: a 56 dp glass bar, 48 dp targets on a 4 dp grid, 40 dp icons, and one line of state under each icon. Colours are roles, so they follow the wallpaper.</p>
+  <div class="specs">
+    ${cell(a("Camera", ""), "Pinned, not running", "No mark. The icon alone.")}
+    ${cell(a("Camera", "hover"), "Hover", "State layer onSurface 8 %, 14 dp corners, in 100 ms, out 150 ms. Name tooltip after 500 ms.")}
+    ${cell(a("Camera", "pressed"), "Pressed", "Icon scale 0.92 on spring.tick; layer 12 %.")}
+    ${cell(a("Camera", "kfocus"), "Keyboard focus", "2 dp primary ring, 2 dp outside the target (Quire's focus ring).")}
+    ${cell(a("Settings", "run"), "Running", "6×3 dp line, onSurfaceVariant.")}
+    ${cell(a("Files", "front"), "In front", "16×3 dp line in primary, and a 6 % tile: the window you are typing into.")}
+    ${cell(a("Browser", "run multi"), "Several windows", "The line and a 3 dp dot. Right-click lists them.")}
+    ${cell(a("Browser", "front multi"), "In front, several windows", "Primary line and dot.")}
+    ${cell(a("Calendar", "min"), "Minimized", "A hollow 8×3 dp line: running, parked. Click restores (M1 #1).")}
+    ${cell(p("") + `<div class="tb-div"></div>` + p("open"), "Apps pill: rest, open", "56×40 dp, secondaryContainer; primary while All Apps is open. Our own glyph.")}
+  </div>`;
+}
+
+/* ---- specimen board: motion (§7) ---- */
+function springPts(stiff, damp, ms) { // underdamped/critically damped unit step response, sampled
+  const w0 = Math.sqrt(stiff), z = damp, pts = [];
+  for (let i = 0; i <= 60; i++) { const t = (i / 60) * ms / 1000; let x;
+    if (z < 1) { const wd = w0 * Math.sqrt(1 - z * z); x = 1 - Math.exp(-z * w0 * t) * (Math.cos(wd * t) + (z * w0 / wd) * Math.sin(wd * t)); }
+    else x = 1 - Math.exp(-w0 * t) * (1 + w0 * t);
+    pts.push([i / 60, x]); }
+  return pts;
+}
+function bez(x1, y1, x2, y2) { const pts = []; for (let i = 0; i <= 60; i++) { const t = i / 60, u = 1 - t;
+  pts.push([3*u*u*t*x1 + 3*u*t*t*x2 + t*t*t, 3*u*u*t*y1 + 3*u*t*t*y2 + t*t*t]); } return pts; }
+function plot(pts) { const W = 300, H = 180, P = 10;
+  const d = pts.map((p, i) => `${i ? "L" : "M"}${(P + p[0] * (W - 2 * P)).toFixed(1)},${(H - P - p[1] * (H - 2 * P) * 0.85).toFixed(1)}`).join(" ");
+  return `<svg viewBox="0 0 ${W} ${H}"><line x1="${P}" y1="${H - P - (H - 2 * P) * .85}" x2="${W - P}" y2="${H - P - (H - 2 * P) * .85}" stroke="var(--outline-variant)" stroke-dasharray="3 4"/>
+    <line x1="${P}" y1="${H - P}" x2="${W - P}" y2="${H - P}" stroke="var(--outline-variant)"/><path d="${d}" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"/></svg>`; }
+function buildMotionBoard() {
+  const c = (pts, t, n) => `<div class="curve">${plot(pts)}<b>${t}</b><span>${n}</span></div>`;
+  const fr = (t, s, y, o) => `<div class="frame"><span class="t">${t}</span><div class="p glass" style="transform:translateX(-50%) translateY(${y}px) scale(${s});opacity:${o}"></div><div class="fb"></div></div>`;
+  $("board-motion").innerHTML = `<h1>One motion system</h1><p class="sub">Four springs and three durations for everything the launcher moves, shared with Quire (docs/quire-design.md §5.1). Springs carry geometry; durations carry opacity and colour. Remove animations turns every one into a cut.</p>
+  <div class="curves">
+    ${c(springPts(500, .9, 400), "spring.panel · 500 / 0.90", "All Apps, Overview's tiles, menus' scale. Settles ≈ 280 ms with a 0.3 % overshoot: arrives, doesn't bounce.")}
+    ${c(springPts(700, .9, 400), "spring.settle · 700 / 0.90", "Indicators changing width, reflow in search results, hover lift in Overview. ≈ 170 ms. Quire's settle.")}
+    ${c(springPts(1400, .7, 400), "spring.tick · 1400 / 0.70", "Press feedback on icons and the pill. ≈ 150 ms. Quire's tick.")}
+    ${c(bez(.3, 0, .8, .15), "exit · 150 ms, emphasised accelerate", "Panels and menus leave quicker than they arrive and never overshoot. Menus fade out in 100 ms.")}
+  </div>
+  <div class="timeline">
+    ${fr("0 ms", .96, 16, 0)}${fr("40 ms", .972, 9, .55)}${fr("80 ms", .985, 4, .85)}${fr("140 ms", .995, 1, 1)}${fr("280 ms", 1, 0, 1)}${fr("close · 150 ms", .98, 8, .25)}
+  </div>`;
+}
+
+/* ---- screens ---- */
+function show(id) { $(id).classList.add("show"); }
+function setupScreen(s) {
+  buildWindows(s === "overview" ? "none" : "two");
+  buildTaskbar({});
+  buildMenus();
+  buildOverview(-1, -1);
+  if (s === "desktop") {
+    buildTaskbar({ Settings: "hover" });
+    const t = document.querySelector('.tb-app[data-app="Settings"]').getBoundingClientRect();
+    $("tip").innerHTML = `<div class="tip" style="left:${t.left + t.width / 2}px">Settings</div>`;
+    placePointer(t.left + t.width / 2 + 6, t.top + 18);
+  }
+  if (s.startsWith("allapps")) {
+    buildWindows("none");
+    show("allapps"); sizePanel(); buildTaskbar({ pill: "open" });
+    if (s === "allapps") { setField("", true); buildGrid("", null, "Maps"); const r = document.querySelector('.cell[data-app="Maps"]').getBoundingClientRect(); placePointer(r.left + 70, r.top + 40); }
+    if (s === "allapps-focus") { setField("", false); buildGrid("", "Linux development environment", null); }
+    if (s === "allapps-search") { setField("Cal", true); buildGrid("Cal", null, null, true); }
+  }
+  if (s === "menu-desktop") {
+    buildWindows("none"); buildMenus(0, -1);
+    const m = $("menu-desktop"); show("menu-desktop"); m.style.left = "1124px"; m.style.top = "412px"; placePointer(1120, 408);
+  }
+  if (s === "menu-taskbar") {
+    buildMenus(-1, 2);
+    const m = $("menu-taskbar"); show("menu-taskbar");
+    const t = document.querySelector('.tb-app[data-app="Browser"]').getBoundingClientRect();
+    m.style.left = `${Math.round(t.left + t.width / 2 - m.offsetWidth / 2)}px`; m.style.top = `${Math.round(t.top - 8 - m.offsetHeight)}px`;
+    const h = m.querySelector(".row.hover").getBoundingClientRect(); placePointer(h.left + 120, h.top + 14);
+  }
+  if (s === "overview") { show("overview"); buildOverview(-1, 0); buildTaskbar({}); placePointer(470, 600); }
+  if (s === "overview-focus") { show("overview"); buildOverview(1, -1); buildTaskbar({}); }
+  if (s === "taskbar") { buildTaskbarBoard(); show("board-taskbar"); }
+  if (s === "motion") { buildMotionBoard(); show("board-motion"); }
+}
+function placePointer(x, y) { const p = $("pointer"); p.removeAttribute("hidden"); p.style.left = `${x}px`; p.style.top = `${y}px`; }
+
+/* ---- play mode: the prototype's behaviour (§3.4 keyboard, §4 menus) ---- */
+function play() {
+  $("pointer").setAttribute("hidden", "");
+  const st = $("stage"); let query = "", focusI = -1;
+  const visible = () => [...document.querySelectorAll(".cell")];
+  const close = (el) => { if (!el.classList.contains("show")) return; if (el.id === "allapps") { el.classList.remove("anim-in"); el.classList.add("anim-out");
+      setTimeout(() => { el.classList.remove("show", "anim-out"); $("pill").classList.remove("open"); }, B.dataset.motion === "off" ? 0 : 150); } else el.classList.remove("show"); };
+  const openAA = () => { const a = $("allapps"); a.classList.remove("anim-out"); a.classList.add("show", "anim-in"); sizePanel(); $("pill").classList.add("open");
+      query = ""; focusI = -1; setField("", true); buildGrid("", null, null); };
+  const render = () => { setField(query, focusI < 0); buildGrid(query, focusI >= 0 ? (visible()[focusI] || {}).dataset?.app : null, null, focusI < 0 && !!query); };
+  st.addEventListener("click", (e) => {
+    document.querySelectorAll(".menu").forEach(close);
+    if (e.target.closest("#pill")) { $("allapps").classList.contains("show") ? close($("allapps")) : openAA(); return; }
+    if (!e.target.closest("#allapps")) close($("allapps"));
+  });
+  st.addEventListener("contextmenu", (e) => { e.preventDefault(); document.querySelectorAll(".menu").forEach(close);
+    const t = e.target.closest(".tb-app");
+    const m = t ? $("menu-taskbar") : $("menu-desktop"); buildMenus(-1, -1); m.classList.add("show", "anim-in");
+    if (t) { const r = t.getBoundingClientRect(); m.style.transformOrigin = "50% 100%"; m.style.left = `${r.left + r.width / 2 - m.offsetWidth / 2}px`; m.style.top = `${r.top - 8 - m.offsetHeight}px`; }
+    else { m.style.transformOrigin = "0 0"; m.style.left = `${Math.min(e.clientX, 1920 - m.offsetWidth - 8)}px`; m.style.top = `${Math.min(e.clientY, 1200 - 56 - m.offsetHeight - 8)}px`; }
+  });
+  document.addEventListener("keydown", (e) => {
+    const aa = $("allapps").classList.contains("show");
+    if (e.key === "Escape") { if (aa && query) { query = ""; focusI = -1; render(); } else { close($("allapps")); document.querySelectorAll(".menu").forEach(close); } return; }
+    if (e.key === "Meta") { aa ? close($("allapps")) : openAA(); return; }
+    if (!aa && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) { openAA(); query = e.key; render(); return; } // M1 #7: type on the desktop
+    if (!aa) return;
+    const cols = 6, n = visible().length;
+    if (e.key === "Tab") { e.preventDefault(); focusI = focusI < 0 ? 0 : -1; render(); return; }
+    if (focusI >= 0 && ["ArrowRight", "ArrowLeft", "ArrowDown", "ArrowUp"].includes(e.key)) { e.preventDefault();
+      focusI = Math.max(0, Math.min(n - 1, focusI + ({ ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -cols })[e.key])); render(); return; }
+    if (focusI < 0 && e.key === "ArrowDown") { focusI = 0; render(); return; }
+    if (e.key === "Backspace") { query = query.slice(0, -1); focusI = -1; render(); return; }
+    if (e.key === "Enter") { close($("allapps")); return; }
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) { query += e.key; focusI = -1; render(); }
+  });
+  $("h-motion").onchange = (e) => B.dataset.motion = e.target.checked ? "off" : "on";
+  $("h-glass").onchange = (e) => B.dataset.glass = e.target.checked ? "0" : "1";
+}
+
+document.fonts.ready.then(() => { setupScreen(SCREEN); if (B.dataset.play === "1") play(); document.body.dataset.ready = "1"; });
+</script>
+</body>
+</html>

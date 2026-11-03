@@ -56,7 +56,7 @@ prebuilt_etc {
     filename_from_src: true,
 }
 
-// Launcher3 starts contextual search (aosp/patches/packages/apps/Launcher3/0002).
+// Launcher3 starts contextual search (OpenBook Launcher commit 4e28a548).
 prebuilt_etc {
     name: "privapp_whitelist_com.android.launcher3.contextual_search",
     system_ext_specific: true,

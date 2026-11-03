@@ -37,7 +37,7 @@ const AGENTS = {
   copilot:  { name: 'Copilot',     ini: 'Cp', col: '#4F5065', where: 'on this laptop' },
   cursor:   { name: 'Cursor',      ini: 'Cu', col: '#5E5E68', where: 'on this laptop' },
   gemini:   { name: 'Gemini CLI',  ini: 'G',  col: '#565B8C', where: 'on this laptop' },
-  codex:    { name: 'Codex',       ini: 'Cx', col: '#7A7A84', where: 'on Brian’s desk' },
+  codex:    { name: 'Codex',       ini: 'Cx', col: '#7A7A84', where: 'on the desktop PC' },
 };
 const KIND_ICON = { read: 'visibility', edit: 'edit', delete: 'delete', move: 'drive_file_move', search: 'search', execute: 'terminal', think: 'psychology', fetch: 'language', other: 'more_horiz', setting: 'tune', app: 'apps', window: 'select_window', web: 'language', file: 'folder' };
 
@@ -312,7 +312,7 @@ function picker(p) {
     ${pItem('opencode', 'opencode', 'Signed in', 'check', 'ok')}
     ${pItem('cursor', 'Cursor', 'Needs sign-in', 'key', 'warn', false, true)}
     <div class="hd">Paired computers</div>
-    ${pItem('codex', 'Codex', 'Brian’s desk · connected', 'check', 'ok')}
+    ${pItem('codex', 'Codex', 'Desktop PC · connected', 'check', 'ok')}
     <div class="foot"><div class="it">${ms('add_circle')}<div class="w">Connect an agent<small>or pair a computer</small></div></div></div>`;
   return el;
 }
@@ -496,7 +496,7 @@ S['no-agent'] = { caption: '<b>No agent connected.</b> First run. Quire lists th
   build(b, H) { desktop(b, { activeWin: 'settings' }); pointer(b, PTR, { halo: true }); place(b, note({ agent: 'claude', noAgent: true, intake: WIN, blocks: [{ type: 'agents', title: 'Connect an agent', msg: 'Quire works with the agents you already have. These are installed in your Linux environment:', list: [{ ini: 'CC', col: '#5B5D72', t: 'Claude Code', sub: 'v2.1 · signed in' }, { ini: 'oc', col: '#72557B', t: 'opencode', sub: 'v1.4 · signed in' }, { ini: 'Cu', col: '#5E5E68', t: 'Cursor', sub: 'needs sign-in' }], foot: `<div class="btns end"><button type="button" class="btn text">${ms('computer')}Pair a computer</button><button type="button" class="btn filled">Connect Claude Code</button></div>` }], composer: false, foot: '' }), { at: PTR }); } };
 
 S['offline'] = { caption: '<b>Offline.</b> A paired computer or a cloud agent is unreachable. The note says which, keeps the prompt, and offers a local agent. Local agents are unaffected.',
-  build(b, H) { desktop(b, { activeWin: 'settings' }); pointer(b, PTR); place(b, note({ agent: 'codex', intake: WIN, you: 'Make my screen easier to read at night', blocks: [{ type: 'result', icon: 'cloud_off', cls: 'warn', msg: 'Brian’s desk can’t be reached', sub: 'No connection to the paired computer. Your prompt is kept.' }, { type: 'btns', end: true, html: '<button type="button" class="btn text">' + ms('refresh') + 'Retry</button><button type="button" class="btn paper">Use Claude Code on this laptop</button>' }], composer: { text: 'Make my screen easier to read at night' }, foot: 'Offline' }), { at: PTR }); } };
+  build(b, H) { desktop(b, { activeWin: 'settings' }); pointer(b, PTR); place(b, note({ agent: 'codex', intake: WIN, you: 'Make my screen easier to read at night', blocks: [{ type: 'result', icon: 'cloud_off', cls: 'warn', msg: 'Desktop PC can’t be reached', sub: 'No connection to the paired computer. Your prompt is kept.' }, { type: 'btns', end: true, html: '<button type="button" class="btn text">' + ms('refresh') + 'Retry</button><button type="button" class="btn paper">Use Claude Code on this laptop</button>' }], composer: { text: 'Make my screen easier to read at night' }, foot: 'Offline' }), { at: PTR }); } };
 
 S['glass-off'] = { caption: '<b>Blur off.</b> Battery saver, thermal SEVERE, Developer options or the platform’s own switch turn window blur off (<code>WindowManager.isCrossWindowBlurEnabled()</code>, C). The note becomes paper at 96 %, keeps its shadow and a dimmer rim, and loses the bloom. Every loop stops too (economy).',
   build(b, H) { b.dataset.glass = 'off'; b.dataset.motion = 'off'; desktop(b, { activeWin: 'settings' }); pointer(b, PTR); place(b, note({ agent: 'claude', intake: WIN, you: 'Turn on dark theme', blocks: [{ type: 'steps', list: STEPS_DARK }, { type: 'result', msg: 'Dark theme is on.', sub: 'Changed 1 setting · 2 s' }], composer: { placeholder: 'Ask a follow-up' }, foot: 'Done' }), { at: PTR }); anno(b, PTR[0] + 20, PTR[1] - 40, 'blur off: paper at 96 %, no bloom, rim at 60 %, no loops'); } };

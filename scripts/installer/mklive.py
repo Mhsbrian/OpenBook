@@ -189,7 +189,7 @@ def install_super(w, hdr, groups, parts, live_parts, check, size_mib):
                   "virtual_ab": hdr["virtual_ab"], "extents": extents}
 
 
-def repack_super(super_raw, w, margin_mib, install_mib):
+def repack_super(super_raw, w, margin_mib, install_mib, exact_mib=None):
     hdr, groups, parts = lp_layout(super_raw)
     files = extract_partitions(super_raw, parts, f"{w}/lp")
     align = hdr["alignment"]
@@ -198,6 +198,11 @@ def repack_super(super_raw, w, margin_mib, install_mib):
     reserved = 4096 + 2 * 4096 + 2 * hdr["metadata_slots"] * hdr["metadata_size"]
     reserved = -(-reserved // align) * align
     size = -(-(reserved + content + margin_mib * MiB) // MiB) * MiB
+    if exact_mib:
+        # --super-mib: an existing stick's super partition, which its userdata right behind it keeps from growing.
+        if reserved + content > exact_mib * MiB:
+            sys.exit(f"--super-mib {exact_mib}: the content needs {-(-(reserved + content) // MiB)} MiB")
+        size = exact_mib * MiB
     cmd = [proto.tool("lpmake"), "--device-size", size, "--metadata-size", hdr["metadata_size"],
            "--metadata-slots", hdr["metadata_slots"], "--super-name", "super", "--alignment", align,
            "--block-size", hdr["block_size"], "--force-full-image", "--output", f"{w}/super.live.img"]
@@ -289,6 +294,11 @@ def main():
     ap.add_argument("--work", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--label", default="openbook-live")
+    ap.add_argument("--uuid-label", help="derive the PARTUUIDs and disk GUID from this label instead of --label: an "
+                    "update for an existing stick takes the label its image was built with, so every UUID the stick "
+                    "already has (and the bootconfig's boot_part_uuid) stays the same (ANAL-331)")
+    ap.add_argument("--super-mib", type=int, help="super's exact size instead of content + --super-margin-mib: an "
+                    "existing stick's super partition (ANAL-331); refused when the content does not fit")
     ap.add_argument("--userdata-mib", type=int, default=1024)
     ap.add_argument("--super-margin-mib", type=int, default=64)
     ap.add_argument("--menu-timeout", default="menu-hidden", help="loader.conf timeout: menu-hidden or seconds")
@@ -346,7 +356,7 @@ def main():
     else:
         shutil.copy(f"{P}/super.img", super_raw)
     super_live, super_info, lp_files, install_meta, install_super_info = repack_super(
-        super_raw, w, a.super_margin_mib, a.install_super_mib)
+        super_raw, w, a.super_margin_mib, a.install_super_mib, a.super_mib)
     os.remove(super_raw)
 
     # ---- firmware licences, from the vendor image that ships
@@ -366,7 +376,7 @@ def main():
     # 1 MiB for the primary GPT, the partitions (userdata last, ending on a whole MiB), 1 MiB for the backup GPT:
     # on a stick of exactly this size, openbook-live-init has nothing to grow.
     size = (2 + sum(m for _, m, _ in scale)) * MiB
-    parts = proto.layout(size, a.label, scale=scale)
+    parts = proto.layout(size, a.uuid_label or a.label, scale=scale)
     esp_uuid = next(p["uuid"] for p in parts if p["name"] == "EFI")
 
     # ---- bootconfig: product static values + loader runtime values + live flags
@@ -537,7 +547,7 @@ Licences: LICENSES/README.txt.
 
     # ---- assemble
     tmp = a.out + ".partial"
-    proto.make_gpt(tmp, size, parts, proto.partuuid(a.label, "disk"))
+    proto.make_gpt(tmp, size, parts, proto.partuuid(a.uuid_label or a.label, "disk"))
     byname = {p["name"]: p for p in parts}
     verified = {}
     for name, src in [("EFI", esp_img)] + copies:

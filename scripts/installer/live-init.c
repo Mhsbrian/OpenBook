@@ -978,7 +978,7 @@ static void write_summary(const char *after) {
 }
 
 // openbook/hwtest.conf on the ESP: "key=value" lines the owner or a device agent writes (e.g.
-// iperf3_server=192.168.1.20), passed to openbook-hwtest as OPENBOOK_HWTEST_<KEY>. Keys [a-z0-9_], values
+// iperf3_server=192.0.2.20), passed to openbook-hwtest as OPENBOOK_HWTEST_<KEY>. Keys [a-z0-9_], values
 // [A-Za-z0-9.:_-] only, at most HWTEST_MAX; anything else is skipped. Never put credentials there: the file is
 // plain text on the stick.
 static void read_hwtest_conf(void) {

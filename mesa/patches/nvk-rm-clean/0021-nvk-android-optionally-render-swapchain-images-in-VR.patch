@@ -1,0 +1,588 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Wed, 28 Oct 2026 08:09:25 -0400
+Subject: [PATCH 21/23] nvk/android: optionally render swapchain images in
+ VRAM, copy at present
+
+On a hybrid laptop the window buffer is linear system memory, which the
+other GPU scans out (0037).  Rendering into it sends every pixel write
+and blend read over PCIe, and a render pass with a depth/stencil
+attachment (HWUI's stencil, through ANGLE) makes NVK copy the buffer
+into a tiled shadow at its start and back at its end.
+
+With NVK_ANB_VRAM=1 (debug.mesa.nvk.anb.vram), which needs the release
+fence (0038), a swapchain image whose window buffer is linear is an
+ordinary tiled image in VRAM, with its own dedicated memory, and the
+window buffer a second, linear image that only receives copies.  The
+release submission copies the frame into it once, after the present's
+semaphores, and the release fence covers the copy.  Every other use of
+the image (sampling, blits, readback, partial updates) sees the one
+tiled image, which keeps its contents from present to present like the
+buffer it stands for.  Both swapchain paths: images created with their
+native buffer (Android's own swapchain) and deferred ones.
+
+Costs: one full-size copy per present, and the images' VRAM (about
+20 MiB per 2880x1800 image), which can keep NVIDIA's runtime D3 from
+powering the GPU off while such windows exist.  Off by default.
+
+ANAL-309 (GoodBook): render in the RTX's own memory, copy once.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/nvk_android.c         | 370 +++++++++++++++++++++++
+ src/nouveau/vulkan/nvk_image.c           |  31 +-
+ src/nouveau/vulkan/nvk_image.h           |  33 ++
+ src/nouveau/vulkan/nvk_physical_device.c |  11 +
+ src/nouveau/vulkan/nvk_physical_device.h |   2 +
+ 5 files changed, 445 insertions(+), 2 deletions(-)
+
+diff --git a/src/nouveau/vulkan/nvk_android.c b/src/nouveau/vulkan/nvk_android.c
+index f24d7a2..77c1bfc 100644
+--- a/src/nouveau/vulkan/nvk_android.c
++++ b/src/nouveau/vulkan/nvk_android.c
+@@ -26,7 +26,9 @@
+ #include "vk_util.h"
+ 
+ #include "drm-uapi/drm_fourcc.h"
++#include "util/log.h"
+ #include "util/os_file.h"
++#include "util/stack_array.h"
+ #include "util/u_gralloc/u_gralloc.h"
+ 
+ #include "cla097.h"
+@@ -260,6 +262,314 @@ nvk_android_init_anb_layout(struct nvk_device *dev, struct nvk_image *image,
+                                           anb->stride, &mod_info, layouts);
+ }
+ 
++bool
++nvk_android_anb_vram_wanted(const struct nvk_device *dev,
++                            const struct nvk_image *image)
++{
++   const struct nvk_physical_device *pdev = nvk_device_physical(dev);
++
++   return pdev->anb_vram &&
++          image->vk.image_type == VK_IMAGE_TYPE_2D &&
++          image->vk.mip_levels == 1 && image->vk.array_layers == 1 &&
++          image->vk.samples == VK_SAMPLE_COUNT_1_BIT &&
++          vk_format_get_plane_count(image->vk.format) == 1 &&
++          (image->vk.usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
++}
++
++VkResult
++nvk_android_anb_vram_init(struct nvk_device *dev, struct nvk_image *image,
++                          const VkImageCreateInfo *create_info,
++                          const VkNativeBufferANDROID *anb,
++                          const VkAllocationCallbacks *alloc,
++                          VkDeviceMemory *mem_out)
++{
++   const struct nvk_physical_device *pdev = nvk_device_physical(dev);
++   const struct vk_device_dispatch_table *disp = &dev->vk.dispatch_table;
++   VkDevice _dev = nvk_device_to_handle(dev);
++   VkResult result;
++
++   /* The window buffer as an image of its own, only a copy destination (so
++    * nvk_android_anb_vram_wanted() is false for it).  It imports and binds
++    * the buffer itself, checking that NVK can use its layout.
++    */
++   VkNativeBufferANDROID local_anb = *anb;
++   local_anb.pNext = NULL;
++   const VkImageCreateInfo buffer_info = {
++      .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
++      .pNext = &local_anb,
++      .imageType = VK_IMAGE_TYPE_2D,
++      .format = image->vk.format,
++      .extent = image->vk.extent,
++      .mipLevels = 1,
++      .arrayLayers = 1,
++      .samples = VK_SAMPLE_COUNT_1_BIT,
++      .tiling = VK_IMAGE_TILING_OPTIMAL,
++      .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT,
++      .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
++      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
++   };
++   result = disp->CreateImage(_dev, &buffer_info, NULL,
++                              &image->anb_present.image);
++   if (result != VK_SUCCESS)
++      return result;
++
++   VK_FROM_HANDLE(nvk_image, buffer_image, image->anb_present.image);
++   if (buffer_image->planes[0].nil.levels[0].tiling.gob_type !=
++       NIL_GOB_TYPE_LINEAR) {
++      /* A tiled window buffer: render into it directly */
++      disp->DestroyImage(_dev, image->anb_present.image, NULL);
++      image->anb_present.image = VK_NULL_HANDLE;
++      return VK_ERROR_FEATURE_NOT_PRESENT;
++   }
++
++   const VkSemaphoreCreateInfo sem_info = {
++      .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
++   };
++   result = disp->CreateSemaphore(_dev, &sem_info, NULL,
++                                  &image->anb_present.copied);
++   if (result != VK_SUCCESS)
++      goto fail;
++
++   /* The swapchain image itself: an ordinary tiled image */
++   VkImageCreateInfo tiled_info = *create_info;
++   tiled_info.tiling = VK_IMAGE_TILING_OPTIMAL;
++   image->vk.tiling = VK_IMAGE_TILING_OPTIMAL;
++   image->vk.drm_format_mod = DRM_FORMAT_MOD_INVALID;
++   result = nvk_image_init_layout(dev, image, &tiled_info);
++   if (result != VK_SUCCESS)
++      goto fail;
++
++   VkMemoryRequirements2 reqs = {
++      .sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2,
++   };
++   const VkImageMemoryRequirementsInfo2 reqs_info = {
++      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2,
++      .image = nvk_image_to_handle(image),
++   };
++   disp->GetImageMemoryRequirements2(_dev, &reqs_info, &reqs);
++
++   /* VRAM, preferably the part the CPU cannot map */
++   uint32_t type = UINT32_MAX;
++   for (uint32_t i = 0; i < pdev->mem_type_count; i++) {
++      const VkMemoryPropertyFlags flags = pdev->mem_types[i].propertyFlags;
++      if (!(reqs.memoryRequirements.memoryTypeBits & BITFIELD_BIT(i)) ||
++          !(flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
++         continue;
++      if (type == UINT32_MAX ||
++          !(flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT))
++         type = i;
++      if (!(flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT))
++         break;
++   }
++   if (type == UINT32_MAX) {
++      result = vk_errorf(dev, VK_ERROR_OUT_OF_DEVICE_MEMORY,
++                         "no VRAM memory type for a swapchain image");
++      goto fail;
++   }
++
++   const VkMemoryDedicatedAllocateInfo dedicated = {
++      .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
++      .image = nvk_image_to_handle(image),
++   };
++   const VkMemoryAllocateInfo alloc_info = {
++      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
++      .pNext = &dedicated,
++      .allocationSize = reqs.memoryRequirements.size,
++      .memoryTypeIndex = type,
++   };
++   result = disp->AllocateMemory(_dev, &alloc_info, alloc, mem_out);
++   if (result != VK_SUCCESS)
++      goto fail;
++
++   static bool logged;
++   if (!logged) {
++      logged = true;
++      mesa_logi("nvk: swapchain images in VRAM, copied to the window buffer "
++                "at present (NVK_ANB_VRAM)");
++   }
++
++   return VK_SUCCESS;
++
++fail:
++   /* The image is now laid out tiled, so the caller cannot fall back */
++   nvk_android_anb_vram_finish(dev, image);
++   image->plane_count = 0;
++   return result;
++}
++
++void
++nvk_android_anb_vram_finish(struct nvk_device *dev, struct nvk_image *image)
++{
++   const struct vk_device_dispatch_table *disp = &dev->vk.dispatch_table;
++   VkDevice _dev = nvk_device_to_handle(dev);
++
++   /* A swapchain is destroyed once the app is done with its images, but the
++    * copy of the last present may still run.
++    */
++   if (image->anb_present.submitted)
++      disp->DeviceWaitIdle(_dev);
++
++   if (image->anb_present.pool != VK_NULL_HANDLE)
++      disp->DestroyCommandPool(_dev, image->anb_present.pool, NULL);
++   if (image->anb_present.copied != VK_NULL_HANDLE)
++      disp->DestroySemaphore(_dev, image->anb_present.copied, NULL);
++   if (image->anb_present.image != VK_NULL_HANDLE)
++      disp->DestroyImage(_dev, image->anb_present.image, NULL);
++   memset(&image->anb_present, 0, sizeof(image->anb_present));
++}
++
++/* The copy of a VRAM swapchain image into its window buffer, recorded once
++ * for the presenting queue's family and reused.  The app leaves the image in
++ * PRESENT_SRC (NVK ignores layouts but for the first use of an image).
++ */
++static VkResult
++nvk_android_anb_vram_copy_cmd(struct nvk_device *dev, struct nvk_image *image,
++                              uint32_t queue_family_index)
++{
++   const struct vk_device_dispatch_table *disp = &dev->vk.dispatch_table;
++   VkDevice _dev = nvk_device_to_handle(dev);
++   VkResult result;
++
++   if (image->anb_present.cmd != VK_NULL_HANDLE &&
++       image->anb_present.queue_family_index == queue_family_index)
++      return VK_SUCCESS;
++
++   if (image->anb_present.pool != VK_NULL_HANDLE) {
++      if (image->anb_present.submitted)
++         disp->DeviceWaitIdle(_dev);
++      disp->DestroyCommandPool(_dev, image->anb_present.pool, NULL);
++      image->anb_present.pool = VK_NULL_HANDLE;
++      image->anb_present.cmd = VK_NULL_HANDLE;
++   }
++
++   const VkCommandPoolCreateInfo pool_info = {
++      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
++      .queueFamilyIndex = queue_family_index,
++   };
++   result = disp->CreateCommandPool(_dev, &pool_info, NULL,
++                                    &image->anb_present.pool);
++   if (result != VK_SUCCESS)
++      return result;
++
++   const VkCommandBufferAllocateInfo cmd_info = {
++      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
++      .commandPool = image->anb_present.pool,
++      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
++      .commandBufferCount = 1,
++   };
++   result = disp->AllocateCommandBuffers(_dev, &cmd_info,
++                                         &image->anb_present.cmd);
++   if (result != VK_SUCCESS)
++      return result;
++
++   VkCommandBuffer cmd = image->anb_present.cmd;
++   const VkCommandBufferBeginInfo begin = {
++      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
++      .flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT,
++   };
++   result = disp->BeginCommandBuffer(cmd, &begin);
++   if (result != VK_SUCCESS)
++      return result;
++
++   const VkImageSubresourceRange range = {
++      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
++      .levelCount = 1,
++      .layerCount = 1,
++   };
++   const VkImageMemoryBarrier2 before[2] = {{
++      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
++      .srcStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
++      .srcAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT,
++      .dstStageMask = VK_PIPELINE_STAGE_2_COPY_BIT,
++      .dstAccessMask = VK_ACCESS_2_TRANSFER_READ_BIT,
++      .oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
++      .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
++      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
++      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
++      .image = nvk_image_to_handle(image),
++      .subresourceRange = range,
++   }, {
++      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
++      .srcStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
++      .dstStageMask = VK_PIPELINE_STAGE_2_COPY_BIT,
++      .dstAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT,
++      .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
++      .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
++      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
++      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
++      .image = image->anb_present.image,
++      .subresourceRange = range,
++   }};
++   const VkDependencyInfo before_dep = {
++      .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
++      .imageMemoryBarrierCount = 2,
++      .pImageMemoryBarriers = before,
++   };
++   disp->CmdPipelineBarrier2(cmd, &before_dep);
++
++   const VkImageCopy2 region = {
++      .sType = VK_STRUCTURE_TYPE_IMAGE_COPY_2,
++      .srcSubresource = {
++         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
++         .layerCount = 1,
++      },
++      .dstSubresource = {
++         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
++         .layerCount = 1,
++      },
++      .extent = image->vk.extent,
++   };
++   const VkCopyImageInfo2 copy = {
++      .sType = VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2,
++      .srcImage = nvk_image_to_handle(image),
++      .srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
++      .dstImage = image->anb_present.image,
++      .dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
++      .regionCount = 1,
++      .pRegions = &region,
++   };
++   disp->CmdCopyImage2(cmd, &copy);
++
++   const VkImageMemoryBarrier2 after[2] = {{
++      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
++      .srcStageMask = VK_PIPELINE_STAGE_2_COPY_BIT,
++      .dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
++      .dstAccessMask = VK_ACCESS_2_MEMORY_READ_BIT |
++                       VK_ACCESS_2_MEMORY_WRITE_BIT,
++      .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
++      .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
++      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
++      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
++      .image = nvk_image_to_handle(image),
++      .subresourceRange = range,
++   }, {
++      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
++      .srcStageMask = VK_PIPELINE_STAGE_2_COPY_BIT,
++      .srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT,
++      .dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
++      .dstAccessMask = VK_ACCESS_2_MEMORY_READ_BIT,
++      .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
++      .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
++      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
++      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
++      .image = image->anb_present.image,
++      .subresourceRange = range,
++   }};
++   const VkDependencyInfo after_dep = {
++      .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
++      .imageMemoryBarrierCount = 2,
++      .pImageMemoryBarriers = after,
++   };
++   disp->CmdPipelineBarrier2(cmd, &after_dep);
++
++   result = disp->EndCommandBuffer(cmd);
++   if (result != VK_SUCCESS)
++      return result;
++
++   image->anb_present.queue_family_index = queue_family_index;
++   return VK_SUCCESS;
++}
++
+ VkResult
+ nvk_android_import_deferred_anb(struct nvk_device *dev,
+                                 struct nvk_image *image,
+@@ -275,6 +585,16 @@ nvk_android_import_deferred_anb(struct nvk_device *dev,
+                        "created for a swapchain");
+    }
+ 
++   if (image->vk.anb_memory == VK_NULL_HANDLE &&
++       nvk_android_anb_vram_wanted(dev, image)) {
++      /* vkBindImageMemory2() has no allocation callbacks */
++      result = nvk_android_anb_vram_init(dev, image, create_info, anb,
++                                         &dev->vk.alloc,
++                                         &image->vk.anb_memory);
++      if (result != VK_SUCCESS && result != VK_ERROR_FEATURE_NOT_PRESENT)
++         return result;
++   }
++
+    if (image->vk.anb_memory == VK_NULL_HANDLE) {
+       result = nvk_android_init_anb_layout(dev, image, create_info, anb);
+       if (result != VK_SUCCESS)
+@@ -523,6 +843,56 @@ nvk_QueueSignalReleaseImageANDROID(VkQueue _queue,
+    const struct nvk_physical_device *pdev =
+       container_of(device->physical, struct nvk_physical_device, vk);
+ 
++   VK_FROM_HANDLE(nvk_image, img, image);
++   if (img->anb_present.image != VK_NULL_HANDLE) {
++      /* NVK_ANB_VRAM (needs the release fence): copy the frame into the
++       * window buffer, after the present's semaphores, then release that
++       */
++      struct nvk_device *dev = container_of(device, struct nvk_device, vk);
++      VkResult result =
++         nvk_android_anb_vram_copy_cmd(dev, img,
++                                       queue->queue_family_index);
++      if (result != VK_SUCCESS)
++         return result;
++
++      STACK_ARRAY(VkSemaphoreSubmitInfo, waits, waitSemaphoreCount);
++      for (uint32_t i = 0; i < waitSemaphoreCount; i++) {
++         waits[i] = (VkSemaphoreSubmitInfo) {
++            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
++            .semaphore = pWaitSemaphores[i],
++            .stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
++         };
++      }
++      const VkCommandBufferSubmitInfo cmd_info = {
++         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
++         .commandBuffer = img->anb_present.cmd,
++      };
++      const VkSemaphoreSubmitInfo signal = {
++         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
++         .semaphore = img->anb_present.copied,
++         .stageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
++      };
++      const VkSubmitInfo2 submit = {
++         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
++         .waitSemaphoreInfoCount = waitSemaphoreCount,
++         .pWaitSemaphoreInfos = waits,
++         .commandBufferInfoCount = 1,
++         .pCommandBufferInfos = &cmd_info,
++         .signalSemaphoreInfoCount = 1,
++         .pSignalSemaphoreInfos = &signal,
++      };
++      result = device->dispatch_table.QueueSubmit2(_queue, 1, &submit,
++                                                   VK_NULL_HANDLE);
++      STACK_ARRAY_FINISH(waits);
++      if (result != VK_SUCCESS)
++         return result;
++      img->anb_present.submitted = true;
++
++      return vk_common_QueueSignalReleaseImageANDROID(_queue, 1,
++                                                      &img->anb_present.copied,
++                                                      image, pNativeFenceFd);
++   }
++
+    /* With wait semaphores, Mesa's common path submits a wait on them and
+     * exports its signal as a sync file, which SurfaceFlinger and the display
+     * wait on; the CPU does not wait for the GPU.  Without any, the app's work
+diff --git a/src/nouveau/vulkan/nvk_image.c b/src/nouveau/vulkan/nvk_image.c
+index d08fbaf..ad04c65 100644
+--- a/src/nouveau/vulkan/nvk_image.c
++++ b/src/nouveau/vulkan/nvk_image.c
+@@ -1326,6 +1326,10 @@ static void
+ nvk_image_finish(struct nvk_device *dev, struct nvk_image *image,
+                  const VkAllocationCallbacks *pAllocator)
+ {
++#ifdef VK_USE_PLATFORM_ANDROID_KHR
++   nvk_android_anb_vram_finish(dev, image);
++#endif
++
+    for (uint8_t plane = 0; plane < image->plane_count; plane++) {
+       nvk_image_plane_finish(dev, &image->planes[plane],
+                              image->vk.create_flags, pAllocator);
+@@ -1405,7 +1409,14 @@ nvk_CreateImage(VkDevice _device,
+    } else if (vk_image_is_android_native_buffer(&image->vk)) {
+       const VkNativeBufferANDROID *anb =
+          vk_find_struct_const(pCreateInfo->pNext, NATIVE_BUFFER_ANDROID);
+-      result = nvk_android_init_anb_layout(dev, image, pCreateInfo, anb);
++      result = VK_ERROR_FEATURE_NOT_PRESENT;
++      if (nvk_android_anb_vram_wanted(dev, image)) {
++         result = nvk_android_anb_vram_init(dev, image, pCreateInfo, anb,
++                                            pAllocator,
++                                            &image->vk.anb_memory);
++      }
++      if (result == VK_ERROR_FEATURE_NOT_PRESENT)
++         result = nvk_android_init_anb_layout(dev, image, pCreateInfo, anb);
+    } else
+ #endif
+    {
+@@ -1430,12 +1441,28 @@ nvk_CreateImage(VkDevice _device,
+    }
+ 
+    /* This section is removed by the optimizer for non-ANDROID builds */
+-   if (vk_image_is_android_native_buffer(&image->vk)) {
++#ifdef VK_USE_PLATFORM_ANDROID_KHR
++   if (vk_image_is_android_native_buffer(&image->vk) &&
++       image->vk.anb_memory != VK_NULL_HANDLE) {
++      /* NVK_ANB_VRAM: the image's own VRAM; its window buffer is imported
++       * by its linear copy target (nvk_android_anb_vram_init())
++       */
++      const VkBindImageMemoryInfo bind = {
++         .sType = VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO,
++         .image = nvk_image_to_handle(image),
++         .memory = image->vk.anb_memory,
++      };
++      result = dev->vk.dispatch_table.BindImageMemory2(nvk_device_to_handle(dev),
++                                                       1, &bind);
++      if (result != VK_SUCCESS)
++         goto fail;
++   } else if (vk_image_is_android_native_buffer(&image->vk)) {
+       result = vk_android_import_anb(&dev->vk, pCreateInfo, pAllocator,
+                                      &image->vk);
+       if (result != VK_SUCCESS)
+          goto fail;
+    }
++#endif
+ 
+    *pImage = nvk_image_to_handle(image);
+ 
+diff --git a/src/nouveau/vulkan/nvk_image.h b/src/nouveau/vulkan/nvk_image.h
+index db21c98..88becbc 100644
+--- a/src/nouveau/vulkan/nvk_image.h
++++ b/src/nouveau/vulkan/nvk_image.h
+@@ -152,6 +152,20 @@ struct nvk_image {
+     */
+    uint64_t image_size_B;
+    uint32_t image_align_B;
++
++#ifdef VK_USE_PLATFORM_ANDROID_KHR
++   /* NVK_ANB_VRAM: a swapchain image laid out tiled in VRAM, and the window
++    * buffer it is copied into at every present (nvk_android.c).
++    */
++   struct {
++      VkImage image;          /* the window buffer, a linear copy target */
++      VkSemaphore copied;     /* the copy's signal, the release's wait */
++      VkCommandPool pool;
++      VkCommandBuffer cmd;    /* the copy, recorded once per queue family */
++      uint32_t queue_family_index;
++      bool submitted;
++   } anb_present;
++#endif
+ };
+ 
+ VK_DEFINE_NONDISP_HANDLE_CASTS(nvk_image, vk.base, VkImage, VK_OBJECT_TYPE_IMAGE)
+@@ -264,6 +278,25 @@ VkResult nvk_android_import_deferred_anb(struct nvk_device *dev,
+                                          struct nvk_image *image,
+                                          const VkNativeBufferANDROID *anb,
+                                          struct nvk_device_memory **mem_out);
++
++/* NVK_ANB_VRAM: true when this swapchain image should live in VRAM */
++bool nvk_android_anb_vram_wanted(const struct nvk_device *dev,
++                                 const struct nvk_image *image);
++
++/* NVK_ANB_VRAM: lays the swapchain image out tiled, creates the linear image
++ * of its window buffer, and allocates and returns the image's VRAM, which the
++ * caller binds.  VK_ERROR_FEATURE_NOT_PRESENT, with nothing laid out, when
++ * the window buffer is not linear: the caller uses it directly.
++ */
++VkResult nvk_android_anb_vram_init(struct nvk_device *dev,
++                                   struct nvk_image *image,
++                                   const VkImageCreateInfo *create_info,
++                                   const VkNativeBufferANDROID *anb,
++                                   const VkAllocationCallbacks *alloc,
++                                   VkDeviceMemory *mem_out);
++
++void nvk_android_anb_vram_finish(struct nvk_device *dev,
++                                 struct nvk_image *image);
+ #endif
+ 
+ bool nvk_image_plane_aligned_for_linear_attachment(const struct nvk_image_plane *plane,
+diff --git a/src/nouveau/vulkan/nvk_physical_device.c b/src/nouveau/vulkan/nvk_physical_device.c
+index 7f7952d..6a01d26 100644
+--- a/src/nouveau/vulkan/nvk_physical_device.c
++++ b/src/nouveau/vulkan/nvk_physical_device.c
+@@ -1691,6 +1691,17 @@ nvk_create_drm_physical_device(struct vk_instance *_instance,
+       if ((*t)->export_sync_file != NULL)
+          pdev->anb_release_fence = debug_get_bool_option("NVK_ANB_FENCE", true);
+    }
++
++   /* On a hybrid laptop the window buffer is linear system memory, which the
++    * other GPU scans out; rendering into it sends every pixel write and blend
++    * read over PCIe, and with a depth/stencil attachment NVK copies it in and
++    * out of a tiled shadow at every render pass.  NVK_ANB_VRAM=1 (on Android
++    * also debug.mesa.nvk.anb.vram) renders swapchain images in VRAM and copies
++    * each frame into its window buffer once, in the release submission (so
++    * only with the release fence).
++    */
++   pdev->anb_vram = pdev->anb_release_fence &&
++                    debug_get_bool_option("NVK_ANB_VRAM", false);
+ #endif
+ 
+    pdev->nak = nak_compiler_create(&pdev->info);
+diff --git a/src/nouveau/vulkan/nvk_physical_device.h b/src/nouveau/vulkan/nvk_physical_device.h
+index c336496..789c19b 100644
+--- a/src/nouveau/vulkan/nvk_physical_device.h
++++ b/src/nouveau/vulkan/nvk_physical_device.h
+@@ -42,6 +42,8 @@ struct nvk_physical_device {
+    bool ssbo_align_4b;
+    /* Android: give window buffers a release fence (NVK_ANB_FENCE) */
+    bool anb_release_fence;
++   /* Android: render swapchain images in VRAM, copy at present (NVK_ANB_VRAM) */
++   bool anb_vram;
+ 
+    struct nvkmd_pdev *nvkmd;
+ 

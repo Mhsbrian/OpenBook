@@ -81,11 +81,20 @@ def main():
                     "this WAV file (48 kHz stereo) and its capture fails; 'none' instead: no file, and the guest "
                     "records silence at the codec's own pace")
     ap.add_argument("--extra-usb", help="a second USB disk (image file), e.g. test files for the guest")
+    ap.add_argument("--acpi-table", action="append", default=[], metavar="AML",
+                    help="an extra ACPI table (-acpitable file=AML), e.g. the fake ASUS WMI device (repeatable)")
+    ap.add_argument("--smbios", action="append", default=[], metavar="SPEC", help="-smbios SPEC (repeatable)")
+    ap.add_argument("--allow-reboot", action="store_true",
+                    help="let a guest restart reboot in place (the expect steps follow it); QEMU's CMOS, where the fake "
+                         "ASUS WMI device keeps its switches, survives only in place")
     ap.add_argument("--no-bootindex", action="store_true",
                     help="no bootindex on the disks: OVMF then follows the NVRAM's BootOrder alone (with bootindex it "
                          "moves the matching entries to the front on every boot)")
     args = ap.parse_args()
 
+    for aml in args.acpi_table:
+        if not os.path.isfile(aml):
+            sys.exit(f"refusing {aml}: not a regular file")
     for img in (args.usb, args.nvme, args.nvme2, args.extra_usb):  # image files only: refuse anything that is a real block device
         if img and (not os.path.isfile(img) or stat.S_ISBLK(os.stat(img).st_mode)):
             sys.exit(f"refusing {img}: not a regular image file")
@@ -142,6 +151,12 @@ def main():
                 "-device", "usb-storage,bus=xhci.0,drive=extra,removable=on"]
     if args.detach_test_device:
         cmd += ["-device", "pcie-root-port,id=rpx,chassis=9,slot=9", "-device", "virtio-rng-pci,bus=rpx"]
+    for aml in args.acpi_table:
+        cmd += ["-acpitable", f"file={aml}"]
+    for spec in args.smbios:
+        cmd += ["-smbios", spec]
+    if args.allow_reboot:
+        cmd = [c for c in cmd if c != "-no-reboot"]
     if args.pause_on_reset:  # freeze instead of rebooting, so a screenshot can show the last screen
         cmd = [c for c in cmd if c != "-no-reboot"] + ["-action", "reboot=shutdown", "-action", "shutdown=pause"]
     if args.trace:

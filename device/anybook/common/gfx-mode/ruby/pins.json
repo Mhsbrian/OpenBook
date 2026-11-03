@@ -8,7 +8,7 @@
     "app-sepolicy.cil": "1d7c0b91b21b6c5a2aac1616d16671446cba1be65442ca4eead159ddf1a612e6",
     "app-seapp_contexts": "e21b3db56979c3784e95805e2d7102cc3ae53c10d951dc4d58ec94a6b19830a1",
     "app-property_contexts": "2ac88b79300e0341148f1938773cab3f868488495e42167226655ac91ba26d6a",
-    "privapp-permissions-org.openbook.graphics.xml": "76879fc88f7d2e38366497e7d1f615ada075cd2b549cfc67ba1fdfbb0415f831",
+    "privapp-permissions-org.openbook.graphics.xml": "e698c7ac00288ed9b17a0a9b209f92a0bd555b16cb8b789481b78b606e10feff",
     "default-permissions-org.openbook.graphics.xml": "50b86918abe41c3c2140c06e5aaa49ec46d75c5df443f0606df91dc5b1f083e1"
   },
   "repo": {
@@ -28,14 +28,14 @@
   },
   "artifacts_vendor_fingerprint": "OpenBook/anybook_g14_x86_64/anybook_g14:17/CP2A.260605.016/eng.builde:userdebug/test-keys",
   "apk": {
-    "sha256": "485b1b1c080be9d6d15070043f53b138e42230ab7cb66884fa25db94de2cd8d7",
-    "unsigned_sha256": "792164c2c3fc2fc97dfe4e0d5f603a995c69411b32d14736fa1462f7c699687b",
-    "version_code": 1,
-    "version_name": "1.0",
+    "sha256": "9d32bf2a099b79db390c6b2b30f23e8e136de33da0238fd0d06ddf6be1cba6c3",
+    "unsigned_sha256": "efc051e1c6b322c55369247083c3f79a371dbfba1ac3b8d0c424228e4a666c46",
+    "version_code": 2,
+    "version_name": "1.1",
     "signing_certificate_sha256": "7a56266544934fb4e6a4dc165d01c0bdf1ccbbdcbe2ce8743c77dd81513eb159",
     "worktree_clean": true,
     "reproducible_check": true,
     "development_build": false,
-    "built_from_commit": "f53b1319db11f70265454d1984f31e13a325540d"
+    "built_from_commit": "81292510ddfb5a6cc3198d28ddc8d1e99dce6323"
   }
 }

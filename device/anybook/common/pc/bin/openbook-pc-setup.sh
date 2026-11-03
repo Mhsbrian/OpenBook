@@ -3,8 +3,8 @@
 # OpenBook PC boot-time sysfs setup, run by init as root (init.openbook.rc). Android mksh + toybox; also runs under
 # bash/dash for the fixture test (scripts/openbook-pc-setup-test.sh).
 #
-# usage: openbook-pc-setup dgpu-pm | dgpu-report [REASON] | dgpu-ctl on|auto | dgpu-driver boot|on|off |
-#                          lab ACTION[@N] | perms | kvm
+# usage: openbook-pc-setup dgpu-pm | dgpu-hda | dgpu-report [REASON] | dgpu-ctl on|auto |
+#                          dgpu-driver boot|shutdown|on|off | lab ACTION[@N] | perms | kvm
 #   dgpu-pm  Let an NVIDIA dGPU (10de) reach D3cold (docs/nvidia.md). snd_hda_intel holds the dGPU's HDMI-audio
 #            function awake: without vga_switcheroo (off in the GKI) it never runtime-suspends, and with it awake
 #            the root port cannot cut the slot's power, whether or not a driver drives the GPU. So:
@@ -16,6 +16,10 @@
 #            allows it itself with nouveau.runpm=1 (modules.options); its state is logged, nothing is written.
 #            Volatile: a reboot undoes it. Never touches asus-wmi (dgpu_disable, gpu_mux_mode), which persist in
 #            firmware. Does nothing without an NVIDIA function.
+#   dgpu-hda Only the first of dgpu-pm's steps: unbind snd_hda_intel from the dGPU's HDMI-audio function. init runs it
+#            at early init before the graphics-mode switcher's boot step (ANAL-322), so that the deferred Eco step
+#            (dgpu_disable=1, which cuts the dGPU's power) never runs under a bound driver: the switcher writes it only
+#            when no driver holds any of the dGPU's functions. Does nothing without an NVIDIA function.
 #   dgpu-report [REASON]
 #            Log the dGPU's power state as root (ANAL-238): each NVIDIA function's driver, power_state,
 #            runtime_status, control and runtime-PM times; the root port above it and its ACPI power resources;
@@ -40,13 +44,20 @@
 #            NVIDIA's driver for apps (ANAL-247, docs/nvidia-offload-ruby.md). "boot" runs once the system is up in
 #            Hybrid (init.openbook.rc): it asks init for the lab's fixed nvidia-load command (nvidia-drm, which pulls
 #            in nvidia-modeset and nvidia), waits for nvidia_drm and for the GPU to bind, then sets
-#            vendor.openbook.dgpu.ready=nvidia, on which init offers the OpenBook NVK driver package to apps
-#            (ro.gfx.driver.0). Without an NVIDIA GPU, with nouveau loaded, or with the boot load off it does
-#            nothing, and apps opted in to the package keep the system driver. persist.vendor.openbook.dgpu_driver
+#            vendor.openbook.dgpu.ready=nvidia. Only when the image also has the OpenBook NVK driver package
+#            (/vendor/app/OpenBookNvk, docs/nvk-openbook.md) and the Radeon's Vulkan name is radv (the package's
+#            library is vulkan.radv.so, the name Android's loader asks for) does it set vendor.openbook.nvk.offer=1,
+#            on which init offers the package to apps (ro.gfx.driver.0). Without an NVIDIA GPU, with nouveau
+#            loaded, with the boot load off or without the package it offers nothing, and every app keeps the
+#            system driver. persist.vendor.openbook.dgpu_driver
 #            keeps the choice and a guard: "loading" while a load runs, cleared OPENBOOK_DRIVER_SETTLE_S (30) seconds
 #            after the GPU bound; a boot that finds "loading" (that load never finished: a crash or a power cut)
 #            or a load that fails leaves "failed", and no further boot loads it. "on" and "off", from
 #            debug.openbook.dgpu_driver, set the choice ("on" also clears "failed"); unset means on.
+#            "shutdown" runs at init's shutdown trigger, which only an orderly restart or power-off reaches (ANAL-322):
+#            if the guard still says "loading" and NVIDIA's driver has the GPU, no crash ended that load, so the guard
+#            is cleared. Otherwise a restart within the settle time (a switch to Eco right after boot, an update)
+#            would turn the boot load off for good. A load that never bound keeps its guard.
 #   lab ACTION[@N]
 #            The G14 lab helper (ANAL-257, docs/googlebook-s0i3.md), from debug.openbook.lab: allow-listed
 #            experiments for a user build's adb shell, which cannot load modules, write /sys or read the kernel log.
@@ -77,6 +88,7 @@
 set -u
 SYS=${OPENBOOK_SYSFS_ROOT:-}/sys
 NVFW=${OPENBOOK_SYSFS_ROOT:-}/vendor/firmware/nvidia   # NVIDIA's GSP firmware; absent from public images (ANAL-320)
+NVK_APK=${OPENBOOK_SYSFS_ROOT:-}/vendor/app/OpenBookNvk/OpenBookNvk.apk   # the OpenBook NVK driver package (ANAL-327)
 POWER_SAVE=10
 LOGCMD=${OPENBOOK_LOGCMD-/vendor/bin/log}
 
@@ -100,6 +112,19 @@ wr() {  # wr FILE VALUE: write and report
   if printf '%s\n' "$2" > "$1" 2>/dev/null; then log "$1 <- $2"; else log "FAILED $1 <- $2"; return 1; fi
 }
 driver_of() { d=$(readlink "$1/driver" 2>/dev/null) && basename "$d"; }
+
+# dgpu_hda: snd_hda_intel off the dGPU's HDMI-audio function (every NVIDIA function that is not the GPU).
+dgpu_hda() {
+  rc=0
+  for d in "$SYS"/bus/pci/devices/*; do
+    [ "$(rd "$d/vendor")" = 0x10de ] || continue
+    case $(rd "$d/class") in 0x03*) continue ;; esac
+    if [ "$(driver_of "$d")" = snd_hda_intel ]; then
+      wr "$SYS/bus/pci/drivers/snd_hda_intel/unbind" "${d##*/}" || rc=1
+    fi
+  done
+  return $rc
+}
 
 dgpu_pm() {
   rc=0
@@ -390,7 +415,7 @@ lab() {
         log "lab: $act refused: $other is loaded and drives the same GPU (unload it first)"; lab_report "$req"; return 4
       fi
       # init runs the fixed command for this value (init.openbook.rc); idle first, so a repeat is a change too.
-      if [ "$act" = nvidia-unload ] && [ "$(getp vendor.openbook.dgpu.ready)" = nvidia ]; then
+      if [ "$act" = nvidia-unload ] && [ "$(getp vendor.openbook.nvk.offer)" = 1 ]; then
         log "lab: note: OpenBook NVK is offered to apps this boot; apps opted in to it fail to start until NVIDIA's driver is loaded again or the laptop restarts"
       fi
       setp vendor.openbook.lab.mod idle; setp vendor.openbook.lab.mod "$act"
@@ -405,11 +430,29 @@ lab() {
 
 DRIVER_STATE=persist.vendor.openbook.dgpu_driver
 
+# dgpu_driver_shutdown: init's shutdown trigger (an orderly restart or power-off). See "shutdown" above.
+dgpu_driver_shutdown() {
+  state=$(getp $DRIVER_STATE)
+  [ "$state" = loading ] || { log "dgpu-driver: shutdown; boot-load guard '${state:-unset}', nothing to do"; return 0; }
+  for d in "$SYS"/bus/pci/devices/*; do
+    [ "$(rd "$d/vendor")" = 0x10de ] || continue
+    case $(rd "$d/class") in 0x03*) ;; *) continue ;; esac
+    if [ "$(driver_of "$d")" = nvidia ]; then
+      setp $DRIVER_STATE on
+      log "dgpu-driver: orderly shutdown in the boot load's settle time, NVIDIA's driver bound to ${d##*/}: not a crash; guard cleared"
+      return 0
+    fi
+  done
+  log "dgpu-driver: orderly shutdown before NVIDIA's driver bound the GPU; the guard stays 'loading'"
+  return 0
+}
+
 dgpu_driver() {
   case ${1:-} in
     on|off) setp $DRIVER_STATE "$1" && log "dgpu-driver: boot load $1 ($DRIVER_STATE=$1, kept across reboots)"; return 0 ;;
     boot) ;;
-    *) log "dgpu-driver: '${1:-}' is not boot, on or off"; return 2 ;;
+    shutdown) dgpu_driver_shutdown; return $? ;;
+    *) log "dgpu-driver: '${1:-}' is not boot, shutdown, on or off"; return 2 ;;
   esac
   state=$(getp $DRIVER_STATE)
   case $state in
@@ -463,7 +506,17 @@ dgpu_driver() {
   sleep "${OPENBOOK_DRIVER_SETTLE_S:-30}"   # a crash this soon after the load leaves "loading" for the next boot
   [ "$(getp $DRIVER_STATE)" = loading ] && setp $DRIVER_STATE on
   setp vendor.openbook.dgpu.ready nvidia
-  log "dgpu-driver: NVIDIA's driver drives $gpu; OpenBook NVK is offered to apps that opt in"
+  # Offer the package only when it is installed: Android never loads an app driver that no system app provides,
+  # and the package's Vulkan library carries the name Android's loader asks for on the Radeon (radv).
+  vk=$(getp ro.hardware.vulkan)
+  if [ ! -f "$NVK_APK" ]; then
+    log "dgpu-driver: NVIDIA's driver drives $gpu; this image has no OpenBook NVK package ($NVK_APK), so no app driver is offered and every app uses the Radeon"
+  elif [ "$vk" != radv ]; then
+    log "dgpu-driver: NVIDIA's driver drives $gpu; ro.hardware.vulkan is '$vk', not radv, so OpenBook NVK is not offered (its library would not load)"
+  else
+    setp vendor.openbook.nvk.offer 1
+    log "dgpu-driver: NVIDIA's driver drives $gpu; OpenBook NVK (org.openbook.nvk) is offered to apps that opt in"
+  fi
   dgpu_report "dgpu-driver boot"
   return 0
 }
@@ -490,11 +543,12 @@ kvm() {
 
 case ${1:-} in
   dgpu-pm) dgpu_pm ;;
+  dgpu-hda) dgpu_hda ;;
   dgpu-report) shift; dgpu_report "$*" ;;
   dgpu-ctl) dgpu_ctl "${2:-}" ;;
   dgpu-driver) dgpu_driver "${2:-}" ;;
   lab) lab "${2:-}" ;;
   perms) perms ;;
   kvm) kvm ;;
-  *) echo "usage: openbook-pc-setup dgpu-pm|dgpu-report [REASON]|dgpu-ctl on|auto|dgpu-driver boot|on|off|lab ACTION[@N]|perms|kvm" >&2; exit 2 ;;
+  *) echo "usage: openbook-pc-setup dgpu-pm|dgpu-hda|dgpu-report [REASON]|dgpu-ctl on|auto|dgpu-driver boot|shutdown|on|off|lab ACTION[@N]|perms|kvm" >&2; exit 2 ;;
 esac

@@ -1,0 +1,112 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 09:00:46 -0400
+Subject: [PATCH 3/7] nvk: split the image layout out of nvk_image_init()
+
+Android images whose memory comes from a gralloc buffer (AHardwareBuffer
+imports and swapchain images bound with VkNativeBufferANDROID) can only be
+laid out once that buffer is known, after vkCreateImage().
+
+Split nvk_image_init() into nvk_image_init_common(), which initializes the
+vk_image and the tiled shadow mutex, and nvk_image_init_layout(), which
+lays out the planes. nvk_image_init() keeps calling both. The mutex is now
+initialized before anything can fail, so nvk_image_finish() always
+destroys an initialized one.
+
+No functional change otherwise.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/nvk_image.c | 30 ++++++++++++++++++++++--------
+ src/nouveau/vulkan/nvk_image.h | 13 +++++++++++++
+ 2 files changed, 35 insertions(+), 8 deletions(-)
+
+diff --git a/src/nouveau/vulkan/nvk_image.c b/src/nouveau/vulkan/nvk_image.c
+index e5267ef20ce..52563a9e69b 100644
+--- a/src/nouveau/vulkan/nvk_image.c
++++ b/src/nouveau/vulkan/nvk_image.c
+@@ -836,15 +836,22 @@ nvk_image_can_compress(const struct nvk_physical_device *pdev,
+    return true;
+ }
+ 
+-static VkResult
+-nvk_image_init(struct nvk_device *dev,
+-               struct nvk_image *image,
+-               const VkImageCreateInfo *pCreateInfo)
++void
++nvk_image_init_common(struct nvk_device *dev,
++                      struct nvk_image *image,
++                      const VkImageCreateInfo *pCreateInfo)
++{
++   vk_image_init(&dev->vk, &image->vk, pCreateInfo);
++   simple_mtx_init(&image->tiled_shadow_mutex, mtx_plain);
++}
++
++VkResult
++nvk_image_init_layout(struct nvk_device *dev,
++                      struct nvk_image *image,
++                      const VkImageCreateInfo *pCreateInfo)
+ {
+    const struct nvk_physical_device *pdev = nvk_device_physical(dev);
+ 
+-   vk_image_init(&dev->vk, &image->vk, pCreateInfo);
+-
+    nil_image_usage_flags usage = 0;
+    if (image->vk.tiling == VK_IMAGE_TILING_LINEAR)
+       usage |= NIL_IMAGE_USAGE_LINEAR_BIT;
+@@ -1000,8 +1007,6 @@ nvk_image_init(struct nvk_device *dev,
+       }
+    }
+ 
+-   simple_mtx_init(&image->tiled_shadow_mutex, mtx_plain);
+-
+    /* The video decode engine needs the block size to be the same across chroma
+     * and luma planes, so in order to work around this limitation we gather all
+     * the info for NIL early, which would give it enough information to get and
+@@ -1167,6 +1172,15 @@ nvk_image_init(struct nvk_device *dev,
+    return VK_SUCCESS;
+ }
+ 
++static VkResult
++nvk_image_init(struct nvk_device *dev,
++               struct nvk_image *image,
++               const VkImageCreateInfo *pCreateInfo)
++{
++   nvk_image_init_common(dev, image, pCreateInfo);
++   return nvk_image_init_layout(dev, image, pCreateInfo);
++}
++
+ static VkResult
+ nvk_image_plane_alloc_va(struct nvk_device *dev,
+                          const struct nvk_image *image,
+diff --git a/src/nouveau/vulkan/nvk_image.h b/src/nouveau/vulkan/nvk_image.h
+index 0b8e39a27bd..74f62972171 100644
+--- a/src/nouveau/vulkan/nvk_image.h
++++ b/src/nouveau/vulkan/nvk_image.h
+@@ -35,6 +35,7 @@
+  */
+ #define NVK_MIP_TAIL_START_OFFSET 0x6d74000000000000UL
+ 
++struct nvk_device;
+ struct nvk_device_memory;
+ struct nvk_physical_device;
+ struct nvk_queue;
+@@ -225,6 +226,18 @@ nvk_image_memory_aspects_to_plane(ASSERTED const struct nvk_image *image,
+    }
+ }
+ 
++/* Initializes the vk_image and the parts of the nvk_image that do not
++ * depend on its memory layout.
++ */
++void nvk_image_init_common(struct nvk_device *dev,
++                           struct nvk_image *image,
++                           const VkImageCreateInfo *pCreateInfo);
++
++/* Lays out the planes of an image set up with nvk_image_init_common() */
++VkResult nvk_image_init_layout(struct nvk_device *dev,
++                               struct nvk_image *image,
++                               const VkImageCreateInfo *pCreateInfo);
++
+ bool nvk_image_plane_aligned_for_linear_attachment(const struct nvk_image_plane *plane,
+                                                    const struct nil_image_level *level);
+ 

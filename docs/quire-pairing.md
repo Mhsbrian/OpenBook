@@ -1,11 +1,11 @@
 # Quire: pairing a second computer (design, for review before it is built)
 
-As of 2026-10-19. Part of Q4 (ANAL-218). Status: **design only, revision 2**. Nothing here is implemented: the issue requires the Checker's review (ANAL-217) first. `docs/quire.md` §4 links here.
+As of 2026-10-19. Part of Q4 (ANAL-218). Status: **design only, revision 2, under review.** Nothing here is
+implemented; the Checker's review (ANAL-217) comes first.
 
-Revision 2 answers the Checker's Hold on revision 1 (ANAL-218, 2026-10-18):
-- **Resumption skipped the pin check.** Go's `VerifyPeerCertificate` doesn't run on resumed connections, so a revoked client could resume. Now neither side resumes, and the live pin list is checked on every connection, resumed ones included (§4.3, §4.5).
-- **The identity binding was wrong.** The TLS 1.3 exporter doesn't cover the client's certificate, and the commitment covered only the nonce. Now a canonical transcript with both pins goes into the exporter's context, the commitment and the code. Each side must have completed certificate proof of possession first, and the code's digits are defined (§4.4).
-- The review's answers on the code's length, the listening address and the root are in §4.1, §4.4 and §7.
+Revision 2 answers the Checker's hold on revision 1 (ANAL-218, 2026-10-18): neither side resumes TLS sessions and the
+pin check runs on every connection (§4.3), and a transcript with both pins is bound into the exporter's context, the
+commitment and the code (§4.4). §7 lists the decisions from that review and the open questions.
 
 ## 1. What it is for
 
@@ -153,19 +153,25 @@ An active attacker M in the middle can't relay one TLS connection through: it do
 11. **No secrets in logs.** Neither side logs key material, exporters or nonces; pins are logged truncated.
 12. **The Q1 contract still holds** over the TLS transport: the session-root rule, refused MCP servers, deny-by-default permission answers.
 
-## 7. The review's answers (revision 1), and questions for revision 2
+## 7. Decisions from review, and open questions
 
-The Checker's answers to revision 1's questions (ANAL-218, 2026-10-18), and what changed:
+Decided in the Checker's review of revision 1 (ANAL-218, 2026-10-18):
 
-1. **Is SAS-MCA over the exporter sound?** Not as specified: resumption skipped the pin check, and the exporter doesn't cover the client's certificate. Revised in §4.3 and §4.4.
-2. **Digits.** Six are enough with one attempt per explicit pairing action, disconnects and aborts included, and a defined uniform decimal mapping. That is the "One attempt per pairing" rule and step 8 of §4.4: about 10^-6 per attempt.
-3. **Interface or address.** A concrete local address is enough. A wildcard needs its own explicit choice, and discovery stays on the chosen network (§4.1).
-4. **Root.** `~/Quire` is a sensible default, with the warning that it organizes folders and is no sandbox (§4.1).
+1. **SAS-MCA over the TLS exporter**, with two fixes: resumption skipped the pin check, and the exporter doesn't cover
+   the client's certificate. Both are fixed in §4.3 and §4.4.
+2. **Six digits** are enough with one attempt per explicit pairing action, disconnects and aborts included, and a
+   defined uniform decimal mapping: about 10^-6 per attempt ("One attempt per pairing" and step 8 of §4.4).
+3. **A concrete local address** is enough to listen on. A wildcard needs its own explicit choice, and discovery stays
+   on the chosen network (§4.1).
+4. **`~/Quire` as the default root**, with the warning that it organizes folders and is no sandbox (§4.1).
 
-For revision 2:
+Open for revision 2:
 
-1. Is the construction in §4.4 sound as written, including "Why it holds"? That covers the transcript `T`, the exporter context `SHA-256(T)`, the commitment over `T`, `E` and `Nb`, the code over `T`, `E`, `Na` and `Nb`, and proof of possession before any pairing message.
-2. Does §4.3 close resumption, given both rules (no tickets, no client cache) and the pin check on every connection? And are the revocation tests in §6 enough?
+1. Is the construction in §4.4 sound as written, including "Why it holds"? That covers the transcript `T`, the
+   exporter context `SHA-256(T)`, the commitment over `T`, `E` and `Nb`, the code over `T`, `E`, `Na` and `Nb`, and
+   proof of possession before any pairing message.
+2. Does §4.3 close resumption, given both rules (no tickets, no client cache) and the pin check on every connection?
+   And are the revocation tests in §6 enough?
 
 ## Sources
 

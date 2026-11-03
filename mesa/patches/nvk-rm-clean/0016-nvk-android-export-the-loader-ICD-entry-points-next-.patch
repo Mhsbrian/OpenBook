@@ -1,0 +1,101 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Mon, 26 Oct 2026 10:11:25 -0400
+Subject: [PATCH 16/23] nvk/android: export the loader ICD entry points next to
+ HMI
+
+On Android NVK is linked with vulkan-android.sym, which exports only HMI.
+That is all Android's libvulkan needs, but a Vulkan HAL layer that loads
+NVK underneath it (waydroid-nvidia's vulkan.nvidia.so, for its ASTC/ETC2
+emulation) and the host tests that load NVK straight from bionic look it
+up through the Khronos loader ICD interface, vk_icdGetInstanceProcAddr and
+vk_icdNegotiateLoaderICDInterfaceVersion.
+
+Link NVK on Android with its own version script: HMI plus the three ICD
+entry points of vulkan.sym, everything else still local. The symbols check
+uses the matching list.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/meson.build                | 19 ++++++++++++++++---
+ src/nouveau/vulkan/nvk-android.sym            | 14 ++++++++++++++
+ .../vulkan/nvk-icd-android-symbols.txt        |  6 ++++++
+ 3 files changed, 36 insertions(+), 3 deletions(-)
+ create mode 100644 src/nouveau/vulkan/nvk-android.sym
+ create mode 100644 src/nouveau/vulkan/nvk-icd-android-symbols.txt
+
+diff --git a/src/nouveau/vulkan/meson.build b/src/nouveau/vulkan/meson.build
+index 24940ea..56a498e 100644
+--- a/src/nouveau/vulkan/meson.build
++++ b/src/nouveau/vulkan/meson.build
+@@ -184,14 +184,27 @@ libnvk = static_library(
+   gnu_symbol_visibility : 'hidden',
+ )
+ 
++# On Android NVK exports the loader ICD entry points next to HMI, so that a
++# Vulkan HAL layer in front of it, or a test, can load it as an ICD.
++nvk_icd_link_args = vulkan_icd_link_args
++nvk_icd_link_depends = vulkan_icd_link_depends
++nvk_icd_symbols = vulkan_icd_symbols
++if with_platform_android
++  nvk_icd_symbols = files('nvk-icd-android-symbols.txt')
++  if with_ld_version_script
++    nvk_icd_link_args = ['-Wl,--version-script', join_paths(meson.current_source_dir(), 'nvk-android.sym')]
++    nvk_icd_link_depends = files('nvk-android.sym')
++  endif
++endif
++
+ libvulkan_nouveau = shared_library(
+   'vulkan_nouveau',
+   link_whole : [libnvk],
+   link_args: [
+     ld_args_build_id, ld_args_bsymbolic, ld_args_gc_sections,
+-    vulkan_icd_link_args, '-lnv_bionic_native',
++    nvk_icd_link_args, '-lnv_bionic_native',
+   ],
+-  link_depends : vulkan_icd_link_depends,
++  link_depends : nvk_icd_link_depends,
+   gnu_symbol_visibility : 'hidden',
+   install : true,
+ )
+@@ -202,7 +215,7 @@ if with_symbols_check
+     symbols_check,
+     args : [
+       '--lib', libvulkan_nouveau,
+-      '--symbols-file', vulkan_icd_symbols,
++      '--symbols-file', nvk_icd_symbols,
+       symbols_check_args,
+     ],
+     suite : ['nouveau'],
+diff --git a/src/nouveau/vulkan/nvk-android.sym b/src/nouveau/vulkan/nvk-android.sym
+new file mode 100644
+index 0000000..e5f60f3
+--- /dev/null
++++ b/src/nouveau/vulkan/nvk-android.sym
+@@ -0,0 +1,14 @@
++{
++	global:
++		# The Android Vulkan HAL (hwvulkan_module_t), as vulkan-android.sym.
++		HMI;
++		# The Khronos loader ICD interface (loader/LoaderAndLayerInterface.md
++		# and vulkan/vk_icd.h), as vulkan.sym: a Vulkan HAL layer or a test
++		# can also load NVK as an ICD.
++		vk_icdGetInstanceProcAddr;
++		vk_icdGetPhysicalDeviceProcAddr;
++		vk_icdNegotiateLoaderICDInterfaceVersion;
++
++	local:
++		*;
++};
+diff --git a/src/nouveau/vulkan/nvk-icd-android-symbols.txt b/src/nouveau/vulkan/nvk-icd-android-symbols.txt
+new file mode 100644
+index 0000000..965e193
+--- /dev/null
++++ b/src/nouveau/vulkan/nvk-icd-android-symbols.txt
+@@ -0,0 +1,6 @@
++# The Android Vulkan HAL (vulkan-icd-android-symbols.txt) plus the Khronos
++# loader ICD interface (vulkan-icd-symbols.txt).
++HMI
++vk_icdGetInstanceProcAddr
++vk_icdNegotiateLoaderICDInterfaceVersion
++(optional) vk_icdGetPhysicalDeviceProcAddr

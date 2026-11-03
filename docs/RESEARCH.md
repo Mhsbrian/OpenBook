@@ -1,5 +1,8 @@
 # Research: Googlebook OS and prior art (2026-10-15)
 
+What we found about Googlebook OS, its public source and prior art before building OpenBook, with sources and dates.
+Most findings are from 2026-10-15; later additions carry their own date. The plan built on them is `docs/PLAN.md`.
+
 Labels: **C** = confirmed (a primary source, or we checked it ourselves), **R** = reported (press or third-party), **U** = unknown or unverified.
 
 ## Googlebook OS facts
@@ -19,7 +22,7 @@ Labels: **C** = confirmed (a primary source, or we checked it ourselves), **R** 
 ## What we confirmed in the ruby image (CL3B.260622.271.R1)
 
 - **Partition layout:** hybrid GPT. ChromeOS `KERN-A/B` and `ROOT-B`, `EFI-SYSTEM`, Android A/B `boot`/`init_boot`/`vendor_boot`/`vbmeta`/`pvmfw`, `desktop_security_*`, and a 12 GiB virtual-A/B `super`. The `super` partition holds system, vendor, product, system_ext, system_dlkm and vendor_dlkm, all EROFS with LZ4 compression.
-- **Kernel:** `6.18.21-android17-5-g3938c8d97142-ab16302624`, built with clang 22.0.1, with PGO, BOLT and LTO. The config is saved in `evidence/2026-10-15-m0/gbos-kernel-config.txt`.
+- **Kernel:** `6.18.21-android17-5-g3938c8d97142-ab16302624`, built with clang 22.0.1, with PGO, BOLT and LTO. `scripts/gbos-unpack.sh` extracts its config from the image.
 - **Hardware properties:**
   - `ro.hardware=android-desktop`, `ro.hardware.type=CLAMSHELL`
   - `ro.hardware.egl=angle`, `ro.hardware.vulkan=intel`, `ro.hardware.gralloc=minigbm`
@@ -31,7 +34,7 @@ Labels: **C** = confirmed (a primary source, or we checked it ourselves), **R** 
 
 ### UI and Google apps in the ruby image (ANAL-201, 2026-10-17)
 
-Details are in `docs/googlebook-ui.md` and `docs/gapps.md`; evidence in `evidence/2026-10-17-gbos-ui/`.
+Details are in `docs/googlebook-ui.md` and `docs/gapps.md`.
 
 - **UI apps (C).** Googlebook replaces the platform UI with Google builds:
   - the Pixel Launcher (`NexusLauncherRelease`);
@@ -94,7 +97,7 @@ Details and sources are in `docs/gapps.md`.
 | libhoudini (Intel) | arm/arm64 | Proprietary | No | Primary bridge in the Googlebook Intel image |
 | libndk_translation (Google) | arm/arm64 | Proprietary | No | Secondary bridge in Googlebook. Also ships in SDK x86_64 emulator images and ChromeOS AMD builds; the ChromeOS copy carries an "ARM-to-AMD DBT" license |
 | Berberis (AOSP) | riscv64 | Apache-2.0 | Yes | No arm64 product upstream |
-| Digitalis (DigitalisX64) | arm64 | Apache-2.0 | Yes | Built on Berberis; created 2026-04; no published pass rates. **Evaluate** |
+| Digitalis (DigitalisX64) | arm64 | Apache-2.0 | Yes | Built on Berberis; created 2026-04; no published pass rates (2026-10-15). OpenBook's own measurements: `docs/digitalis.md`, `docs/COMPAT-MATRIX.md` |
 | QEMU user mode | arm64 | GPL-2.0 | Yes | Slow fallback |
 | box64 / FEX | x86 on ARM | MIT | — | Wrong direction |
 
@@ -108,4 +111,4 @@ Details and sources are in `docs/gapps.md`.
 - https://github.com/danbyumagic/gbrunch ; https://github.com/skylartaylor/gbos-vm ; https://gist.github.com/skylartaylor/236a69b2dc66f8536508451735cd521a
 - https://github.com/sebanc/brunch ; https://github.com/android-generic ; https://blissos.org/status.html ; https://github.com/waydroid/waydroid ; https://github.com/google/android-cuttlefish
 - https://github.com/DigitalisX64/digitalis ; https://chromeunboxed.com/a-user-has-installed-googlebook-os-onto-a-chromebook-plus-and-it-runs-great/ (2026-10-14)
-- Unverified items still open: the Zen-5-only claim beyond early boot; how Digitalis performs; ANGLE requirements for Android 17 devices; Bliss 16.9.x build dates.
+- Unverified as of 2026-10-15: the Zen-5-only claim beyond early boot; how Digitalis performs (since measured, `docs/digitalis.md`); ANGLE requirements for Android 17 devices; Bliss 16.9.x build dates.

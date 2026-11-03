@@ -1,0 +1,20 @@
+# OpenBook Graphics (org.openbook.graphics, app/Android.bp), the graphics-mode switcher's app, in OpenBook's own AOSP
+# image (ANAL-323): a privileged system_ext app in its own domain, the same domain the Googlebook (Ruby) image builds
+# from gfx-mode/ruby/app-sepolicy.cil. seapp_contexts selects it only for this package, privileged and signed with
+# the platform key, as OpenBook's other apps are.
+#
+# An app domain, not a privileged one: Android forbids every privileged app (priv_app_all) and every untrusted app
+# to set any property (system/sepolicy private/priv_app_all.te, app_neverallows.te), and the request is a property,
+# openbook.gfx.request (property.te here), which init hands to openbook-gfx-mode. It is built as Google's own
+# traceur_app is: a core app domain with the app API services and one property to set. The switcher's state
+# (vendor.openbook.gfx.*) it reads through the vendor policy's grant to system apps (vendor/readers.te). Android
+# still treats it as a privileged app for permissions (/system_ext/priv-app, REBOOT, WRITE_SECURE_SETTINGS).
+type openbook_graphics_app, domain, coredomain;
+app_domain(openbook_graphics_app)
+
+# ActivityManager, JobScheduler, NotificationManager, PackageManager, PowerManager (the restart after the owner
+# confirms), settings, UserManager.
+allow openbook_graphics_app app_api_service:service_manager find;
+
+# The request to openbook-gfx-mode.
+set_prop(openbook_graphics_app, openbook_gfx_request_prop)

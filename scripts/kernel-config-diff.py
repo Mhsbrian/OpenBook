@@ -2,7 +2,7 @@
 """Compare a locally built kernel .config with a shipped one, and explain where symbols come from.
 
 usage: kernel-config-diff.py OURS SHIPPED DEFCONFIG KSRC [SYMBOL ...]  > report.md
-  OURS, SHIPPED  full .config files (e.g. dist/dot_config and evidence/.../gbos-kernel-config.txt)
+  OURS, SHIPPED  full .config files (e.g. dist/dot_config and the config a shipped kernel embeds)
   DEFCONFIG      the defconfig the build started from (common/arch/x86/configs/gki_defconfig)
   KSRC           kernel source tree, scanned for Kconfig `select`/`imply`/`default` to attribute symbols
   SYMBOL         symbols to explain (without CONFIG_); defaults to pKVM/FRED plus the AMD enablement set

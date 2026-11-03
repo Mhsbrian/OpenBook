@@ -1,0 +1,60 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 08:56:10 -0400
+Subject: [PATCH 1/7] nvk: link with the common Vulkan ICD version script
+
+Unlike RADV, ANV, Turnip, PanVK and v3dv, libvulkan_nouveau is not
+linked with vulkan_icd_link_args. gnu_symbol_visibility hides its C
+symbols, but every #[no_mangle] function of the Rust parts (NAK, NIL)
+and the public items of the Rust standard library are still exported:
+on an Android x86_64 build of Mesa 26.2.5, vulkan.nouveau.so exports
+2639 dynamic symbols, where vulkan.radv.so exports only HMI.
+
+Those exports can interpose on other copies of the same symbols in a
+process that also loads another Mesa driver (for example Zink in
+libgallium_dri.so with NVK as its Vulkan driver), and on Android they
+are outside the HAL contract, which is HMI alone.
+
+Link with the version script the other drivers use (vulkan.sym, or
+vulkan-android.sym on Android) and add the symbols check that RADV and
+PanVK run.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/meson.build | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/src/nouveau/vulkan/meson.build b/src/nouveau/vulkan/meson.build
+index f0bb780fb1f..706c7d8463f 100644
+--- a/src/nouveau/vulkan/meson.build
++++ b/src/nouveau/vulkan/meson.build
+@@ -184,11 +184,28 @@ libnvk = static_library(
+ libvulkan_nouveau = shared_library(
+   'vulkan_nouveau',
+   link_whole : [libnvk],
+-  link_args: [ld_args_build_id, ld_args_bsymbolic, ld_args_gc_sections],
++  link_args: [
++    ld_args_build_id, ld_args_bsymbolic, ld_args_gc_sections,
++    vulkan_icd_link_args,
++  ],
++  link_depends : vulkan_icd_link_depends,
+   gnu_symbol_visibility : 'hidden',
+   install : true,
+ )
+ 
++if with_symbols_check
++  test(
++    'nvk symbols check',
++    symbols_check,
++    args : [
++      '--lib', libvulkan_nouveau,
++      '--symbols-file', vulkan_icd_symbols,
++      symbols_check_args,
++    ],
++    suite : ['nouveau'],
++  )
++endif
++
+ icd_file_name = libname_prefix + 'vulkan_nouveau.' + libname_suffix
+ 
+ nouveau_icd = custom_target(

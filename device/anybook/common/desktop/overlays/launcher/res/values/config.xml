@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Launcher3 in its desktop form factor, as Googlebook's launcher overlay sets it (ANAL-352). Both bools exist in
+  AOSP 17 Launcher3 (res/values/config.xml) and gate code behind flags our value set already enables:
+  - desktop_form_factor: enable_mouse_interaction_changes and enable_cursor_driven_workflows
+    (Utilities.shouldEnable*): a persistent page indicator, no long-press menu from a mouse, no taskbar
+    education tooltips, desktop taskbar stashing with the dual shade.
+  - reduce_workspace_blur_usage: reduce_workspace_blur_usage (Utilities.shouldReduceWorkspaceBlurUsage): All Apps
+    and the widget picker no longer blur and zoom the desktop behind them.
+  New apps stay off the desktop, as on Googlebook (ANAL-361): pref_add_icon_to_home_default is OpenBook Launcher's
+  default for "Add app icons to home screen" (res/values/config.xml there; AOSP hard-codes true). A choice made in
+  Home settings is kept.
+  App names in All Apps take two lines when they need them (ANAL-362): pref_enable_two_line_toggle_default is
+  OpenBook Launcher's default for the two-line preference (AOSP hard-codes false and has no setting for it).
+-->
+<resources>
+    <bool name="desktop_form_factor">true</bool>
+    <bool name="reduce_workspace_blur_usage">true</bool>
+    <bool name="pref_add_icon_to_home_default">false</bool>
+    <bool name="pref_enable_two_line_toggle_default">true</bool>
+</resources>

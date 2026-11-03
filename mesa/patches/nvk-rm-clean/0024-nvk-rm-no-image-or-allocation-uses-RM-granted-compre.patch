@@ -1,0 +1,111 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sun, 1 Nov 2026 00:00:00 +0000
+Subject: [PATCH 24/26] nvk/rm: no image or allocation uses RM-granted
+ compression yet
+
+Clean-room item S5 (SPEC.md), first delivery: RM-granted compression stays
+off. nvk_image_init keeps rm_compress false and rm_mem_alloc_kind never asks
+for NV_RM_PLACEMENT_VRAM_COMPRESSIBLE; the stubs become a documented
+decision with the conditions a later policy must meet. No behaviour change.
+
+Why off: the image VA carries the compressible kind while the KMD decides at
+bind whether the memory has compression, and that path has not been tested
+on hardware. A later policy must exclude what upstream nvk_image_can_compress()
+excludes, every image or memory that can be shared outside the device,
+CPU-mapped or sparse-bound, and kinds without a KMD fallback.
+
+Public sources: Mesa 26.2.5 src/nouveau/vulkan/nvk_image.c
+(nvk_image_can_compress), nvk_device_memory.c (compression only for
+not-shared dedicated allocations), src/nouveau/nil/image.rs
+(tu102_choose_pte_kind, gb202_choose_pte_kind); the Vulkan specification
+(external memory handle types, sparse resources, host-visible memory).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/nvk_image.c         | 19 +++++++++++++++----
+ src/nouveau/vulkan/nvkmd/rm/nv_rm.h    |  6 +++---
+ src/nouveau/vulkan/nvkmd/rm/nvkmd_rm.c | 15 ++++++++++-----
+ 3 files changed, 28 insertions(+), 12 deletions(-)
+
+diff --git a/src/nouveau/vulkan/nvk_image.c b/src/nouveau/vulkan/nvk_image.c
+index ad04c65..fd2a6df 100644
+--- a/src/nouveau/vulkan/nvk_image.c
++++ b/src/nouveau/vulkan/nvk_image.c
+@@ -965,10 +965,21 @@ nvk_image_init_layout(struct nvk_device *dev,
+    image->can_compress = nvk_image_can_compress(pdev, image);
+ 
+    /* Rust RM backend (kmd_info.has_compression == false, so can_compress is
+-    * false). CLEAN-ROOM STUB S5 (SPEC.md): which images use RM-granted
+-    * compression. Until it is implemented, no image does. The image VA
+-    * carries the compressible kind; whether the memory actually carries
+-    * compression is decided at bind by the KMD. */
++    * false). Which images use RM-granted compression (clean-room item S5):
++    * none, in this first delivery. Compression stays off until a policy has
++    * been tested on hardware. With rm_compress the image VA carries the
++    * compressible kind while the KMD decides at bind whether the memory has
++    * compression, so a policy must at least:
++    *  - exclude everything nvk_image_can_compress() excludes for nouveau
++    *    (host-transfer, sparse, linear, multi-plane and DRM-modifier images);
++    *  - exclude images that can be shared outside the device
++    *    (VkExternalMemoryImageCreateInfo handle types, Android hardware
++    *    buffers, swapchain images): another device or process maps the
++    *    memory with its own, uncompressed kind;
++    *  - cover only kinds whose uncompressed fallback the KMD applies at bind
++    *    (the generic colour kind; on Turing to Ada, depth/stencil images
++    *    have Z kinds of their own).
++    */
+    const bool rm_compress = false;
+ 
+    if (!image->can_compress && !rm_compress)
+diff --git a/src/nouveau/vulkan/nvkmd/rm/nv_rm.h b/src/nouveau/vulkan/nvkmd/rm/nv_rm.h
+index 1e9e9fc..49d1dec 100644
+--- a/src/nouveau/vulkan/nvkmd/rm/nv_rm.h
++++ b/src/nouveau/vulkan/nvkmd/rm/nv_rm.h
+@@ -131,10 +131,10 @@ int32_t nv_rm_context_signal(struct NvRmDevice*, uint64_t context,
+ #define NV_RM_PLACEMENT_VRAM 0u
+ #define NV_RM_PLACEMENT_GART 1u
+ /* Device-local, never CPU-mapped or exported: RM is asked for a compressible
+- * allocation (backend stub S4, SPEC.md). RM decides whether compression is
+- * granted; the allocation's own VA keeps the
++ * allocation (backend Device::allocate_compressible, clean-room item S4). RM
++ * decides whether compression is granted; the allocation's own VA keeps the
+  * requested (uncompressed) kind. Size must be a 64 KiB multiple; the alignment
+- * is raised to 64 KiB. */
++ * is raised to 64 KiB. Not chosen by nvkmd_rm.c yet (item S5). */
+ #define NV_RM_PLACEMENT_VRAM_COMPRESSIBLE 2u
+ /* C owns [16 GiB, 1 TiB), Rust internal mappings must remain below 16 GiB. */
+ #define NV_RM_VA_START (UINT64_C(1) << 34)
+diff --git a/src/nouveau/vulkan/nvkmd/rm/nvkmd_rm.c b/src/nouveau/vulkan/nvkmd/rm/nvkmd_rm.c
+index 06ef188..18f521a 100644
+--- a/src/nouveau/vulkan/nvkmd/rm/nvkmd_rm.c
++++ b/src/nouveau/vulkan/nvkmd/rm/nvkmd_rm.c
+@@ -541,8 +541,8 @@ nvkmd_rm_try_create_pdev(struct _drmDevice* drm,
+       .has_dma_buf = true,
+       .has_alloc_tiled = info->generic_kind == 0x06 || info->generic_kind == 0xfe,
+       /* Turing+ generic compressible kind (policy: nvk_image_init
+-       * rm_compress, stub S5). NVK's dedicated-allocation compression
+-       * (has_compression) stays off. */
++       * rm_compress, clean-room item S5, off for now). NVK's
++       * dedicated-allocation compression (has_compression) stays off. */
+       .has_rm_compression = info->generic_kind == 0x06,
+    };
+    pdev->base.drm.render_dev = st.st_rdev;
+@@ -800,9 +800,14 @@ rm_mem_alloc_kind(struct nvkmd_dev* base,
+       alignment = MAX2(alignment, 1u << 16);
+       size = align64(size, 1u << 16);
+    }
+-   /* CLEAN-ROOM STUB S5 (SPEC.md): which device-local allocations ask RM for
+-    * a compressible placement (NV_RM_PLACEMENT_VRAM_COMPRESSIBLE). Until it
+-    * is implemented, none do. */
++   /* Which device-local allocations ask RM for a compressible placement
++    * (NV_RM_PLACEMENT_VRAM_COMPRESSIBLE; clean-room item S5): none, in this
++    * first delivery, together with nvk_image_init's rm_compress. A later
++    * policy may choose it only for memory that is device-local, never
++    * CPU-mapped (no NVKMD_MEM_CAN_MAP), never exported or imported, not
++    * sparse-bound, untiled (kind 0) and a 64 KiB multiple. The backend
++    * refuses a kind or another size for that placement; the other
++    * conditions are this function's to keep. */
+    /* Tiled (DRM modifier) memory records its block-linear kind on the
+     * physical allocation, as NVK does on nouveau (nvk_device_memory.c
+     * nvkmd_dev_alloc_tiled_mem -> nouveau_bo.c tile_flags = pte_kind << 8):

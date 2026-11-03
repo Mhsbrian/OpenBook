@@ -1,0 +1,67 @@
+[
+ {
+  "wait": "openbook-live: live boot: boot_part_uuid=",
+  "timeout": 120
+ },
+ {
+  "wait": "init: init second stage started",
+  "timeout": 300
+ },
+ {
+  "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+  "timeout": 300
+ },
+ {
+  "send": "\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 dmesg -n 1\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "i=0; while [ \"$(getprop sys.boot_completed)\" != 1 ] && [ $i -lt 1500 ]; do sleep 3; i=$((i+3)); done; sleep 30; echo BOOTDONE=$(getprop sys.boot_completed) fp=$(getprop ro.system.build.fingerprint)\n"
+ },
+ {
+  "wait": "BOOTDONE=1 fp=\\S+",
+  "timeout": 1600
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "echo \"UDATA crypto=$(getprop ro.crypto.state) part=$(getprop ro.boot.boot_part_uuid) users=$(su 0 pm list users | grep -c UserInfo) apps3=$(pm list packages -3 | wc -l)/$(pm list packages -3 | sort | sha256sum | cut -c1-12) wifi=$(su 0 cat /data/misc/apexdata/com.android.wifi/WifiConfigStore.xml 2>/dev/null | grep -c '<Network>') adbkeys=$(su 0 cat /data/misc/adb/adb_keys 2>/dev/null | grep -c .) media=$(su 0 find /data/media/0 -type f 2>/dev/null | wc -l)/$(su 0 du -sk /data/media/0 2>/dev/null | cut -f1) appdata=$(su 0 ls /data/data | wc -l) aid=$(settings get secure android_id | sha256sum | cut -c1-12) end\"\n"
+ },
+ {
+  "wait": "UDATA crypto=encrypted part=\\S+ users=\\d+ apps3=\\S+ wifi=\\d+ adbkeys=\\d+ media=\\S+ appdata=\\d+ aid=\\S+ end",
+  "timeout": 120
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "echo ===APPDATA-BEGIN===; su 0 ls /data/data; echo ===APPDATA-END===\n"
+ },
+ {
+  "wait": "===APPDATA-END===",
+  "timeout": 60
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "shot": "desktop"
+ },
+ {
+  "send": "su 0 sync; su 0 reboot -p\n"
+ }
+]

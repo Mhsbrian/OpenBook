@@ -243,12 +243,12 @@ class Agents:
 
 def endpoints(d, claude_connected=True):
     d.lab("ENDPOINT", id="claude", name="Claude Code", where="on this laptop", address="tcp:127.0.0.1:7070",
-          cwd="/home/brian", local=True, connected=claude_connected)
+          cwd="/home/user", local=True, connected=claude_connected)
     d.lab("ENDPOINT", id="cursor", name="Cursor", where="on this laptop", address="tcp:127.0.0.1:7071",
-          cwd="/home/brian", local=True, connected=True)
+          cwd="/home/user", local=True, connected=True)
     # A paired computer that isn't there: nothing listens on 7099.
-    d.lab("ENDPOINT", id="codex", name="Codex", where="on Brian’s desk", address="tcp:127.0.0.1:7099",
-          cwd="/home/brian", local=False, connected=True)
+    d.lab("ENDPOINT", id="codex", name="Codex", where="on the desktop PC", address="tcp:127.0.0.1:7099",
+          cwd="/home/user", local=False, connected=True)
     d.lab("PICK", id="claude")
 
 
@@ -663,7 +663,7 @@ def states(d, agents, theme, design, only=None):
         d.lab("ENDPOINT_REMOVE", id="cursor")
         d.lab("ENDPOINT_REMOVE", id="codex")
         d.lab("ENDPOINT", id="claude", name="Claude Code", where="on this laptop", address="tcp:127.0.0.1:7070",
-              cwd="/home/brian", local=True, connected=False)
+              cwd="/home/user", local=True, connected=False)
         openat(d)
         cap("no-agent", "nothing connected until the person chooses", True)
         clean(d)

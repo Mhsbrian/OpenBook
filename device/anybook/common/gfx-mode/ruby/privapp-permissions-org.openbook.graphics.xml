@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- SPDX-License-Identifier: Apache-2.0. OpenBook Graphics (ANAL-246): restarts after the owner confirms a switch. -->
+<!-- SPDX-License-Identifier: Apache-2.0. OpenBook Graphics (ANAL-246): restarts after the owner confirms a switch.
+     1.1 (ANAL-312): Android's updatable-driver settings for the games rule (docs/nvidia-offload-ruby.md). -->
 <permissions>
     <privapp-permissions package="org.openbook.graphics">
         <permission name="android.permission.REBOOT"/>
+        <permission name="android.permission.WRITE_SECURE_SETTINGS"/>
     </privapp-permissions>
 </permissions>

@@ -14,7 +14,7 @@
 # from the host's own files.) Of those devices and their partitions, only mounts under /run/media/ (the
 # automounter's) are unmounted, with udisksctl.
 # It checks every second until killed, or once with --once. --dry-run prints what it would unmount instead.
-# SYS (default /sys) and MOUNTS (default /proc/mounts) are for unmount-build-loops-test.sh.
+# SYS (default /sys) and MOUNTS (default /proc/mounts) are for tests/quire/unmount-build-loops-test.sh.
 set -u
 usage="usage: unmount-build-loops.sh WORKDIR [--once] [--dry-run]"
 w=${1:?$usage}
