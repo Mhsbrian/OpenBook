@@ -13,7 +13,9 @@
 # Logs: <data dir>/logs/installer/<RUN>/ (serial.log, result.json, shot-*.png, sections/)
 # Env: QEMU_AUDIO=1 adds an HDA sound card whose output goes to <boot dir>/audio-out.wav (=none: one that records
 #      silence instead, for capture tests); QEMU_EXTRA_USB=IMG plugs
-#      a copy of IMG in as a second USB disk (scripts/audio-net-qemu.sh).
+#      a copy of IMG in as a second USB disk (scripts/audio-net-qemu.sh). QEMU_ACPI_TABLE=AML adds an ACPI table and
+#      QEMU_SMBIOS=SPEC an -smbios entry (the fake ASUS WMI device and the G14's board name, ANAL-322);
+#      QEMU_ALLOW_REBOOT=1 lets the guest restart in place, so the expect steps can follow it across boots.
 set -euo pipefail
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}
 R=$(cd "$(dirname "$0")/.." && pwd)
@@ -42,6 +44,9 @@ mkdir -p "$O"
 EXTRA=()
 [ "${QEMU_AUDIO:-0}" = 1 ] && EXTRA+=(--audio "$O/audio-out.wav")
 [ "${QEMU_AUDIO:-0}" = none ] && EXTRA+=(--audio none)
+[ -n "${QEMU_ACPI_TABLE:-}" ] && EXTRA+=(--acpi-table "$QEMU_ACPI_TABLE")
+[ -n "${QEMU_SMBIOS:-}" ] && EXTRA+=(--smbios "$QEMU_SMBIOS")
+[ "${QEMU_ALLOW_REBOOT:-0}" = 1 ] && EXTRA+=(--allow-reboot)
 if [ -n "${QEMU_EXTRA_USB:-}" ]; then
   cp --reflink=auto "$QEMU_EXTRA_USB" "$D/extra-usb.img"
   EXTRA+=(--extra-usb "$D/extra-usb.img")

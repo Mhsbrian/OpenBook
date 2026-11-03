@@ -34,6 +34,7 @@ struct State {
     bool shown = false;                // this boot: the app showed "Keep Ultimate graphics?"
     std::string locked;                // "", eco, hybrid or ultimate
     std::string deferred;              // "" or dgpu-off: disable the dGPU at the next early init
+    std::string attempt;               // "" or dgpu-off / dgpu-on: a dgpu_disable write under way (crash order)
     std::string last_failure;
     std::string event;
     std::string fw_before;
@@ -83,13 +84,14 @@ class Controller {
   private:
     bool WriteFw(const std::string& attr, int value, std::string* error);
     bool EnableDgpu(std::string* error);
+    bool DgpuWrite(State& s, int disable, std::string* error);
     std::string Board();
     bool BoardAllowed();
     std::string StackState(const std::string& stack, std::string* why);  // unverified development verified
     bool StackUsable(const std::string& stack, std::string* why);  // verified or development: may boot Ultimate
     bool UltimateOffered();
     std::string UltimateAvailability(const Firmware& fw);
-    bool DgpuDriverBusy();
+    std::string DgpuBusy();  // what holds the dGPU, or "" when nothing does
     bool LabOn();
     int ConfigSeconds(const char* name, int fallback);
     State Load();
@@ -107,6 +109,7 @@ class Controller {
     bool dry_run_;
     bool loaded_ = false;
     std::string tag_;  // the request's sequence number on the app and adb channels
+    bool rescanned_ = false;  // EnableDgpu rescanned the PCI bus: the dGPU's functions may be back this boot
 };
 
 }  // namespace openbook::gfx

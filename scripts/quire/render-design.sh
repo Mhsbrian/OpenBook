@@ -2,11 +2,11 @@
 # Render the Quire design (docs/quire-design/index.html) to PNGs with headless Chromium.
 #
 # Two sizes, as the acceptance for ANAL-215 and ANAL-227 asks:
-#   fhd   1920x1080 dp at 1x  -> 1920x1080 px PNG   (Cuttlefish, 160 dpi)        docs/quire-design/png/
-#   g14   1920x1200 dp at 1.5x -> 2880x1800 px      (the G14 panel at 240 dpi)   docs/quire-design/g14/ as JPEG q92 4:4:4
+#   fhd   1920x1080 dp at 1x  -> 1920x1080 px PNG   (Cuttlefish, 160 dpi)        <design>/png/
+#   g14   1920x1200 dp at 1.5x -> 2880x1800 px      (the G14 panel at 240 dpi)   <design>/g14/ as JPEG q92 4:4:4
 #         (PNGs at 2880x1800 weigh ~0.7 MB each; the JPEGs ~0.4 MB. Pass G14_PNG=1 to keep the PNGs instead.)
 #   walls the first moment and a finished task over each of the eight OpenBook wallpapers (light on light, dark on dark, no window behind),
-#         cropped to the note and tiled into docs/quire-design/png/wallpapers.png, to judge the glass on every backdrop
+#         cropped to the note and tiled into <design>/png/wallpapers.png, to judge the glass on every backdrop
 #
 # Fonts (Google Sans, Google Sans Flex, Google Sans Code: OFL-1.1; Material Symbols Rounded: Apache-2.0) are fetched
 # once into the host data dir and linked into docs/quire-design/fonts/, which is gitignored: they are never committed.
@@ -15,6 +15,8 @@
 set -euo pipefail
 R=$(cd "$(dirname "$0")/../.." && pwd); D=$R/docs/quire-design
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}; F=$A/quire/fonts
+# <design>: renders are output, not source, so they go to the design store, never into Git (CONTRIBUTING.md).
+O=${OPENBOOK_EVIDENCE:-$A/evidence/openbook}/design/quire-design; mkdir -p "$O/png"
 CHROME=${CHROME:-$(command -v chromium || command -v google-chrome || command -v chrome)}
 SIZES=${1:-all}; shift || true
 mkdir -p "$F"
@@ -40,8 +42,8 @@ shot(){ # out query width height scale
 }
 render_size(){ # size
   case $1 in
-    fhd) OUT=$D/png;     W=1920; H=1080; SC=1;   Q="&size=fhd" ;;
-    g14) OUT=$D/g14;     W=1920; H=1200; SC=1.5; Q="&size=g14" ;;
+    fhd) OUT=$O/png;     W=1920; H=1080; SC=1;   Q="&size=fhd" ;;
+    g14) OUT=$O/g14;     W=1920; H=1200; SC=1.5; Q="&size=g14" ;;
   esac
   mkdir -p "$OUT"
   for s in "${SCREENS[@]}"; do
@@ -67,8 +69,8 @@ render_walls(){ # the note over every wallpaper: open (the first moment) and set
       tiles+=("$T/tile-$w-$th.png")
     done
   done
-  magick montage "${tiles[@]}" -tile 4x2 -geometry +8+8 -background '#1B1B21' "$D/png/wallpapers.png"
-  echo "$D/png/wallpapers.png"; rm -rf "$T"
+  magick montage "${tiles[@]}" -tile 4x2 -geometry +8+8 -background '#1B1B21' "$O/png/wallpapers.png"
+  echo "$O/png/wallpapers.png"; rm -rf "$T"
 }
 case $SIZES in
   fhd|g14) render_size "$SIZES" ;;
@@ -77,4 +79,4 @@ case $SIZES in
   *) echo "usage: $0 [fhd|g14|walls|all] [SCREEN...]" >&2; exit 2 ;;
 esac
 # gallery contact sheet (light + dark, every state), at 1x
-[ ${#SCREENS[@]} -ge 20 ] && shot "$D/png/gallery.png" "?size=fhd" 2000 19500 0.5 || true
+[ ${#SCREENS[@]} -ge 20 ] && shot "$O/png/gallery.png" "?size=fhd" 2000 19500 0.5 || true

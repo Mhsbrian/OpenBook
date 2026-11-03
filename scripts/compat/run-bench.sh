@@ -20,7 +20,7 @@ while [ $# -gt 0 ]; do
     *) echo "unknown option $1" >&2; exit 2 ;; esac; shift
 done
 RUN_ID=$(date +%Y%m%d-%H%M%S)
-OUT=${OUT:-$REPO/evidence/$(date +%F)-compat/bench-$RUN_ID}
+OUT=${OUT:-${OPENBOOK_EVIDENCE:-$HOME/anybook/evidence/openbook}/$(date +%F)-compat/bench-$RUN_ID}
 mkdir -p "$OUT/raw"
 [ -x "$P/bench/coremark-arm64" ] || { echo "run scripts/compat/build-probes.sh first" >&2; exit 2; }
 

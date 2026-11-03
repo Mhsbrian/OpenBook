@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  OpenBook Graphics (ANAL-323) starts out not stopped. AOSP 17 scans every new system app that has a launcher entry
+  in the stopped state (config_stopSystemPackagesByDefault, InstallPackageHelper), and a stopped app receives no
+  broadcast until someone opens it: no BOOT_COMPLETED, so no notification after an Ultimate that rolled back and no
+  boot sync of the games rule. Seen in the first QEMU run of the G14 product with the app (anal323a).
+-->
+<config>
+    <initial-package-state package="org.openbook.graphics" stopped="false"/>
+</config>

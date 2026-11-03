@@ -1,0 +1,349 @@
+[
+ {
+  "wait": "init: init second stage started",
+  "timeout": 300
+ },
+ {
+  "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+  "timeout": 300
+ },
+ {
+  "send": "\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 dmesg -n 1\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "i=0; while [ \"$(getprop sys.boot_completed)\" != 1 ] && [ $i -lt 900 ]; do sleep 3; i=$((i+3)); done; sleep 25; echo BOOTDONE=$(getprop sys.boot_completed)\n"
+ },
+ {
+  "wait": "BOOTDONE=1",
+  "timeout": 960
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "g() { set -- $1 $(getprop vendor.openbook.gfx.summary); echo \"GFXO $1 mode=$3 phase=$4 writes=$7 result=$9 fw=$(getprop vendor.openbook.gfx.fw) loads=$(su 0 logcat -d -b kernel | grep -c \"starting service 'vendor.openbook.dgpu-driver'\") hda=$(su 0 logcat -d -b kernel | grep -c \"starting service 'vendor.openbook.dgpu-hda'\") avc=$(su 0 logcat -d -b kernel | grep 'avc:' | grep denied | grep -c -E 'openbook_gfx_mode|openbook_pc_setup|vendor_init') end\"; }\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "su 0 logcat -d -b kernel | grep -E 'openbook-gfx-mode: boot [0-9]+:|vendor.openbook.dgpu-hda|avc: .*(openbook_gfx_mode|openbook_pc_setup|vendor_init)' | sed 's/^/GFXO_KLOG /'\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "su 0 setprop ro.vendor.openbook.gfx.fw_writes 1; echo FW=$(su 0 getprop ro.vendor.openbook.gfx.fw_writes)\n"
+ },
+ {
+  "wait": "FW=1",
+  "timeout": 30
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "g boot1\n"
+ },
+ {
+  "wait": "GFXO boot1 mode=hybrid phase=idle writes=off result=- fw=mux=1,dgpu=0 loads=1 hda=1 avc=\\d+ end",
+  "timeout": 90
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "setprop debug.openbook.lab enable; sleep 8; echo LAB-ON\n"
+ },
+ {
+  "wait": "LAB-ON",
+  "timeout": 60
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "setprop debug.openbook.gfx eco@1; sleep 10; g eco1\n"
+ },
+ {
+  "wait": "GFXO eco1 mode=eco phase=idle writes=on result=adb:done fw=mux=1,dgpu=1 loads=1 hda=1 avc=\\d+ end",
+  "timeout": 90
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "setprop debug.openbook.gfx hybrid@2; sleep 10; g hybrid2\n"
+ },
+ {
+  "wait": "GFXO hybrid2 mode=hybrid phase=idle writes=on result=adb:restart fw=mux=1,dgpu=0 loads=1 hda=1 avc=\\d+ end",
+  "timeout": 90
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "sleep 40\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 90
+ },
+ {
+  "send": "g hybrid2b\n"
+ },
+ {
+  "wait": "GFXO hybrid2b mode=hybrid \\S+ \\S+ \\S+ fw=mux=1,dgpu=0 loads=1 hda=1 avc=\\d+ end",
+  "timeout": 90
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "setprop debug.openbook.gfx eco@3; sleep 10; g eco3\n"
+ },
+ {
+  "wait": "GFXO eco3 mode=eco phase=idle writes=on result=adb:done fw=mux=1,dgpu=1 loads=1 hda=1 avc=\\d+ end",
+  "timeout": 90
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "shot": "boot1-eco"
+ },
+ {
+  "send": "su 0 sh -c 'mkdir -p /mnt/esp && mount -t vfat /dev/block/sda1 /mnt/esp && sed -i \"s/^default .*/default openbook-a-console.conf/\" /mnt/esp/loader/loader.conf && grep ^default /mnt/esp/loader/loader.conf && umount /mnt/esp'\n"
+ },
+ {
+  "wait": "default openbook-a-console.conf",
+  "timeout": 30
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "su 0 dmesg -n 7; su 0 reboot\n"
+ },
+ {
+  "wait": "starting service 'vendor.openbook.dgpu-driver-shutdown'",
+  "timeout": 120
+ },
+ {
+  "wait": "init: init second stage started",
+  "timeout": 300
+ },
+ {
+  "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+  "timeout": 300
+ },
+ {
+  "send": "\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 dmesg -n 1\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "i=0; while [ \"$(getprop sys.boot_completed)\" != 1 ] && [ $i -lt 900 ]; do sleep 3; i=$((i+3)); done; sleep 25; echo BOOTDONE=$(getprop sys.boot_completed)\n"
+ },
+ {
+  "wait": "BOOTDONE=1",
+  "timeout": 960
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "g() { set -- $1 $(getprop vendor.openbook.gfx.summary); echo \"GFXO $1 mode=$3 phase=$4 writes=$7 result=$9 fw=$(getprop vendor.openbook.gfx.fw) loads=$(su 0 logcat -d -b kernel | grep -c \"starting service 'vendor.openbook.dgpu-driver'\") hda=$(su 0 logcat -d -b kernel | grep -c \"starting service 'vendor.openbook.dgpu-hda'\") avc=$(su 0 logcat -d -b kernel | grep 'avc:' | grep denied | grep -c -E 'openbook_gfx_mode|openbook_pc_setup|vendor_init') end\"; }\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "su 0 logcat -d -b kernel | grep -E 'openbook-gfx-mode: boot [0-9]+:|vendor.openbook.dgpu-hda|avc: .*(openbook_gfx_mode|openbook_pc_setup|vendor_init)' | sed 's/^/GFXO_KLOG /'\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "su 0 setprop ro.vendor.openbook.gfx.fw_writes 1; echo FW=$(su 0 getprop ro.vendor.openbook.gfx.fw_writes)\n"
+ },
+ {
+  "wait": "FW=1",
+  "timeout": 30
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "g boot2\n"
+ },
+ {
+  "wait": "GFXO boot2 mode=eco phase=idle writes=off result=\\S+ fw=mux=1,dgpu=1 loads=0 hda=1 avc=\\d+ end",
+  "timeout": 90
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "setprop debug.openbook.gfx hybrid@4; sleep 10; g hybrid4\n"
+ },
+ {
+  "wait": "GFXO hybrid4 mode=hybrid phase=idle writes=on result=adb:restart fw=mux=1,dgpu=0 loads=0 hda=1 avc=\\d+ end",
+  "timeout": 90
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "sleep 40\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 90
+ },
+ {
+  "send": "g hybrid4b\n"
+ },
+ {
+  "wait": "GFXO hybrid4b mode=hybrid \\S+ \\S+ \\S+ fw=mux=1,dgpu=0 loads=0 hda=1 avc=\\d+ end",
+  "timeout": 90
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "su 0 sh -c 'mkdir -p /mnt/esp && mount -t vfat /dev/block/sda1 /mnt/esp && sed -i \"s/^default .*/default openbook-a-console.conf/\" /mnt/esp/loader/loader.conf && grep ^default /mnt/esp/loader/loader.conf && umount /mnt/esp'\n"
+ },
+ {
+  "wait": "default openbook-a-console.conf",
+  "timeout": 30
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "su 0 dmesg -n 7; su 0 reboot\n"
+ },
+ {
+  "wait": "starting service 'vendor.openbook.dgpu-driver-shutdown'",
+  "timeout": 120
+ },
+ {
+  "wait": "init: init second stage started",
+  "timeout": 300
+ },
+ {
+  "wait": "Command 'mount_all --late' action=late-fs \\S+ took \\d+ms and succeeded",
+  "timeout": 300
+ },
+ {
+  "send": "\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 120
+ },
+ {
+  "send": "su 0 dmesg -n 1\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 60
+ },
+ {
+  "send": "i=0; while [ \"$(getprop sys.boot_completed)\" != 1 ] && [ $i -lt 900 ]; do sleep 3; i=$((i+3)); done; sleep 25; echo BOOTDONE=$(getprop sys.boot_completed)\n"
+ },
+ {
+  "wait": "BOOTDONE=1",
+  "timeout": 960
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "g() { set -- $1 $(getprop vendor.openbook.gfx.summary); echo \"GFXO $1 mode=$3 phase=$4 writes=$7 result=$9 fw=$(getprop vendor.openbook.gfx.fw) loads=$(su 0 logcat -d -b kernel | grep -c \"starting service 'vendor.openbook.dgpu-driver'\") hda=$(su 0 logcat -d -b kernel | grep -c \"starting service 'vendor.openbook.dgpu-hda'\") avc=$(su 0 logcat -d -b kernel | grep 'avc:' | grep denied | grep -c -E 'openbook_gfx_mode|openbook_pc_setup|vendor_init') end\"; }\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "su 0 logcat -d -b kernel | grep -E 'openbook-gfx-mode: boot [0-9]+:|vendor.openbook.dgpu-hda|avc: .*(openbook_gfx_mode|openbook_pc_setup|vendor_init)' | sed 's/^/GFXO_KLOG /'\n"
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "su 0 setprop ro.vendor.openbook.gfx.fw_writes 1; echo FW=$(su 0 getprop ro.vendor.openbook.gfx.fw_writes)\n"
+ },
+ {
+  "wait": "FW=1",
+  "timeout": 30
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "g boot3\n"
+ },
+ {
+  "wait": "GFXO boot3 mode=hybrid phase=idle writes=off result=\\S+ fw=mux=1,dgpu=0 loads=1 hda=1 avc=\\d+ end",
+  "timeout": 90
+ },
+ {
+  "wait": "console:/ \\$ ",
+  "timeout": 30
+ },
+ {
+  "send": "setprop debug.openbook.lab disable; sleep 8; echo GFXO DONE\n"
+ },
+ {
+  "wait": "GFXO DONE",
+  "timeout": 60
+ },
+ {
+  "shot": "boot3-hybrid"
+ }
+]

@@ -60,6 +60,12 @@ PRODUCT_COPY_FILES += \
 # Graphics modes (ANAL-246): the G14's MUX may be switched between Eco and Hybrid; Ultimate is not available yet.
 # Firmware writes stay off (no ro.vendor.openbook.gfx.fw_writes) until a release the owner approved turns them on.
 PRODUCT_COPY_FILES += device/anybook/g14/gfx-stacks.conf:$(TARGET_COPY_OUT_VENDOR)/etc/openbook/gfx-stacks.conf
+# The OpenBook Graphics app (ANAL-323): the modes, and Apps on the NVIDIA GPU: the on/off switch, the games rule and
+# each app's choice (ANAL-327).
+$(call inherit-product, device/anybook/common/gfx-mode/gfx-mode-app.mk)
+# OpenBook NVK, the NVIDIA driver for apps (ANAL-327, docs/nvk-openbook.md): org.openbook.nvk in /vendor/app, with
+# NVK for Vulkan and ANGLE on NVK for OpenGL ES, offered to apps once NVIDIA's driver drives the RTX in Hybrid.
+$(call inherit-product, device/anybook/common/nvk/nvk.mk)
 
 # 14" 2880x1800 OLED (Samsung ATNA40CU05-0): 243 ppi. 240 dpi gives a 1920x1200 dp desktop, as on Googlebook.
 PRODUCT_VENDOR_PROPERTIES += ro.vendor.openbook.lcd_density=240

@@ -1,21 +1,24 @@
 # NVIDIA dGPU on OpenBook: nouveau, NVK and PRIME offload for the G14's RTX 50 Laptop GPU (ANAL-187)
 
-> **Update, 2026-10-30 (ANAL-319):** the direction below was overtaken. OpenBook now carries **NVIDIA's open kernel
-> driver** (615.78.08) with its GSP firmware, loaded after boot in Hybrid so the RTX powers itself off when idle,
-> and nouveau ships blocklisted (owner decision 2026-10-27). Apps cannot use the RTX on OpenBook yet: the only Vulkan
-> driver for NVIDIA's kernel driver stays private to the Googlebook track. Current state:
-> [`nvidia-open.md`](nvidia-open.md). This page stays as the 2026-10-16 research record.
+This page is the research record of 2026-10-16 (ANAL-187). **The direction changed on 2026-10-30 (ANAL-319):**
+OpenBook now carries **NVIDIA's open kernel driver** (615.78.08) with its GSP firmware, loaded after boot in Hybrid so
+the RTX powers itself off when idle, and nouveau ships blocklisted (owner decision 2026-10-27). Apps reach the RTX
+through **OpenBook NVK**: NVK on NVIDIA's open kernel driver, shipped as the system package `org.openbook.nvk` and
+chosen per app in OpenBook Graphics. That is topology A of §5, on NVIDIA's kernel driver instead of nouveau
+([`nvk-openbook.md`](nvk-openbook.md)). The kernel driver's current state is in [`nvidia-open.md`](nvidia-open.md).
+The device tree, the kernel firmware rules and `nvidia-graphics-modes.md` cite this page's sections by number, so
+the numbers stay.
 
-Status as of 2026-10-16. Labels:
+Labels:
 - **CONFIRMED**: we read it in source code we have locally, in a primary source (kernel.org, freedesktop.org, android.googlesource.com, linux-firmware), or in our own test output.
 - **REPORTED**: press, vendor marketing or user reports.
 - **HYPOTHESIS**: our reasoning, not yet tested on the laptop.
 
-Nothing in this document was run on the G14. It is research plus Linux-side reasoning, as the issue asked. Evidence is in `evidence/2026-10-16-nvidia/`.
+Apart from the power measurements in §1, this is research plus Linux-side reasoning; none of it ran on the G14.
 
 **Which GPU:** the board is a GA403WR, which ASUS ships with the **RTX 5070 Ti Laptop (GB205)**, not the RTX 5070 Laptop (GB206) named in the issue title (§2). Everything below applies to both, because nouveau and linux-firmware treat them identically.
 
-## Recommendation
+## Recommendation (2026-10-16)
 
 1. **First OpenBook boot (ANAL-176): keep the dGPU off with `dgpu_disable=1`, set once from the G14's Linux after the owner confirms.** Without it the dGPU will most likely sit powered in D0 for the whole OpenBook session (§1). OpenBook should also carry a runtime-PM power-down as a second line of defence. `scripts/dgpu-power-check.sh` checks both, on Linux and on OpenBook. The cost: HDMI, which is wired to the dGPU, is unavailable while the flag is set.
 2. **Using the dGPU on Android: no-go for M3–M8, conditional go for a research track (N1–N6) after M4.**
@@ -35,10 +38,10 @@ Nothing in this document was run on the G14. It is research plus Linux-side reas
 
 ### What the inventory shows
 
-- `dgpu_disable=0` and `gpu_mux_mode=1` (Optimus), read through both asus-armoury and asus-nb-wmi (`evidence/2026-10-16-ga403wr-inventory/asus-platform.txt`).
-- The GPP bridge `00:03.1` has no device behind it, and no NVIDIA module is loaded (`lspci-nnk.txt`, `lsmod.txt`). `nvidia-smi` is installed but finds no device, so the NVIDIA driver package is on the laptop.
+- `dgpu_disable=0` and `gpu_mux_mode=1` (Optimus), read through both asus-armoury and asus-nb-wmi.
+- The GPP bridge `00:03.1` has no device behind it, and no NVIDIA module is loaded. `nvidia-smi` is installed but finds no device, so the NVIDIA driver package is on the laptop.
 - **The OS removed the dGPU, not the firmware. The mechanism is CONFIRMED; that it is what happened on the owner's laptop is a HYPOTHESIS.**
-  - Omarchy's `omarchy-toggle-hybrid-gpu` installs supergfxd with `"hotplug_type": "None"` and `"vfio_enable": true` (`evidence/2026-10-16-nvidia/omarchy-hybrid-gpu.txt`, read from the dev host's omarchy-dev 4.0.0).
+  - Omarchy's `omarchy-toggle-hybrid-gpu` installs supergfxd with `"hotplug_type": "None"` and `"vfio_enable": true` (read from omarchy-dev 4.0.0).
   - In supergfxd (`src/actions.rs`, gitlab.com/asus-linux/supergfxctl, last commit 2025-11-08), Integrated mode always unbinds the dGPU and writes `1` to its sysfs `remove`. With `hotplug_type: None` it does nothing further; only `Asus` would set `dgpu_disable`. It also blacklists nouveau and nvidia in `/etc/modprobe.d/supergfxd.conf`.
   - A sysfs removal lasts until the next reboot. The firmware powers the dGPU at every power-on, and supergfxd removes it again about 5 s into Linux's boot.
   - Omarchy's own sleep hook adds that the G14 "will wake after suspend in Hybrid mode, even if the system was in Integrated mode before suspending". The same report exists as supergfxctl #165 (GA402XY, 2025-06) and Omarchy PR #4793 (G14 with RTX 5070 Ti, 2026-02).
@@ -48,34 +51,36 @@ Nothing in this document was run on the G14. It is research plus Linux-side reas
 
 **Most likely not (HYPOTHESIS, with each step CONFIRMED in our 6.18 source).** With `dgpu_disable=0`, the firmware powers and enumerates the dGPU before OpenBook starts, and nothing in OpenBook turns it off:
 
-1. **No driver binds the GPU function.** The OpenBook kernel has `DRM_NOUVEAU`, `NOVA_CORE`, `DRM_NOVA` and `VFIO` all unset (`kernel-6.18-nouveau.txt`).
-2. **The PCI core keeps an unbound device in D0.** Runtime PM is forbidden by default (`pm_runtime_forbid` in `pci_pm_init`). Even when userspace allows it, `pci_pm_runtime_suspend()` leaves an unbound device in D0; only the bridge above it can take it to D3cold (`kernel-6.18-pci-runtime-pm.txt`). Nothing in AOSP writes `power/control`; on Linux that is a udev or TLP job.
+1. **No driver binds the GPU function.** The OpenBook kernel has `DRM_NOUVEAU`, `NOVA_CORE`, `DRM_NOVA` and `VFIO` all unset.
+2. **The PCI core keeps an unbound device in D0.** Runtime PM is forbidden by default (`pm_runtime_forbid` in `pci_pm_init`). Even when userspace allows it, `pci_pm_runtime_suspend()` leaves an unbound device in D0; only the bridge above it can take it to D3cold. Nothing in AOSP writes `power/control`; on Linux that is a udev or TLP job.
 3. **The dGPU's HDMI-audio function keeps the link up.** `quirk_nvidia_hda` exposes function `.1`, and `snd_hda_intel` binds it (it is built as a module for the ALC285). NVIDIA HDA controllers only get runtime PM through vga_switcheroo (`init_vga_switcheroo()` sets `AZX_DCAPS_PM_RUNTIME`). The OpenBook kernel has `CONFIG_VGA_SWITCHEROO` unset and `CONFIG_SND_HDA_POWER_SAVE_DEFAULT=0`, so the controller never calls `pm_runtime_allow()`, and its codec never suspends. The bridge cannot suspend while one of its children is active. For comparison, the dev host's Arch kernel has `VGA_SWITCHEROO=y` and power_save=10, and there the RTX 4090's HDA function shows `power/control=auto`.
 4. A side effect is an extra HDMI sound card from the dGPU that OpenBook's audio HAL could pick up.
 
 So with `dgpu_disable=0`, OpenBook would run with the dGPU in D0 and no driver managing its clocks.
 
-**Measured on the G14 (ANAL-189 hardware check, 2026-10-16, `evidence/2026-10-16-g14-hwcheck/`):**
-- With `dgpu_disable=0` and our kernel, `10de:2f58` is D0/runtime active with no driver, and `10de:2f80` is D0/active bound by snd_hda_intel. This is the prediction above.
-- An s2idle cycle then completes, but with **0 µs of S0ix residency**.
-- The v3 check stick repeated the cycle after unbinding and removing both functions and letting the root port runtime-suspend (option 2 below). Result:
-  - The bridge `00:03.1` reached D3hot, but **S0i3 was still not reached**, so the dGPU is not the only blocker.
-  - **On resume the slot was powered again.** pciehp logged "Card present, Link Up" and re-enumerated the dGPU. Option 2 would therefore have to be repeated after every resume; `dgpu_disable=1` would not.
-  - Run 5 (v4, with `pm_debug_messages`) waited for the bridge: it reached **D3cold** (`d3cold_allowed 1`), and S0i3 still failed. The re-enumeration came with "PM: parent 0000:00:03.1 should not be sleeping", so the slot was probably powered by the kernel resuming the root port (its `_PR0` holds `PG00` per the GA403WM dump), not by the firmware (HYPOTHESIS).
-  - The only unmet LPI constraint was `\_SB_.PCI0.GPP0.SWUS`, which is not the dGPU's ACPI node (`GPP9.PEGP`).
-  - Run 6 (v5) measured the mapping on the GA403WR itself, confirming the GA403WM dump:
-    - `GPP9` = `00:03.1`, `GPP9.PEGP` = `64:00.0`, `GPP9.NHDA` = `64:00.1`.
-    - `PG00` goes off when the bridge reaches D3cold, and is on again after resume.
+**Measured on the G14** (ANAL-189 hardware check, as of 2026-10-16):
+- With `dgpu_disable=0` and our kernel, `10de:2f58` is D0/runtime active with no driver, and `10de:2f80` is D0/active
+  bound by snd_hda_intel, as predicted above. An s2idle cycle then completes, but with **0 µs of S0ix residency**.
+- Powering the dGPU down for a boot (unbind and remove both functions, let the root port runtime-suspend: option 2
+  below) takes the bridge `00:03.1` to **D3cold** (`d3cold_allowed 1`), and **S0i3 is still not reached**. So the
+  dGPU is not the only S0i3 blocker. The only unmet LPI constraint is `\_SB_.PCI0.GPP0.SWUS`, which is not the dGPU's
+  ACPI node (`GPP9.PEGP`).
+- **On resume the slot is powered again.** pciehp logs "Card present, Link Up" and re-enumerates the dGPU, with "PM:
+  parent 0000:00:03.1 should not be sleeping". Option 2 therefore has to be repeated after every resume;
+  `dgpu_disable=1` would not. HYPOTHESIS: the kernel resuming the root port powers the slot (its `_PR0` holds
+  `PG00`), not the firmware.
+- ACPI mapping on the GA403WR, as in the GA403WM dump: `GPP9` = `00:03.1`, `GPP9.PEGP` = `64:00.0`, `GPP9.NHDA` =
+  `64:00.1`. `PG00` goes off when the bridge reaches D3cold, and is on again after resume.
 
 ### Options compared
 
-| | `dgpu_disable=1` (asus-wmi, firmware) | Runtime PM to D3cold with no driver | GPP bridge power resources directly |
+| | Option 1: `dgpu_disable=1` (asus-wmi, firmware) | Option 2: runtime PM to D3cold with no driver | Option 3: GPP bridge power resources directly |
 |---|---|---|---|
 | How | Write `1` to `/sys/devices/platform/asus-nb-wmi/dgpu_disable` (or asus-armoury's `dgpu_disable/current_value`) from Linux, then reboot | OpenBook init writes `auto` to `power/control` of every NVIDIA function and keeps `snd_hda_intel` off the HDA function, by unbinding it or by removing the functions as the Arch wiki's udev rule does. The root port then runtime-suspends, and ACPI `_PR3` turns the slot off | Call the bridge's `_OFF` methods by hand (acpi_call/bbswitch era) |
 | Off during OpenBook's whole boot | Yes. The flag is saved by firmware (kernel commit `98829e84dc67`: "the WMI call saves the state of dGPU") and is the same flag as Armoury Crate's Eco mode. In a GA403WM ACPI dump (a sibling model, REPORTED), setting it ejects `\_SB.PCI0.GPP9.PEGP`, runs `PG00._OFF`, makes `PEGP._STA` return 0 and skips `PG00._ON`, so the GPU is never enumerated | Only after init runs; during early boot the GPU is in D0 | Only after the call |
 | Depends on | ASUS firmware honouring the flag on GA403WR | The DSDT, our init hook, and the root port being allowed into D3 (`pci_bridge_d3_possible`). The GA403WM dump lists `PG00` in the root port's `_PR0`/`_PR2`/`_PR3`, with `_S0W` = 4 (D3cold), on GPP9 = 00:03.1, the same bridge as our inventory (REPORTED). Two caveats: `PG00._OFF` only cuts power when `EC0.VIUF == 0`, which is undocumented, and an ASUS ProArt PX13 with its dGPU on 00:03.1 fails to bring it back from D3cold after s2idle (lkml, 2026-04-03) | Knowing the DSDT method names; out-of-tree module |
 | Persistence | Persists in firmware until set back to 0 (REPORTED). Affects Linux and Windows too | Per boot, undone by a reboot | Per boot |
-| Risk | **The HDMI port goes dark**, because HDMI is wired to the dGPU (see below). The owner's Linux loses the dGPU until the flag is set back, and supergfxd with `hotplug_type: None` will not do that. If the owner already runs supergfxd in Integrated mode, Linux has neither today, so nothing changes. The 6.18 kernel refuses to combine the flag with dGPU-only MUX mode (`asus-wmi-6.18.txt`): "Can not switch MUX to dGPU mode when dGPU is disabled". The driver comment says re-enabling may need a second write after a PCI rescan | A config-space read (`lspci`) wakes the port. If `_PR3` is missing, the port only reaches D3hot and the GPU stays powered | Bypasses Linux PM bookkeeping: the kernel still believes the device is in D0. Known causes of hangs and AER errors |
+| Risk | **The HDMI port goes dark**, because HDMI is wired to the dGPU (see below). The owner's Linux loses the dGPU until the flag is set back, and supergfxd with `hotplug_type: None` will not do that. If the owner already runs supergfxd in Integrated mode, Linux has neither today, so nothing changes. The 6.18 kernel refuses to combine the flag with dGPU-only MUX mode: "Can not switch MUX to dGPU mode when dGPU is disabled". The driver comment says re-enabling may need a second write after a PCI rescan | A config-space read (`lspci`) wakes the port. If `_PR3` is missing, the port only reaches D3hot and the GPU stays powered | Bypasses Linux PM bookkeeping: the kernel still believes the device is in D0. Known causes of hangs and AER errors |
 | Who acts | The owner, or the device agent with the owner's explicit confirmation (a firmware setting) | OpenBook image (G14 product, ANAL-199), no owner action | — |
 
 **Not recommended: calling the power resources directly.** Linux runtime PM already drives exactly those `_PR3` resources, and it keeps the kernel's view consistent.
@@ -91,18 +96,20 @@ No measurement exists for a driverless RTX 50 Laptop. The numbers below are REPO
 | D0, no driver (OpenBook with `dgpu_disable=0` today) | Unknown for RTX 40/50. The only proxy is a 2018 GT 740M at +2.5 W. With no driver there is no idle clock policy. **HYPOTHESIS:** at least the P8 figure, so +5 W, and plausibly +10 W | kernel bugzilla 201465 |
 
 What this means for OpenBook (HYPOTHESIS):
-- The battery holds 4.063 Ah at about 15.9 V, so about 65 Wh (inventory `power-supply.txt`).
+- The battery holds 4.063 Ah at about 15.9 V, so about 65 Wh (hardware inventory).
 - At an 8 W idle that is about 8 h. Adding 5 W gives about 5 h (−38%); adding 10 W gives about 3.6 h (−56%). The GPU also adds heat and fan noise.
-- Our own inventory sample, 16.3 V × 1.064 A = 17.4 W, was taken while the inventory script ran, not at idle.
 - `dgpu-power-check.sh --sample 300` measures the real difference: run it once in each state, on battery.
 
-### Default for ANAL-176
+### Setting and checking the firmware flag
 
-1. **Before the first OpenBook boot**, the device agent runs `scripts/dgpu-power-check.sh --sample 120` on the G14's Linux, on battery. This is read-only. It records:
-   - the supergfxd mode;
-   - whether the slot's ACPI power resources exist and whether they are off;
-   - the battery draw.
-2. **Owner decision (made 2026-10-16 on ANAL-187: keep the dGPU disabled for now):** set `dgpu_disable=1`, with `gpu_mux_mode` left at 1:
+**Owner decision (2026-10-16, ANAL-187): keep the dGPU disabled for now** with `dgpu_disable=1`, `gpu_mux_mode` left at
+1. This was the default for OpenBook's first boots (ANAL-176); `docs/nvidia-open.md` has what OpenBook does with the
+dGPU today.
+
+1. **Before changing anything**, run `scripts/dgpu-power-check.sh --sample 120` on the G14's Linux, on battery. It is
+   read-only and records the supergfxd mode, whether the slot's ACPI power resources exist and are off, and the
+   battery draw.
+2. **Set the flag** (a firmware setting: the owner confirms first):
    ```bash
    cat /sys/devices/platform/asus-nb-wmi/gpu_mux_mode       # must print 1 (Optimus); never disable the dGPU in dGPU-only MUX mode
    echo 1 | sudo tee /sys/devices/platform/asus-nb-wmi/dgpu_disable
@@ -110,10 +117,15 @@ What this means for OpenBook (HYPOTHESIS):
    ```
    Rollback: `echo 0 | sudo tee /sys/devices/platform/asus-nb-wmi/dgpu_disable`, then reboot. The kernel comment allows that a second write after a PCI rescan may be needed. On 6.19+ kernels the same attribute is under `/sys/class/firmware-attributes/asus-armoury/attributes/dgpu_disable/current_value`.
 3. **After the reboot into Linux**, run the check again. It must report `absent-off` with `dgpu_disable=1`.
-4. **First OpenBook boot:** the test hook runs `dgpu-power-check.sh --sample 120 --out /data/local/tmp/dgpu.json` and expects `PASS: absent-off`. A `FAIL: d0-no-driver` means the firmware flag did not hold. In that case run `--try auto` and then `--try remove` in the same session to measure the D0→D3cold saving.
-5. **OpenBook keeps a fallback (for the G14 product, ANAL-199, to add):** an early-boot init hook that does what `--try auto` does whenever a `10de` device is enumerated. This needs no owner action and covers machines where nobody set the flag. It is only useful if the test shows the slot reaching D3cold.
+4. **On OpenBook**, `dgpu-power-check.sh --sample 120 --out /data/local/tmp/dgpu.json` expects `PASS: absent-off`. A
+   `FAIL: d0-no-driver` means the firmware flag did not hold. Then `--try auto` and `--try remove` in the same session
+   measure the D0→D3cold saving.
+5. **OpenBook's fallback** for machines where nobody set the flag: an early-boot hook, `openbook-pc-setup dgpu-pm`,
+   does what `--try auto` does whenever an NVIDIA function is enumerated and its display function has no driver
+   (`docs/g14-product.md`). It needs no owner action.
 
-If the owner prefers not to touch the firmware flag, use step 5 alone and accept a powered dGPU during early boot. The test then decides whether that is good enough: PASS means `d3cold` after the hook, and the `--sample` data gives the battery difference.
+Without the firmware flag, the fallback alone leaves the dGPU powered during early boot. PASS then means `d3cold`
+after the hook, and the `--sample` data gives the battery difference.
 
 ### The test (`scripts/dgpu-power-check.sh`)
 
@@ -127,9 +139,9 @@ If the owner prefers not to touch the firmware flag, use step 5 alone and accept
   - a verdict.
 - **Exit codes:** 0 PASS (`absent-off`, `d3cold`), 1 FAIL (`d0-no-driver`, `absent-powered`), 2 WARN (`d3hot`, `d0-driver`, `absent-unknown`), 3 usage.
 - **`--try auto|remove`** needs root and is volatile: a reboot undoes it. It then re-checks after 15 s.
-- **Fixture tests:** `scripts/dgpu-power-check-test.sh` builds fake sysfs trees for nine cases, including "OpenBook today": GPU in D0, no driver, HDA bound. Results: `evidence/2026-10-16-nvidia/fixture-tests.txt`, 9/9 under bash and 9/9 under mksh. A run on the dev host's RTX 4090 is in `devhost-rtx4090-run.json`, which correctly reports `d0-driver`.
+- **Fixture tests:** `tests/dgpu-power-check-test.sh` builds fake sysfs trees for nine cases, including a driverless dGPU in D0 with its HDA function bound. All nine pass under bash and under mksh. On a desktop RTX 4090 with NVIDIA's driver the check reports `d0-driver`.
 
-**The HDMI port is on the dGPU.** amdgpu exposes `eDP-1` and eight DP connectors (USB-C/USB4 alt mode) but no HDMI-A connector (`drm-connectors.txt`, CONFIRMED). Reports agree:
+**The HDMI port is on the dGPU.** amdgpu exposes `eDP-1` and eight DP connectors (USB-C/USB4 alt mode) but no HDMI-A connector (CONFIRMED). Reports agree:
 - Notebookcheck says only the left USB-C port of the G14 2025 runs from the iGPU (REPORTED).
 - A CachyOS report says HDMI dies with `dgpu_disable=1` on a 2025 ROG (REPORTED).
 
@@ -150,7 +162,7 @@ So with the dGPU off, OpenBook drives external displays through USB-C only, and 
 | Area | State for GB20x | Label |
 |---|---|---|
 | Support | Since Linux 6.16: `53dac0623853` (GSP-RM 570.144), `284ad706ad2f` (GB20x), `6cc6e08d4542` (KMS). All three are in our 6.18.21 tree, together with `664ce10246ba` (correct GB20x modifiers, 6.18) | CONFIRMED (local git log) |
-| GB206 device entry | `nv1b6_chipset`: FSP/FMC boot, GSP-RM 570.144, display through GSP-RM's `GB202_DISP` classes | CONFIRMED (`kernel-6.18-nouveau.txt`) |
+| GB206 device entry | `nv1b6_chipset`: FSP/FMC boot, GSP-RM 570.144, display through GSP-RM's `GB202_DISP` classes | CONFIRMED (6.18 source) |
 | Firmware | linux-firmware ≥ 20250613: `nvidia/gb202/gsp/{bootloader,fmc}-570.144.bin`, and `gsp-570.144.bin` → the ga102 image (60.6 MB uncompressed, 49.4 MB as .zst). `gb205`/`gb206` → `gb202` | CONFIRMED (local linux-firmware `38c1a709`, Arch 20260916) |
 | Display (KMS) | Works at a basic level. v7.3-rc2 adds five GB20x display fixes, marked for stable: vblank interrupts never re-armed, head state readback, HDMI AVMute offsets, HDMI vendor infoframes, DP stream-config size on r570. No GB20x eDP report found | Fixes REPORTED from upstream commits; eDP UNKNOWN |
 | Render | Channels and VM_BIND through GSP-RM. NVK works on it. The uAPI NVK and Zink need (`VM_BIND`, `EXEC`, `HAS_VMA_TILEMODE`) is in our 6.18 tree | CONFIRMED |
@@ -209,7 +221,7 @@ What it allows and requires:
 | Building NVK | Needs Rust: NAK, the shader compiler, is in Rust. Mesa needs rustc ≥ 1.85 and meson ≥ 1.7. Our ANAL-173 build has no Rust and builds only `radeonsi` and `amd` | CONFIRMED |
 | GL on nouveau | Zink is the default on Turing+ from Mesa 25.1 and the only option on Blackwell (`nouveau_zink_predicate`: chipset ≥ 0x1a0 forces Zink). NVK+Zink is a conformant OpenGL 4.6 | CONFIRMED (Mesa source and docs) |
 | Zink on Android | Mesa's Android EGL can load Zink. Zink then goes through Android's `libvulkan`, which holds a single driver, so NVK would have to be that process's Vulkan driver. Mesa's Android EGL also picks one GPU per process (`drm.gpu.vendor_name` or the first that works). There is no Zink-on-Android documentation or CI upstream, and no Blackwell Zink conformance entry | CONFIRMED (source); maturity UNKNOWN |
-| ANGLE on NVK | ANGLE's Vulkan backend needs only a conformant Vulkan driver, but the AOSP 17 snapshot does not recognise NVK. It sees vendor `0x10de` and applies the proprietary NVIDIA path, including its driver-version parser (`android17-graphics-loading.txt`). On Android, ANGLE offers `EGL_ANDROID_image_native_buffer` only when the Vulkan driver has the AHB extension and `VK_EXT_queue_family_foreign` (`supportsAndroidHardwareBuffer`), and NVK has no AHB. Upstream ANGLE main (2026-10-16) also has no NVK handling | CONFIRMED (source); impact of misapplied NVIDIA workarounds is a HYPOTHESIS |
+| ANGLE on NVK | ANGLE's Vulkan backend needs only a conformant Vulkan driver, but the AOSP 17 snapshot does not recognise NVK. It sees vendor `0x10de` and applies the proprietary NVIDIA path, including its driver-version parser. On Android, ANGLE offers `EGL_ANDROID_image_native_buffer` only when the Vulkan driver has the AHB extension and `VK_EXT_queue_family_foreign` (`supportsAndroidHardwareBuffer`), and NVK has no AHB. Upstream ANGLE main (2026-10-16) also has no NVK handling | CONFIRMED (source); impact of misapplied NVIDIA workarounds is a HYPOTHESIS |
 | What Android 17 requires (CDD, updated 2026-08-31) | **7.1.4.1 GLES:**<ul><li>[C-1-1]: GLES 1.1–3.1 MUST; 3.2 SHOULD.</li><li>[C-2-2]: required EGL extensions include `EGL_ANDROID_image_native_buffer` and `EGL_ANDROID_get_native_client_buffer`.</li></ul>**7.1.4.2 Vulkan:**<ul><li>Vulkan 1.3 is STRONGLY RECOMMENDED.</li><li>[C-1-7] (new in 17): present-wait/present-id and related WSI extensions are MUST.</li><li>**[C-3-1]: a Vulkan 1.1 device MUST expose SYNC_FD and `VK_ANDROID_external_memory_android_hardware_buffer`.**</li><li>Android Baseline 2022 is STRONGLY RECOMMENDED; the handheld section requires Baseline 2021.</li></ul>No laptop device type; no ANGLE mandate yet. Google's developer docs say GLES will "ultimately" be available only through ANGLE, and Android 17 adds a per-app `prefer_angle` manifest flag | CONFIRMED (source.android.com, developer.android.com) |
 
 **Viability:**
@@ -230,7 +242,7 @@ What it allows and requires:
 
 ## 5. PRIME render offload on Android: what exists, what to build
 
-### What Android 17 does today (CONFIRMED in the cp2a tree, `android17-graphics-loading.txt`)
+### What Android 17 does today (CONFIRMED in the cp2a tree)
 
 - **One Vulkan driver per process.** `libvulkan` loads the per-app updatable driver if one is set for the app. Otherwise it loads the built-in `vulkan.<ro.hardware.vulkan>.so`. It never enumerates two drivers, so there is no Khronos-loader-style multi-ICD, no `DRI_PRIME` and no device-select layer.
 - **The per-app switch already exists.** `ro.gfx.driver.0` names a driver APK. The Global settings `updatable_driver_production_opt_in_apps`, `updatable_driver_all_apps` and the ANGLE per-app lists choose which processes load it. Settings has a "Graphics Driver Preferences" page under Developer options (`development/graphicsdriver/`). The EGL loader honours the same namespace. If an app is opted in and per-app ANGLE is not selected, the APK must also provide GLES, or EGL aborts.
@@ -279,7 +291,7 @@ What exists and what must be built:
 | Gralloc | minigbm amdgpu backend (tiled + linear) | Map that usage to linear GTT on amdgpu. Pin minigbm to amdgpu (small patch: choose by driver name, not by first render node) |
 | Display | drm_hwcomposer on amdgpu | Set `vendor.hwc.drm.device` to the amdgpu card. NVK renders straight into a linear colour buffer when its address and row stride are 128-byte aligned; otherwise it renders to a tiled shadow and copies (`nvk_rendering_linear()`, CONFIRMED). amdgpu's 256-byte linear pitch satisfies that, so a gralloc-allocated linear buffer needs no extra copy (HYPOTHESIS until measured) |
 | Cross-device buffer sharing | dma-buf PRIME between nouveau and amdgpu in system memory (standard on Linux) | Test nouveau importing amdgpu GTT dma-bufs as render targets on Blackwell |
-| ANGLE on NVK | ANGLE's Vulkan backend runs on any conformant driver | ANGLE (AOSP 17 snapshot `1f4500d390`) classifies any `0x10de` device as the proprietary NVIDIA driver: it applies NVIDIA workarounds and parses NVK's Mesa version with the NVIDIA parser (`android17-graphics-loading.txt`). Needs an NVK driver-ID check upstream, or our patch, and NVK AHB support before ANGLE will offer `EGL_ANDROID_image_native_buffer`. Run dEQP-GLES on it |
+| ANGLE on NVK | ANGLE's Vulkan backend runs on any conformant driver | ANGLE (AOSP 17 snapshot `1f4500d390`) classifies any `0x10de` device as the proprietary NVIDIA driver: it applies NVIDIA workarounds and parses NVK's Mesa version with the NVIDIA parser. Needs an NVK driver-ID check upstream, or our patch, and NVK AHB support before ANGLE will offer `EGL_ANDROID_image_native_buffer`. Run dEQP-GLES on it |
 | Kernel | nouveau with GB20x GSP-RM support is in our 6.18 tree | Build nouveau as a vendor module (new KMI symbols, as for amdgpu). Ship GSP firmware (61 MB uncompressed). Prove runtime D3cold and s2idle with GSP |
 | SELinux/ueventd | `gpu_device` labels for render nodes | Label the second render node; let the driver APK's namespace open it |
 
@@ -322,9 +334,9 @@ Mesa's desktop "prime blit" path (`wsi_common_drm.c`) does exactly this on Linux
 
 ## Sources (all read 2026-10-16 unless dated otherwise)
 
-**Local, CONFIRMED** (excerpts in `evidence/2026-10-16-nvidia/`):
-- **OpenBook kernel:** `~/anybook/kernel/src/common` (android17-6.18, 6.18.21, `44a90255c95f`) and its config `~/anybook/kernel/amd/cfg/device.config`.
-- **Mesa:** 26.2.5 (`~/anybook/mesa/src/upstream`), including `docs/drivers/nvk.rst` and `docs/relnotes/25.2.0.rst`.
+**Local, CONFIRMED:**
+- **OpenBook kernel:** android17-6.18, 6.18.21 (`44a90255c95f`), and its AMD device config.
+- **Mesa:** 26.2.5 upstream, including `docs/drivers/nvk.rst` and `docs/relnotes/25.2.0.rst`.
 - **AOSP 17 cp2a tree:** `frameworks/native/vulkan/libvulkan/driver.cpp`, `frameworks/native/opengl/libs/EGL/Loader.cpp`, `frameworks/base/core/java/android/os/GraphicsEnvironment.java`, `packages/apps/Settings/.../graphicsdriver/`, `external/minigbm`, `external/drm_hwcomposer`, and `external/angle` (`1f4500d390`, 2026-05-07).
 - **linux-firmware:** `38c1a709` (2026-10-16) WHENCE and `LICENSES/LICENCE.nvidia`, and the Arch `linux-firmware-nvidia 20260916`.
 - **Omarchy:** omarchy-dev 4.0.0 (`/usr/bin/omarchy-toggle-hybrid-gpu`, `default/systemd/system-sleep/force-igpu`).

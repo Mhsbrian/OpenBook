@@ -106,7 +106,7 @@ GOT=$(sha256sum "$IMG" | cut -d' ' -f1)
 # entry. nvidia.ko itself names its firmware too ("nvidia/615.78.08/gsp_ga10x.bin", for modinfo and the loader), and a
 # public image ships nvidia.ko, so only a name not preceded by "/" counts: a directory entry, not a path string.
 # Checked on 2026-10-31: the G14 image of 2026-10-30 (anal319b, firmware in) matches; the public build and the
-# image of 2026-10-18 don't (evidence/2026-10-31-release-pipeline/).
+# image of 2026-10-18 don't (evidence store: repo-evidence/2026-10-31-release-pipeline/).
 NV=0
 for m in '[^/]gsp_ga10x\.bin' '[^/]ucodes_ga10x\.bin' 'LICENSE\.nvidia-driver'; do
   if LC_ALL=C grep -a -q -E "$m" "$IMG"; then NV=1; echo "   found NVIDIA firmware: $m"; fi
@@ -307,7 +307,7 @@ rel = {
               "image_repo_commit": b["repo"]["commit"], "release_repo_commit": commit,
               "firmware_files": b["firmware"]["files"]},
     "hardware": {"first_target": "ASUS ROG Zephyrus G14 (2025, GA403WR)",
-                 "status": "pre-alpha", "docs": "https://github.com/Mhsbrian/OpenBook/blob/main/docs/HARDWARE.md"},
+                 "status": "pre-alpha", "docs": "https://openbook.page/install.html"},
 }
 json.dump(rel, open(f"{out}/release.json.tmp", "w"), indent=1)
 os.replace(f"{out}/release.json.tmp", f"{out}/release.json")

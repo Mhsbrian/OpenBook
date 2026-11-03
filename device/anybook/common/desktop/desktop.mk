@@ -32,6 +32,9 @@ PRODUCT_PACKAGES += \
     AnyBookDesktopLatinIMEOverlay \
     AnyBookDesktopPartnerCustomization
 
+# Launcher3 reads the wallpaper for Overview's desk tiles (ANAL-372): READ_WALLPAPER_INTERNAL, privileged.
+PRODUCT_PACKAGES += privapp_whitelist_com.android.launcher3.overview
+
 # Wallpaper colour hints, as on Googlebook (ANAL-205). android.app.WallpaperColors reads them once per process:
 # a wallpaper supports dark text (HINT_SUPPORTS_DARK_TEXT: Launcher3's DarkText theme, SystemUI's lock screen
 # colours) when its mean luminance is above threshold % and at most max_dark_area % of its pixels are dark.

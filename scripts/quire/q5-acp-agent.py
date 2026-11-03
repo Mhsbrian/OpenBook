@@ -279,7 +279,7 @@ class Session:
         self.tool(sid, "c1", "Reading the selection", "read", "completed")
         new = ("# Lisbon packing list\n- [ ] HDMI adapter\n- [ ] Second laptop charger\n- [ ] Walking shoes\n"
                "- [ ] Light jacket for the evenings\n")
-        path = "/home/brian/Documents/Lisbon-packing.md"
+        path = "/home/user/Documents/Lisbon-packing.md"
         call = {"toolCallId": "c2", "title": "Write Documents/Lisbon-packing.md", "kind": "edit", "status": "pending",
                 "content": [{"type": "diff", "path": path, "oldText": None, "newText": new}],
                 "rawInput": {"file_path": path, "content": new}}

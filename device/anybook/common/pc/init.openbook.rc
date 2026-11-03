@@ -10,11 +10,19 @@ on early-init
     # /system/lib/modules through vendor_dlkm's modules.dep. -b applies modules.blocklist, which keeps the
     # VM-only virtio modules out on real hardware.
     exec_start vendor.openbook.dlkm
+    # snd_hda_intel, loaded above, holds the dGPU's HDMI audio: release it before the switcher's boot step, whose
+    # deferred Eco (dgpu_disable=1) cuts the dGPU's power and is written only when no driver holds any of its
+    # functions (ANAL-322). dgpu-pm below would release it anyway; this only moves that step first.
+    exec_start vendor.openbook.dgpu-hda
     # Graphics modes (ANAL-246, device/anybook/common/gfx-mode): with asus-wmi loaded, finish, count or roll back a
     # MUX switch, then load the KMS driver of the mode the firmware is in (none outside Ultimate). Both run before
     # the stack selector (anybook_gpu_probe, init.anybook.graphics-amd.rc) and before dgpu-pm, so the selector sees
     # nouveau's card in Ultimate and dgpu-pm leaves a bound dGPU to its driver.
     exec_start vendor.openbook.gfx-boot
+    # The mode this boot started in, set once: NVIDIA's boot load below follows it (ANAL-322). The switcher republishes
+    # vendor.openbook.gfx.mode at every request, and an Eco -> Hybrid switch publishes "hybrid" in a boot whose dGPU
+    # was off when it began; neither may start the boot load before the restart.
+    setprop vendor.openbook.dgpu.boot_mode ${vendor.openbook.gfx.mode:-unknown}
     exec_start vendor.openbook.gfx-kms
     trigger vendor-openbook-gfx-kms-${vendor.openbook.gfx.kms:-none}
     # A dGPU that no driver binds: let it reach D3cold (docs/nvidia.md). No-op without an NVIDIA function.
@@ -110,18 +118,30 @@ on property:vendor.openbook.lab.mod=diag-ptm-off
 on property:vendor.openbook.lab.mod=diag-unload
     start vendor.openbook.lab-diag-unload
 
-# NVIDIA's driver for apps (ANAL-247, docs/nvidia-offload-ruby.md): in Hybrid, once the system is up, load NVIDIA's
-# driver with the lab's fixed nvidia-load command (openbook-pc-setup dgpu-driver boot: never with nouveau, and no
-# longer after a boot whose load never finished). Only then is the OpenBook NVK driver package offered to apps, so an
-# app opted in to it keeps the system driver whenever the dGPU has no driver (Eco, the boot load off or failed).
-# `setprop debug.openbook.dgpu_driver off` (or on) switches the boot load, kept across reboots.
-on property:sys.boot_completed=1 && property:vendor.openbook.gfx.mode=hybrid
+# NVIDIA's driver for apps (ANAL-247, docs/nvidia-offload-ruby.md): in a boot that started in Hybrid, once the system
+# is up, load NVIDIA's driver with the lab's fixed nvidia-load command (openbook-pc-setup dgpu-driver boot: never with
+# nouveau, and no longer after a boot whose load never finished). Only then, and only in an image that has the OpenBook
+# NVK driver package (vendor.openbook.nvk.offer, docs/nvk-openbook.md), is the package offered to apps, so an app
+# opted in to it keeps the system driver whenever the dGPU has no driver (Eco, the boot load off or failed) or the
+# image has no package. `setprop debug.openbook.dgpu_driver off` (or on) switches the boot load, kept across reboots. The trigger
+# is the boot's mode (set once at early init), so it fires once per boot and never in a boot that began in Eco.
+on property:sys.boot_completed=1 && property:vendor.openbook.dgpu.boot_mode=hybrid
     start vendor.openbook.dgpu-driver
+
+# An orderly restart or power-off (ANAL-322): a boot load still in its settle time with NVIDIA's driver bound did not
+# crash, so its guard is cleared (openbook-pc-setup dgpu-driver shutdown). Crashes and power cuts never get here.
+on shutdown
+    exec_start vendor.openbook.dgpu-driver-shutdown
+
+# Eco -> Hybrid on firmware that keeps only a second store: the switcher's PCI rescan between the stores can bring the
+# dGPU's functions back in this boot, with snd_hda_intel on its HDMI audio and the GPU held in D0 (ANAL-322).
+on property:vendor.openbook.gfx.rescan=*
+    start vendor.openbook.dgpu-pm
 
 on property:debug.openbook.dgpu_driver=*
     start vendor.openbook.dgpu-driver-set
 
-on property:vendor.openbook.dgpu.ready=nvidia
+on property:vendor.openbook.nvk.offer=1
     setprop ro.gfx.driver.0 org.openbook.nvk
 
 service vendor.openbook.dlkm /vendor/bin/modprobe -b -s -d /vendor/lib/modules --all=/vendor/lib/modules/modules.load
@@ -142,6 +162,13 @@ service vendor.openbook.virtio-modules /vendor/bin/modprobe -s -d /system/lib/mo
     stdio_to_kmsg
 
 service vendor.openbook.dgpu-pm /vendor/bin/openbook-pc-setup dgpu-pm
+    user root
+    group root system
+    oneshot
+    disabled
+    stdio_to_kmsg
+
+service vendor.openbook.dgpu-hda /vendor/bin/openbook-pc-setup dgpu-hda
     user root
     group root system
     oneshot
@@ -174,6 +201,12 @@ service vendor.openbook.dgpu-driver /vendor/bin/openbook-pc-setup dgpu-driver bo
     disabled
 
 service vendor.openbook.dgpu-driver-set /vendor/bin/openbook-pc-setup dgpu-driver ${debug.openbook.dgpu_driver}
+    user root
+    group root system
+    oneshot
+    disabled
+
+service vendor.openbook.dgpu-driver-shutdown /vendor/bin/openbook-pc-setup dgpu-driver shutdown
     user root
     group root system
     oneshot

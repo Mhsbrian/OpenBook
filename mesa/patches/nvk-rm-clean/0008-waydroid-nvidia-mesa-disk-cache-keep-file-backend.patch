@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Shiro836 <17294277+Shiro836@users.noreply.github.com>
+Date: Mon, 26 Oct 2026 10:01:07 -0400
+Subject: [PATCH 08/23] waydroid-nvidia: mesa-disk-cache-keep-file-backend
+
+nvidia-prolapse/driver-source/native/mesa/mesa-disk-cache-keep-file-backend.patch at waydroid-nvidia 788728d3d51c (v0.2.0-rc12), sha256 cdb986492b47e29cf42c4dcbb152032e2af7f018b64cc9dd827c04cb10cd27d3
+---
+ src/util/disk_cache.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/src/util/disk_cache.c b/src/util/disk_cache.c
+index 4f15be7..e4f6fe7 100644
+--- a/src/util/disk_cache.c
++++ b/src/util/disk_cache.c
+@@ -751,6 +751,15 @@ void
+ disk_cache_set_callbacks(struct disk_cache *cache, disk_cache_put_cb put,
+                          disk_cache_get_cb get)
+ {
++   /* Callbacks take over every get and put, so a cache that has a working
++    * file backend keeps it and ignores them. Such a cache was enabled
++    * explicitly (by default only caches without one, e.g. on Android, are
++    * handed callbacks); redirecting it into the callbacks' store would
++    * silently replace the storage that was asked for.
++    */
++   if (cache->type != DISK_CACHE_NONE && !cache->path_init_failed)
++      return;
++
+    cache->blob_put_cb = put;
+    cache->blob_get_cb = get;
+    disk_cache_init_queue(cache);

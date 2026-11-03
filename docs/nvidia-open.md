@@ -1,16 +1,16 @@
 # NVIDIA's open kernel driver on OpenBook (ANAL-319)
 
-2026-10-30. OpenBook's G14 kernel and vendor layer now carry NVIDIA's open kernel driver for the RTX 5070 Ti Laptop
-GPU (GB205), the same build the Googlebook (Ruby) track has shipped since 2026-10-26. The two tracks share one
-kernel and one vendor layer: `kernel/` is byte-identical to GoodBook's, and `device/` differs only in GoodBook's
-Ruby-only folders (see "How the tracks share it" below).
+OpenBook's G14 kernel and vendor layer carry NVIDIA's open kernel driver for the RTX 5070 Ti Laptop GPU (GB205), the
+same build the Googlebook (Ruby) track has shipped since 2026-10-26; OpenBook took it on 2026-10-30 (ANAL-319). The two
+tracks share one kernel and one vendor layer: `kernel/` is byte-identical to GoodBook's, and `device/` differs only in
+GoodBook's Ruby-only folders (see "How the tracks share it" below).
+
+It changes the G14 product's kernel, `vendor_dlkm` and `vendor`. As of 2026-10-30 the laptop runs the Ruby image, so
+no OpenBook image with this driver has been written to it.
 
 Labels:
 - **CONFIRMED**: read in source we have, or seen in our own test output.
 - **HYPOTHESIS**: not yet tested.
-
-Release impact: **AOSP**. It changes the G14 product's kernel, `vendor_dlkm` and `vendor`. The laptop runs the
-Ruby image, so no OpenBook image has been written to it.
 
 ## What you get, and what you don't
 
@@ -19,7 +19,7 @@ Ruby image, so no OpenBook image has been written to it.
 | NVIDIA's open modules, 615.78.08 | ✅ In `vendor_dlkm`, loaded after boot in Hybrid | `nvidia.ko`, `nvidia-modeset.ko`, `nvidia-drm.ko` (Dual MIT/GPL) |
 | GSP firmware | ✅ `/vendor/firmware/nvidia/615.78.08/` | 85.3 MB, unmodified, with NVIDIA's licence |
 | The RTX powering off when idle | ✅ Runtime D3cold, CONFIRMED on the G14 | the GPU wakes for a client and goes back to D3cold |
-| Graphics modes | 🧪 The switcher reads the mode (Hybrid) and keeps the stack on the panel's GPU | switching waits for firmware writes, which stay off; no app on OpenBook yet ([`nvidia-graphics-modes.md`](nvidia-graphics-modes.md)) |
+| Graphics modes | 🧪 The switcher reads the mode (Hybrid) and keeps the stack on the panel's GPU; the OpenBook Graphics app shows it | switching waits for firmware writes, which stay off, and the app says so ([`nvidia-graphics-modes.md`](nvidia-graphics-modes.md)) |
 | A GPU health line in `dgpu-report` | ✅ NVRM/Xid counts and NVIDIA's runtime-D3 status | for diagnosis over adb |
 | Apps on the RTX (Vulkan, GL) | ❌ Not on OpenBook | needs NVK on NVIDIA's driver, which stays private to GoodBook (below) |
 | nouveau | ⏸ In `vendor_dlkm`, blocklisted, never loaded | owner decision 2026-10-27: NVIDIA's open driver only |
@@ -30,7 +30,11 @@ runs on NVIDIA's kernel driver is NVK built from the `nvk-rm` tree. The owner cl
 one private repository (ANAL-298, 2026-10-26), so it is not in OpenBook. Upstream NVK runs only on nouveau, which is
 off. When NVIDIA's driver binds, init still offers the OpenBook NVK package to apps (`ro.gfx.driver.0`). OpenBook
 installs no such package, so Android logs `updatable driver package 'org.openbook.nvk' not installed` and an app
-opted in keeps the Radeon driver. CONFIRMED in AOSP 17's `GraphicsEnvironment.java`.
+opted in keeps the Radeon driver. CONFIRMED in AOSP 17's `GraphicsEnvironment.java` (`chooseDriver` looks the
+package up with `MATCH_SYSTEM_ONLY`), and in QEMU (ANAL-323): a test game opted in through Android's own list, with
+`ro.gfx.driver.0=org.openbook.nvk`, logs exactly that and runs on the system driver. So the OpenBook Graphics app
+checks for the package the same way: without it, its Apps on the NVIDIA GPU screen says that this
+version has no NVIDIA driver for apps, offers no switch or choice, and writes none of Android's driver lists.
 
 ## Licences, and the owner's decisions
 
@@ -75,14 +79,14 @@ and redistributable with their source, and leaves the driver unloaded:
   entry or NVIDIA's licence file. It ignores the firmware paths inside `nvidia.ko`, which every image with the
   modules has.
 
-What has been shown, and what hasn't:
-
-| | Result | Evidence |
-|---|---|---|
-| The firmware is not in that build | `/vendor/firmware` has no `nvidia` folder and `LICENSES` has no NVIDIA licence (`dump.erofs` on the vendor image inside the live image, same sha256) | `evidence/2026-10-31-public-preview/without-nvidia/` |
-| That build boots | standard G14 QEMU check 58/58; the image's own `openbook-pc-setup-test` 0 failures, with the no-firmware cases | same |
-| The unbound RTX reaches D3cold on the G14 | **2026-10-16, older build, same `dgpu-pm` hook:** both functions `D3cold`/`suspended` with no driver bound | `evidence/2026-10-16-installer/g14-live/SUMMARY.md` |
-| The same on this build's kernel | **not measured yet.** QEMU has no NVIDIA GPU, and the laptop's adb was off on 2026-10-31. Next: the stick's "save logs" entry on the G14 records it | |
+What has been shown (as of 2026-10-31):
+- **The firmware is not in that build:** `dump.erofs` on its vendor image shows no `nvidia` folder in
+  `/vendor/firmware` and no NVIDIA licence in `LICENSES`.
+- **That build boots:** the standard G14 QEMU check passes, and the image's own `openbook-pc-setup-test` passes,
+  including the no-firmware cases.
+- **The unbound RTX reaches D3cold on the G14 with the same `dgpu-pm` hook:** both functions `D3cold`/`suspended`
+  with no driver bound, shown on 2026-10-16 with an older build. **Not yet measured on this build's kernel**, because
+  QEMU has no NVIDIA GPU. The stick's "save logs" entry on the G14 records it.
 
 ## The kernel side
 
@@ -108,10 +112,14 @@ All of it lives in `kernel/`, identical in both repositories.
 ## The vendor side
 
 - **Loading.** `vendor_dlkm` blocklists all three modules, so nothing NVIDIA's loads in early boot. Once the system
-  is up in Hybrid, `openbook-pc-setup dgpu-driver boot` loads `nvidia-drm`, which pulls in the other two, and waits
-  for the GPU to bind.
+  is up in a boot that started in Hybrid (`vendor.openbook.dgpu.boot_mode`, set once at early init from the
+  graphics-mode switcher; ANAL-322), `openbook-pc-setup dgpu-driver boot` loads `nvidia-drm`, which pulls in the other
+  two, and waits for the GPU to bind. It never runs in a boot that began in Eco, and after an Eco → Hybrid switch it
+  waits for the restart (`nvidia-graphics-modes.md` §4).
   - **Crash guard:** `persist.vendor.openbook.dgpu_driver` reads `loading` while a load runs. A boot that finds
     `loading` (the last load never finished), or a load that fails, leaves `failed`, and no later boot tries again.
+    An orderly restart or power-off is not a crash: init's `shutdown` trigger runs `dgpu-driver shutdown`, which
+    clears `loading` when NVIDIA's driver has the GPU (ANAL-322).
   - **Switch:** `setprop debug.openbook.dgpu_driver off` turns the boot load off, and `on` turns it back on (and
     clears `failed`). The choice is kept across reboots.
   - **Never with nouveau.** The lab helper's `nvidia-load` is refused while nouveau is loaded, and the other way round.
@@ -119,6 +127,7 @@ All of it lives in `kernel/`, identical in both repositories.
   (fine-grained runtime D3) and `nvidia-drm modeset=1`.
 - **Device nodes:** `/dev/nvidiactl`, `/dev/nvidia*` and `/dev/nvidia-modeset`, 0666 `system:graphics`, labelled
   `gpu_device` like `/dev/dri/*`. The rules are `ueventd.nvidia-open.rc`, installed as `/odm/etc/ueventd.rc`.
+  Gotcha: in ueventd a trailing `*` is a prefix match, so `/dev/nvidia[0-9]*` never matches `/dev/nvidia0`.
 - **SELinux for runtime D3:** NVIDIA's probe runs in a kernel thread and opens the GPU's PCI `config` file. The dGPU's
   sysfs files are labelled `sysfs_gpu`, and the kernel and `vendor_modprobe` may read them. Without this, runtime D3
   stays off without an error. CONFIRMED on the G14 (ANAL-299).
@@ -126,29 +135,26 @@ All of it lives in `kernel/`, identical in both repositories.
   and minigbm and the composer use that card's render node first (`aosp/patches/external/minigbm/0002`), so a second
   render node from `nvidia-drm` cannot take over composition.
 - **Graphics modes:** the `openbook-gfx-mode` vendor service (`device/anybook/common/gfx-mode/`) and its recovery
-  entries in the boot menu (`openbook-bootsync`). The OpenBook Graphics app's source is in the same folder, but only
-  the Ruby image installs it; adding it to OpenBook's product is a follow-up. Design and rollback rules:
+  entries in the boot menu (`openbook-bootsync`). The G14 product installs the OpenBook Graphics app from the same
+  folder (ANAL-323, `gfx-mode-app.mk`): a privileged `system_ext` app with the platform certificate, in its own
+  `openbook_graphics_app` domain, not stopped at first boot (`openbook-graphics-sysconfig.xml`). It shows the mode,
+  says when switching is off, and says that apps cannot use the RTX here. Design and rollback rules:
   [`nvidia-graphics-modes.md`](nvidia-graphics-modes.md).
 
 ## What was shown on the G14
 
-These results come from the Googlebook images, which run this exact kernel and these vendor files. CONFIRMED unless
-labelled.
+These results come from the Googlebook images, which run this exact kernel and these vendor files (2026-10-26 to
+2026-10-29). CONFIRMED unless labelled.
 
-- **2026-10-26, on R5 (ANAL-299):** NVIDIA's driver loads with kCFI enforced and binds the GB205. The GPU reaches
-  D3cold when idle, wakes for each Vulkan client, goes back to D3cold, and survives s2idle with the driver bound. Two
-  corrections came out of it: the runtime-D3 policy above, and the `/dev/nvidia*` ueventd rule (a trailing `*` is a
-  prefix match, so `/dev/nvidia[0-9]*` never matched `/dev/nvidia0`).
-- **2026-10-28, R7:** the driver loads at every start in Hybrid, the RTX stays in D3cold while idle, and Android's
-  `system_server` does not restart.
-- **2026-10-29, R8:** the `dgpu-report` health line prints on the hardware.
-- **OpenBook's own G14 image, 2026-10-30, in QEMU (no NVIDIA GPU):**
-  - the product's standard check passes 58/58, with no new SELinux denial;
-  - the new `scripts/installer/expect-g14-nvidia.json` passes 23/23: the modules match the kernel, are blocklisted
-    and are not loaded; the firmware hashes match their pins; the device-node rules are installed; the switcher
-    stays in Hybrid with firmware writes off.
-
-  Evidence: `evidence/2026-10-30-shared-nvidia-platform/`.
+- NVIDIA's driver loads with kCFI enforced and binds the GB205 (ANAL-299). It loads at every start in Hybrid, and
+  Android's `system_server` does not restart.
+- The GPU reaches D3cold when idle, wakes for each Vulkan client, goes back to D3cold, and survives s2idle with the
+  driver bound (ANAL-299).
+- The `dgpu-report` health line prints on the hardware.
+- **OpenBook's own G14 image, in QEMU (no NVIDIA GPU):** the product's standard check passes with no new SELinux
+  denial, and `scripts/installer/expect-g14-nvidia.json` (23 checks) passes: the modules match the kernel, are
+  blocklisted and are not loaded; the firmware hashes match their pins; the device-node rules are installed; the
+  switcher stays in Hybrid with firmware writes off.
 - **Not shown:** S0i3 (deep sleep) with the driver bound, battery life over a day, and display through `nvidia-drm`.
 - **HYPOTHESIS:** OpenBook's own system image on the laptop behaves the same, since the kernel and vendor files are
   identical. It has not been installed there.
@@ -180,6 +186,5 @@ and `scripts/nvidia-open-variant-check.sh`.
   `git format-patch` / `git am`, and the port is recorded in both pull requests.
 - **GoodBook only:** the Ruby image pipeline, OpenBook Update, the Google firmware-tool guards, and NVK on NVIDIA's
   driver with its package (`mesa/patches/nvk-rm`, `nv-rm`).
-- **The 2026-10-30 port** (ANAL-319) brought OpenBook up to GoodBook `792d203`. First the pre-split work from
-  OpenBook's own integration commit `d7a170fa`, then GoodBook's 26 later commits on these paths, each with a
-  "Ported from GoodBook" line.
+- **Ported commits** carry a "Ported from GoodBook" line. ANAL-319 (2026-10-30) brought OpenBook up to GoodBook
+  `792d203`.

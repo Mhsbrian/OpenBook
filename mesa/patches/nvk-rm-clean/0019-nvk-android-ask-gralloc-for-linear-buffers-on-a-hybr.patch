@@ -1,0 +1,116 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Tue, 27 Oct 2026 21:18:00 -0400
+Subject: [PATCH 19/23] nvk/android: ask gralloc for linear buffers on a hybrid
+ laptop
+
+On the G14 in Hybrid the system gralloc is minigbm on amdgpu. Its tiled
+layouts are the Radeon's and come without a DRM format modifier, so NVK
+refuses every window buffer ("gralloc reports no DRM format modifier, so
+the buffer's layout is unknown", VK_ERROR_INVALID_EXTERNAL_HANDLE):
+Android's swapchain creation fails, ANGLE cannot acquire an image and
+HWUI aborts in eglSetDamageRegionKHR.
+
+minigbm allocates a linear buffer in system memory, reported as
+DRM_FORMAT_MOD_LINEAR, whenever a CPU usage is requested. Android 17's
+swapchain takes its gralloc usage from VkAndroidHardwareBufferUsageANDROID,
+and exported AHBs use the same vk_image_usage_to_ahb_usage(), so a
+driver-set extra usage (vk_android_extra_ahb_usage) covers both. NVK sets
+AHARDWAREBUFFER_USAGE_CPU_READ_RARELY on Android; NVK_AHB_LINEAR=0
+(property debug.mesa.nvk.ahb.linear) turns it off. (ANAL-247)
+---
+ src/nouveau/vulkan/nvk_physical_device.c | 20 ++++++++++++++++++++
+ src/vulkan/runtime/vk_android.c          | 10 ++++++----
+ src/vulkan/runtime/vk_android.h          |  6 ++++++
+ 3 files changed, 32 insertions(+), 4 deletions(-)
+
+diff --git a/src/nouveau/vulkan/nvk_physical_device.c b/src/nouveau/vulkan/nvk_physical_device.c
+index a7339d9..a8b08e6 100644
+--- a/src/nouveau/vulkan/nvk_physical_device.c
++++ b/src/nouveau/vulkan/nvk_physical_device.c
+@@ -25,6 +25,10 @@
+ #include "util/os_misc.h"
+ 
+ #include "vk_android.h"
++
++#if defined(VK_USE_PLATFORM_ANDROID_KHR) && ANDROID_API_LEVEL >= 26
++#include <android/hardware_buffer.h>
++#endif
+ #include "vk_device.h"
+ #include "vk_drm_syncobj.h"
+ #include "vk_physical_device.h"
+@@ -1660,6 +1664,22 @@ nvk_create_drm_physical_device(struct vk_instance *_instance,
+    pdev->info = nvkmd->dev_info;
+    pdev->debug_flags = instance->debug_flags;
+ 
++#if defined(VK_USE_PLATFORM_ANDROID_KHR) && ANDROID_API_LEVEL >= 26
++   /* On a hybrid laptop the system's gralloc allocates for the other GPU
++    * (minigbm on amdgpu): its tiled layouts are that GPU's and come without a
++    * DRM format modifier, which NVK cannot render into or sample, so window
++    * buffers and AHBs fail to import (nvk_android_check_gralloc_buffer).
++    * minigbm allocates a linear buffer in system memory, with
++    * DRM_FORMAT_MOD_LINEAR, whenever a CPU usage is requested, so ask for
++    * CPU_READ_RARELY with every buffer NVK uses: Android's swapchain takes its
++    * gralloc usage from VkAndroidHardwareBufferUsageANDROID, and exported
++    * AHBs are allocated with the same usage.  NVK_AHB_LINEAR=0 (on Android
++    * also the property debug.mesa.nvk.ahb.linear) turns it off.
++    */
++   if (debug_get_bool_option("NVK_AHB_LINEAR", true))
++      vk_android_extra_ahb_usage = AHARDWAREBUFFER_USAGE_CPU_READ_RARELY;
++#endif
++
+    pdev->nak = nak_compiler_create(&pdev->info);
+    if (pdev->nak == NULL) {
+       result = vk_error(instance, VK_ERROR_OUT_OF_HOST_MEMORY);
+diff --git a/src/vulkan/runtime/vk_android.c b/src/vulkan/runtime/vk_android.c
+index 7f8ac1e..c7bda29 100644
+--- a/src/vulkan/runtime/vk_android.c
++++ b/src/vulkan/runtime/vk_android.c
+@@ -744,6 +744,8 @@ vk_image_format_to_ahb_format(VkFormat vk_format)
+    }
+ }
+ 
++uint64_t vk_android_extra_ahb_usage = 0;
++
+ /* Construct ahw usage mask from image usage bits, see
+  * 'AHardwareBuffer Usage Equivalence' in Vulkan spec.
+  */
+@@ -751,7 +753,7 @@ uint64_t
+ vk_image_usage_to_ahb_usage(const VkImageCreateFlags2KHR vk_create,
+                             const VkImageUsageFlags2KHR vk_usage)
+ {
+-   uint64_t ahb_usage = 0;
++   uint64_t ahb_usage = vk_android_extra_ahb_usage;
+    if (vk_usage & (VK_IMAGE_USAGE_SAMPLED_BIT |
+                    VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT))
+       ahb_usage |= AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
+@@ -769,9 +771,9 @@ vk_image_usage_to_ahb_usage(const VkImageCreateFlags2KHR vk_create,
+    if (vk_create & VK_IMAGE_CREATE_PROTECTED_BIT)
+       ahb_usage |= AHARDWAREBUFFER_USAGE_PROTECTED_CONTENT;
+ 
+-   /* No usage bits set - set at least one GPU usage. */
+-   if (ahb_usage == 0)
+-      ahb_usage = AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
++   /* No GPU usage bits set - set at least one GPU usage. */
++   if (!(ahb_usage & ~vk_android_extra_ahb_usage))
++      ahb_usage |= AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE;
+ 
+    return ahb_usage;
+ }
+diff --git a/src/vulkan/runtime/vk_android.h b/src/vulkan/runtime/vk_android.h
+index 8dc990a..1b883d6 100644
+--- a/src/vulkan/runtime/vk_android.h
++++ b/src/vulkan/runtime/vk_android.h
+@@ -112,6 +112,12 @@ uint32_t vk_image_format_to_ahb_format(VkFormat vk_format);
+ uint64_t vk_image_usage_to_ahb_usage(const VkImageCreateFlags2KHR vk_create,
+                                      const VkImageUsageFlags2KHR vk_usage);
+ 
++/* Extra AHardwareBuffer usage OR-ed into every vk_image_usage_to_ahb_usage()
++ * result: what the driver asks of the gralloc buffers it renders into and
++ * samples from (swapchain images, AHB probes and exports).  0 by default.
++ */
++extern uint64_t vk_android_extra_ahb_usage;
++
+ struct AHardwareBuffer *vk_alloc_ahardware_buffer(
+    const VkMemoryAllocateInfo *pAllocateInfo);
+ 

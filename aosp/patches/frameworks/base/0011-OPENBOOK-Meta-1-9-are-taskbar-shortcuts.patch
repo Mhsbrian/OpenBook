@@ -1,0 +1,53 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Mon, 2 Nov 2026 21:30:00 +0000
+Subject: [PATCH] OPENBOOK: Meta+1..9 are taskbar shortcuts
+
+Meta+N opens the Nth app on the taskbar, brings its window forward, or
+minimizes the window in front, as on other desktop systems. The keys are
+system shortcuts, so they work while an app has keyboard focus, and the
+system reports each press once: a held key does not repeat the gesture.
+
+The shortcuts report one OpenBook gesture type, 10001, with the digit's
+key code. OpenBook Launcher handles it through MANAGE_KEY_GESTURES, which
+the recents role grants. Without a handler the keys do nothing.
+An app that captures the keyboard keeps Meta+N.
+---
+ .../server/input/InputGestureManager.java       | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/services/core/java/com/android/server/input/InputGestureManager.java b/services/core/java/com/android/server/input/InputGestureManager.java
+index 2ba2745..d9e046d 100644
+--- a/services/core/java/com/android/server/input/InputGestureManager.java
++++ b/services/core/java/com/android/server/input/InputGestureManager.java
+@@ -65,6 +65,14 @@ final class InputGestureManager {
+             KeyEvent.META_CTRL_ON | KeyEvent.META_ALT_ON | KeyEvent.META_SHIFT_ON
+                     | KeyEvent.META_META_ON;
+ 
++    /**
++     * OPENBOOK: Meta+1…9 act on the Nth app on the taskbar: open it, bring its window forward,
++     * or minimize the window in front. OpenBook Launcher handles this gesture type
++     * (TaskbarAppShortcuts) and reads N from the digit's key code. OpenBook's own types start
++     * at 10001, well clear of AOSP's (they end at 90 in android17).
++     */
++    static final int KEY_GESTURE_TYPE_OPENBOOK_TASKBAR_APP = 10001;
++
+     private final Context mContext;
+ 
+     private static final Object mGestureLock = new Object();
+@@ -402,6 +410,15 @@ final class InputGestureManager {
+                             KeyGestureEvent.KEY_GESTURE_TYPE_LAUNCH_CONTEXTUAL_CURSOR,
+                             /* allowCaptureByFocusedWindow= */ true));
+         }
++        // OPENBOOK: Meta+1…9, the taskbar's apps. An app that captures the keyboard keeps them.
++        for (int keycode = KeyEvent.KEYCODE_1; keycode <= KeyEvent.KEYCODE_9; keycode++) {
++            systemShortcuts.add(
++                    createKeyGesture(
++                            keycode,
++                            KeyEvent.META_META_ON,
++                            KEY_GESTURE_TYPE_OPENBOOK_TASKBAR_APP,
++                            /* allowCaptureByFocusedWindow= */ true));
++        }
+         synchronized (mGestureLock) {
+             for (InputGestureData systemShortcut : systemShortcuts) {
+                 mSystemShortcuts.put(systemShortcut.getTrigger(), systemShortcut);

@@ -11,7 +11,7 @@
 # blob per frame. The bug fixed by aosp/patches/external/drm_hwcomposer/0001: a new CTM blob and a plane reset with
 # every commit, so every flip was a full update that landed a vblank late; present-to-present 16 ms.
 #
-# usage: g14-flip-check.sh [--scroll] [ADDR[:PORT]] [SECONDS]      default 192.0.2.11:5555 (OPENBOOK_G14_ADDR), 8 s
+# usage: g14-flip-check.sh [--scroll] [ADDR[:PORT]] [SECONDS]      default $OPENBOOK_G14_ADDR (port 5555), 8 s
 #   --scroll  make the animation itself: open Settings, scroll its list with `input swipe` for the whole measurement,
 #             then go back home (changes what is on the laptop's screen for about SECONDS + 5 s)
 # env:   ADB (default <data dir>/android-sdk/platform-tools/adb), ANDROID_ADB_SERVER_PORT (default 5233: a private server)
@@ -20,7 +20,7 @@ A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}
 ADB=${ADB:-$A/android-sdk/platform-tools/adb}
 export ANDROID_ADB_SERVER_PORT=${ANDROID_ADB_SERVER_PORT:-5233}
 SCROLL=0; [ "${1:-}" = --scroll ] && { SCROLL=1; shift; }
-D=${1:-${OPENBOOK_G14_ADDR:-192.0.2.11}}; [[ $D == *:* ]] || D=$D:5555
+D=${1:-${OPENBOOK_G14_ADDR:?give the laptop ADDR[:PORT] or set OPENBOOK_G14_ADDR}}; [[ $D == *:* ]] || D=$D:5555
 S=${2:-8}
 case $S in ''|*[!0-9]*) echo "SECONDS must be a number" >&2; exit 2 ;; esac
 timeout 20 "$ADB" connect "$D" >/dev/null

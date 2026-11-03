@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # Render the README / marketing art in assets/readme/ from assets/src/readme-art.html with headless Chromium.
-# Inputs: the committed installer design renders (docs/installer-design/png/) and a real screenshot of our build
-# (evidence/2026-10-16-desktop/desktop/screen-windows.png). Fonts (Roboto Flex OFL-1.1, Material Symbols Apache-2.0)
-# are fetched once into the host data dir and linked into assets/src/fonts (gitignored); they are never committed.
+# Inputs come from the maintainers' evidence store, never from the repository (CONTRIBUTING.md): the installer design
+# renders (design/installer-design/png/) and real captures of our build (repo-evidence/, the archive of the old
+# evidence/ folder). They are linked into assets/src/inputs (gitignored). Fonts (Roboto Flex OFL-1.1, Material Symbols
+# Apache-2.0) are fetched once into the host data dir and linked into assets/src/fonts (gitignored); never committed.
 #
 # usage: render-readme-assets.sh            needs chromium (or google-chrome) and ImageMagick (magick)
+# Env: OPENBOOK_EVIDENCE (default ~/anybook/evidence/openbook)
 set -euo pipefail
 R=$(cd "$(dirname "$0")/../.." && pwd); S=$R/assets/src; O=$R/assets/readme
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}; F=$A/installer/fonts
+E=${OPENBOOK_EVIDENCE:-$A/evidence/openbook}; EV=$E/repo-evidence; IN=$S/inputs
 CHROME=${CHROME:-$(command -v chromium || command -v google-chrome || command -v chrome)}
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$F" "$O/icons"
@@ -16,6 +19,10 @@ mkdir -p "$F" "$O/icons"
 [ -s "$F/MaterialSymbolsRounded.ttf" ] || curl -sSLf -o "$F/MaterialSymbolsRounded.ttf" \
   "https://github.com/google/material-design-icons/raw/master/variablefont/MaterialSymbolsRounded%5BFILL,GRAD,opsz,wght%5D.ttf"
 ln -sfn "$F" "$S/fonts"
+rm -rf "$IN"; mkdir -p "$IN"
+for f in "$E"/design/installer-design/png/*.png; do ln -s "$f" "$IN/"; done
+ln -s "$EV/2026-10-16-desktop/desktop/screen-windows.png" "$IN/desktop-windows.png"
+for f in "$IN"/*; do [ -e "$f" ] || { echo "missing input: $(readlink "$f") (OPENBOOK_EVIDENCE=$E)" >&2; exit 1; }; done
 
 shot(){ # out query width height scale
   "$CHROME" --headless=new --disable-gpu --no-sandbox --hide-scrollbars --allow-file-access-from-files \
@@ -40,10 +47,10 @@ for g in desktop_windows memory apps usb verified_user science developer_board s
   shot "$O/icons/$g.png" "?art=icon&glyph=$g" 96 96 2
 done
 magick mogrify -strip "$R/assets/brand/openbook-icon-512.png" "$O"/icons/*.png
-# Quire in the README: real captures from evidence/ (QEMU runs of the G14 image, 2026-10-19), cropped to the note.
-quire(){ magick "$R/$1" -crop "$2" +repage -resize "$3" -strip -interlace JPEG -sampling-factor 4:2:0 -quality 86 "$O/$4"; }
-quire evidence/2026-10-19-quire-q6/vm/prompt-dark.png                 600x600+98+300   720x720 quire-ask.jpg
-quire evidence/2026-10-19-quire-g14/quire-vm/quire/control-mirror.png 1160x1160+220+30 720x720 quire-mirror.jpg
-quire evidence/2026-10-19-quire-q6/vm/glass-destructive-question.png  700x510+0+40     960x700 quire-confirm.jpg
-quire evidence/2026-10-19-quire-q6/vm/settings-changes-undo.png       800x583+0+240    960x700 quire-undo.jpg
+# Quire in the README: real captures from the evidence store (QEMU runs of the G14 image, 2026-10-19), cropped to the note.
+quire(){ magick "$EV/$1" -crop "$2" +repage -resize "$3" -strip -interlace JPEG -sampling-factor 4:2:0 -quality 86 "$O/$4"; }
+quire 2026-10-19-quire-q6/vm/prompt-dark.png                          600x600+98+300   720x720 quire-ask.jpg
+quire 2026-10-19-quire-g14/quire-vm/quire/control-mirror.png          1160x1160+220+30 720x720 quire-mirror.jpg
+quire 2026-10-19-quire-q6/vm/glass-destructive-question.png           700x510+0+40     960x700 quire-confirm.jpg
+quire 2026-10-19-quire-q6/vm/settings-changes-undo.png                800x583+0+240    960x700 quire-undo.jpg
 ls -l "$O" "$O/icons" "$R/assets/brand"

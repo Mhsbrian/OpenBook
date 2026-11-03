@@ -1,0 +1,205 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sun, 1 Nov 2026 00:00:00 +0000
+Subject: [PATCH 25/26] nvk: invalidate shader caches before running newly
+ uploaded programs
+
+Clean-room item H1 (SPEC.md): shader-heap reuse must never run stale cached
+program bytes. NVK returns a destroyed shader's heap range to the next upload
+and packs new programs next to existing ones, so the instruction caches may
+hold the old program's bytes, or bytes fetched ahead of a neighbour before
+the upload, for a new program's addresses.
+
+nvk_heap_upload() now counts uploads (nvk_heap::upload_seq). Before a queue
+with the 3D or compute engine runs a submission, and after it has waited for
+the upload queue, it compares the shader heap's count with the last one it
+saw and, if it changed, pushes INVALIDATE_SHADER_CACHES_NO_WFI with
+INSTRUCTION and CONSTANT on the 3D and compute classes. The cost is one
+small push per queue after shader creation; steady-state submissions are
+unchanged.
+
+The _NO_WFI form is enough: a program created after work was recorded cannot
+be used by it, and a destroyed program's last use has completed before its
+range is freed (Vulkan's destruction rules for pipelines and shaders).
+
+Public sources: Mesa class headers cla097.h, cla0c0.h, clc597.h, clcd97.h
+(INVALIDATE_SHADER_CACHES and _NO_WFI, fields INSTRUCTION and CONSTANT);
+Mesa 26.2.5 src/gallium/drivers/nouveau/nvc0/nvc0_program.c (invalidates
+after every upload), src/nouveau/vulkan/nvk_heap.c (range reuse, upload
+queue ordering), nvk_shader.c (nvk_shader_upload, heap free on destroy),
+nvk_queue.c (submit order), nvk_cmd_buffer.c (existing _NO_WFI use); the
+Vulkan specification (vkDestroyPipeline, vkDestroyShaderEXT host
+synchronization and in-use rules).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/nvk_heap.c  |  7 ++++
+ src/nouveau/vulkan/nvk_heap.h  | 13 ++++++++
+ src/nouveau/vulkan/nvk_queue.c | 58 ++++++++++++++++++++++++++++++++++
+ src/nouveau/vulkan/nvk_queue.h |  7 ++++
+ 4 files changed, 85 insertions(+)
+
+diff --git a/src/nouveau/vulkan/nvk_heap.c b/src/nouveau/vulkan/nvk_heap.c
+index da31183..afd79e4 100644
+--- a/src/nouveau/vulkan/nvk_heap.c
++++ b/src/nouveau/vulkan/nvk_heap.c
+@@ -27,6 +27,7 @@ nvk_heap_init(struct nvk_device *dev, struct nvk_heap *heap,
+    assert(overalloc < NVK_MEM_ARENA_MIN_SIZE);
+    heap->overalloc = overalloc;
+    util_vma_heap_init(&heap->heap, 0, 0);
++   heap->upload_seq = 0;
+ 
+    return VK_SUCCESS;
+ }
+@@ -151,6 +152,12 @@ nvk_heap_upload(struct nvk_device *dev, struct nvk_heap *heap,
+       }
+    }
+ 
++   /* The range may have held other bytes before (a freed allocation) or been
++    * fetched ahead of a neighbouring program. Queues invalidate their shader
++    * caches before running work after this upload (nvk_queue.c, H1).
++    */
++   p_atomic_inc(&heap->upload_seq);
++
+    return VK_SUCCESS;
+ }
+ 
+diff --git a/src/nouveau/vulkan/nvk_heap.h b/src/nouveau/vulkan/nvk_heap.h
+index 1107a00..b53224b 100644
+--- a/src/nouveau/vulkan/nvk_heap.h
++++ b/src/nouveau/vulkan/nvk_heap.h
+@@ -7,6 +7,7 @@
+ 
+ #include "nvk_mem_arena.h"
+ 
++#include "util/u_atomic.h"
+ #include "util/vma.h"
+ 
+ struct nvk_device;
+@@ -15,6 +16,12 @@ struct nvk_heap {
+    struct nvk_mem_arena arena;
+    uint32_t overalloc;
+    struct util_vma_heap heap;
++
++   /* Number of successful nvk_heap_upload() calls (atomic). For the shader
++    * heap it tells a queue that program bytes changed since it last
++    * invalidated its shader caches (nvk_queue.c, clean-room item H1).
++    */
++   uint64_t upload_seq;
+ };
+ 
+ VkResult nvk_heap_init(struct nvk_device *dev, struct nvk_heap *heap,
+@@ -41,6 +48,12 @@ nvk_heap_flush_maps(struct nvk_device *dev, struct nvk_heap *heap)
+    nvk_mem_arena_flush_map(dev, &heap->arena);
+ }
+ 
++static inline uint64_t
++nvk_heap_upload_seq(struct nvk_heap *heap)
++{
++   return p_atomic_read(&heap->upload_seq);
++}
++
+ static inline uint64_t
+ nvk_heap_contiguous_base_address(struct nvk_heap *heap)
+ {
+diff --git a/src/nouveau/vulkan/nvk_queue.c b/src/nouveau/vulkan/nvk_queue.c
+index 4061705..87f0e90 100644
+--- a/src/nouveau/vulkan/nvk_queue.c
++++ b/src/nouveau/vulkan/nvk_queue.c
+@@ -14,6 +14,7 @@
+ #include "nv_push_cl9039.h"
+ #include "nv_push_cl9097.h"
+ #include "nv_push_cl90b5.h"
++#include "nv_push_cla097.h"
+ #include "nv_push_cla0c0.h"
+ #include "cla1c0.h"
+ #include "nv_push_clc3c0.h"
+@@ -168,6 +169,59 @@ nvk_queue_state_update(struct nvk_queue *queue,
+    return nvk_queue_push(queue, p);
+ }
+ 
++/* Clean-room item H1. NVK hands the heap range of a destroyed shader to the
++ * next upload, and new programs are packed next to existing ones, so the
++ * GPU's instruction caches can hold other bytes for a new program's addresses:
++ * the previous program's, or bytes fetched ahead of a neighbouring program
++ * before this upload. Nothing else tells the GPU that the bytes changed.
++ *
++ * So once per queue after any shader-heap upload, before the queue runs more
++ * work, invalidate the shader instruction caches (INVALIDATE_SHADER_CACHES
++ * INSTRUCTION), and the constant caches for the constant data uploaded with
++ * each program, on the 3D and compute classes as nvc0 does after its uploads
++ * (nvc0_program.c). This runs after the upload-queue wait, so the new bytes
++ * are in memory first. The _NO_WFI form is enough: work already running
++ * cannot use a program created after it was recorded, and a destroyed
++ * program's last use has completed (Vulkan requires it before destruction).
++ */
++static VkResult
++nvk_queue_invalidate_shader_caches(struct nvk_queue *queue)
++{
++   struct nvk_device *dev = nvk_queue_device(queue);
++
++   if (!(queue->engines & (NVKMD_ENGINE_3D | NVKMD_ENGINE_COMPUTE)))
++      return VK_SUCCESS;
++
++   const uint64_t upload_seq = nvk_heap_upload_seq(&dev->shader_heap);
++   if (queue->state.shader_heap.upload_seq == upload_seq)
++      return VK_SUCCESS;
++
++   uint32_t push_data[4];
++   struct nv_push push;
++   nv_push_init(&push, push_data, ARRAY_SIZE(push_data),
++                nvk_queue_subchannels_from_engines(queue->engines));
++   struct nv_push *p = &push;
++
++   if (queue->engines & NVKMD_ENGINE_3D) {
++      P_IMMD(p, NVA097, INVALIDATE_SHADER_CACHES_NO_WFI, {
++         .instruction = INSTRUCTION_TRUE,
++         .constant = CONSTANT_TRUE,
++      });
++   }
++   if (queue->engines & NVKMD_ENGINE_COMPUTE) {
++      P_IMMD(p, NVA0C0, INVALIDATE_SHADER_CACHES_NO_WFI, {
++         .instruction = INSTRUCTION_TRUE,
++         .constant = CONSTANT_TRUE,
++      });
++   }
++
++   VkResult result = nvk_queue_push(queue, p);
++   if (result == VK_SUCCESS)
++      queue->state.shader_heap.upload_seq = upload_seq;
++
++   return result;
++}
++
+ static VkResult
+ nvk_queue_submit_bind(struct nvk_queue *queue,
+                       struct vk_queue_submit *submit)
+@@ -237,6 +291,10 @@ nvk_queue_submit_exec(struct nvk_queue *queue,
+          if (result != VK_SUCCESS)
+             goto fail;
+       }
++
++      result = nvk_queue_invalidate_shader_caches(queue);
++      if (result != VK_SUCCESS)
++         goto fail;
+    }
+ 
+    result = nvkmd_ctx_wait(queue->exec_ctx, &queue->vk.base,
+diff --git a/src/nouveau/vulkan/nvk_queue.h b/src/nouveau/vulkan/nvk_queue.h
+index 1e72efc..f67c5c3 100644
+--- a/src/nouveau/vulkan/nvk_queue.h
++++ b/src/nouveau/vulkan/nvk_queue.h
+@@ -32,6 +32,13 @@ struct nvk_queue_state {
+       uint32_t bytes_per_warp;
+       uint32_t bytes_per_tpc;
+    } slm;
++
++   struct {
++      /* nvk_heap_upload_seq() of the shader heap when this queue last
++       * invalidated its shader caches.
++       */
++      uint64_t upload_seq;
++   } shader_heap;
+ };
+ 
+ struct nvk_queue {

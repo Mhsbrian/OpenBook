@@ -1,0 +1,113 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Mon, 2 Nov 2026 00:00:00 +0000
+Subject: [PATCH] OPENBOOK: Vulkan: tell NVK apart from NVIDIA's closed-source
+ driver
+
+NVK, Mesa's Vulkan driver for NVIDIA GPUs, reports NVIDIA's vendor ID
+(0x10de). ANGLE took every such device for NVIDIA's closed-source driver: it read
+NVK's Mesa version (26.2.5) with NVIDIA's version parser, so NVK looked
+like an NVIDIA driver older than release 421 and got every workaround
+for those releases.
+
+Identify NVK by VkDriverId (VK_DRIVER_ID_MESA_NVK), as ANGLE already
+does for PanVK, and read its version as Mesa's, as for RADV.
+
+- The workarounds tied to NVIDIA driver versions (clampPointSize,
+  avoidOpSelectWithMismatchingRelaxedPrecision, the SPIR-V 1.4 gate,
+  externallySynchronizePipelineCacheAccess,
+  forceWaitForSubmissionToCompleteForQueryResult) and
+  skipPipelineCacheSerialization (a Windows cache-size issue) no longer
+  apply to NVK.
+- The conditions about NVIDIA hardware stay as they are for NVK: the
+  immediate-mode classification, clampFragDepth,
+  doubleDepthBiasConstantFactor, allowGenerateMipmapWithCompute,
+  preferGlobalPipelineCache, and the two features turned off on NVIDIA
+  (depth/stencil resolve through an attachment, dynamic rendering local
+  read).
+- Graphics pipeline libraries stay off for NVK, as they were (by the
+  misread version), until ANGLE is measured with them there.
+
+Every other GPU is unaffected: each change is behind isNvidia.
+
+OpenBook (ANAL-327, docs/nvk-openbook.md): the ANGLE in the OpenBook
+NVK driver package, and the system ANGLE, which runs on the Radeon.
+Written from ANGLE's own source at this pin.
+---
+ src/libANGLE/renderer/vulkan/vk_renderer.cpp | 34 ++++++++++++++------
+ 1 file changed, 25 insertions(+), 9 deletions(-)
+
+diff --git a/src/libANGLE/renderer/vulkan/vk_renderer.cpp b/src/libANGLE/renderer/vulkan/vk_renderer.cpp
+index 38dddb905f..507e8ea4ec 100644
+--- a/src/libANGLE/renderer/vulkan/vk_renderer.cpp
++++ b/src/libANGLE/renderer/vulkan/vk_renderer.cpp
+@@ -212,2 +212,8 @@ bool IsMesaPanVK(uint32_t driverId)
+ 
++bool IsMesaNVK(uint32_t driverId)
++{
++    // NVK, Mesa's Vulkan driver for NVIDIA GPUs, reports NVIDIA's vendor ID: rely on VkDriverId alone, as for PanVK.
++    return driverId == VK_DRIVER_ID_MESA_NVK;
++}
++
+ bool IsQualcommOpenSource(uint32_t vendorId, uint32_t driverId, const char *deviceName)
+@@ -5402,2 +5408,8 @@ void Renderer::initFeatures(const vk::ExtensionNameList &deviceExtensionNames,
+ 
++    // NVK runs on the same NVIDIA GPUs as NVIDIA's own Vulkan implementation and reports the same vendor ID, but its
++    // driverVersion is Mesa's, and it has none of that implementation's version-specific bugs. The workarounds below
++    // that are tied to NVIDIA driver versions use isNvidiaProprietary; those about NVIDIA hardware keep isNvidia.
++    const bool isMesaNVK           = isNvidia && IsMesaNVK(mDriverProperties.driverID);
++    const bool isNvidiaProprietary = isNvidia && !isMesaNVK;
++
+     angle::VersionInfo driverVersion = {};
+@@ -5412,3 +5424,3 @@ void Renderer::initFeatures(const vk::ExtensionNameList &deviceExtensionNames,
+     }
+-    else if (isNvidia)
++    else if (isNvidiaProprietary)
+     {
+@@ -5417,3 +5429,3 @@ void Renderer::initFeatures(const vk::ExtensionNameList &deviceExtensionNames,
+     }
+-    else if (IsLinux() && (isIntel || isRADV))
++    else if (IsLinux() && (isIntel || isRADV || isMesaNVK))
+     {
+@@ -5522,3 +5534,3 @@ void Renderer::initFeatures(const vk::ExtensionNameList &deviceExtensionNames,
+         &mFeatures, clampPointSize,
+-        isNvidia && driverVersion < angle::VersionTriple(IsWindows() ? 430 : 421, 0, 0));
++        isNvidiaProprietary && driverVersion < angle::VersionTriple(IsWindows() ? 430 : 421, 0, 0));
+ 
+@@ -5526,3 +5538,3 @@ void Renderer::initFeatures(const vk::ExtensionNameList &deviceExtensionNames,
+     ANGLE_FEATURE_CONDITION(&mFeatures, avoidOpSelectWithMismatchingRelaxedPrecision,
+-                            isNvidia && (driverVersion >= angle::VersionTriple(535, 0, 0) &&
++                            isNvidiaProprietary && (driverVersion >= angle::VersionTriple(535, 0, 0) &&
+                                          driverVersion < angle::VersionTriple(552, 0, 0)));
+@@ -6157,3 +6169,3 @@ void Renderer::initFeatures(const vk::ExtensionNameList &deviceExtensionNames,
+         ExtensionFound(VK_KHR_SPIRV_1_4_EXTENSION_NAME, deviceExtensionNames) &&
+-            !(isNvidia && driverVersion < angle::VersionTriple(525, 0, 0)) &&
++            !(isNvidiaProprietary && driverVersion < angle::VersionTriple(525, 0, 0)) &&
+             !(isQualcommProprietary && driverVersion < angle::VersionTriple(512, 829, 0)) &&
+@@ -6362,3 +6374,4 @@ void Renderer::initFeatures(const vk::ExtensionNameList &deviceExtensionNames,
+                             mGraphicsPipelineLibraryFeatures.graphicsPipelineLibrary == VK_TRUE &&
+-                                (!isNvidia || driverVersion >= angle::VersionTriple(531, 0, 0)) &&
++                                (!isNvidia || (isNvidiaProprietary &&
++                                               driverVersion >= angle::VersionTriple(531, 0, 0))) &&
+                                 !isRADV && !isARMProprietary && !isPowerVR);
+@@ -6400,3 +6413,6 @@ void Renderer::initFeatures(const vk::ExtensionNameList &deviceExtensionNames,
+     // which can be huge. zlib take long time to compress it.
+-    ANGLE_FEATURE_CONDITION(&mFeatures, skipPipelineCacheSerialization, isSwiftShader || isNvidia);
++    // NVK's pipeline cache is Mesa's common one (vk_pipeline_cache, an entry per compiled shader): keep serializing it,
++    // so the blob cache keeps compiled pipelines across app starts.
++    ANGLE_FEATURE_CONDITION(&mFeatures, skipPipelineCacheSerialization,
++                            isSwiftShader || isNvidiaProprietary);
+ 
+@@ -6449,3 +6465,3 @@ void Renderer::initFeatures(const vk::ExtensionNameList &deviceExtensionNames,
+                                 mFeatures.preferMonolithicPipelinesOverLibraries.enabled ||
+-                                (isNvidia && driverVersion < angle::VersionTriple(441, 0, 0)));
++                                (isNvidiaProprietary && driverVersion < angle::VersionTriple(441, 0, 0)));
+ 
+@@ -6581,3 +6597,3 @@ void Renderer::initFeatures(const vk::ExtensionNameList &deviceExtensionNames,
+         &mFeatures, forceWaitForSubmissionToCompleteForQueryResult,
+-        isARMProprietary || (isNvidia && driverVersion < angle::VersionTriple(470, 0, 0)));
++        isARMProprietary || (isNvidiaProprietary && driverVersion < angle::VersionTriple(470, 0, 0)));
+ 
+-- 
+2.56.0
+

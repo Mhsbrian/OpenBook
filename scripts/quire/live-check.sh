@@ -9,11 +9,11 @@
 #      bridge allows a file write and one where it refuses it. Skipped with QUIRE_NO_PROMPTS=1.
 #   5. optional: one turn with an ACP agent, QUIRE_ACP_AGENT=<id> (uses that agent's account).
 #
-# usage: scripts/quire/live-check.sh [EVIDENCE_DIR]    (default evidence/<today>-quire)
+# usage: scripts/quire/live-check.sh [EVIDENCE_DIR]    (default $OPENBOOK_EVIDENCE/<today>-quire, ~/anybook/evidence/openbook)
 # Writes only to EVIDENCE_DIR and a temporary folder. Agent output is redacted of $HOME.
 set -euo pipefail
 R=$(cd "$(dirname "$0")/../.." && pwd)
-OUT=${1:-$R/evidence/$(date -u +%F)-quire}
+OUT=${1:-${OPENBOOK_EVIDENCE:-$HOME/anybook/evidence/openbook}/$(date -u +%F)-quire}
 MODEL=${QUIRE_CLAUDE_MODEL:-haiku}
 mkdir -p "$OUT"; OUT=$(cd "$OUT" && pwd)
 TMP=$(mktemp -d)

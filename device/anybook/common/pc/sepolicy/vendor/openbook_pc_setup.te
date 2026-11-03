@@ -47,3 +47,8 @@ allow openbook_pc_setup kernel:system syslog_read;
 # has the modules but not the firmware) never tries. Listing and stat only; the kernel alone reads firmware files.
 allow openbook_pc_setup openbook_vendor_fw_file:dir r_dir_perms;
 allow openbook_pc_setup openbook_vendor_fw_file:file getattr;
+
+# dgpu-driver boot offers the OpenBook NVK driver package only when the image has it (ANAL-327): it stats the
+# package's APK in /vendor/app (vendor_app_file), nothing more.
+allow openbook_pc_setup vendor_app_file:dir search;
+allow openbook_pc_setup vendor_app_file:file getattr;

@@ -1,0 +1,9 @@
+# Declared in packages/apps/Launcher3/aconfig/launcher.aconfig
+# Drag a pinned app off the taskbar to unpin it, with an Undo snackbar (ANAL-359, OpenBook Launcher roadmap M1 #3).
+# Off in AOSP 17's release config and on the reference desktop image, so scripts/desktop-flags.py never adds it.
+flag_value {
+  package: "com.android.launcher3"
+  name: "enable_taskbar_drag_to_remove"
+  state: ENABLED
+  permission: READ_ONLY
+}

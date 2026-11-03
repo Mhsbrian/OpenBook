@@ -3,7 +3,10 @@
 # Fonts (Roboto Flex, OFL-1.1; Material Symbols Rounded, Apache-2.0) are fetched once into the host data dir and
 # linked into docs/installer-design/fonts/, which is gitignored: they are never committed.
 #
-# usage: render-design.sh [SCALE]   SCALE 1 (default) writes docs/installer-design/png/; SCALE 2 writes 2880x1800
+# Renders are design output, not source: they go to the maintainers' design store, never into Git (CONTRIBUTING.md).
+#
+# usage: render-design.sh [SCALE]   SCALE 1 (default) writes $OPENBOOK_EVIDENCE/design/installer-design/png/
+#                                   (default ~/anybook/evidence/openbook); SCALE 2 writes 2880x1800
 #                                   copies to <data dir>/installer/design-2x/ for sharing
 set -euo pipefail
 R=$(cd "$(dirname "$0")/../.." && pwd); D=$R/docs/installer-design
@@ -16,7 +19,7 @@ mkdir -p "$F"
 [ -s "$F/MaterialSymbolsRounded.ttf" ] || curl -sSLf -o "$F/MaterialSymbolsRounded.ttf" \
   "https://github.com/google/material-design-icons/raw/master/variablefont/MaterialSymbolsRounded%5BFILL,GRAD,opsz,wght%5D.ttf"
 ln -sfn "$F" "$D/fonts"
-if [ "$SCALE" = 1 ]; then OUT=$D/png; else OUT=$A/installer/design-${SCALE}x; fi
+if [ "$SCALE" = 1 ]; then OUT=${OPENBOOK_EVIDENCE:-$A/evidence/openbook}/design/installer-design/png; else OUT=$A/installer/design-${SCALE}x; fi
 mkdir -p "$OUT"
 shot(){ # name query width height
   "$CHROME" --headless=new --disable-gpu --no-sandbox --hide-scrollbars --force-device-scale-factor="$SCALE" \

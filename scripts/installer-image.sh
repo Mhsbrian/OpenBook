@@ -12,7 +12,9 @@
 # the owner's confirmation naming the /dev/disk/by-id/... device.
 #
 # usage: installer-image.sh [--product-out DIR | --inputs DIR] [--label NAME] [--menu-timeout T]
-#                           [--userdata-mib N] [--epoch S] [--out DIR] [--no-xz]
+#                           [--userdata-mib N] [--epoch S] [--out DIR] [--no-xz] [--uuid-label NAME] [--super-mib N]
+#   --uuid-label, --super-mib: an update for an existing stick (ANAL-331): the PARTUUIDs of the label the stick was
+#                    built with, and super at the stick's exact size, so its partitions and bootconfig match the stick
 #   default product: <data dir>/aosp/src/out/target/product/anybook_g14 (anybook_g14_x86_64-cp2a-userdebug)
 #   default label:   openbook-live-<build id>-<UTC date>
 #   --epoch:         timestamps inside the image (default: this repo's HEAD commit time), so the same inputs and
@@ -23,12 +25,14 @@ A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}   # data dir: ~/anybook until
 R=$(cd "$(dirname "$0")/.." && pwd)
 S=$R/scripts/installer; D=$S/inst-docker.sh
 P=$A/aosp/src/out/target/product/anybook_g14
-IN=; LABEL=; MENU=menu-hidden; UD=1024; XZ=1; EPOCH=; O=$A/installer/out
+IN=; LABEL=; MENU=menu-hidden; UD=1024; XZ=1; EPOCH=; O=$A/installer/out; STICK=()
 while [ $# -gt 0 ]; do
   case $1 in
     --product-out) P=$2; shift 2 ;;
     --inputs) IN=$2; shift 2 ;;
     --label) LABEL=$2; shift 2 ;;
+    --uuid-label) STICK+=(--uuid-label "$2"); shift 2 ;;
+    --super-mib) STICK+=(--super-mib "$2"); shift 2 ;;
     --menu-timeout) MENU=$2; shift 2 ;;
     --userdata-mib) UD=$2; shift 2 ;;
     --epoch) EPOCH=$2; shift 2 ;;
@@ -109,7 +113,7 @@ if [ -f "$NVM" ]; then FWARGS+=(--firmware-manifest "$NVM"); fi
 T2=$(date +%s)
 "$D" env SOURCE_DATE_EPOCH="$EPOCH" python3 "$S/mklive.py" --inputs "$IN" --live-init "$B" --work "$W" \
   --out "$O/$LABEL.img" --label "$LABEL" --menu-timeout "$MENU" --userdata-mib "$UD" --epoch "$EPOCH" \
-  --vm-bundle "$O/$LABEL.vm" --provenance "$IN/provenance.txt" "${FWARGS[@]}"
+  --vm-bundle "$O/$LABEL.vm" --provenance "$IN/provenance.txt" "${FWARGS[@]}" "${STICK[@]}"
 rm -rf "$W"
 T3=$(date +%s)
 

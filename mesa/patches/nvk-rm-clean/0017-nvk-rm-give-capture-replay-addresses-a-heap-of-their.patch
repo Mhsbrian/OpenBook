@@ -1,0 +1,114 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Mon, 26 Oct 2026 10:32:19 -0400
+Subject: [PATCH 17/23] nvk/rm: give capture/replay addresses a heap of their
+ own
+
+The RM backend allocated every GPU virtual address from one heap, with
+NVKMD_VA_REPLAY ignored. A buffer created with
+VK_BUFFER_CREATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT got an ordinary
+address, and once it was freed any later allocation, a memory object's
+VA for example, could take that range. Replaying the buffer at its
+captured address then collided and vkCreateBuffer failed with
+VK_ERROR_OUT_OF_DEVICE_MEMORY: the 7 buffer_device_address capture/replay
+failures of dEQP-VK on an RTX 4090 (waydroid-nvidia v0.2.0-rc12 and this
+tree alike).
+
+Split the RM VA range the way nouveau splits its own
+(NVKMD_NOUVEAU_REPLAY_HEAP): ordinary addresses from [1 << 34, 1 << 39),
+capture/replay addresses, fixed or not, from [1 << 39, 1 << 40). The
+deferred release returns a range to the heap it came from.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/nvkmd/rm/nvkmd_rm.c | 31 ++++++++++++++++++++------
+ 1 file changed, 24 insertions(+), 7 deletions(-)
+
+diff --git a/src/nouveau/vulkan/nvkmd/rm/nvkmd_rm.c b/src/nouveau/vulkan/nvkmd/rm/nvkmd_rm.c
+index bd23cea..06ef188 100644
+--- a/src/nouveau/vulkan/nvkmd/rm/nvkmd_rm.c
++++ b/src/nouveau/vulkan/nvkmd/rm/nvkmd_rm.c
+@@ -35,6 +35,12 @@ struct nvkmd_rm_pdev {
+    struct vk_sync_type sync_file_type;
+    const struct vk_sync_type* sync_types[3];
+ };
++/* Capture/replay addresses (NVKMD_VA_REPLAY) come from the top of the VA
++ * range, ordinary ones from below it, as nouveau's NVKMD_NOUVEAU_REPLAY_HEAP:
++ * a replayed buffer must get back the exact address it was captured at, so
++ * no ordinary allocation may take it in between. */
++#define NVKMD_RM_REPLAY_VA_START (UINT64_C(1) << 39)
++
+ struct nvkmd_rm_dev {
+    struct nvkmd_dev base;
+    struct NvRmDevice* rm;
+@@ -42,6 +48,7 @@ struct nvkmd_rm_dev {
+    int fd;
+    simple_mtx_t va_mutex;
+    struct util_vma_heap heap;
++   struct util_vma_heap replay_heap;
+ };
+ struct nvkmd_rm_mem {
+    struct nvkmd_mem base;
+@@ -390,7 +397,11 @@ rm_dev_create(struct nvkmd_pdev* base, struct vk_object_base* log, struct nvkmd_
+    list_inithead(&dev->base.mems);
+    simple_mtx_init(&dev->base.mems_mutex, mtx_plain);
+    simple_mtx_init(&dev->va_mutex, mtx_plain);
+-   util_vma_heap_init(&dev->heap, NV_RM_VA_START, NV_RM_VA_END - NV_RM_VA_START);
++   STATIC_ASSERT(NV_RM_VA_START < NVKMD_RM_REPLAY_VA_START &&
++                 NVKMD_RM_REPLAY_VA_START < NV_RM_VA_END);
++   util_vma_heap_init(&dev->heap, NV_RM_VA_START, NVKMD_RM_REPLAY_VA_START - NV_RM_VA_START);
++   util_vma_heap_init(&dev->replay_heap, NVKMD_RM_REPLAY_VA_START,
++                      NV_RM_VA_END - NVKMD_RM_REPLAY_VA_START);
+    *out = &dev->base;
+    /* Physical-device probing also opens a temporary KMD device; its log
+     * object has no logical device or Vulkan status hook. */
+@@ -570,6 +581,7 @@ rm_dev_destroy(struct nvkmd_dev* base)
+    nv_rm_close(dev->rm);
+    close(dev->fd);
+    util_vma_heap_finish(&dev->heap);
++   util_vma_heap_finish(&dev->replay_heap);
+    simple_mtx_destroy(&dev->va_mutex);
+    simple_mtx_destroy(&dev->base.mems_mutex);
+    free(dev);
+@@ -600,7 +612,10 @@ rm_va_alloc(struct nvkmd_dev* base,
+ {
+    if (flags & NVKMD_VA_SPARSE)
+       return unsupported(log, "sparse residency");
+-   if (!size || size > NV_RM_VA_END - NV_RM_VA_START - 4095)
++   const bool replay = flags & NVKMD_VA_REPLAY;
++   const uint64_t start = replay ? NVKMD_RM_REPLAY_VA_START : NV_RM_VA_START;
++   const uint64_t end = replay ? NV_RM_VA_END : NVKMD_RM_REPLAY_VA_START;
++   if (!size || size > end - start - 4095)
+       return vk_error(log, VK_ERROR_OUT_OF_DEVICE_MEMORY);
+    size = align64(size, 4096);
+    alignment = MAX2(alignment, 4096);
+@@ -610,14 +625,15 @@ rm_va_alloc(struct nvkmd_dev* base,
+    struct nvkmd_rm_va* va = calloc(1, sizeof(*va));
+    if (!va)
+       return vk_error(log, VK_ERROR_OUT_OF_HOST_MEMORY);
++   struct util_vma_heap* heap = replay ? &dev->replay_heap : &dev->heap;
+    simple_mtx_lock(&dev->va_mutex);
+    uint64_t address;
+    if (flags & NVKMD_VA_ALLOC_FIXED) {
+-      bool valid = fixed >= NV_RM_VA_START && fixed < NV_RM_VA_END &&
+-                   size <= NV_RM_VA_END - fixed && !(fixed & (alignment - 1));
+-      address = valid && util_vma_heap_alloc_addr(&dev->heap, fixed, size) ? fixed : 0;
++      bool valid = fixed >= start && fixed < end &&
++                   size <= end - fixed && !(fixed & (alignment - 1));
++      address = valid && util_vma_heap_alloc_addr(heap, fixed, size) ? fixed : 0;
+    } else {
+-      address = util_vma_heap_alloc(&dev->heap, size, alignment);
++      address = util_vma_heap_alloc(heap, size, alignment);
+    }
+    simple_mtx_unlock(&dev->va_mutex);
+    if (!address) {
+@@ -714,7 +730,8 @@ rm_va_release(void* data, uint64_t address, uint64_t size)
+ {
+    struct nvkmd_rm_dev* dev = data;
+    simple_mtx_lock(&dev->va_mutex);
+-   util_vma_heap_free(&dev->heap, address, size);
++   util_vma_heap_free(address >= NVKMD_RM_REPLAY_VA_START ? &dev->replay_heap : &dev->heap,
++                      address, size);
+    simple_mtx_unlock(&dev->va_mutex);
+ }
+ /* NVK frees driver-internal memory that queued work may still use (e.g. the

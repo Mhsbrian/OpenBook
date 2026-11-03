@@ -157,7 +157,7 @@ body { font-family: "Roboto Flex", system-ui, sans-serif; color: var(--ink); -we
 </section>
 
 <section id="desktop" class="art wall">
-  <div class="shot"><img src="../../evidence/2026-10-16-desktop/desktop/screen-windows.png" alt=""></div>
+  <div class="shot"><img src="inputs/desktop-windows.png" alt=""></div>
 </section>
 
 <section id="appicon" class="art">
@@ -177,7 +177,7 @@ body { font-family: "Roboto Flex", system-ui, sans-serif; color: var(--ink); -we
   const darkOk = new Set(["welcome", "disk", "progress"]);
   art.querySelectorAll("img[data-src]").forEach(img => {
     const n = img.dataset.src;
-    img.src = "../../docs/installer-design/png/" + n + (theme === "dark" && darkOk.has(n) ? "-dark" : "") + ".png";
+    img.src = "inputs/" + n + (theme === "dark" && darkOk.has(n) ? "-dark" : "") + ".png";
   });
   if (q.get("glyph")) document.getElementById("glyph").textContent = q.get("glyph");
 </script>

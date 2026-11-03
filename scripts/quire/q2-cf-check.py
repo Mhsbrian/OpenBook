@@ -43,7 +43,7 @@ LAB = QUIRE + "/.control.LabActivity"
 VDM = "com.android.virtualdevicemanager"
 # AOSP's test keys (build/make/target/product/security/): the probe is signed with testkey.
 TESTKEY_DIGEST = "A40DA80A59D170CAA950CF15C18C454D47A39B26989D8B640ECD745BA71BF5DC"
-# Cuttlefish's denials on main before Quire (evidence/2026-10-17-desktop-flags-v2/v4/selinux-denials.txt).
+# Cuttlefish's denials on main before Quire (evidence store: repo-evidence/2026-10-17-desktop-flags-v2/v4/selinux-denials.txt).
 KNOWN_DENIALS = [
     "scontext=u:r:bootanim:s0 tcontext=u:object_r:gpu_service:s0",
     "scontext=u:r:init:s0 tcontext=u:object_r:debugfs_bootreceiver_tracing:s0",

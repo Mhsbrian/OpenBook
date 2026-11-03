@@ -1,0 +1,44 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Mon, 26 Oct 2026 10:06:42 -0400
+Subject: [PATCH 15/23] nvk: fall back to nouveau when the device is not on
+ NVIDIA's kernel driver
+
+The RM integration replaced nouveau in nvkmd_try_create_pdev_for_drm(), so
+a build with the RM backend could no longer drive a GPU bound to nouveau.
+The Googlebook image has to run either kernel driver on the same NVIDIA
+GPU (ANAL-300: NVIDIA's driver by default, nouveau as the alternative),
+and one NVK for both keeps a single Vulkan HAL in the vendor image.
+
+nvkmd_rm_try_create_pdev() returns VK_ERROR_INCOMPATIBLE_DRIVER, before it
+allocates anything, for every render node whose DRM driver is not
+nvidia-drm, so try nouveau after it. Any other result, success or a real
+failure on an nvidia-drm device, is returned as before.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/nvkmd/nvkmd.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/src/nouveau/vulkan/nvkmd/nvkmd.c b/src/nouveau/vulkan/nvkmd/nvkmd.c
+index cb06c52..5eaeaf1 100644
+--- a/src/nouveau/vulkan/nvkmd/nvkmd.c
++++ b/src/nouveau/vulkan/nvkmd/nvkmd.c
+@@ -89,7 +89,16 @@ nvkmd_try_create_pdev_for_drm(struct _drmDevice *drm_device,
+                               enum nvk_debug debug_flags,
+                               struct nvkmd_pdev **pdev_out)
+ {
+-   return nvkmd_rm_try_create_pdev(drm_device, log_obj,
++   /* NVIDIA's kernel driver (nvidia-drm render node) through the RM backend,
++    * else nouveau: the RM backend turns down every other device with
++    * VK_ERROR_INCOMPATIBLE_DRIVER before it allocates anything.
++    */
++   VkResult result = nvkmd_rm_try_create_pdev(drm_device, log_obj,
++                                              debug_flags, pdev_out);
++   if (result != VK_ERROR_INCOMPATIBLE_DRIVER)
++      return result;
++
++   return nvkmd_nouveau_try_create_pdev(drm_device, log_obj,
+                                         debug_flags, pdev_out);
+ }
+ 

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Launcher3 draws the desk's wallpaper behind its windows in Overview (OpenBook Launcher, docs/launcher-design.md
+  §5.2, ANAL-372). Reading the wallpaper needs READ_WALLPAPER_INTERNAL, which is signature|privileged, and
+  Launcher3QuickStep is not platform-signed, so this entry grants it. Merged with AOSP's own com.android.launcher3.xml.
+-->
+<permissions>
+    <privapp-permissions package="com.android.launcher3">
+        <permission name="android.permission.READ_WALLPAPER_INTERNAL" />
+    </privapp-permissions>
+</permissions>

@@ -62,6 +62,8 @@ fun GraphicsScreen(
     onDismissMessage: () -> Unit,
     onKeep: () -> Unit,
     onGoBack: () -> Unit,
+    onApps: () -> Unit,
+    onAppsOn: (Boolean) -> Unit,
 ) {
     // Test tags double as resource IDs, so the VM check (uiautomator) finds the buttons.
     Scaffold(Modifier.semantics { testTagsAsResourceId = true },
@@ -77,6 +79,7 @@ fun GraphicsScreen(
                     gfx == null -> Note(R.string.note_no_switcher)
                     else -> Content(ui, gfx, onAsk, onLock, onRestart)
                 }
+                if (!ui.loading) AppsCard(ui, onApps, onAppsOn)
                 ui.message?.let { MessageCard(it, onDismissMessage) }
                 Spacer(Modifier.padding(8.dp))
             }
@@ -157,6 +160,30 @@ private fun ModeCard(mode: Mode, choice: Choice, busy: Boolean, onAsk: () -> Uni
                              color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+    }
+}
+
+/**
+ * Which apps use the NVIDIA GPU in Hybrid (AppsActivity), with the "NVIDIA GPU for apps" switch (ANAL-327). Without an
+ * NVIDIA app driver in the image there is nothing to choose: the card says so and offers no switch or button.
+ */
+@Composable
+private fun AppsCard(ui: UiState, onApps: () -> Unit, onAppsOn: (Boolean) -> Unit) = Card(Modifier.fillMaxWidth()) {
+    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(R.string.apps_title), style = MaterialTheme.typography.titleLarge)
+        if (!ui.appDriver) {
+            Text(stringResource(R.string.apps_summary_no_driver), style = MaterialTheme.typography.bodyMedium,
+                 modifier = Modifier.testTag("apps-no-driver"))
+            return@Column
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.apps_switch_title), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+            Switch(checked = ui.appsOn, enabled = ui.appsOwner && !ui.busy, onCheckedChange = onAppsOn,
+                   modifier = Modifier.testTag("apps-switch-main"))
+        }
+        Text(stringResource(if (ui.appsOn) R.string.apps_summary else R.string.apps_switch_off),
+             style = MaterialTheme.typography.bodyMedium, modifier = Modifier.testTag("apps-summary"))
+        OutlinedButton(onClick = onApps, modifier = Modifier.testTag("apps-open")) { Text(stringResource(R.string.action_choose_apps)) }
     }
 }
 

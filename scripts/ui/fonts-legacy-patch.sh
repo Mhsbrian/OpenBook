@@ -10,7 +10,7 @@
 set -euo pipefail
 R=$(cd "$(dirname "$0")/../.." && pwd)
 T=${AOSP_SRC:-${ANYBOOK_HOME:-$HOME/anybook}/aosp/src}
-PIN=$(zcat "$R/evidence/2026-10-15-aosp/manifest-pinned.xml.gz" |
+PIN=$(zcat "$R/manifests/aosp/manifest-pinned.xml.gz" |
       sed -n 's/.* path="frameworks\/base" revision="\([0-9a-f]\{40\}\)".*/\1/p' | head -1)
 W=$(mktemp -d); trap 'rm -rf "$W"' EXIT
 ME=(env GIT_AUTHOR_NAME="AnyBook aosp-patches.sh" GIT_AUTHOR_EMAIL=noreply@anybook.invalid

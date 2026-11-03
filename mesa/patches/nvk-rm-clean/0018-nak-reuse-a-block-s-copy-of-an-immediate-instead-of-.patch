@@ -1,0 +1,183 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Mon, 26 Oct 2026 10:49:41 -0400
+Subject: [PATCH 18/23] nak: reuse a block's copy of an immediate instead of
+ copying it again
+
+When an instruction cannot take an immediate where it has one, for
+example the second immediate of ffma x * a + b, the legalizer copies it
+into a register right before that instruction. It did so for every
+instruction, also when the same value had just been copied for the one
+before. In a compute loop of 32 independent ffma chains with the same two
+constants, every ffma got its own mov of the addend and a read-after-write
+wait on it: 64 instructions issued for 32 ffma.
+
+Keep the block's copies of 32-bit immediates, by register file and value,
+and let a source reuse one made at most 64 instructions earlier. Past
+that window the immediate is copied again as before, so a copy never
+keeps a register live across a long stretch of the block just to save a
+mov. 64-bit immediates are left alone.
+
+On an RTX 4090 (NVK on NVIDIA's kernel driver, Android bionic) that loop
+went from 2274 to 734 static cycles and from 39.7 to 56-57 TFLOPS; NVIDIA's
+own driver ran it at 64-75 TFLOPS at the same clocks. dEQP-VK, 66,226
+cases: the same result for every case before and after.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/compiler/nak/legalize.rs | 83 +++++++++++++++++++++++++++-
+ 1 file changed, 82 insertions(+), 1 deletion(-)
+
+diff --git a/src/nouveau/compiler/nak/legalize.rs b/src/nouveau/compiler/nak/legalize.rs
+index bc7e893..79f0574 100644
+--- a/src/nouveau/compiler/nak/legalize.rs
++++ b/src/nouveau/compiler/nak/legalize.rs
+@@ -57,6 +57,20 @@ pub enum PadValue {
+ }
+ 
+ pub trait LegalizeBuildHelpers: SSABuilder {
++    /// An earlier copy of the 32-bit immediate `imm` into `reg_file` that a
++    /// source may reuse instead of a new copy, if the builder keeps any.
++    fn reusable_imm_copy(
++        &mut self,
++        _reg_file: RegFile,
++        _imm: u32,
++    ) -> Option<SSAValue> {
++        None
++    }
++
++    /// Records that `ssa` now holds a copy of the 32-bit immediate `imm`.
++    fn add_imm_copy(&mut self, _reg_file: RegFile, _imm: u32, _ssa: SSAValue) {
++    }
++
+     fn copy_ssa(&mut self, ssa: &mut SSAValue, reg_file: RegFile) {
+         let tmp = self.alloc_ssa(reg_file);
+         self.copy_to(tmp.into(), (*ssa).into());
+@@ -162,6 +176,22 @@ pub trait LegalizeBuildHelpers: SSABuilder {
+         reg_file: RegFile,
+         src_type: SrcType,
+     ) {
++        // A 32-bit immediate that has to go in a register: reuse an earlier
++        // copy of it if there is one, else remember this one.  Without this,
++        // a loop body of N ffma with the same two immediates (x * a + b)
++        // spent N issue slots on the same mov, each with its own read-after-
++        // write wait.
++        let imm = match src.src_ref {
++            SrcRef::Imm32(u) if !matches!(src_type, SrcType::F64) => Some(u),
++            _ => None,
++        };
++        if let Some(u) = imm {
++            if let Some(ssa) = self.reusable_imm_copy(reg_file, u) {
++                src.src_ref = ssa.into();
++                return;
++            }
++        }
++
+         let val = match src_type {
+             SrcType::GPR
+             | SrcType::ALU
+@@ -185,6 +215,9 @@ pub trait LegalizeBuildHelpers: SSABuilder {
+             std::mem::replace(&mut src.src_ref, val.clone().into());
+         if val.comps() == 1 {
+             self.copy_to(val[0].into(), old_src_ref.into());
++            if let Some(u) = imm {
++                self.add_imm_copy(reg_file, u, val[0]);
++            }
+         } else {
+             match old_src_ref {
+                 SrcRef::Imm32(u) => {
+@@ -384,9 +417,33 @@ pub trait LegalizeBuildHelpers: SSABuilder {
+     }
+ }
+ 
++/// Copies of 32-bit immediates into registers made by the legalizer in the
++/// current block, with the index of the instruction that made each one.
++///
++/// A copy is only reused by an instruction at most `IMM_COPY_REUSE_WINDOW`
++/// instructions later, so that reuse never keeps a register live across a
++/// long stretch of the block just to save a mov; past the window the
++/// immediate is materialized again, as before.
++struct ImmCopies {
++    ip: usize,
++    copies: FxHashMap<(RegFile, u32), (SSAValue, usize)>,
++}
++
++const IMM_COPY_REUSE_WINDOW: usize = 64;
++
++impl ImmCopies {
++    fn new() -> Self {
++        ImmCopies {
++            ip: 0,
++            copies: Default::default(),
++        }
++    }
++}
++
+ pub struct LegalizeBuilder<'a> {
+     b: SSAInstrBuilder<'a>,
+     const_tracker: &'a mut ConstTracker,
++    imm_copies: &'a mut ImmCopies,
+ }
+ 
+ impl<'a> LegalizeBuilder<'a> {
+@@ -394,10 +451,12 @@ impl<'a> LegalizeBuilder<'a> {
+         sm: &'a ShaderModelInfo,
+         alloc: &'a mut SSAValueAllocator,
+         const_tracker: &'a mut ConstTracker,
++        imm_copies: &'a mut ImmCopies,
+     ) -> Self {
+         LegalizeBuilder {
+             b: SSAInstrBuilder::new(sm, alloc),
+             const_tracker,
++            imm_copies,
+         }
+     }
+ 
+@@ -442,7 +501,26 @@ impl<'a> SSABuilder for LegalizeBuilder<'a> {
+     }
+ }
+ 
+-impl LegalizeBuildHelpers for LegalizeBuilder<'_> {}
++impl LegalizeBuildHelpers for LegalizeBuilder<'_> {
++    fn reusable_imm_copy(
++        &mut self,
++        reg_file: RegFile,
++        imm: u32,
++    ) -> Option<SSAValue> {
++        let ip = self.imm_copies.ip;
++        match self.imm_copies.copies.get(&(reg_file, imm)) {
++            Some(&(ssa, copy_ip)) if ip - copy_ip <= IMM_COPY_REUSE_WINDOW => {
++                Some(ssa)
++            }
++            _ => None,
++        }
++    }
++
++    fn add_imm_copy(&mut self, reg_file: RegFile, imm: u32, ssa: SSAValue) {
++        let ip = self.imm_copies.ip;
++        self.imm_copies.copies.insert((reg_file, imm), (ssa, ip));
++    }
++}
+ 
+ fn legalize_instr(
+     sm: &ShaderModelInfo,
+@@ -589,9 +667,11 @@ impl Shader<'_> {
+             for (bi, b) in f.blocks.iter_mut().enumerate() {
+                 let bl = live.block_live(bi);
+                 let bu = b.uniform;
++                let mut imm_copies = ImmCopies::new();
+ 
+                 let mut instrs = Vec::new();
+                 for (ip, mut instr) in b.instrs.drain(..).enumerate() {
++                    imm_copies.ip = ip;
+                     match &instr.op {
+                         Op::Pin(pin) => {
+                             if let Dst::SSA(ssa) = &pin.dst {
+@@ -608,6 +688,7 @@ impl Shader<'_> {
+                         sm,
+                         &mut f.ssa_alloc,
+                         &mut const_tracker,
++                        &mut imm_copies,
+                     );
+                     legalize_instr(sm, &mut b, bl, bu, &pinned, ip, &mut instr);
+                     b.push_instr(instr);

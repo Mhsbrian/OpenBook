@@ -216,7 +216,8 @@ std::string Serialize(const State& s) {
       << "tries=" << s.tries << "\nmax_tries=" << s.max_tries << "\nrollbacks=" << s.rollbacks << "\n"
       << "seq=" << s.seq << "\nboots=" << s.boots << "\nframe=" << (s.frame ? 1 : 0) << "\n"
       << "shown=" << (s.shown ? 1 : 0) << "\n"
-      << "locked=" << s.locked << "\ndeferred=" << s.deferred << "\nlast_failure=" << s.last_failure << "\n"
+      << "locked=" << s.locked << "\ndeferred=" << s.deferred << "\nattempt=" << s.attempt
+      << "\nlast_failure=" << s.last_failure << "\n"
       << "event=" << s.event << "\nfw_before=" << s.fw_before << "\nfw_after=" << s.fw_after << "\n"
       << "result=" << s.result << "\n";
     return o.str();
@@ -256,6 +257,9 @@ std::optional<State> Parse(const std::string& text) {
         } else if (k == "deferred") {
             if (!v.empty() && v != "dgpu-off") return std::nullopt;
             s.deferred = v;
+        } else if (k == "attempt") {  // older versions ignore it, as they ignore every key they do not know
+            if (!v.empty() && v != "dgpu-off" && v != "dgpu-on") return std::nullopt;
+            s.attempt = v;
         } else if (k == "last_failure") {
             s.last_failure = v;
         } else if (k == "event") {
@@ -319,14 +323,54 @@ bool Controller::EnableDgpu(std::string* error) {
     if (ReadFirmware(paths_.fw).dgpu == 0) return true;
     Log("dgpu_disable still reads 1: rescanning PCI and writing again");
     std::string ignored;
-    WriteFw("rescan", 1, &ignored);
+    rescanned_ = WriteFw("rescan", 1, &ignored) || rescanned_;
     if (!WriteFw("dgpu_disable", 0, error)) return false;
     if (ReadFirmware(paths_.fw).dgpu == 0) return true;
     *error = "dgpu_disable still reads 1 after two writes and a PCI rescan";
     return false;
 }
 
+// A dgpu_disable write in crash order (ANAL-322): the attempt reaches /metadata before the write, and the caller's
+// next Save() clears it. A boot that ends inside the write (a firmware hang, a crash, a power cut) leaves the attempt
+// behind, and Boot() never makes that write again by itself, so a write that hangs the laptop cannot become a boot
+// loop. Refused when the attempt cannot be recorded.
+bool Controller::DgpuWrite(State& s, int disable, std::string* error) {
+    s.attempt = disable ? "dgpu-off" : "dgpu-on";
+    if (!Save(s, std::string("writing dgpu_disable=") + (disable ? "1" : "0"))) {
+        s.attempt.clear();
+        *error = "cannot record the write in " + paths_.state_dir;
+        return false;
+    }
+    Crash(disable ? "in-dgpu-off" : "in-dgpu-on");
+    const bool ok = disable ? WriteFw("dgpu_disable", 1, error) : EnableDgpu(error);
+    Crash(disable ? "after-dgpu-off" : "after-dgpu-on");
+    s.attempt.clear();
+    if (!ok) Save(s, std::string("dgpu_disable=") + (disable ? "1" : "0") + " not written: " + *error);
+    if (rescanned_) {
+        // The rescan may have brought the dGPU's functions back in this boot, with snd_hda_intel bound to its HDMI
+        // audio and the GPU held in D0 until the restart: init runs dgpu-pm again (init.openbook.rc).
+        SetProp("vendor.openbook.gfx.rescan", std::to_string(s.seq) + "-" + std::to_string(s.boots));
+    }
+    return ok;
+}
+
+// The board's DMI name, from the DMI modalias first and board_name second. The modalias carries the same name as
+// its "rn" field, with spaces and colons left out by the kernel (drivers/firmware/dmi-id.c), and the stack manifest's
+// board names have neither. On OpenBook images the installer's platform policy gives board_name its own label
+// (device/anybook/common/installer/sepolicy/private/file_contexts), which this vendor domain may not read, so
+// board_name alone read empty there and every G14 counted as an unknown board (ANAL-159). The modalias keeps the
+// plain sysfs label on every image.
 std::string Controller::Board() {
+    std::string alias;
+    if (ReadFile(paths_.sysfs + "/class/dmi/id/modalias", &alias)) {
+        size_t at = alias.find(":rn");
+        if (at != std::string::npos) {
+            at += 3;
+            size_t end = alias.find(':', at);
+            std::string b = Trim(alias.substr(at, end == std::string::npos ? std::string::npos : end - at));
+            if (!b.empty()) return b;
+        }
+    }
     std::string b;
     ReadFile(paths_.sysfs + "/class/dmi/id/board_name", &b);
     return Trim(b);
@@ -380,11 +424,19 @@ std::string Controller::UltimateAvailability(const Firmware& fw) {
     return StackState("nouveau", &why);
 }
 
-bool Controller::DgpuDriverBusy() {
+// What holds the dGPU (ANAL-322): a driver bound to any of its PCI functions (NVIDIA's or nouveau on the GPU,
+// snd_hda_intel on its HDMI audio), or NVIDIA's or nouveau's module loaded, whose probe may still be running before
+// it binds. dgpu_disable=1 cuts the dGPU's power, so it is written only when this is empty: at a request, or else at
+// the next early init, where init.openbook.rc has released the HDMI audio (dgpu-hda) and no GPU driver loads before.
+std::string Controller::DgpuBusy() {
     for (const auto& f : ReadPci(paths_.sysfs)) {
-        if (f.vendor == kVendorNvidia && (f.pci_class >> 16) == 0x03 && !f.driver.empty()) return true;
+        if (f.vendor == kVendorNvidia && !f.driver.empty()) return f.driver + " is bound to " + f.slot;
     }
-    return false;
+    for (const char* m : {"nvidia", "nouveau"}) {
+        struct stat st;
+        if (stat((paths_.sysfs + "/module/" + m).c_str(), &st) == 0) return std::string(m) + " is loaded";
+    }
+    return "";
 }
 
 std::string Controller::GetProp(const std::string& name) {
@@ -528,6 +580,27 @@ int Controller::Boot() {
         events.push_back(s.last_failure == "state-corrupt" ? "state was unreadable, rebuilt" : "state created");
     }
 
+    // A dgpu_disable write that never finished (ANAL-322): the boot that made it ended inside it. Whatever the
+    // firmware kept stands; the write is not made again by itself, and a lock that asked for it is lifted.
+    if (!s.attempt.empty()) {
+        const bool off = s.attempt == "dgpu-off";
+        const bool took = fw.present && fw.dgpu == (off ? 1 : 0);
+        const std::string what = std::string("dgpu_disable=") + (off ? "1" : "0");
+        if (took) {
+            events.push_back("the last " + what + " write was cut short, but the firmware kept it");
+        } else {
+            s.last_failure = (off ? "eco: " : "hybrid: ") + what + " did not finish (a crash, a hang or a power cut)";
+            events.push_back("the last " + what + " write did not finish; not repeated");
+            s.deferred.clear();
+            if (s.locked == (off ? "eco" : "hybrid")) {
+                events.push_back("lock to " + s.locked + " lifted");
+                s.locked.clear();
+            }
+            s.target = s.committed;
+        }
+        s.attempt.clear();
+    }
+
     // The recovery entry (USB stick or the internal boot menu): openbook.gfx=restore-hybrid.
     std::string cmdline;
     ReadFile(paths_.cmdline, &cmdline);
@@ -535,6 +608,11 @@ int Controller::Boot() {
     bool restore = false;
     for (std::string w; words >> w;) {
         restore |= w == "openbook.gfx=restore-hybrid" || w == "androidboot.openbook.gfx=restore-hybrid";
+    }
+    if (restore && !s.deferred.empty()) {  // "Restore Hybrid graphics" never ends in Eco (ANAL-322)
+        s.deferred.clear();
+        if (s.phase == "idle") s.target = s.committed;
+        events.push_back("recovery entry: the pending switch to eco is cancelled");
     }
     if (restore && fw.present && fw.mux == 0) {
         std::string err;
@@ -544,7 +622,8 @@ int Controller::Boot() {
             s.tries = s.rollbacks = 0;
             s.last_failure = "restored by the recovery entry";
             s.fw_after = FwString(ReadFirmware(paths_.fw));
-            Save(s, "recovery entry: gpu_mux_mode=1 written, restarting");
+            Save(s, (events.empty() ? std::string() : events.back() + "; ") +
+                        "recovery entry: gpu_mux_mode=1 written, restarting");
             Publish(s, ReadFirmware(paths_.fw));
             RequestReboot("openbook-gfx-restore");
             return 0;
@@ -649,24 +728,38 @@ int Controller::Boot() {
     }
     if (s.phase == "idle") {
         std::string err;
+        // Eco's deferred step and an Eco lock cut the dGPU's power here, before any GPU driver loads; init has
+        // released its HDMI audio first (dgpu-hda). If something still holds it, Eco is not applied: a write under
+        // a driver is the hazard the deferral exists for, and retrying at every boot would never end.
+        const bool eco_due = s.deferred == "dgpu-off" || s.locked == "eco";
+        const std::string busy = eco_due && mode == Mode::kHybrid ? DgpuBusy() : "";
         if (s.deferred == "dgpu-off" && mode == Mode::kHybrid) {
-            if (WriteFw("dgpu_disable", 1, &err)) {
+            s.deferred.clear();
+            if (!busy.empty()) {
+                s.target = s.committed;
+                s.last_failure = "eco: not applied at boot, " + busy;
+                events.push_back("eco: not applied, " + busy);
+            } else if (DgpuWrite(s, 1, &err)) {
                 fw = ReadFirmware(paths_.fw);
                 mode = ModeOf(fw);
                 s.committed = s.target = ModeName(mode);
                 events.push_back("eco: dgpu_disable=1 written before the GPU drivers bind");
             } else {
+                s.target = s.committed;
+                s.last_failure = "eco: dgpu_disable=1 failed (" + err + ")";
                 events.push_back("eco: dgpu_disable=1 failed (" + err + ")");
             }
         }
         s.deferred.clear();
         if (!s.locked.empty() && s.locked != ModeName(mode)) {
-            if (s.locked == "eco" && mode == Mode::kHybrid && WriteFw("dgpu_disable", 1, &err)) {
+            if (s.locked == "eco" && mode == Mode::kHybrid && !busy.empty()) {
+                events.push_back("lock to eco not enforced: " + busy);
+            } else if (s.locked == "eco" && mode == Mode::kHybrid && DgpuWrite(s, 1, &err)) {
                 fw = ReadFirmware(paths_.fw);
                 mode = ModeOf(fw);
                 s.committed = s.target = ModeName(mode);
                 events.push_back("lock: back to eco");
-            } else if (s.locked == "hybrid" && mode == Mode::kEco && EnableDgpu(&err)) {
+            } else if (s.locked == "hybrid" && mode == Mode::kEco && DgpuWrite(s, 0, &err)) {
                 fw = ReadFirmware(paths_.fw);
                 mode = ModeOf(fw);
                 s.committed = s.target = ModeName(mode);
@@ -983,13 +1076,17 @@ int Controller::Request(const std::string& mode_name, Channel ch) {
     };
 
     if (*mode == Mode::kUltimate) {
-        if (fw.dgpu == 1 && !EnableDgpu(&err)) return refuse("failed-firmware", "could not enable the dGPU: " + err);
+        if (fw.dgpu == 1 && !DgpuWrite(s, 0, &err)) {
+            return refuse("failed-firmware", "could not enable the dGPU: " + err);
+        }
         if (!mux_switch(0, "ultimate")) return refuse("failed-firmware", "gpu_mux_mode=0 refused: " + err);
     } else if (*mode == Mode::kHybrid) {
         if (cur == Mode::kUltimate) {
             if (!mux_switch(1, "hybrid")) return refuse("failed-firmware", "gpu_mux_mode=1 refused: " + err);
         } else if (cur == Mode::kEco) {
-            if (!EnableDgpu(&err)) return refuse("failed-firmware", "could not enable the dGPU: " + err);
+            // The dGPU enumerates again at the next boot, and NVIDIA's boot load follows that boot's mode
+            // (vendor.openbook.dgpu.boot_mode, init.openbook.rc), not this switch.
+            if (!DgpuWrite(s, 0, &err)) return refuse("failed-firmware", "could not enable the dGPU: " + err);
             s.committed = s.target = "hybrid";
         } else {  // hybrid with eco still pending
             reboot = false;
@@ -1000,11 +1097,14 @@ int Controller::Request(const std::string& mode_name, Channel ch) {
         if (cur == Mode::kUltimate) {
             s.deferred = "dgpu-off";  // the guard refuses dgpu_disable=1 while the MUX is on the dGPU
             if (!mux_switch(1, "eco")) return refuse("failed-firmware", "gpu_mux_mode=1 refused: " + err);
-        } else if (DgpuDriverBusy()) {
-            s.deferred = "dgpu-off";  // a GPU driver drives the dGPU: switch before it binds, at the next boot
+        } else if (const std::string busy = DgpuBusy(); !busy.empty()) {
+            // Something holds the dGPU (NVIDIA's driver in every Hybrid boot since R7): cut its power at the next
+            // early init instead, before any GPU driver loads.
+            Log("eco deferred to the next boot: " + busy);
+            s.deferred = "dgpu-off";
             s.target = "eco";
         } else {
-            if (!WriteFw("dgpu_disable", 1, &err)) return refuse("failed-firmware", "dgpu_disable=1 refused: " + err);
+            if (!DgpuWrite(s, 1, &err)) return refuse("failed-firmware", "dgpu_disable=1 refused: " + err);
             s.committed = s.target = "eco";
             reboot = false;
         }

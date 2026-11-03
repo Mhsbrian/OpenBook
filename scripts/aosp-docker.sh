@@ -10,15 +10,15 @@
 # e.g.   scripts/aosp-docker.sh /repo/scripts/aosp-sync.sh all
 #        scripts/aosp-docker.sh -d anybook-aosp-sync /repo/scripts/aosp-sync.sh all && docker wait anybook-aosp-sync
 #
-# The AOSP lane (ANAL-176): lanes share ~/anybook/aosp/src and its out/, so aosp-build.sh and aosp-sync.sh (or any
-# command, with ANYBOOK_LANE=1) run under the lane lock <data dir>/aosp/.lane.lock. It is taken here before the
-# container starts and kept until the container exits: by docker run itself, or with -d by a `docker wait` in the
-# background. Someone else holding it is waited for, up to ANYBOOK_LANE_WAIT seconds (default 4 h). A caller that holds
-# it already is not waited for: an ancestor process that locked it (`flock <lock> sh -c 'aosp-docker.sh ...'`, found in
-# /proc/locks), or ANYBOOK_LANE_LOCK_HELD=1 for a lock held through an inherited fd. Such a caller has to keep it until
-# the container exits (with -d: `&& docker wait NAME` inside its flock). The container gets a token that
-# is also written to <data dir>/aosp/.lane.owner, so aosp-build.sh can tell its own lane lock from someone else's.
-# ANYBOOK_LANE_UNLOCKED=1: no lane at all (a tree of your own).
+# The AOSP lane (ANAL-176): lanes share ~/anybook/aosp/src and its out/, so aosp-build.sh, aosp-sync.sh and
+# aosp-patches.sh (or any command, with ANYBOOK_LANE=1) run under the lane lock <data dir>/aosp/.lane.lock. It is
+# taken here before the container starts and kept until the container exits: by docker run itself, or with -d by a
+# `docker wait` in the background. Someone else holding it is waited for, up to ANYBOOK_LANE_WAIT seconds
+# (default 4 h). A caller that holds it already is not waited for: an ancestor process that locked it
+# (`flock <lock> sh -c 'aosp-docker.sh ...'`, found in /proc/locks), or ANYBOOK_LANE_LOCK_HELD=1 for a lock held
+# through an inherited fd. Such a caller has to keep it until the container exits (with -d: `&& docker wait NAME`
+# inside its flock). The container gets a token that is also written to <data dir>/aosp/.lane.owner, so aosp-build.sh
+# can tell its own lane lock from someone else's. ANYBOOK_LANE_UNLOCKED=1: no lane at all (a tree of your own).
 # BUILD_NUMBER is passed through: a build meant as an update needs its own (it is in the fingerprint), see g14-adb.sh ota.
 set -euo pipefail
 A=${ANYBOOK_HOME:-$HOME/anybook}; R=$(cd "$(dirname "$0")/.." && pwd)
@@ -41,7 +41,7 @@ held_by_ancestor() {  # /proc/locks: "N: FLOCK ADVISORY WRITE <pid> <maj:min:ino
 }
 case "${ANYBOOK_LANE_UNLOCKED:-0}:${ANYBOOK_LANE:-0}:${1:-}" in
   1:*) ;;
-  *:1:* | *:*/aosp-build.sh | *:*/aosp-sync.sh)
+  *:1:* | *:*/aosp-build.sh | *:*/aosp-sync.sh | *:*/aosp-patches.sh)
     exec {LFD}>>"$LOCK"  # a new fd: a lock the caller passes in on some fd must stay open
     if [ "${ANYBOOK_LANE_LOCK_HELD:-0}" = 1 ] || held_by_ancestor; then
       echo "aosp-docker.sh: the caller holds the AOSP lane lock" >&2
@@ -57,6 +57,13 @@ case "${ANYBOOK_LANE_UNLOCKED:-0}:${ANYBOOK_LANE:-0}:${1:-}" in
 esac
 docker image inspect anybook-aosp >/dev/null 2>&1 || docker build -t anybook-aosp -f "$R/tools/Dockerfile.aosp" \
   --build-arg UID="$(id -u)" --build-arg GID="$(id -g)" "$R/tools"
+# IMPORT commits (aosp/patches/*/IMPORT) are fetched here, on the host and under the lane lock, before aosp-build.sh
+# or aosp-patches.sh starts: the container has no GitHub credentials, so a private fork's commit (OpenBook Launcher)
+# can't be fetched inside it (ANAL-356). A no-op, without network, when the tree has them all. No synced tree, no fetch.
+case "${1:-}" in
+  */aosp-build.sh | */aosp-patches.sh)
+    [ ! -d "$A/aosp/src/.repo" ] || AOSP_SRC=$A/aosp/src "$R/scripts/aosp-patches.sh" --fetch ;;
+esac
 # Soong runs the build inside nsjail. nsjail needs seccomp=unconfined (to clone user/mount/pid namespaces) and
 # systempaths=unconfined (procfs can't be mounted under Docker's masked /proc). Without both, Soong prints
 # "Build sandboxing disabled due to nsjail error" and builds unsandboxed. Still non-root, no added capabilities.

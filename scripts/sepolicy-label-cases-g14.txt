@@ -1,5 +1,5 @@
 # Labels the G14 (GA403WR) product should give its sysfs nodes: scripts/sepolicy-label-check.py PRODUCT_OUT <this>.
-# Paths marked (live-001) are from the first live boot's SELinux denials (evidence/2026-10-16-installer/g14-live);
+# Paths marked (live-001) are from the first live boot's SELinux denials (evidence store: repo-evidence/2026-10-16-installer/g14-live);
 # the others follow the inventory's PCI topology (lspci, dmesg) and the kernel's sysfs layout.
 # <path> <expected type> [file-type flag]
 

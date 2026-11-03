@@ -1,0 +1,369 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Sun, 25 Oct 2026 09:05:25 -0400
+Subject: [PATCH 5/7] nvk/android: check gralloc buffer layouts before using
+ them
+
+A VkNativeBufferANDROID image took gralloc's modifier, row pitches and
+plane offsets as they came, with the tiling the loader asked for. NIL
+asserts on layouts it cannot represent rather than failing (an explicit
+pitch for a block-linear image, an explicit pitch with a non-linear
+modifier), and NVK imports only the buffer's first file descriptor. So a
+buffer from another allocator, such as minigbm on a different GPU, could
+take the process down or be laid out wrongly.
+
+Lay native buffer images out through a new helper that first checks that
+NVK can use the buffer:
+
+- every plane's file descriptor refers to the dma-buf NVK imports;
+- a single-level, single-layer, single-sample 2D colour image;
+- a DRM format modifier that NIL supports for the format (no YCbCr
+  block-linear), and not DRM_FORMAT_MOD_INVALID, whose layout is unknown;
+- as many planes as the format has;
+- linear planes with 32 B aligned pitches and offsets (256 B on Kepler
+  to Maxwell A, as NIL requires) and a pitch that covers the width;
+- block-linear buffers at offset 0, with gralloc's pitch compared to the
+  one NIL derives;
+- an image that fits in the buffer.
+
+Anything else fails with VK_ERROR_INVALID_EXTERNAL_HANDLE and a message.
+The image is laid out with VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT and the
+buffer's explicit layout, as PanVK does, which also gives linear buffers
+the tiled shadows NVK uses to render to unaligned linear images.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/nvk_android.c | 240 +++++++++++++++++++++++++++++++
+ src/nouveau/vulkan/nvk_image.c   |  33 ++---
+ src/nouveau/vulkan/nvk_image.h   |  10 ++
+ 3 files changed, 263 insertions(+), 20 deletions(-)
+
+diff --git a/src/nouveau/vulkan/nvk_android.c b/src/nouveau/vulkan/nvk_android.c
+index 671b838b886..c348e1034fd 100644
+--- a/src/nouveau/vulkan/nvk_android.c
++++ b/src/nouveau/vulkan/nvk_android.c
+@@ -8,11 +8,251 @@
+ 
+ #include "nvk_private.h"
+ 
++#include "nvk_device.h"
+ #include "nvk_entrypoints.h"
++#include "nvk_format.h"
++#include "nvk_image.h"
++#include "nvk_physical_device.h"
+ #include "vk_android.h"
+ 
+ #include "vk_device.h"
++#include "vk_enum_to_str.h"
++#include "vk_format.h"
++#include "vk_log.h"
+ #include "vk_queue.h"
++#include "vk_util.h"
++
++#include "drm-uapi/drm_fourcc.h"
++#include "util/u_gralloc/u_gralloc.h"
++
++#include "cla097.h"
++#include "clb197.h"
++
++#include <inttypes.h>
++#include <sys/stat.h>
++#include <unistd.h>
++
++/* Every dma-buf has its own inode, so two file descriptors refer to the same
++ * buffer exactly when they have the same inode.  (kcmp() would say so too,
++ * but app seccomp policies may not allow it.)
++ */
++static bool
++nvk_android_same_dma_buf(int fd_a, int fd_b)
++{
++   if (fd_a == fd_b)
++      return true;
++
++   struct stat a, b;
++   if (fstat(fd_a, &a) != 0 || fstat(fd_b, &b) != 0)
++      return false;
++
++   return a.st_dev == b.st_dev && a.st_ino == b.st_ino;
++}
++
++/* Checks that NVK can use a buffer another allocator laid out, before NIL
++ * sees the layout: NIL asserts on layouts it cannot represent instead of
++ * failing, and NVK imports only the buffer's first file descriptor.
++ */
++static VkResult
++nvk_android_check_gralloc_buffer(
++   struct nvk_device *dev, const struct nvk_image *image,
++   const native_handle_t *handle, int hal_format, int pixel_stride,
++   const VkImageDrmFormatModifierExplicitCreateInfoEXT *mod_info)
++{
++   const struct nvk_physical_device *pdev = nvk_device_physical(dev);
++   const VkFormat format = image->vk.format;
++   const uint64_t mod = mod_info->drmFormatModifier;
++
++   if (handle == NULL || handle->numFds < 1) {
++      return vk_errorf(dev, VK_ERROR_INVALID_EXTERNAL_HANDLE,
++                       "gralloc buffer without a file descriptor");
++   }
++
++   struct u_gralloc_buffer_handle gr_handle = {
++      .handle = handle,
++      .hal_format = hal_format,
++      .pixel_stride = pixel_stride,
++   };
++   /* A gralloc that does not fill fds[] then fails the check below */
++   struct u_gralloc_buffer_basic_info info = { .fds = { -1, -1, -1, -1 } };
++   if (u_gralloc_get_buffer_basic_info(vk_android_get_ugralloc(),
++                                       &gr_handle, &info) != 0) {
++      return vk_errorf(dev, VK_ERROR_INVALID_EXTERNAL_HANDLE,
++                       "gralloc cannot describe the buffer");
++   }
++
++   for (int p = 0; p < info.num_planes; p++) {
++      if (!nvk_android_same_dma_buf(info.fds[p], handle->data[0])) {
++         return vk_errorf(dev, VK_ERROR_INVALID_EXTERNAL_HANDLE,
++                          "plane %d of the gralloc buffer is in another "
++                          "dma-buf", p);
++      }
++   }
++
++   if (image->vk.image_type != VK_IMAGE_TYPE_2D ||
++       image->vk.mip_levels != 1 || image->vk.array_layers != 1 ||
++       image->vk.samples != VK_SAMPLE_COUNT_1_BIT) {
++      return vk_errorf(dev, VK_ERROR_INVALID_EXTERNAL_HANDLE,
++                       "gralloc buffers are imported as single-level, "
++                       "single-layer, single-sample 2D images only");
++   }
++
++   if (vk_format_is_depth_or_stencil(format)) {
++      return vk_errorf(dev, VK_ERROR_INVALID_EXTERNAL_HANDLE,
++                       "depth/stencil gralloc buffers are not supported");
++   }
++
++   if (mod == DRM_FORMAT_MOD_INVALID) {
++      return vk_errorf(dev, VK_ERROR_INVALID_EXTERNAL_HANDLE,
++                       "gralloc reports no DRM format modifier, so the "
++                       "buffer's layout is unknown");
++   }
++
++   const uint8_t plane_count = vk_format_get_plane_count(format);
++   if (mod_info->drmFormatModifierPlaneCount != plane_count) {
++      return vk_errorf(dev, VK_ERROR_INVALID_EXTERNAL_HANDLE,
++                       "gralloc buffer has %u planes, %s has %u",
++                       mod_info->drmFormatModifierPlaneCount,
++                       vk_Format_to_str(format), plane_count);
++   }
++
++   const struct vk_format_ycbcr_info *ycbcr_info =
++      vk_format_get_ycbcr_info(format);
++
++   if (mod != DRM_FORMAT_MOD_LINEAR) {
++      uint64_t supported = mod;
++      const enum pipe_format p_format = nvk_format_to_pipe_format(format);
++      if (ycbcr_info != NULL ||
++          nil_select_best_drm_format_mod(&pdev->info, nil_format(p_format),
++                                         1, &supported) != mod) {
++         return vk_errorf(dev, VK_ERROR_INVALID_EXTERNAL_HANDLE,
++                          "DRM format modifier 0x%" PRIx64 " is not "
++                          "supported for %s", mod, vk_Format_to_str(format));
++      }
++
++      if (mod_info->pPlaneLayouts[0].offset != 0) {
++         return vk_errorf(dev, VK_ERROR_INVALID_EXTERNAL_HANDLE,
++                          "block-linear gralloc buffer at offset %" PRIu64,
++                          mod_info->pPlaneLayouts[0].offset);
++      }
++
++      return VK_SUCCESS;
++   }
++
++   /* nil Image::new_linear(): imported linear planes need 32 B aligned rows
++    * and offsets, or 256 B where Kepler image storage needs it.
++    */
++   const uint32_t align_B = (pdev->info.cls_eng3d >= KEPLER_A &&
++                             pdev->info.cls_eng3d < MAXWELL_B) ? 256 : 32;
++   for (uint8_t p = 0; p < plane_count; p++) {
++      const VkFormat plane_format =
++         ycbcr_info ? ycbcr_info->planes[p].format : format;
++      const uint32_t width_px = image->vk.extent.width /
++         (ycbcr_info ? ycbcr_info->planes[p].denominator_scales[0] : 1);
++      const uint64_t width_B =
++         (uint64_t)width_px * vk_format_get_blocksize(plane_format);
++      const VkSubresourceLayout *layout = &mod_info->pPlaneLayouts[p];
++
++      if (layout->rowPitch % align_B != 0 || layout->offset % align_B != 0 ||
++          layout->rowPitch < width_B) {
++         return vk_errorf(dev, VK_ERROR_INVALID_EXTERNAL_HANDLE,
++                          "linear plane %u: pitch %" PRIu64 " B and offset "
++                          "%" PRIu64 " B must be %u B aligned, and the pitch "
++                          "at least %" PRIu64 " B", p, layout->rowPitch,
++                          layout->offset, align_B, width_B);
++      }
++   }
++
++   return VK_SUCCESS;
++}
++
++/* Lays out an image from a gralloc buffer with the buffer's own DRM format
++ * modifier and plane layouts.
++ */
++static VkResult
++nvk_android_init_gralloc_layout(
++   struct nvk_device *dev, struct nvk_image *image,
++   const VkImageCreateInfo *create_info,
++   const native_handle_t *handle, int hal_format, int pixel_stride,
++   VkImageDrmFormatModifierExplicitCreateInfoEXT *mod_info,
++   VkSubresourceLayout *layouts)
++{
++   VkResult result;
++
++   result = nvk_android_check_gralloc_buffer(dev, image, handle, hal_format,
++                                             pixel_stride, mod_info);
++   if (result != VK_SUCCESS)
++      return result;
++
++   /* NIL derives the row pitch of a block-linear image itself and asserts
++    * that an explicit one matches it, so check gralloc's afterwards instead.
++    */
++   const uint64_t gralloc_pitch_B = layouts[0].rowPitch;
++   const bool block_linear = mod_info->drmFormatModifier != DRM_FORMAT_MOD_LINEAR;
++   if (block_linear)
++      layouts[0].rowPitch = 0;
++
++   VkImageCreateInfo local_info = *create_info;
++   local_info.tiling = image->vk.tiling =
++      VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT;
++   mod_info->pNext = create_info->pNext;
++   local_info.pNext = mod_info;
++
++   result = nvk_image_init_layout(dev, image, &local_info);
++   if (result != VK_SUCCESS)
++      goto fail;
++
++   if (block_linear && gralloc_pitch_B != 0 &&
++       gralloc_pitch_B != image->planes[0].nil.levels[0].row_stride_B) {
++      result = vk_errorf(dev, VK_ERROR_INVALID_EXTERNAL_HANDLE,
++                         "gralloc pitch %" PRIu64 " B differs from the %u B "
++                         "of DRM format modifier 0x%" PRIx64, gralloc_pitch_B,
++                         image->planes[0].nil.levels[0].row_stride_B,
++                         mod_info->drmFormatModifier);
++      goto fail;
++   }
++
++   const off_t size_B = lseek(handle->data[0], 0, SEEK_END);
++   if (size_B < 0 || image->image_size_B > (uint64_t)size_B) {
++      result = vk_errorf(dev, VK_ERROR_INVALID_EXTERNAL_HANDLE,
++                         "the image needs %" PRIu64 " B, the gralloc buffer "
++                         "has %jd B", image->image_size_B, (intmax_t)size_B);
++      goto fail;
++   }
++
++   return VK_SUCCESS;
++
++fail:
++   /* Leave the image as not laid out (no allocation was made) */
++   image->plane_count = 0;
++   return result;
++}
++
++VkResult
++nvk_android_init_anb_layout(struct nvk_device *dev, struct nvk_image *image,
++                            const VkImageCreateInfo *create_info,
++                            const VkNativeBufferANDROID *anb)
++{
++   VkImageDrmFormatModifierExplicitCreateInfoEXT mod_info;
++   VkSubresourceLayout layouts[NVK_MAX_IMAGE_PLANES];
++   VkResult result;
++
++   /* vk_android_get_anb_layout() only looks for the ANB in the chain */
++   VkNativeBufferANDROID local_anb = *anb;
++   local_anb.pNext = NULL;
++   const VkImageCreateInfo anb_info = {
++      .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
++      .pNext = &local_anb,
++   };
++   result = vk_android_get_anb_layout(&anb_info, &mod_info, layouts,
++                                      NVK_MAX_IMAGE_PLANES);
++   if (result != VK_SUCCESS)
++      return vk_error(dev, result);
++
++   return nvk_android_init_gralloc_layout(dev, image, create_info,
++                                          anb->handle, anb->format,
++                                          anb->stride, &mod_info, layouts);
++}
+ 
+ VKAPI_ATTR VkResult VKAPI_CALL
+ nvk_QueueSignalReleaseImageANDROID(VkQueue _queue,
+diff --git a/src/nouveau/vulkan/nvk_image.c b/src/nouveau/vulkan/nvk_image.c
+index 44a8df56804..2b557eb49b6 100644
+--- a/src/nouveau/vulkan/nvk_image.c
++++ b/src/nouveau/vulkan/nvk_image.c
+@@ -906,22 +906,6 @@ nvk_image_init_layout(struct nvk_device *dev,
+    for (uint8_t plane = 0; plane < NVK_MAX_IMAGE_PLANES; plane++)
+       explicit_offsets_B[plane] = -1;
+ 
+-   /* This section is removed by the optimizer for non-ANDROID builds */
+-   if (vk_image_is_android_native_buffer(&image->vk)) {
+-      VkImageDrmFormatModifierExplicitCreateInfoEXT eci;
+-      VkSubresourceLayout a_plane_layouts[4];
+-      VkResult result = vk_android_get_anb_layout(
+-         pCreateInfo, &eci, a_plane_layouts, 4);
+-      if (result != VK_SUCCESS)
+-         return result;
+-
+-      image->vk.drm_format_mod = eci.drmFormatModifier;
+-      for (uint8_t plane = 0; plane < eci.drmFormatModifierPlaneCount; plane++) {
+-         explicit_row_stride_B[plane] = eci.pPlaneLayouts[plane].rowPitch;
+-         explicit_offsets_B[plane] = eci.pPlaneLayouts[plane].offset;
+-      }
+-   }
+-
+    uint32_t max_alignment_B = 0;
+    const VkImageAlignmentControlCreateInfoMESA *alignment =
+       vk_find_struct_const(pCreateInfo->pNext,
+@@ -1284,11 +1268,20 @@ nvk_CreateImage(VkDevice _device,
+    if (!image)
+       return vk_error(dev, VK_ERROR_OUT_OF_HOST_MEMORY);
+ 
+-   result = nvk_image_init(dev, image, pCreateInfo);
+-   if (result != VK_SUCCESS) {
+-      vk_free2(&dev->vk.alloc, pAllocator, image);
+-      return result;
++   nvk_image_init_common(dev, image, pCreateInfo);
++
++#ifdef VK_USE_PLATFORM_ANDROID_KHR
++   if (vk_image_is_android_native_buffer(&image->vk)) {
++      const VkNativeBufferANDROID *anb =
++         vk_find_struct_const(pCreateInfo->pNext, NATIVE_BUFFER_ANDROID);
++      result = nvk_android_init_anb_layout(dev, image, pCreateInfo, anb);
++   } else
++#endif
++   {
++      result = nvk_image_init_layout(dev, image, pCreateInfo);
+    }
++   if (result != VK_SUCCESS)
++      goto fail;
+ 
+    if (image->vk.create_flags & (VK_IMAGE_CREATE_SPARSE_BINDING_BIT |
+                                  VK_IMAGE_CREATE_SPARSE_RESIDENCY_BIT)) {
+diff --git a/src/nouveau/vulkan/nvk_image.h b/src/nouveau/vulkan/nvk_image.h
+index 74f62972171..4e1babb47f9 100644
+--- a/src/nouveau/vulkan/nvk_image.h
++++ b/src/nouveau/vulkan/nvk_image.h
+@@ -238,6 +238,16 @@ VkResult nvk_image_init_layout(struct nvk_device *dev,
+                                struct nvk_image *image,
+                                const VkImageCreateInfo *pCreateInfo);
+ 
++#ifdef VK_USE_PLATFORM_ANDROID_KHR
++/* Lays out an image from the gralloc buffer of a VkNativeBufferANDROID,
++ * after checking that NVK can use that buffer's layout.
++ */
++VkResult nvk_android_init_anb_layout(struct nvk_device *dev,
++                                     struct nvk_image *image,
++                                     const VkImageCreateInfo *create_info,
++                                     const VkNativeBufferANDROID *anb);
++#endif
++
+ bool nvk_image_plane_aligned_for_linear_attachment(const struct nvk_image_plane *plane,
+                                                    const struct nil_image_level *level);
+ 

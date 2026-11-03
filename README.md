@@ -19,9 +19,10 @@
 
 > [!NOTE]
 > **OpenBook is in early development.**
-> - **Works today:** our Android 17 desktop runs on an ASUS ROG Zephyrus G14 at 120 fps. It was [installed on the laptop's own drive](evidence/2026-10-18-g14-installer/) by our installer, and it updated itself over Wi-Fi into a spare slot, with automatic rollback.
+> - **Works today:** our Android 17 desktop runs on an ASUS ROG Zephyrus G14 at 120 fps. It was [installed on the laptop's own drive](docs/installer.md) by our installer, and it updated itself over Wi-Fi into a spare slot, with automatic rollback.
 > - **New, 2026-10-30:** NVIDIA's open kernel driver. The laptop's RTX GPU now has a driver and powers itself off when idle. [What that covers →](docs/nvidia-open.md)
-> - **Not yet:** apps rendering on the NVIDIA GPU, the deepest sleep state (S0i3), and a public image. Since 2026-10-23 the G14 has run our sibling image based on Google's own Googlebook OS. That image shares this kernel and vendor layer, and much of the hardware evidence below comes from it.
+> - **Latest release:** [0.1.0-preview.2](docs/STATUS.md#latest-release) (2026-10-31), a `userdebug` developer preview with test keys. Its download links on openbook.page are broken for now (only the torrent works) while the repository is private; fixing that is in progress.
+> - **Not yet:** apps rendering on the NVIDIA GPU and the deepest sleep state (S0i3). Since 2026-10-23 the G14 has run our sibling image based on Google's own Googlebook OS. That image shares this kernel and vendor layer, and much of the hardware evidence below comes from it.
 
 <br>
 
@@ -76,7 +77,7 @@
 <td width="33%" valign="top">
 <img src="assets/readme/icons/verified_user.png" width="44" alt=""><br>
 <b>Open, and honest about it</b><br>
-<sub>Open-source code throughout, with no Google images and no GMS. Firmware ships unmodified under its own licences. Every claim is backed by logs in <code>evidence/</code>, and anything unproven is labelled.</sub>
+<sub>Open-source code throughout, with no Google images and no GMS. Firmware ships unmodified under its own licences. Every claim is backed by test logs on its issue, and anything unproven is labelled.</sub>
 </td>
 </tr>
 </table>
@@ -87,7 +88,7 @@
 
 <img src="assets/readme/g14-desktop.jpg" alt="OpenBook's Android 17 desktop on the ASUS ROG Zephyrus G14: Search, Settings and Calendar in freeform windows above the desktop taskbar, with Wi-Fi connected" width="100%">
 
-<sub>A real screenshot that the G14 took of its own panel (<code>screencap</code>, 2880×1800, scaled to 1440×900) on 2026-10-17, from the <code>anal178c</code> live stick's "save logs" boot. The list of nearby Bluetooth devices is blanked for privacy; nothing else is edited. In the same session the normal boot, with SELinux enforcing, reached the desktop in 28 s. Evidence: <a href="evidence/2026-10-17-g14-desktop/g14-anal178c/SUMMARY.md"><code>evidence/2026-10-17-g14-desktop/g14-anal178c/</code></a>.</sub>
+<sub>A real screenshot that the G14 took of its own panel (<code>screencap</code>, 2880×1800, scaled to 1440×900) on 2026-10-17, from the <code>anal178c</code> live stick's "save logs" boot. The list of nearby Bluetooth devices is blanked for privacy; nothing else is edited. In the same session the normal boot, with SELinux enforcing, reached the desktop in 28 s.</sub>
 
 ### In a VM: our Android 17 desktop build
 
@@ -96,7 +97,7 @@
   <img src="assets/readme/desktop-light.jpg" alt="OpenBook's Android 17 desktop build: Settings and Files open as freeform windows above a pinned taskbar" width="100%">
 </picture>
 
-<sub>A real, unedited screenshot from 2026-10-16: <code>anybook_cf_x86_64_pc</code> running in Cuttlefish and rendered on a Radeon 610M through RADV, with 0% janky frames. Evidence: <a href="evidence/2026-10-16-desktop/"><code>evidence/2026-10-16-desktop/</code></a>.</sub>
+<sub>A real, unedited screenshot from 2026-10-16: <code>anybook_cf_x86_64_pc</code> running in Cuttlefish and rendered on a Radeon 610M through RADV, with 0% janky frames.</sub>
 
 ### The installer: design
 
@@ -105,16 +106,16 @@
   <img src="assets/readme/showcase-light.jpg" alt="OpenBook installer design: welcome, disk choice and progress screens" width="100%">
 </picture>
 
-<sub>High-fidelity design renders (Material 3 Expressive) of the recommended installer, an Android app in the live session. Hardware values are sample data. Full set and rationale: <a href="docs/installer-design/png/gallery.png">gallery</a> · <a href="docs/installer.md"><code>docs/installer.md</code></a>.</sub>
+<sub>High-fidelity design renders (Material 3 Expressive) of the recommended installer, an Android app in the live session. Hardware values are sample data. Full set and rationale: <a href="assets/readme/installer/gallery.png">gallery</a> · <a href="docs/installer.md"><code>docs/installer.md</code></a>.</sub>
 
 <table>
 <tr>
-<td><img src="docs/installer-design/png/welcome.png" alt="Welcome and language"><br><sub><b>1 · Welcome.</b> Language, keyboard test, and accessibility from the first screen.</sub></td>
-<td><img src="docs/installer-design/png/hardware.png" alt="Hardware check"><br><sub><b>2 · Hardware check.</b> One verdict, plus a tile per component.</sub></td>
+<td><img src="assets/readme/installer/welcome.png" alt="Welcome and language"><br><sub><b>1 · Welcome.</b> Language, keyboard test, and accessibility from the first screen.</sub></td>
+<td><img src="assets/readme/installer/hardware.png" alt="Hardware check"><br><sub><b>2 · Hardware check.</b> One verdict, plus a tile per component.</sub></td>
 </tr>
 <tr>
-<td><img src="docs/installer-design/png/confirm.png" alt="Typed confirmation before erasing a disk"><br><sub><b>5 · Confirm.</b> Before-and-after view. You type the disk's name to enable the button.</sub></td>
-<td><img src="docs/installer-design/png/boot.png" alt="Quiet boot screen"><br><sub><b>Boot.</b> The menu stays hidden. The laptop's logo hands straight over to OpenBook.</sub></td>
+<td><img src="assets/readme/installer/confirm.png" alt="Typed confirmation before erasing a disk"><br><sub><b>5 · Confirm.</b> Before-and-after view. You type the disk's name to enable the button.</sub></td>
+<td><img src="assets/readme/installer/boot.png" alt="Quiet boot screen"><br><sub><b>Boot.</b> The menu stays hidden. The laptop's logo hands straight over to OpenBook.</sub></td>
 </tr>
 </table>
 
@@ -133,7 +134,7 @@
 </tr>
 </table>
 
-<sub>Real screenshots of the G14 image in QEMU on 2026-10-19, cropped to the note: the live mirror from the update that put Quire on the laptop (<a href="evidence/2026-10-19-quire-g14/"><code>evidence/2026-10-19-quire-g14/</code></a>), the other three from Quire Q6 with the glass-and-ink note (<a href="evidence/2026-10-19-quire-q6/"><code>evidence/2026-10-19-quire-q6/</code></a>).</sub>
+<sub>Real screenshots of the G14 image in QEMU on 2026-10-19, cropped to the note: the live mirror from the update that put Quire on the laptop, the other three from Quire Q6 with the glass-and-ink note.</sub>
 
 - **Any agent you have.** Claude Code, Codex CLI, GitHub Copilot CLI, Cursor Agent, Gemini CLI, Grok CLI, Kimi Code, opencode and more: any agent that speaks the open Agent Client Protocol (ACP). opencode comes installed and uses its free model, with no account. Each agent runs its own sign-in, and Quire never sees your password.
 - **Running on your laptop.** Agents live in OpenBook's Linux environment, Android's own virtual machine with the Terminal app. `quired`, Quire's harness host, finds them there and connects them to the note.
@@ -145,28 +146,28 @@
 
 ## Status
 
-| | Milestone | State |
+| | Area | State |
 |:-:|---|---|
-| ✅ | **M0** Research, baselines, image analysis | Done. See [`docs/RESEARCH.md`](docs/RESEARCH.md) |
-| ✅ | **M1** Our Android 17 build boots in a VM | `boot_completed` in 17–29 s ([evidence](evidence/2026-10-16-aosp/)) |
-| ✅ | **M2** Desktop windowing and GPU graphics in a VM | Matches Google's desktop image; RADV on an AMD iGPU |
-| ✅ | **M3** OpenBook kernel on real hardware | **Installed on the G14's internal NVMe** (2026-10-18), booting our kernel to the desktop with SELinux enforcing. On the live stick, 235 modules loaded with 0 failures ([evidence](evidence/2026-10-18-g14-installed-adb/)) |
-| ✅ | **M8** USB installer | **The installer put OpenBook on the G14.** In a VM it passes 79/79 end-to-end checks: a whole disk; alongside Windows with Windows untouched; power cuts at six points; reinstall. Updates then arrive over Wi-Fi into the spare A/B slot: 55/55 update and rollback checks in a VM, and every later build reached the G14 this way ([`docs/INSTALL.md`](docs/INSTALL.md), [`docs/adb-debug.md`](docs/adb-debug.md)) |
-| 🚧 | **M4** AMD graphics stack | **120 fps on the G14:** 959 of 959 frames on time after a composer fix. Conformance on the Radeon 890M: Vulkan 1.4 passes 45,220 dEQP cases with 5 failures; GLES on ANGLE and radeonsi has 0 failures. Fixed on the laptop: Photos crashing the display. Open: rendering into Android hardware buffers |
-| 🚧 | **M5** Desktop, input and power on the laptop | On the G14: desktop, touchpad, keyboard, Wi-Fi with internet, Bluetooth pairing, battery health and lid sleep/wake. Deep sleep (S0i3) is under investigation. The lid guard and the S0i3 diagnostics module from the sibling image are now in OpenBook's kernel, not yet enabled here |
-| 🚧 | **M6** ARM app compatibility | The open Digitalis bridge, built from source: 14 of 16 ARM-only test apps run, and **ARM64 Chromium renders on the G14** without stalling app starts ([evidence](evidence/2026-10-19-armfix1-g14/)) |
-| 🚧 | **M7** Performance and parity | **The Googlebook look on the G14:** Google Sans, circular icons, blur, Googlebook's desktop flags, OpenBook's wallpapers, boot animation and sounds, and the first-run setup. Google apps: the microG option ([installed on the G14](evidence/2026-10-19-microg-g14/)) or your own package at install time. Benchmarks later |
+| ✅ | **Research**, baselines, image analysis | Done. See [`docs/RESEARCH.md`](docs/RESEARCH.md) |
+| ✅ | **VM boot:** our Android 17 build boots in a VM | `boot_completed` in 17–29 s |
+| ✅ | **Desktop windowing** and GPU graphics in a VM | Matches Google's desktop image; RADV on an AMD iGPU |
+| ✅ | **OpenBook kernel** on real hardware | **Installed on the G14's internal NVMe** (2026-10-18), booting our kernel to the desktop with SELinux enforcing. On the live stick, 235 modules loaded with 0 failures |
+| ✅ | **USB installer** | **The installer put OpenBook on the G14.** In a VM it passes 79/79 end-to-end checks: a whole disk; alongside Windows with Windows untouched; power cuts at six points; reinstall. Updates then arrive over Wi-Fi into the spare A/B slot: 55/55 update and rollback checks in a VM, and every later build reached the G14 this way ([`docs/INSTALL.md`](docs/INSTALL.md), [`docs/adb-debug.md`](docs/adb-debug.md)) |
+| 🚧 | **AMD graphics** stack | **120 fps on the G14:** 959 of 959 frames on time after a composer fix. Conformance on the Radeon 890M: Vulkan 1.4 passes 45,220 dEQP cases with 5 failures; GLES on ANGLE and radeonsi has 0 failures. Fixed on the laptop: Photos crashing the display. Open: rendering into Android hardware buffers |
+| 🚧 | **Desktop, input and power** on the laptop | On the G14: desktop, touchpad, keyboard, Wi-Fi with internet, Bluetooth pairing, battery health and lid sleep/wake. Deep sleep (S0i3) is under investigation. The lid guard and the S0i3 diagnostics module from the sibling image are now in OpenBook's kernel, not yet enabled here |
+| 🚧 | **ARM app** compatibility | The open Digitalis bridge, built from source: 14 of 16 ARM-only test apps run, and **ARM64 Chromium renders on the G14** without stalling app starts |
+| 🚧 | **Performance and parity** | **The Googlebook look on the G14:** Google Sans, circular icons, blur, Googlebook's desktop flags, OpenBook's wallpapers, boot animation and sounds, and the first-run setup. Google apps: the microG option (installed on the G14) or your own package at install time. Benchmarks later |
 | 🚧 | **NVIDIA** dGPU | **NVIDIA's open kernel driver and GSP firmware are in the image** (2026-10-30). On the G14 the driver loads, binds the RTX, and powers it off when idle and through sleep. Graphics modes (Eco/Hybrid) are designed and in the vendor layer, with firmware writes off. Next: apps on the RTX ([`docs/nvidia-open.md`](docs/nvidia-open.md)) |
-| 🚧 | **Quire** Agents in the OS | **On the G14 from 2026-10-19:** the note, consent, a live mirror of what an agent does, agents in the Linux environment, and agents that can drive the whole laptop and confirm only destructive actions ([evidence](evidence/2026-10-19-quire-g14/)). Next: voice ([more](#quire)) |
+| 🚧 | **Quire** Agents in the OS | **On the G14 from 2026-10-19:** the note, consent, a live mirror of what an agent does, agents in the Linux environment, and agents that can drive the whole laptop and confirm only destructive actions. Next: voice ([more](#quire)) |
 
 > [!TIP]
 > **2026-10-30: NVIDIA joins OpenBook.** OpenBook and its sibling Googlebook-based image now build **one kernel and one vendor layer**. NVIDIA's open driver, its GSP firmware and the graphics-mode switcher come to OpenBook from the work done there. On the G14, NVIDIA's driver holds the RTX in its deepest power state whenever no app needs it. [Read how it works →](docs/nvidia-open.md)
 >
-> **2026-10-18: installed on the G14.** The installer put OpenBook on the laptop's internal drive. Every OpenBook build after that reached it over Wi-Fi as an A/B update: the 120 fps composer fix, Quire, the Photos fix and the ARM64 Chromium fix. Each one booted, was marked good, and kept the owner's apps, settings and files. [Read the report →](evidence/2026-10-19-armfix1-g14/)
+> **2026-10-18: installed on the G14.** The installer put OpenBook on the laptop's internal drive. Every OpenBook build after that reached it over Wi-Fi as an A/B update: the 120 fps composer fix, Quire, the Photos fix and the ARM64 Chromium fix. Each one booted, was marked good, and kept the owner's apps, settings and files.
 >
-> **2026-10-17: the Android desktop on real hardware.** Our build reached the desktop on the G14's own panel from a USB stick, **with SELinux enforcing**, in 28 s. [Read the report →](evidence/2026-10-17-g14-desktop/g14-anal176s/SUMMARY.md)
+> **2026-10-17: the Android desktop on real hardware.** Our build reached the desktop on the G14's own panel from a USB stick, **with SELinux enforcing**, in 28 s.
 
-The live tracker, decisions and next steps are in [`docs/STATUS.md`](docs/STATUS.md). The full plan and ranked risks are in [`docs/PLAN.md`](docs/PLAN.md).
+Where things stand: [`docs/STATUS.md`](docs/STATUS.md). The roadmap: [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Hardware
 
@@ -253,7 +254,7 @@ scripts/aosp-docker.sh -d anybook-aosp-build /repo/scripts/aosp-build.sh anybook
 scripts/g14-image.sh                               # a USB-ready disk image; writing a stick is your own step
 ```
 
-Every image and firmware file is checked against its pin, and staging refuses NVIDIA's driver without its firmware. NVIDIA's firmware is used under its licence's own-use terms, so **an image built this way is for your own use** ([`docs/nvidia-open.md`](docs/nvidia-open.md)).
+Every image and firmware file is checked against its pin, and staging refuses NVIDIA's driver without its firmware. NVIDIA's firmware ships unchanged under its driver licence, and its licence text goes next to any image you share ([`docs/nvidia-open.md`](docs/nvidia-open.md)).
 
 </details>
 
@@ -267,16 +268,15 @@ Every image and firmware file is checked against its pin, and staging refuses NV
 
 ## Documentation
 
+All docs, grouped by purpose: [`docs/README.md`](docs/README.md).
+
 | Area | Docs |
 |---|---|
-| **Start here** | [`PLAN`](docs/PLAN.md) · [`STATUS`](docs/STATUS.md) · [`RESEARCH`](docs/RESEARCH.md) · [`BUILD`](docs/BUILD.md) |
-| **Hardware** | [`HARDWARE`](docs/HARDWARE.md) · [`g14-product`](docs/g14-product.md) · [`power-input`](docs/power-input.md) · [`adb-debug`](docs/adb-debug.md) |
-| **NVIDIA** | [`nvidia-open`](docs/nvidia-open.md) · [`nvidia-graphics-modes`](docs/nvidia-graphics-modes.md) · [`nvidia`](docs/nvidia.md) (research) |
-| **Android** | [`aosp-build`](docs/aosp-build.md) · [`aosp-desktop`](docs/aosp-desktop.md) · [`googlebook-ui`](docs/googlebook-ui.md) · [`googlebook-flags`](docs/googlebook-flags.md) · [`setup`](docs/setup.md) · [`gapps`](docs/gapps.md) |
-| **Kernel and graphics** | [`kernel`](docs/kernel.md) · [`mesa`](docs/mesa.md) · [`graphics-amd`](docs/graphics-amd.md) |
-| **ARM apps** | [`COMPAT-MATRIX`](docs/COMPAT-MATRIX.md) · [`compat-harness`](docs/compat-harness.md) · [`digitalis`](docs/digitalis.md) |
-| **Install and update** | [`INSTALL`](docs/INSTALL.md) · [`installer`](docs/installer.md) · [`RELEASE`](docs/RELEASE.md) · [design gallery](docs/installer-design/png/gallery.png) |
-| **Agents (Quire)** | [`quire`](docs/quire.md) · [`quire-design`](docs/quire-design.md) · [`quire-howto`](docs/quire-howto.md) · [`quired`](quire/quired/) |
+| **Start here** | [`STATUS`](docs/STATUS.md) · [`PLAN`](docs/PLAN.md) · [`CONTRIBUTING`](CONTRIBUTING.md) |
+| **Install and use** | [`INSTALL`](docs/INSTALL.md) · [`setup`](docs/setup.md) · [`gapps`](docs/gapps.md) · [`quire-howto`](docs/quire-howto.md) · [`adb-debug`](docs/adb-debug.md) |
+| **Build and release** | [`BUILD`](docs/BUILD.md) · [`aosp-build`](docs/aosp-build.md) · [`kernel`](docs/kernel.md) · [`mesa`](docs/mesa.md) · [`RELEASE`](docs/RELEASE.md) · [`tests`](tests/README.md) |
+| **Architecture** | [`HARDWARE`](docs/HARDWARE.md) · [`g14-product`](docs/g14-product.md) · [`graphics-amd`](docs/graphics-amd.md) · [`nvidia-open`](docs/nvidia-open.md) · [`nvidia-graphics-modes`](docs/nvidia-graphics-modes.md) · [`power-input`](docs/power-input.md) · [`installer`](docs/installer.md) · [`digitalis`](docs/digitalis.md) · [`COMPAT-MATRIX`](docs/COMPAT-MATRIX.md) · [`quire`](docs/quire.md) |
+| **Design** | [`quire-design`](docs/quire-design.md) · [`launcher-design`](docs/launcher-design.md) · [`installer design`](docs/installer-design/index.html) · [installer gallery](assets/readme/installer/gallery.png) |
 
 <details>
 <summary><b>Repository layout</b></summary>
@@ -285,13 +285,13 @@ Every image and firmware file is checked against its pin, and staging refuses NV
 device/anybook/   AOSP device tree: desktop config, AMD graphics, graphics modes, G14 and VM products
 kernel/           kernel patches, vendor-module builds (AMD, NVIDIA), G14 module lists, firmware pins
 aosp/patches/     patches to AOSP projects (e.g. minigbm, drm_hwcomposer)
-manifests/        pinned repo manifests
-scripts/          build, boot, test, inventory and installer tools
+manifests/        source pins: the AOSP revision pin, kernel and Digitalis manifests
+scripts/          build, image, installer, release and inventory tools; VM test harnesses
+tests/            fast host tests (tests/run.sh, run by CI)
 tools/            toolbox Dockerfiles
 assets/           brand mark, README art and its sources
 quire/quired/     Quire's harness host: runs the person's coding agents over ACP
-docs/             plan, status, research and topic docs
-evidence/         logs, screenshots and reports for every milestone
+docs/             install, build, architecture and design docs (docs/README.md)
 ```
 
 `kernel/` and most of `device/anybook/` are shared, byte for byte, with the sibling Googlebook-based repository. [`docs/nvidia-open.md`](docs/nvidia-open.md) lists what is shared.
@@ -300,15 +300,15 @@ evidence/         logs, screenshots and reports for every milestone
 
 ## How we work
 
-Every change lands as a pull request with evidence, such as boot logs, test output or screenshots, in [`evidence/`](evidence/). Claims without logs are labelled as hypotheses. Work is planned as epics and tracked on Multica.
+Every change lands as a pull request that follows [`CONTRIBUTING.md`](CONTRIBUTING.md). Test results, logs and screenshots go on the issue, not into the repository. Claims without logs are labelled as hypotheses. Work is planned as epics and tracked on Multica.
 
-From M3 onward, a milestone only counts once it has been reproduced on the laptop itself. Hardware safety comes first: nothing touches a physical disk or firmware without explicit confirmation that names the exact device.
+A hardware feature only counts once it has been reproduced on the laptop itself. Hardware safety comes first: nothing touches a physical disk or firmware without explicit confirmation that names the exact device.
 
 ## License and legal
 
-- **License:** a project license has not been chosen yet; Apache-2.0 is proposed.
+- **License:** OpenBook's own code does not have a project license yet. The owner chooses one before the public beta (M2); until then, no license is granted beyond the third-party terms below.
 - **Third-party components** keep their own licenses: AOSP (Apache-2.0), the Linux kernel (GPL-2.0), NVIDIA's open kernel modules (MIT/GPL-2.0), Mesa (MIT), Digitalis (Apache-2.0), microG (Apache-2.0, an optional add-on) and linux-firmware (per-file licenses).
-- **Firmware:** the files from linux-firmware ship unmodified under their own licenses. NVIDIA's GSP firmware ships unmodified from NVIDIA's driver package, under the NVIDIA Driver License Agreement's **own-use terms**, so OpenBook images that include it are for private use.
+- **Firmware:** the files from linux-firmware ship unmodified under their own licenses. NVIDIA's GSP firmware ships unmodified from NVIDIA's 615.78.08 driver package under that driver's licence, whose §1.1(d) allows redistributing it unmodified, for an OSI-licensed kernel, with the licence given to every recipient. Every release that includes it carries `LICENSE.nvidia-driver-615.78.08` next to the image, and the release tooling checks that each NVIDIA file is byte-for-byte NVIDIA's.
 - **No Google software:** OpenBook does not ship or redistribute Google Mobile Services or Googlebook OS images. It does not bypass Play Integrity, DRM or verified boot on devices you don't own.
 - **Trademarks:** OpenBook is an independent project, not affiliated with or endorsed by Google, ASUS, AMD or NVIDIA. Googlebook, Android and Chrome are trademarks of Google LLC, and other names belong to their owners.
 
@@ -316,7 +316,7 @@ From M3 onward, a milestone only counts once it has been reproduced on the lapto
 <summary><b>About the name</b></summary>
 <br>
 
-The project was called **AnyBook** until 2026-10-16, and the old `Mhsbrian/AnyBook` URL redirects here. Build identifiers still use the old name until one coordinated rename. That covers `device/anybook/`, the `anybook_*` products, the kernel's `//devices/anybook` and the `anybook-*` Docker images. `evidence/` keeps whatever name was in use at the time. The installer already uses OpenBook throughout.
+The project was called **AnyBook** until 2026-10-16, and the old `Mhsbrian/AnyBook` URL redirects here. Build identifiers still use the old name until one coordinated rename. That covers `device/anybook/`, the `anybook_*` products, the kernel's `//devices/anybook` and the `anybook-*` Docker images. Old issues and logs keep whatever name was in use at the time. The installer already uses OpenBook throughout.
 
 </details>
 

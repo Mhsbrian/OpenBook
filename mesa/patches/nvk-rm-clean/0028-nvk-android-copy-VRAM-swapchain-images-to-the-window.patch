@@ -1,0 +1,64 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Mon, 2 Nov 2026 21:00:00 +0000
+Subject: [PATCH 28/28] nvk/android: copy VRAM swapchain images to the window
+ buffer with the copy engine
+
+0021 renders a swapchain image whose window buffer is linear into a
+tiled image in VRAM, and copies it into the window buffer in the release
+submission with vkCmdCopyImage2().  On a graphics queue NVK runs that
+copy as a 3D draw (nvk_cmd_copy_image_meta()), whose writes reach the
+window buffer in system memory over PCIe.  On the G14 (RTX 5070 Ti
+Laptop on a PCIe 4.0 x8 link) the copy is most of a light ANGLE frame:
+glmark2's clear scene (RGB565) takes 0.582 ms a frame at 2073x1224 and
+1.147 ms at 2880x1800, about 9.4 GB/s plus 40 us, and its build scene
+runs at 1700 fps.  Rendering into the window buffer instead
+(NVK_ANB_VRAM=0), which for a depth-buffered app means NVK's tiled
+shadow and its copy-engine copy-out (nvk_linear_render_copy()), runs
+build at 2608 fps, 13.2 GB/s or more.  (ANAL-351)
+
+Record the copy with nvk_cmd_copy_image_ce(), the copy-engine path NVK
+takes on queues without graphics or compute.  The barriers around it
+stay: the first waits for idle, and NVK's switch from the 3D to the
+copy engine's subchannel is a wait for idle as well.
+
+Public sources: Mesa 26.2.5 src/nouveau/vulkan/nvk_cmd_meta.c
+(nvk_CmdCopyImage2, nvk_meta_image_copy_gfx_supported), nvk_cmd_copy.c
+(nvk_cmd_copy_image_ce, nvk_linear_render_copy, nouveau_copy_rect),
+nvk_cmd_draw.c (nvk_rendering_linear,
+nvk_image_plane_aligned_for_linear_attachment) and nvk_cmd_buffer.c
+(nvk_cmd_flush_wait_dep).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/nvk_android.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/src/nouveau/vulkan/nvk_android.c b/src/nouveau/vulkan/nvk_android.c
+index 77c1bfc..fae53c4 100644
+--- a/src/nouveau/vulkan/nvk_android.c
++++ b/src/nouveau/vulkan/nvk_android.c
+@@ -8,6 +8,7 @@
+ 
+ #include "nvk_private.h"
+ 
++#include "nvk_cmd_buffer.h"
+ #include "nvk_device.h"
+ #include "nvk_device_memory.h"
+ #include "nvk_entrypoints.h"
+@@ -528,7 +529,14 @@ nvk_android_anb_vram_copy_cmd(struct nvk_device *dev, struct nvk_image *image,
+       .regionCount = 1,
+       .pRegions = &region,
+    };
+-   disp->CmdCopyImage2(cmd, &copy);
++   /* With the copy engine.  On a graphics queue vkCmdCopyImage2() copies
++    * with a 3D draw, whose writes into the linear window buffer in system
++    * memory are slower over PCIe than the copy engine's: on the G14, about
++    * 9.4 GB/s against 13 GB/s or more for the copy-engine copy-out of NVK's
++    * tiled shadow (nvk_linear_render_copy()).  The barriers above and below
++    * apply to it as to any transfer.
++    */
++   nvk_cmd_copy_image_ce(nvk_cmd_buffer_from_handle(cmd), &copy);
+ 
+    const VkImageMemoryBarrier2 after[2] = {{
+       .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,

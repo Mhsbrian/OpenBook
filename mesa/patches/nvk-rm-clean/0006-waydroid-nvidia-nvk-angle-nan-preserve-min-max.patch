@@ -1,0 +1,73 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Shiro836 <17294277+Shiro836@users.noreply.github.com>
+Date: Mon, 26 Oct 2026 10:01:04 -0400
+Subject: [PATCH 06/23] waydroid-nvidia: nvk-angle-nan-preserve-min-max
+
+nvidia-prolapse/driver-source/native/mesa/nvk-angle-nan-preserve-min-max.patch at waydroid-nvidia 788728d3d51c (v0.2.0-rc12), sha256 90ea8797075b50a6d0953e5764a3d01f19d78fc6868dfc65ac5fb9d3d5edabeb
+---
+ src/nouveau/vulkan/00-nvk-defaults.conf | 12 ++++++++++++
+ src/nouveau/vulkan/nvk_drirc_gen.py     |  4 ++++
+ src/nouveau/vulkan/nvk_shader.c         |  5 +++++
+ 3 files changed, 21 insertions(+)
+
+diff --git a/src/nouveau/vulkan/00-nvk-defaults.conf b/src/nouveau/vulkan/00-nvk-defaults.conf
+index f25cdbc..821e8da 100644
+--- a/src/nouveau/vulkan/00-nvk-defaults.conf
++++ b/src/nouveau/vulkan/00-nvk-defaults.conf
+@@ -10,6 +10,18 @@
+                -->
+             <option name="nvk_ssbo_align_4b" value="true" />
+         </engine>
++        <engine engine_name_match="^ANGLE$">
++            <!--
++               ANGLE translates GLSL ES min/max/clamp to GLSL.std.450
++               FMin/FMax/FClamp, which may drop NaN handling.  Mesa's own GLSL
++               frontend always keeps float min/max NaN-preserving
++               (glsl_to_nir.cpp ir_binop_min/max), and NVIDIA's FMNMX returns
++               the non-NaN operand, so GLES content relies on it: GTA San
++               Andreas computes max(pow(x, 10.0), 0.0) with x < 0 and renders
++               car paint black without this.
++               -->
++            <option name="nvk_force_nan_preserve_min_max" value="true" />
++        </engine>
+ 
+         <application name="Artifact Classic" executable="dcg">
+             <option name="force_vk_vendor" value="-1" />
+diff --git a/src/nouveau/vulkan/nvk_drirc_gen.py b/src/nouveau/vulkan/nvk_drirc_gen.py
+index f6dc8a6..21c48c2 100644
+--- a/src/nouveau/vulkan/nvk_drirc_gen.py
++++ b/src/nouveau/vulkan/nvk_drirc_gen.py
+@@ -40,6 +40,10 @@ def declare_options():
+           c_name="override_compute_shader_version"),
+ 
+         B("nvk_ssbo_align_4b", False, c_name="ssbo_align_4b"),
++
++        B("nvk_force_nan_preserve_min_max", False,
++          "Treat FMax/FMin/FClamp like NMax/NMin/NClamp.",
++          c_name="force_nan_preserve_min_max"),
+     ]
+ 
+     drirc_gen.add_common_vk_options(debug_options, features_options, misc_options,
+diff --git a/src/nouveau/vulkan/nvk_shader.c b/src/nouveau/vulkan/nvk_shader.c
+index 6f649f8..c0c586d 100644
+--- a/src/nouveau/vulkan/nvk_shader.c
++++ b/src/nouveau/vulkan/nvk_shader.c
+@@ -80,6 +80,7 @@ nvk_physical_device_compiler_flags(const struct nvk_physical_device *pdev)
+    return (no_cbufs ? 1 << 12 : 0)
+       | (use_edb_buffer_views ? 1 << 13 : 0)
+       | (instance->drirc.misc.ssbo_align_4b ? 1 << 14 : 0)
++      | (instance->drirc.misc.force_nan_preserve_min_max ? 1 << 15 : 0)
+       | (nak_flags << 48);
+ }
+ 
+@@ -151,6 +152,10 @@ nvk_get_spirv_options(struct vk_physical_device *vk_pdev,
+       .shared_addr_format = nir_address_format_32bit_offset,
+       .min_ssbo_alignment = nvk_min_ssbo_alignment(instance),
+       .min_ubo_alignment = nvk_min_cbuf_alignment(&pdev->info),
++      .workarounds = {
++         .force_nan_preserve_min_max =
++            instance->drirc.misc.force_nan_preserve_min_max,
++      },
+    };
+ }
+ 

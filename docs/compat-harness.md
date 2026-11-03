@@ -1,25 +1,58 @@
 # ARM compatibility harness and libndk_translation baseline (ANAL-180)
 
-This harness installs, launches and checks ARM-only APKs on an x86_64 Android desktop. Its first baseline uses the native bridge in Google's AOSP Desktop (Preview) 37.0 x86_64 emulator image, which is `libndk_translation.so`. Other bridges get the same corpus later: libhoudini from the Googlebook image (Track B) and Berberis/Digitalis (Track A).
+This harness installs, launches and checks ARM-only APKs on an x86_64 Android desktop, and measures translated CPU speed. It runs on Google's AOSP Desktop (Preview) 37.0 x86_64 emulator image, whose native bridge is the proprietary `libndk_translation.so`, or on OpenBook's own Cuttlefish build with its Digitalis bridge (`COMPAT_TARGET=cf`). The current results per app are in [`COMPAT-MATRIX.md`](COMPAT-MATRIX.md); the Digitalis bridge is in [`digitalis.md`](digitalis.md).
 
-Status as of 2026-10-15. **CONFIRMED** means we observed it in our own logs or test output. **HYPOTHESIS** means it is a likely explanation we have not proven.
+**CONFIRMED** means we observed it in our own logs or test output. **HYPOTHESIS** means it is a likely explanation we have not proven.
 
-## Results at a glance
+## Running it
 
-- **Corpus:** 26 APKs. That is 3 self-built probe APKs plus 23 F-Droid APKs: 16 apps whose release ships only arm64 native code, and 7 x86_64 builds of the same releases as native controls.
-- **Apps (arm64-only, via libndk_translation):** 13 of 16 stay alive after 15 s. 3 crash:
-  - AAAAXY crashes the same way natively, so it is not a translation problem.
-  - **Tor VPN** and **Element X** fail only under translation.
-  - SimpleX stays alive but shows a black window at 15 s.
-- **32-bit ARM:** not supported on this image. The armeabi-v7a probe fails to install with `INSTALL_FAILED_NO_MATCHING_ABIS`, and arm32 executables cannot run.
-- **Probes:**
-  - arm64 passes 15 of 19 test groups.
-  - The x86_64 control passes all 17 of its applicable groups; 2 ARM-only groups are skipped.
-  - The 4 arm64 failures are real translation differences: memory ordering, FP NaN rules and timer/ID registers, the SIGILL `si_code`, and `uname`.
-- **CPU speed:** CoreMark translated arm64 / native x86_64 = **0.457** (executable) and **0.453** (inside an app). arm64 code runs at about 45% of native speed.
-- **Reproducible:** two runs, each from a freshly wiped emulator, gave identical outcomes for all 26 APKs and all 38 probe-test results (`evidence/2026-10-15-compat/repro-check.txt`).
+```bash
+scripts/m0-emulator.sh                 # once: SDK, emulator, image and AVD (shared with M0)
+scripts/compat/build-probes.sh         # toolchain (sha1-verified NDK r30, build-tools 37, platform 36, CoreMark) + probe APKs
+scripts/compat/fetch-corpus.sh         # F-Droid APKs, sha256-verified (add --reselect to refresh the index and re-pick)
+scripts/compat/run-matrix.sh --fresh   # wipe-boot the emulator, test every APK, stop the emulator
+scripts/compat/run-bench.sh            # CoreMark: 3 interleaved rounds, 600k iterations
+python3 -I scripts/compat/side-by-side.py <labelA> <runA> <labelB> <runB>   # two bridges or two runs, side by side
+```
 
-## Environment
+- Results go to `-o DIR`, by default `$OPENBOOK_EVIDENCE/<date>-compat/run-<time>` (`OPENBOOK_EVIDENCE` defaults to `~/anybook/evidence/openbook`), never inside the repository.
+- `run-matrix.sh -o DIR` resumes an interrupted run: APKs already in `DIR/results.csv` are skipped. This lets a long run go in chunks under a timeout.
+- `-f REGEX` selects APKs by id, for example `-f 'probe-|vlc'`.
+- `-w` changes the 15 s wait.
+- Disk use is about 2 GB for the corpus, 3 GB for the toolchain, and a few MB of results per two runs.
+- `COMPAT_TARGET=cf` (ANAL-200) runs `run-matrix.sh` and `run-bench.sh` on our own Cuttlefish build and its built-in Digitalis bridge instead of the emulator. `scripts/compat/cf.sh` boots `CF_DEVICE` (default `anybook_vsoc_x86_64`) with the baseline AVD's 6 vCPUs, 8 GiB and SwiftShader, from fresh images each time.
+- `COMPAT_AVD` selects another AVD on the same ports (default `anybook-desktop`), `COMPAT_EMU_ARGS` adds emulator flags, and `COMPAT_GLTRANSPORT=` (empty) keeps the emulator's default GL transport. The Digitalis overlay on Google's image uses `COMPAT_AVD=anybook-digitalis COMPAT_EMU_ARGS=-writable-system` (`docs/digitalis.md`), so the libndk_translation AVD stays untouched.
+- **Reproducibility:** two runs, each from a freshly wiped device, should give identical outcomes for every APK and probe result. They have on both bridges so far.
+
+### What `run-matrix.sh` does per APK
+
+1. Uninstall any earlier copy, go to the home screen, mark the time, and clear logcat.
+2. `adb install -r -g`, timed. `-g` grants runtime permissions so permission prompts don't hide the app.
+3. Record `primaryCpuAbi`. Find the first `MAIN`/`LAUNCHER` activity and start it with `am start -W`, recording `TotalTime`.
+4. Wait 15 s. Probes get up to 45 s more to print `PROBE_DONE`; they normally finish in about 2 s.
+5. Check whether the app process is alive (`pidof`), count its processes, check whether the bridge library is mapped in it, and whether it is the resumed activity.
+6. Take a screenshot (halved and palette-reduced PNG).
+7. Count Java crashes (`AndroidRuntime: Process: <pkg>`), native crashes (debuggerd `>>> <pkg> <<<`), ANRs, and new files in `/data/tombstones`. Extract a crash signature. Save logcat (main, system, crash) gzipped.
+8. Parse probe results into `probe-results.csv`.
+9. Force-stop, close system dialogs, and uninstall.
+
+`results.csv` columns: `run_id, id, kind, role, package, version, apk_abis, apk_sha256, install, install_ms, primary_abi, launch, launch_ms, alive, procs, native_bridge, foreground, java_crashes, native_crashes, anrs, tombstones, probe_pass, probe_fail, probe_skip, verdict, crash_signature, screenshot`.
+
+Verdicts:
+
+- `INSTALL_FAIL`
+- `LAUNCH_FAIL`
+- `CRASH`: dead at 15 s, with a crash.
+- `EXITED`: dead, no crash.
+- `ANR`
+- `RUNS_WITH_CRASH`: alive, but a process crashed.
+- `RUNS`: alive, no crash or ANR.
+
+A `RUNS` verdict means "survived 15 s", not "works". The screenshot is the first check of what the user would see. Two gotchas:
+- The `native_bridge` column means "the bridge library is mapped in the process". Digitalis's `libberberis_arm64.so` stays mapped in x86_64 processes too, so under Digitalis it doesn't mean the app is translated.
+- A fatal signal that the bridge's own handler catches leaves no tombstone, so the harness reports `EXITED` rather than `CRASH` (seen with Fennec under Digitalis A16).
+
+## Emulator setup
 
 | | |
 |---|---|
@@ -30,7 +63,7 @@ Status as of 2026-10-15. **CONFIRMED** means we observed it in our own logs or t
 | ABIs | `ro.product.cpu.abilist=x86_64,arm64-v8a`, `abilist32` empty |
 | GPU | SwiftShader through gfxstream: GLES 3.0 and Vulkan 1.3 (`Virtio-GPU GFXStream (SwiftShader Device)`) |
 
-The emulator setup differs from M0 in a few ways. `scripts/compat/emulator.sh` owns these settings:
+`scripts/compat/emulator.sh` owns these settings, which differ from M0's:
 
 - **Guest Vulkan is enabled.** The emulator ships with the Vulkan feature off, and the guest's Mesa gfxstream Vulkan driver needs a virtio-gpu render node. `emulator.sh` therefore passes `-feature Vulkan` and sets `hw.gltransport=virtio-gpu` in the AVD's `config.ini`. It re-applies that setting on every boot because `m0-emulator.sh` rewrites the file. Without these, `vkCreateInstance` returns `VK_ERROR_INITIALIZATION_FAILED` for x86_64 code too.
 - **Cold boots wipe data** (`-wipe-data`).
@@ -53,9 +86,9 @@ One small app is built three times by `build-probes.sh`, with NDK r30, minSdk 30
 - `dev.anybook.probe.armv7`: `lib/armeabi-v7a` only.
 - `dev.anybook.probe.x86_64`: the native control.
 
-The Java side runs every test on a background thread. It logs results as `AnyBookProbe: PROBE_RESULT <test> PASS|FAIL|SKIP checks=N [failed=...] <info>`, shows them on screen, and writes `files/probe-results.txt`. Tests that check AArch64-only semantics are skipped on x86_64. That build exists to validate the probe itself; its own crypto references, for example, are checked against AES-NI, PCLMUL and SSE4.2.
+The Java side runs every test on a background thread. It logs results as `AnyBookProbe: PROBE_RESULT <test> PASS|FAIL|SKIP checks=N [failed=...] <info>`, shows them on screen, and writes `files/probe-results.txt`. Tests that check AArch64-only semantics are skipped on x86_64. That build exists to validate the probe itself; its own crypto references, for example, are checked against AES-NI, PCLMUL and SSE4.2. Later work added a `regress` group (ID registers, bit-exact `FRECPE`, `Build.CPU_ABI`; `docs/digitalis.md`).
 
-| Test | What it checks | arm64 via ndk_translation | x86_64 control |
+| Test | What it checks | arm64 via libndk_translation (2026-10-15) | x86_64 control |
 |---|---|---|---|
 | `java_jni_args` | 20 mixed Java→native args (stack-passed, NaN payloads, −0.0, subnormals), compared bit for bit | PASS | PASS |
 | `java_jni_exception`, `java_jni_register_natives` | `ThrowNew`, `RegisterNatives` from `JNI_OnLoad` | PASS | PASS |
@@ -75,13 +108,15 @@ The Java side runs every test on a background thread. It logs results as `AnyBoo
 | `gles` | EGL pbuffer, ES 3.0 shader compile and link, FBO draw, `glReadPixels` | PASS | PASS |
 | `vulkan` | Loader, instance, device, `vkCmdFillBuffer` on a host-visible buffer, readback | PASS | PASS |
 
-The probes avoid `SIGUSR1`. ART blocks it in every thread and its Signal Catcher thread consumes it.
+Gotcha: the probes avoid `SIGUSR1`. ART blocks it in every thread and its Signal Catcher thread consumes it.
 
 ### F-Droid apps (`scripts/compat/corpus/fdroid.tsv`)
 
-`select-fdroid.py` reads F-Droid's `index-v2.json`. For each curated package it takes the newest APK whose only native ABI is arm64-v8a. When F-Droid builds one, it also takes the x86_64 APK of the same release as a control.
+26 APKs in all: the 3 probes plus 23 F-Droid APKs, which are 16 apps whose release ships only arm64 native code and 7 x86_64 builds of the same releases as native controls.
 
-The index was fetched on 2026-10-15 and verified in three steps:
+`scripts/compat/corpus/select-fdroid.py` reads F-Droid's `index-v2.json`. For each curated package it takes the newest APK whose only native ABI is arm64-v8a. When F-Droid builds one, it also takes the x86_64 APK of the same release as a control.
+
+The index (fetched 2026-10-15) is verified in three steps:
 
 1. `entry.jar` passes `jarsigner -verify`.
 2. Its signer's SHA-256 is `43:23:8D:51:…:C9:CC:AB`, the fingerprint f-droid.org publishes.
@@ -112,181 +147,60 @@ x86_64 controls (same release): VLC, Fennec, Lichess, LocalSend, Godot, AAAAXY, 
 
 ### Licensing
 
-- **F-Droid apps:** every app is free software under the license above. APKs are downloaded locally to `~/anybook/compat/apks/` and are **not** committed or redistributed. The repo holds only names, versions and sha256 pins, plus screenshots and logs from our runs.
-- **Proprietary APKs:** none in this baseline. Before any is added, its terms must allow this kind of testing, and those terms get recorded here.
+- **F-Droid apps:** every app is free software under the license above. APKs are downloaded locally to `~/anybook/compat/apks/` and are **not** committed or redistributed. The repo holds only names, versions and sha256 pins.
+- **Proprietary APKs:** none in the corpus. Before any is added, its terms must allow this kind of testing, and those terms get recorded here.
 - **CoreMark** (EEMBC, commit `1f483d5`): the code is Apache-2.0 and the name is a trademark under EEMBC's acceptable-use terms. We build the **unmodified** sources with the stock `posix` port. The in-app variant only renames `main` with `-Dmain=coremark_main`. Runs follow the 10-second rule and pass CoreMark's CRC validation. These are our own measurements, not certified or submitted scores. CoreMark® is a trademark of EEMBC.
 - **Emulator image:** covered by the Android SDK (Preview) License, local use only. libndk_translation is proprietary and stays inside the image. We observe its behaviour only, and do not extract or ship it.
 
-## Running it
-
-```bash
-scripts/m0-emulator.sh                 # once: SDK, emulator, image and AVD (shared with M0)
-scripts/compat/build-probes.sh         # toolchain (sha1-verified NDK r30, build-tools 37, platform 36, CoreMark) + probe APKs
-scripts/compat/fetch-corpus.sh         # F-Droid APKs, sha256-verified (add --reselect to refresh the index and re-pick)
-scripts/compat/run-matrix.sh --fresh   # wipe-boot the emulator, test every APK, stop the emulator
-scripts/compat/run-bench.sh            # CoreMark: 3 interleaved rounds, 600k iterations
-scripts/compat/compare-runs.py <runA> <runB>   # reproducibility check
-```
-
-- `run-matrix.sh -o DIR` resumes an interrupted run: APKs already in `DIR/results.csv` are skipped. This lets a long run go in chunks under a timeout.
-- `-f REGEX` selects APKs by id, for example `-f 'probe-|vlc'`.
-- `-w` changes the 15 s wait.
-- Disk use is about 2 GB for the corpus, 3 GB for the toolchain, and 4.5 MB of evidence per two runs.
-- `COMPAT_TARGET=cf` (ANAL-200) runs `run-matrix.sh` and `run-bench.sh` on our own Cuttlefish build and its built-in Digitalis bridge instead of the emulator. `scripts/compat/cf.sh` boots `CF_DEVICE` (default `anybook_vsoc_x86_64`) with the baseline AVD's 6 vCPUs, 8 GiB and SwiftShader, from fresh images each time. Results are in `docs/digitalis.md` and `docs/COMPAT-MATRIX.md`.
-
-### What `run-matrix.sh` does per APK
-
-1. Uninstall any earlier copy, go to the home screen, mark the time, and clear logcat.
-2. `adb install -r -g`, timed. `-g` grants runtime permissions so permission prompts don't hide the app.
-3. Record `primaryCpuAbi`. Find the first `MAIN`/`LAUNCHER` activity and start it with `am start -W`, recording `TotalTime`.
-4. Wait 15 s. Probes get up to 45 s more to print `PROBE_DONE`; they normally finish in about 2 s.
-5. Check whether the app process is alive (`pidof`), count its processes, check whether `libndk_translation.so` is mapped in it, and whether it is the resumed activity.
-6. Take a screenshot (halved and palette-reduced PNG).
-7. Count Java crashes (`AndroidRuntime: Process: <pkg>`), native crashes (debuggerd `>>> <pkg> <<<`), ANRs, and new files in `/data/tombstones`. Extract a crash signature. Save logcat (main, system, crash) gzipped.
-8. Parse probe results into `probe-results.csv`.
-9. Force-stop, close system dialogs, and uninstall.
-
-`results.csv` columns: `run_id, id, kind, role, package, version, apk_abis, apk_sha256, install, install_ms, primary_abi, launch, launch_ms, alive, procs, native_bridge, foreground, java_crashes, native_crashes, anrs, tombstones, probe_pass, probe_fail, probe_skip, verdict, crash_signature, screenshot`.
-
-Verdicts:
-
-- `INSTALL_FAIL`
-- `LAUNCH_FAIL`
-- `CRASH`: dead at 15 s, with a crash.
-- `EXITED`: dead, no crash.
-- `ANR`
-- `RUNS_WITH_CRASH`: alive, but a process crashed.
-- `RUNS`: alive, no crash or ANR.
-
-A `RUNS` verdict means "survived 15 s", not "works". The screenshot is the first check of what the user would see.
-
-## Results (run 1 = run 2)
-
-Evidence is in `evidence/2026-10-15-compat/`:
-
-- `run1/` and `run2/`, each with `results.csv`, `probe-results.csv`, `env.txt`, `summary.txt`, `screens/` and `logs/`.
-- `repro-check.txt`
-- `bench/`
-- `analysis/`
-
-| App | arm64-v8a via libndk_translation | x86_64 control | What the screenshot shows / notes |
-|---|---|---|---|
-| OpenBook probe | RUNS, probe 15 pass / 4 fail | RUNS, 17 pass / 0 fail / 2 skip | Test log on screen |
-| OpenBook probe armeabi-v7a | **INSTALL_FAIL** `INSTALL_FAILED_NO_MATCHING_ABIS` | — | 64-bit-only image |
-| VLC | RUNS | RUNS | Welcome screen |
-| Fennec F-Droid | RUNS | RUNS | "Welcome to Fennec" |
-| KOReader | RUNS | — | Asks for all-files access (expected first-run prompt) |
-| Lichess | RUNS | RUNS | Home screen |
-| LocalSend | RUNS | RUNS | Receive screen |
-| Godot Engine 4 | RUNS | RUNS | Both open the system "All files access" page, so the app is not the resumed activity |
-| Ogre Sample Browser | RUNS | — | Sample browser renders with GLES3 |
-| Battle for Wesnoth | RUNS | — | Title screen |
-| OsmAnd~ | RUNS | — | Welcome / map download screen |
-| GCompris | RUNS | — | First-run screen renders |
-| TIC-80 | RUNS | — | Console prompt |
-| AAAAXY | CRASH | CRASH | Same `NullPointerException` while starting `MainActivity` on both ABIs, so not translation |
-| SimpleX Chat | RUNS (caveat) | — | Alive, but the window is still **black at 15 s** in both runs, with no errors in the log; cause not investigated |
-| Tor VPN Beta | **CRASH** `SIGILL` | — (no x86_64 build) | Translation: `MRS ID_AA64ISAR0_EL1`; see finding 4 |
-| Element X | **CRASH** | RUNS | Translation-specific: `InternalException: Failed to find JNI_GetCreatedJavaVMs`; see finding 5 |
-| Tux Paint | RUNS | — | Drawing canvas |
-
-Cold launch (`am start -W` TotalTime, ms; run 1 / run 2) is slower under translation. Two samples each, so treat these as indicative:
-
-| App | arm64-v8a | x86_64 |
-|---|---|---|
-| VLC | 321 / 344 | 251 / 277 |
-| Fennec | 688 / 712 | 190 / 195 |
-| Lichess | 1902 / 1897 | 452 / 493 |
-| LocalSend | 2098 / 2274 | 1032 / 617 |
-| Godot 4 | 706 / 704 | 218 / 204 |
-
-## Findings
-
-1. **Sequentially consistent atomics lose store→load ordering (CONFIRMED).** In the store-buffering (Dekker) test, both threads read 0 in **2,138 of 200,000** (run 1) and **1,972 of 200,000** (run 2) seq_cst iterations. The x86_64 control has 0. The arm64 code is `stlr` followed by `ldar` (checked with `llvm-objdump`), and ARMv8 orders that pair, so real arm64 hardware gives 0.
-   - **HYPOTHESIS:** `STLR`/`LDAR` become plain x86 moves with no store→load fence.
-   - This can break Dekker-style and lock-free code and Java-volatile-like native protocols, and the failures are rare and timing-dependent.
-2. **AArch64 floating-point NaN rules follow x86 (CONFIRMED).**
-   - `0 × ∞` gives `0xffc00000` (the x86 default NaN) instead of ARM's `0x7fc00000`.
-   - With a quiet and a signaling NaN, the first operand wins instead of the signaling one.
-   - `FMAX(qNaN, 1)` returns the default NaN instead of propagating the operand.
-
-   Rounding modes, FZ, FPSR flags, `FMADD`, saturation and `FRECPE` are all exact. Impact is probably small: it matters to bit-exact code and NaN-payload tricks.
-3. **`CNTVCT_EL0` ticks about 429× faster than `CNTFRQ_EL0` says (CONFIRMED).** `CNTFRQ_EL0` reads 10,485,760 Hz, but the counter advances about 4.5 G ticks per second.
-   - **HYPOTHESIS:** it returns the host TSC unscaled.
-   - Code that times itself with the generic timer (some engines, profilers, crypto timing) will see time running about 400× too fast.
-4. **`MRS` of CPU ID registers raises SIGILL (CONFIRMED, breaks Tor VPN).**
-   - Background: arm64 Linux traps and emulates `MIDR_EL1`/`ID_AA64*_EL1` reads from userspace. Here they end in `berberis::UndefinedInsnThunk`, which raises `SIGILL` (code `SI_QUEUE`).
-   - Tor VPN's Go runtime (`libgojni.so`, gomobile) executes `mrs x0, ID_AA64ISAR0_EL1` at startup and dies (`analysis/torvpn-sigill.txt`).
-   - **HYPOTHESIS** on why Go takes that path: apps cannot read `/proc/self/auxv` on this image, even on x86_64 (the probe records it as unreadable). Go's `x/sys/cpu` then falls back to the ID registers.
-
-   This is likely to hit any Go-based Android library.
-5. **Element X (Rust Matrix SDK) cannot find the JavaVM under translation (CONFIRMED symptom, cause open).** At startup it throws `InternalException: Failed to find JNI_GetCreatedJavaVMs` from `matrix-sdk-ffi` `android_platform.rs`. The x86_64 build of the same release runs.
-
-   What the probes rule out:
-   - An explicit `dlopen("libnativehelper.so")` + `dlsym` **works** under translation (probe `dlopen` test).
-   - `dlopen("libart.so")` and `dlsym(RTLD_DEFAULT, …)` fail for x86_64 code too, so neither one explains the difference.
-   - The library imports only `dlopen`/`dlsym`.
-
-   Next step: trace its lookup with the linker debug property, or disassemble the call path.
-6. **No 32-bit ARM (CONFIRMED).**
-   - `abilist32` is empty and `/system/lib/arm` does not exist.
-   - armeabi-v7a APKs fail to install.
-   - binfmt_misc registers `arm_exe`/`arm_dyn` with `/system/bin/ndk_translation_program_runner_binfmt_misc`, which is not installed, so arm32 executables exit with 126 (`bench/raw/exe-armv7.txt`).
-7. **Smaller differences (CONFIRMED):**
-   - `uname()` reports `x86_64` to arm64 code, while `/proc/cpuinfo` is rewritten as an ARM CPU (`CPU implementer 0x41`, `Features: fp asimd aes pmull crc32 atomics`).
-   - `AT_PLATFORM` is absent.
-   - Synthetic `SIGILL`s carry `si_code = SI_QUEUE` instead of `ILL_ILLOPC`.
-   - The advertised `HWCAP` is ARMv8.0 plus AES, PMULL, CRC32 and LSE only: no SHA1/SHA2, dot product, FP16 or `cpuid`. Apps take baseline code paths.
-8. **Works under translation (CONFIRMED):**
-   - All JNI patterns tested.
-   - NEON.
-   - AES/PMULL/CRC32 and LSE atomics.
-   - 128-bit CAS and exclusive load/store.
-   - TLS.
-   - C++ exceptions, including through guest libc and across libraries.
-   - JIT code patching, including memfd dual mappings.
-   - Signals with ucontext PC resume.
-   - All 24 NDK-stable libraries.
-   - GLES 3.0 and Vulkan 1.3 through the bridge.
-
-## CPU benchmark: translated vs native
-
-**Method:**
+## CPU benchmark (`run-bench.sh`)
 
 - The same unmodified CoreMark source is built by NDK r30 clang `-O2` for `aarch64-linux-android30` and `x86_64-linux-android30`. The x86_64 baseline is the NDK default, SSE4.2 with no AVX.
-- Both run in the same emulator, one thread, 600,000 iterations, for 3 interleaved rounds.
+- Both run on the same device, one thread, 600,000 iterations, for 3 interleaved rounds. Every run lasts over 10 s and must pass CoreMark's validation.
 - Modes:
   - `exe`: `adb shell`; arm64 goes through the binfmt_misc runner.
   - `apk`: `System.loadLibrary` inside the probe app; arm64 goes through the app native bridge.
   - `host`: the static x86_64 build on bare metal.
-- Every run lasted 13.6–33.7 s and passed CoreMark's validation.
-- Host load during the benchmark was 1.0–2.5 on 32 threads.
+- **Limits:** CoreMark is integer and control-flow heavy, so SIMD-heavy and JIT-heavy code will scale differently. The emulator's guest CPU model hides AVX2/FMA, which the NDK x86_64 baseline doesn't use anyway. There is no Intel or ARM Googlebook baseline yet.
 
-| Mode | ABI | Median iterations/s | Min | Max |
-|---|---|---|---|---|
-| host | x86_64 | 44,108 | 44,063 | 44,192 |
-| emulator, executable | x86_64 | 40,429 | 40,298 | 40,480 |
-| emulator, executable | arm64-v8a | 18,479 | 18,478 | 18,605 |
-| emulator, in app | x86_64 | 39,303 | 39,211 | 39,706 |
-| emulator, in app | arm64-v8a | 17,819 | 17,781 | 18,036 |
+## The libndk_translation baseline (2026-10-15)
 
-- **Translated/native ratio:** 0.457 for executables and 0.453 in an app. The spread between rounds is under 1%.
-- **VM overhead:** emulator x86_64 / bare host = 0.917.
-- **Limits:**
-  - CoreMark is integer and control-flow heavy. SIMD-heavy and JIT-heavy code will scale differently.
-  - The emulator's guest CPU model hides AVX2/FMA, which the NDK x86_64 baseline doesn't use anyway.
-  - There is no Intel or ARM Googlebook baseline yet.
+Google's emulator image, two runs from a wiped emulator with identical outcomes for all 26 APKs and all 38 probe-test results. Per-app outcomes are in the libndk_translation column of [`COMPAT-MATRIX.md`](COMPAT-MATRIX.md).
+
+- **Apps:** 13 of 16 arm64-only apps stay alive after 15 s. AAAAXY crashes the same way natively; Tor VPN and Element X fail only under translation; SimpleX stays alive with a black window at 15 s.
+- **Probes:** arm64 passes 15 of 19 test groups; the x86_64 control passes all 17 applicable groups.
+- **CPU speed** (host load 1.0–2.5 on 32 threads; spread between rounds under 1%):
+
+  | Mode | ABI | Median iterations/s |
+  |---|---|---|
+  | host | x86_64 | 44,108 |
+  | emulator, executable | x86_64 | 40,429 |
+  | emulator, executable | arm64-v8a | 18,479 |
+  | emulator, in app | x86_64 | 39,303 |
+  | emulator, in app | arm64-v8a | 17,819 |
+
+  Translated / native: 0.457 for executables and 0.453 in an app, so arm64 code runs at about 45% of native speed. VM overhead (emulator x86_64 / bare host) is 0.917.
+- **Cold launch** (`am start -W`) is slower under translation, for example Fennec about 0.7 s against 0.19 s and Lichess 1.9 s against 0.45–0.49 s (two samples each, indicative).
+
+**What it gets wrong** (CONFIRMED; the Digitalis column of the comparison is in `docs/digitalis.md`):
+1. **Sequentially consistent atomics lose store→load ordering.** In the store-buffering (Dekker) test, both threads read 0 in about 2,000 of 200,000 seq_cst iterations (2,138 and 1,972 in two runs); the x86_64 control and real arm64 hardware give 0. The arm64 code is `stlr` followed by `ldar`, which ARMv8 orders. **HYPOTHESIS:** `STLR`/`LDAR` become plain x86 moves with no store→load fence. This can break Dekker-style and lock-free code, and the failures are rare and timing-dependent.
+2. **AArch64 floating-point NaN rules follow x86.** `0 × ∞` gives `0xffc00000` (the x86 default NaN) instead of ARM's `0x7fc00000`; with a quiet and a signaling NaN, the first operand wins instead of the signaling one; `FMAX(qNaN, 1)` returns the default NaN instead of propagating the operand. Rounding modes, FZ, FPSR flags, `FMADD`, saturation and `FRECPE` are exact. Impact is probably small: it matters to bit-exact code and NaN-payload tricks.
+3. **`CNTVCT_EL0` ticks about 429× faster than `CNTFRQ_EL0` says.** `CNTFRQ_EL0` reads 10,485,760 Hz, but the counter advances about 4.5 G ticks per second (**HYPOTHESIS:** the host TSC, unscaled). Code that times itself with the generic timer sees time running about 400× too fast.
+4. **`MRS` of CPU ID registers raises SIGILL** (breaks Tor VPN). arm64 Linux traps and emulates `MIDR_EL1`/`ID_AA64*_EL1` reads from userspace; here they end in `berberis::UndefinedInsnThunk`, which raises `SIGILL` (code `SI_QUEUE`). Tor VPN's Go runtime (`libgojni.so`, gomobile) executes `mrs x0, ID_AA64ISAR0_EL1` at startup and dies. Apps can't read `/proc/self/auxv` on this image, even on x86_64, so Go's `x/sys/cpu` falls back to the ID registers. This hits any Go-based Android library.
+5. **Element X (Rust Matrix SDK) can't find the JavaVM under translation** (cause open). It throws `InternalException: Failed to find JNI_GetCreatedJavaVMs` from `matrix-sdk-ffi` `android_platform.rs`; the x86_64 build runs. An explicit `dlopen("libnativehelper.so")` + `dlsym` works under translation; `dlopen("libart.so")` and `dlsym(RTLD_DEFAULT, …)` fail for x86_64 code too, so neither explains the difference; the library imports only `dlopen`/`dlsym`. Next step: trace its lookup with the linker debug property, or disassemble the call path.
+6. **No 32-bit ARM.** `abilist32` is empty and `/system/lib/arm` doesn't exist; armeabi-v7a APKs fail with `INSTALL_FAILED_NO_MATCHING_ABIS`; binfmt_misc registers `arm_exe`/`arm_dyn` with a runner that isn't installed, so arm32 executables exit with 126.
+7. **Smaller differences:** `uname()` reports `x86_64` to arm64 code, while `/proc/cpuinfo` is rewritten as an ARM CPU (`CPU implementer 0x41`, `Features: fp asimd aes pmull crc32 atomics`); `AT_PLATFORM` is absent; synthetic `SIGILL`s carry `si_code = SI_QUEUE` instead of `ILL_ILLOPC`; the advertised `HWCAP` is ARMv8.0 plus AES, PMULL, CRC32 and LSE only (no SHA1/SHA2, dot product, FP16 or `cpuid`), so apps take baseline code paths.
+
+**What works under it:** all JNI patterns tested, NEON, AES/PMULL/CRC32 and LSE atomics, 128-bit CAS and exclusive load/store, TLS, C++ exceptions (including through guest libc and across libraries), JIT code patching with memfd dual mappings, signals with ucontext PC resume, all 24 NDK-stable libraries, and GLES 3.0 and Vulkan 1.3 through the bridge.
 
 ## Limitations
 
-- **Software GPU:** this is the emulator with SwiftShader, not AMD hardware, so GPU-bound behaviour says nothing about radeonsi/RADV.
+- **Software GPU:** the emulator and Cuttlefish runs use SwiftShader, not AMD hardware, so GPU-bound behaviour says nothing about radeonsi/RADV.
 - **Smoke test only:** a 15-second launch shows startup compatibility, not function. There is no input, login or media playback, and runtime permissions are pre-granted.
 - **Corpus bias:** it is free software only. Popular proprietary ARM-only apps (games, banking) behave differently, and many of them also use Play Integrity, which this project will not bypass.
-- **One bridge so far:** only libndk_translation. The houdini (Track B image) and Berberis/Digitalis (Track A) columns are empty.
+- **Bridges covered:** libndk_translation and Digitalis. libhoudini (from the Googlebook image) is not run yet.
 
 ## Next steps
 
-1. Run the same corpus under libhoudini once the Googlebook image boots in a VM (M1a), and under Digitalis/Berberis on an AOSP build (M1b).
-2. Reproduce findings 1 to 4 on upstream Berberis. If they reproduce there, report them upstream with the probe as a reproducer.
-3. Root-cause finding 5 (Element X) and the SimpleX black window.
-4. Add scripted interaction (UI Automator) for deeper checks, and a SIMD/JIT micro-benchmark next to CoreMark.
+1. Run the same corpus under libhoudini once the Googlebook image boots in a VM.
+2. Root-cause Element X and the SimpleX black window.
+3. Add scripted interaction (UI Automator) for deeper checks, and a SIMD/JIT micro-benchmark next to CoreMark.
