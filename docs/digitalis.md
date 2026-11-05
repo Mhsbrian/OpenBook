@@ -153,6 +153,30 @@ The bridge is part of the normal product build (`scripts/aosp-build.sh`). Nothin
       - **Host result:** all 183,699 region starts of a Lichess cold start (the G14 profile) are persistable, with no
         unrecorded pointer and no re-link mismatch. Their total is 73,942,150 host bytes before and after. That's an
         equal aggregate, not a byte comparison of each translation.
+  11. Heavy translations record what they embed too, through the optimizer (ANAL-381, step P1b).
+      - **Why:** in the heavy tier, guest addresses become MachineIR immediates, and `FoldInsns` combines them with
+        other values before they reach the code.
+      - **How:**
+        - `MachineInsnX86_64` carries the immediate's provenance (a kind and a 32-bit aux) in what was padding, so
+          instructions don't grow.
+        - The frontend tags ADR/ADRP, literal addresses, the link value, and its heap tables and permutation masks.
+        - Folding keeps a record when the result is still the address plus a constant: add, subtract, a mask of at
+          most the low 12 bits, and the TBI pair (shift left 8, then back). Any other fold of an address still
+          happens, but marks the region not persistable.
+        - An address is never narrowed into a 32-bit immediate operand, which only fits below 4 GiB.
+      - **Checks:** the patch 10 checks, with 15 heavy fixtures among them, including ADRP+ADD (kept) and EOR and a
+        32-bit add on an address (refused).
+      - **Host result:** heavy-translating all 183,699 Lichess region starts:
+        - 182,912 are persistable (99.6%), with no unrecorded pointer and no re-link mismatch;
+        - 785 are refused for an unrepresentable fold;
+        - total host bytes are the same before and after (57,713,707).
+      - **Heavy translation time with recording off:**
+        - +2.8% in the default build (5 of 5 rounds);
+        - unchanged with `-falign-functions=64` (median 0.999), and reverting either half of the patch also removes
+          it. So it's a code-layout effect, not added work.
+      - **Found on the way:** heavy translation reads some uninitialized arena memory. Re-translated after other work,
+        3–9 of the 183,699 regions come out different (and still correct), on the base translator too. Zero-filling
+        arena allocations removes it (ANAL-389).
 - **ART patch** (`aosp/patches/art/`): `libnativebridge` sets `Build.CPU_ABI` and `CPU_ABI2` for bridged apps again (the Fennec fix).
 - **Device:** `device/anybook/common/native-bridge/`:
   - `native-bridge.mk` inherits Digitalis's `enable_arm64_to_x86_64.mk` and adds `openbook_bridge_check`;
