@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 import types
 import unittest
+from unittest import mock
 import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -597,6 +598,32 @@ class RemoveTest(DeviceTestBase):
         self.assertTrue(res["unresolved"])
         self.assertEqual([e for e in self.sim.events if e[0] == "run"], [])
         self.assertIn(PKG, self.journal.mine())
+
+
+class PcacheClearTest(DeviceTestBase):
+    def run_clear(self, own=(True, "ours"), entry=True):
+        if entry:
+            self.journal.put(PKG, {"id": "t", "state": "installed", "apk_sha256s": [self.apk_sha]})
+        calls = []
+        with mock.patch.object(C, "ownership", lambda *a: own), mock.patch.object(C.AP, "Gate"), \
+                mock.patch.object(C.AP, "pcache_clear", lambda dev, pkg: calls.append(pkg) or {"removed": 2}):
+            self.dev.root = lambda: setattr(self.dev, "rooted", True)
+            res = C.cmd_pcache_clear(self.dev, self.args(), self.rows, self.journal)
+        return res, calls
+
+    def test_clears_this_tools_own_install(self):
+        res, calls = self.run_clear()
+        self.assertEqual(calls, [PKG])
+        self.assertEqual(res["package"], PKG)
+        self.assertEqual(res["removed"], 2)
+
+    def test_never_touches_an_app_this_tool_didnt_install(self):
+        with self.assertRaises(C.Invalid):
+            self.run_clear(entry=False)  # not in this tool's journal
+        for own in ((False, "not installed by this tool"), (None, "can't read the installed APK"),
+                    (False, "someone reinstalled it")):
+            with self.assertRaises(C.Invalid):
+                self.run_clear(own=own)
 
 
 class WorkloadTest(DeviceTestBase):

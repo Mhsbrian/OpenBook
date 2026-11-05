@@ -834,6 +834,188 @@ class FakeDevice:
         return "", 0
 
 
+def pcache_listing(pkg=PKG, data=("directory", 10123), code_cache=("directory", 10123), cache=("directory", 10123),
+                   entries=(("regular file", 4096, "b0123abcd-0.pcache"), ("regular file", 280, "b0123abcd-0.pidx"),
+                            ("regular empty file", 0, "b0123abcd-0.lock")), end=True):
+    d = f"/data/data/{pkg}"
+    lines = []
+    for path, st in ((d, data), (f"{d}/code_cache", code_cache), (f"{d}/code_cache/berberis", cache)):
+        lines.append(f"@missing {path}" if st is None else f"@dir {st[0]}|{st[1]}|{path}")
+    if cache is not None and cache[0] == "directory":
+        lines += [f"@entry {k}|{n}|{d}/code_cache/berberis/{name}" for k, n, name in entries]
+    return "\n".join(lines + (["@end"] if end else [])) + "\n"
+
+
+class PcacheDevice:
+    """berberis.pcache, am force-stop, and an app's cache directory, for PcacheProp and pcache_clear. Every command is
+    logged in order."""
+
+    def __init__(self, prop="", listing=None, getprop_fails=False, setprop_ignored=False, restore_fails=False):
+        self.props = {"berberis.pcache": prop}
+        self.listing = listing if listing is not None else pcache_listing()
+        self.getprop_fails, self.setprop_ignored, self.restore_fails = getprop_fails, setprop_ignored, restore_fails
+        self.notes, self.log, self.rooted, self.busy, self.sets = {}, [], False, None, 0
+
+    def root(self):
+        self.rooted = True
+
+    def unroot(self):
+        self.rooted = False
+
+    def sh(self, cmd, timeout=120, check=True):
+        self.log.append(cmd)
+        if cmd.startswith("getprop "):
+            return ("", 1) if self.getprop_fails else (self.props.get(cmd.split()[1], "") + "\n", 0)
+        if cmd.startswith("setprop "):
+            self.sets += 1
+            if self.restore_fails and self.sets > 1:
+                return "setprop: failed", 1
+            if not self.setprop_ignored:
+                self.props[cmd.split()[1]] = cmd.split(None, 2)[2].strip("'")
+            return "", 0
+        if cmd.startswith("am force-stop"):
+            return "", 0
+        if cmd.startswith("for p in '/data/data/"):
+            return self.listing, 0
+        if cmd.startswith("rm -f -- "):
+            self.listing = pcache_listing(cache=None)
+            return "", 0
+        if cmd.startswith("rm -f "):  # the recorder's files
+            return "", 0
+        raise AssertionError(cmd)
+
+
+class Pcache(unittest.TestCase):
+    def test_values(self):
+        dev = PcacheDevice()
+        self.assertEqual(P.PcacheProp(dev, PKG, "on").value, f"on:{PKG}")
+        self.assertEqual(P.PcacheProp(dev, PKG, "verify").value, f"verify:{PKG}")
+        self.assertEqual(P.PcacheProp(dev, PKG, "off").value, "off")
+        for bad_mode in ("ON", "yes", ""):
+            with self.assertRaises(P.Fail):
+                P.PcacheProp(dev, PKG, bad_mode)
+        for bad_pkg in ("", "app", "org.example/../x", "org.example app", "org.example.app;rm"):
+            with self.assertRaises(P.Fail):
+                P.PcacheProp(dev, bad_pkg, "on")
+
+    def test_set_then_finish_stops_the_app_before_putting_the_property_back(self):
+        dev = PcacheDevice(prop="")
+        pc = P.PcacheProp(dev, PKG, "on")
+        pc.set()
+        self.assertEqual(dev.props["berberis.pcache"], f"on:{PKG}")
+        res = pc.finish()
+        self.assertEqual(dev.props["berberis.pcache"], "")
+        stop = next(i for i, c in enumerate(dev.log) if c.startswith("am force-stop"))
+        restore = max(i for i, c in enumerate(dev.log) if c.startswith("setprop"))
+        self.assertLess(stop, restore)
+        self.assertEqual(res["restore"], "restored to ''")
+        self.assertEqual(res["cache_after"], {"exists": True, "files": 3, "bytes": 4376,
+                                              "names": ["b0123abcd-0.lock", "b0123abcd-0.pcache", "b0123abcd-0.pidx"]})
+        self.assertNotIn("pcache_restore_failed", dev.notes)
+
+    def test_unreadable_property_changes_nothing(self):
+        dev = PcacheDevice(prop="on", getprop_fails=True)
+        pc = P.PcacheProp(dev, PKG, "on")
+        with self.assertRaises(P.Fail):
+            pc.set()
+        self.assertFalse(any(c.startswith("setprop") for c in dev.log))
+        self.assertEqual(pc.finish()["restore"], "nothing set")
+
+    def test_a_value_that_doesnt_take_is_put_back(self):
+        dev = PcacheDevice(prop="off", setprop_ignored=True)
+        pc = P.PcacheProp(dev, PKG, "verify")
+        with self.assertRaisesRegex(P.Fail, "didn't take"):
+            pc.set()
+        self.assertEqual(pc.finish()["restore"], "restored to 'off'")
+
+    def test_a_failed_restore_is_reported(self):
+        dev = PcacheDevice(prop="", restore_fails=True)
+        pc = P.PcacheProp(dev, PKG, "on")
+        pc.set()
+        self.assertTrue(pc.finish()["restore"].startswith("NOT restored"))
+        self.assertTrue(dev.notes["pcache_restore_failed"])
+
+    def _start_args(self, mode):
+        return mock.Mock(package=PKG, component=None, label="", fixed_performance=False, platform_profile=None,
+                         pcache=mode, runs=3, warm_runs=0, settle=0, idle_min=0, extra=[], period=0.1, timeout=10)
+
+    def test_an_interrupted_start_still_stops_the_app_and_puts_the_property_back(self):
+        dev = PcacheDevice(prop="")
+        dev.helper = lambda args, timeout=120, check=True: ("", 0)
+
+        def interrupted(*_):
+            raise KeyboardInterrupt("signal 15")
+        with mock.patch.object(P, "Gate"), mock.patch.object(P, "component", lambda *a: f"{PKG}/.Main"), \
+                mock.patch.object(P, "app_facts", lambda *a: {}), mock.patch.object(P, "identity", lambda *a: {}), \
+                mock.patch.object(P, "launch_once", interrupted), tempfile.TemporaryDirectory() as t:
+            with self.assertRaises(KeyboardInterrupt):
+                P.cmd_start(dev, self._start_args("on"), t, mock.Mock(restore=lambda: "nothing to restore"))
+        self.assertEqual(dev.props["berberis.pcache"], "")
+        stop = max(i for i, c in enumerate(dev.log) if c.startswith("am force-stop"))
+        restore = max(i for i, c in enumerate(dev.log) if c.startswith("setprop"))
+        self.assertLess(stop, restore)
+
+    def test_a_failed_cpu_run_still_puts_the_property_back(self):
+        dev = PcacheDevice(prop="on")  # an earlier value is restored, not cleared
+
+        def helper(args, timeout=120, check=True):
+            if args.startswith("launch"):
+                raise P.Fail("adb: no answer")
+            return "", 0
+        dev.helper = helper
+        rec = mock.Mock(pid=None, data="d", log="l")
+        rec.resolve.return_value = "not started"
+        a = mock.Mock(package=PKG, component=None, label="", seconds=1, event="cpu-clock", freq=10, translator=False,
+                      pcache="verify", idle_min=0, extra=[], period=0.1, timeout=10)
+        with mock.patch.object(P, "Gate"), mock.patch.object(P, "component", lambda *x: f"{PKG}/.Main"), \
+                mock.patch.object(P, "app_facts", lambda *x: {}), mock.patch.object(P, "identity", lambda *x: {}), \
+                mock.patch.object(P, "Recorder", lambda *x: rec), mock.patch.object(P.time, "sleep", lambda s: None), \
+                tempfile.TemporaryDirectory() as t:
+            with self.assertRaisesRegex(P.Fail, "no answer"):
+                P.cmd_cpu(dev, a, t)
+        self.assertEqual(dev.props["berberis.pcache"], "on")
+        self.assertIn(f"setprop berberis.pcache 'verify:{PKG}'", dev.log)
+
+    def test_listing_accepts_only_the_apps_own_cache(self):
+        self.assertEqual(P.parse_pcache_listing(pcache_listing(cache=None), PKG),
+                         {"exists": False, "files": 0, "bytes": 0, "names": []})
+        self.assertEqual(P.parse_pcache_listing(pcache_listing(entries=()), PKG)["files"], 0)
+        bad = {
+            "no answer": pcache_listing(end=False),
+            "data directory is a link": pcache_listing(data=("symbolic link", 10123)),
+            "code_cache is a link": pcache_listing(code_cache=("symbolic link", 10123)),
+            "cache is a link": pcache_listing(cache=("symbolic link", 10123)),
+            "cache owned by another uid": pcache_listing(cache=("directory", 10124)),
+            "code_cache owned by another uid": pcache_listing(code_cache=("directory", 1000)),
+            "a system uid": pcache_listing(data=("directory", 1000), code_cache=("directory", 1000),
+                                           cache=("directory", 1000)),
+            "a link inside": pcache_listing(entries=(("symbolic link", 10, "b0123abcd-0.pcache"),)),
+            "a directory inside": pcache_listing(entries=(("directory", 4096, "b0123abcd-0.pcache"),)),
+            "another file": pcache_listing(entries=(("regular file", 10, "notes.txt"),)),
+            "a hidden file": pcache_listing(entries=(("regular file", 10, ".b0123abcd-0.pcache"),)),
+        }
+        for what, text in bad.items():
+            with self.assertRaises(P.Fail, msg=what):
+                P.parse_pcache_listing(text, PKG)
+
+    def test_clear_removes_exactly_the_listed_files(self):
+        dev = PcacheDevice()
+        res = P.pcache_clear(dev, PKG)
+        self.assertEqual(res["removed"], 3)
+        self.assertFalse(res["after"]["exists"])
+        rm = [c for c in dev.log if c.startswith("rm ")][0]
+        c = f"/data/data/{PKG}/code_cache/berberis"
+        self.assertEqual(rm, " && ".join([f"rm -f -- '{c}/{n}'" for n in res["before"]["names"]] +
+                                         [f"rmdir -- '{c}'"]))
+
+    def test_clear_refuses_an_unexpected_cache_and_removes_nothing(self):
+        dev = PcacheDevice(listing=pcache_listing(entries=(("regular file", 10, "b0123abcd-0.pcache"),
+                                                           ("regular file", 10, "keep-me.db"))))
+        with self.assertRaises(P.Fail):
+            P.pcache_clear(dev, PKG)
+        self.assertFalse(any(c.startswith("rm") for c in dev.log))
+
+
 def journal_dir():
     return tempfile.TemporaryDirectory()
 
@@ -1123,7 +1305,7 @@ class Recording(unittest.TestCase):
             return base(cmd)
         dev._sh = sh
         args = mock.Mock(package=PKG, idle_min=10, component=None, label="", seconds=20, event="cpu-clock", freq=1000,
-                         period=0.1, extra=[], timeout=120, translator=False)
+                         period=0.1, extra=[], timeout=120, translator=False, pcache=None)
         return dev, args
 
     @staticmethod

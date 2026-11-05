@@ -6,7 +6,8 @@
 # scripts/perf/arm-corpus.py does the work; this wrapper takes the G14 lock and connects.
 #
 # usage: arm-corpus.sh [-a ADDR[:PORT] | -s SERIAL] COMMAND [ARGS]     (python3 scripts/perf/arm-corpus.py --help)
-#   list | fetch | install OUT ID --abi arm64-v8a|x86_64 | remove OUT [ID...] | exe OUT [--rounds N] [--poll S]
+#   list | fetch | install OUT ID --abi arm64-v8a|x86_64 | remove OUT [ID...] | pcache-clear OUT ID |
+#   exe OUT [--rounds N] [--poll S]
 #   -a ADDR  the G14 (default: the first OpenBook device found by mDNS, as g14-adb.sh). The command holds the G14
 #            lock (g14-lock.sh) while it runs, and the idle gate wants 10 minutes without input
 #   -s SERIAL another device on this adb server, such as a test VM: no lock, and the gate wants no idle minutes
@@ -16,7 +17,8 @@
 # Writes on the device: install adds one corpus test package (refused if that package is installed and isn't this
 # tool's own install: journalled on the host per device, and its installed APK one this tool installs) and marks its
 # ungranted runtime permissions user-fixed, so no prompt covers its starts; remove uninstalls only this tool's own
-# installs, each removal confirmed; exe runs its executables from /data/local/tmp/openbook-arm-corpus, stops them on
+# installs, each removal confirmed; pcache-clear removes the translation cache files (code_cache/berberis) of one of
+# this tool's own installs while it isn't running, after checking they're the cache's own (root for the removal); exe runs its executables from /data/local/tmp/openbook-arm-corpus, stops them on
 # input, failure or a signal, and removes the directory only once none is confirmed running. Without a confirmed
 # answer from the device nothing is installed, replaced, removed or deleted. No owner app or data is touched, nothing
 # is cleared, no setting is changed, no reboot.
@@ -32,7 +34,7 @@ case ${1:-} in
   -a) ADDR=$2; shift 2 ;;
   -s) SERIAL=$2; shift 2 ;;
 esac
-CMD=${1:?usage: arm-corpus.sh [-a ADDR[:PORT] | -s SERIAL] list|fetch|install|remove|exe ...}
+CMD=${1:?usage: arm-corpus.sh [-a ADDR[:PORT] | -s SERIAL] list|fetch|install|remove|pcache-clear|exe ...}
 case $CMD in list|fetch) exec python3 "$R/scripts/perf/arm-corpus.py" "$@" ;; esac
 [ -x "$ADB" ] || { echo "no adb at $ADB (set ADB=)" >&2; exit 2; }
 mkdir -p "$A/locks"

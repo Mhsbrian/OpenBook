@@ -984,7 +984,11 @@ def cmd_start(dev, a, out, power):
                            "warm": "am start -W --activity-clear-task after going home: the process is kept, its "
                                    "activity is created again"},
            "runs": {"cold": [], "warm": []}}
+    pc = PcacheProp(dev, pkg, a.pcache) if a.pcache else None
     try:
+        if pc:
+            dev.root()
+            pc.set()
         if a.fixed_performance:
             res["power_change"] = power.apply("fixed-performance", "true")
         elif a.platform_profile:
@@ -1005,7 +1009,9 @@ def cmd_start(dev, a, out, power):
             time.sleep(a.settle)
         gate.check("at the end")
     finally:
-        dev.sh(f"am force-stop {q(pkg)}", check=False)  # it wasn't running before the run
+        try_sh(dev, f"am force-stop {q(pkg)}")  # it wasn't running before the run; never raises, so finish() runs
+        if pc:
+            res["pcache"] = pc.finish()
         try:
             res["power_restore"] = power.restore()
         except Fail as e:  # main() tries once more and keeps the journal if that fails too
@@ -1328,6 +1334,137 @@ class TranslatorProps:
         return self.dev.notes["translator_props"]
 
 
+# Digitalis's persistent translation cache (ANAL-381, docs/digitalis-translation-cache.md): an app's files are in
+# /data/data/PKG/code_cache/berberis, named by module key: <key>.pcache, <key>.pidx, <key>.lock, and a writer's
+# <file>.tmp.<pid> while it creates one.
+PCACHE_FILE = re.compile(r"[bs][0-9a-f-]+\.(pcache|pidx|lock)(\.tmp\.[0-9]+)?")
+PACKAGE_NAME = re.compile(r"[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+")
+
+
+def pcache_paths(pkg):
+    """(data directory, code_cache, cache directory) of PKG for user 0; Fail if PKG isn't a package name."""
+    if not PACKAGE_NAME.fullmatch(pkg or ""):
+        raise Fail(f"{pkg!r} isn't a package name")
+    d = f"/data/data/{pkg}"
+    return d, f"{d}/code_cache", f"{d}/code_cache/berberis"
+
+
+def pcache_listing_cmd(pkg):
+    """One shell command listing PKG's cache: each directory's type and owner (stat doesn't follow a symbolic link),
+    then every entry in the cache directory, then @end."""
+    d, cc, c = pcache_paths(pkg)
+    return (f"for p in {q(d)} {q(cc)} {q(c)}; do stat -c '@dir %F|%u|%n' \"$p\" 2>/dev/null || echo \"@missing $p\"; "
+            f"done; c={q(c)}; if [ -d \"$c\" ] && [ ! -L \"$c\" ]; then "
+            "for f in \"$c\"/* \"$c\"/.[!.]* \"$c\"/..?*; do [ -e \"$f\" ] || [ -L \"$f\" ] || continue; "
+            "stat -c '@entry %F|%s|%n' \"$f\"; done; fi; echo @end")
+
+
+def parse_pcache_listing(text, pkg):
+    """pcache_listing_cmd's output -> {exists, files, bytes, names}. Fail unless the data directory and code_cache are
+    real directories of one app uid, and the cache directory, if there is one, is that app's real directory holding
+    only cache files. Nothing is ever removed on the strength of a listing this refuses."""
+    d, cc, c = pcache_paths(pkg)
+    lines = text.splitlines()
+    if "@end" not in lines:
+        raise Fail(f"listing {c}: no complete answer")
+    dirs, missing, entries = {}, set(), []
+    for line in lines:
+        if line.startswith("@dir "):
+            kind, uid, path = line[5:].split("|", 2)
+            dirs[path] = (kind, uid)
+        elif line.startswith("@missing "):
+            missing.add(line[9:])
+        elif line.startswith("@entry "):
+            entries.append(line[7:].split("|", 2))
+    for path in (d, cc):
+        if dirs.get(path, ("missing", ""))[0] != "directory":
+            raise Fail(f"{path} isn't a directory ({dirs.get(path, ('missing',))[0]})")
+    uid = dirs[d][1]
+    if not uid.isdigit() or int(uid) < 10000 or dirs[cc][1] != uid:
+        raise Fail(f"{d} and {cc} aren't one app's (uids {uid}, {dirs[cc][1]})")
+    if c in missing and c not in dirs and not entries:
+        return {"exists": False, "files": 0, "bytes": 0, "names": []}
+    if dirs.get(c) != ("directory", uid):
+        raise Fail(f"{c} isn't the app's own directory ({dirs.get(c)})")
+    names, total = [], 0
+    for kind, size, path in entries:
+        name = path.rsplit("/", 1)[-1]
+        if (kind not in ("regular file", "regular empty file") or path != f"{c}/{name}"
+                or not PCACHE_FILE.fullmatch(name) or not size.isdigit()):
+            raise Fail(f"unexpected entry in {c}: {kind} {path}")
+        names.append(name)
+        total += int(size)
+    return {"exists": True, "files": len(names), "bytes": total, "names": sorted(names)}
+
+
+def pcache_facts(dev, pkg):
+    out, rc = try_sh(dev, pcache_listing_cmd(pkg))
+    if rc is None:
+        raise Fail(f"no answer listing {pkg}'s translation cache")
+    return parse_pcache_listing(out, pkg)
+
+
+def pcache_clear(dev, pkg):
+    """Remove PKG's translation cache: exactly the files a checked listing found, then the empty directory, then list
+    again. As root, with the app not running (the caller's gate)."""
+    before = pcache_facts(dev, pkg)
+    if not before["exists"]:
+        return {"before": before, "after": before, "removed": 0}
+    _, _, c = pcache_paths(pkg)
+    cmd = " && ".join([f"rm -f -- {q(c + '/' + n)}" for n in before["names"]] + [f"rmdir -- {q(c)}"])
+    _, rc = try_sh(dev, cmd)
+    after = pcache_facts(dev, pkg)
+    if rc != 0 or after["exists"]:
+        raise Fail(f"{c} wasn't removed (rc {rc}): {after}")
+    return {"before": before, "after": after, "removed": before["files"]}
+
+
+class PcacheProp:
+    """berberis.pcache for one start or cpu run (Digitalis patch 14): MODE:PKG, so only the test package's processes use
+    the cache, or "off" for a control run. Set as root before the run's first process-cold launch (each reads it when
+    it starts); finish() stops the app's processes before it puts the property back, so no process of the app can
+    read the run's value afterwards. Volatile: a run killed before finish() leaves it set until the next reboot, and
+    only for this package."""
+
+    NAME = "berberis.pcache"
+
+    def __init__(self, dev, pkg, mode):
+        if mode not in ("off", "on", "verify"):
+            raise Fail(f"--pcache {mode!r}: off, on or verify")
+        pcache_paths(pkg)
+        self.dev, self.pkg, self.mode, self.old = dev, pkg, mode, None
+        self.value = "off" if mode == "off" else f"{mode}:{pkg}"
+
+    def set(self):
+        out, rc = try_sh(self.dev, f"getprop {self.NAME}")
+        if rc != 0:
+            raise Fail(f"can't read {self.NAME} before setting it")
+        self.old = out.strip()
+        self.dev.notes["pcache_prop"] = f"set to {self.value!r} for this run; was {self.old!r}"
+        self.dev.sh(f"setprop {self.NAME} {q(self.value)}")
+        if self.dev.sh(f"getprop {self.NAME}", check=False)[0].strip() != self.value:
+            raise Fail(f"setprop {self.NAME} didn't take")
+
+    def finish(self):
+        res = {"mode": self.mode, "value": self.value}
+        try_sh(self.dev, f"am force-stop {q(self.pkg)}")
+        if self.old is None:
+            res["restore"] = "nothing set"
+        else:
+            _, rc = try_sh(self.dev, f"setprop {self.NAME} {q(self.old)}")
+            now, rc2 = try_sh(self.dev, f"getprop {self.NAME}")
+            ok = rc == 0 and rc2 == 0 and now.strip() == self.old
+            res["restore"] = f"{'restored' if ok else 'NOT restored'} to {self.old!r}"
+            self.dev.notes["pcache_prop"] = res["restore"]
+            if not ok:
+                self.dev.notes["pcache_restore_failed"] = True
+        try:
+            res["cache_after"] = pcache_facts(self.dev, self.pkg)
+        except Fail as e:
+            res["cache_after"] = {"error": str(e)}
+        return res
+
+
 def cmd_cpu(dev, a, out):
     pkg = a.package
     gate = Gate(dev, a.idle_min, pkg)
@@ -1336,6 +1473,7 @@ def cmd_cpu(dev, a, out):
            "label": a.label, "seconds": a.seconds, "event": a.event, "frequency": a.freq}
     rec = Recorder(dev, RECORDER_DATA, f"{D}/record.log")
     props = TranslatorProps(dev, pkg) if a.translator else None
+    pc = PcacheProp(dev, pkg, a.pcache) if a.pcache else None
     seen = {}  # every process of the app seen during the recording: pid -> name; maps at first sight and at the end
     maps_text = []
 
@@ -1351,6 +1489,8 @@ def cmd_cpu(dev, a, out):
         dev.root()
         if props:
             props.set()
+        if pc:
+            pc.set()
         dur = a.seconds + 2
         rec.start(a.event, a.freq, dur)
         time.sleep(1)
@@ -1395,6 +1535,8 @@ def cmd_cpu(dev, a, out):
                 dev.sh(f"rm -f {rec.data} {rec.log}", check=False)
         finally:
             try_sh(dev, f"am force-stop {q(pkg)}")
+            if pc:
+                res["pcache"] = pc.finish()
             if props:
                 res.setdefault("translator", {})["cleanup"] = props.restore(seen)
             if not dev.busy:
@@ -1524,6 +1666,9 @@ def main():
             p.add_argument("--extra", action="append", default=[], help="one more am start argument, repeatable")
             p.add_argument("--period", type=float, default=0.1, help="EPP/frequency sampling while am start runs")
             p.add_argument("--timeout", type=int, default=120, help="seconds for one am start")
+            p.add_argument("--pcache", choices=("off", "on", "verify"),
+                           help="Digitalis's translation cache for this run's processes: berberis.pcache=MODE:PACKAGE "
+                                "(off sets 'off'), put back after the app is stopped (an image with patch 14; root)")
         if name == "start":
             p.add_argument("--runs", type=int, default=5, help="process-cold starts")
             p.add_argument("--warm-runs", type=int, default=5)
@@ -1621,6 +1766,9 @@ def main():
                 status = FAILED if status == 0 else status
         except Fail as e:
             run["cleanup"] = f"failed: {e}"
+        if dev.notes.get("pcache_restore_failed"):
+            run["pcache_restore"] = "FAILED: berberis.pcache wasn't put back (volatile: a reboot clears it)"
+            status = FAILED if status == 0 else status
         if dev.notes:
             run["device"] = dev.notes
         run["end"] = utc()

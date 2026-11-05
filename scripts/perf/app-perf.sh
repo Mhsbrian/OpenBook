@@ -18,7 +18,8 @@
 # Writes on the device: its files in /data/local/tmp/openbook-app-perf (removed at the end); the app is started and
 # force-stopped (only an app that wasn't running); cpu makes adbd root (undone at the end); cpu --translator sets
 # berberis.stats and berberis.profiling for the run (put back after) and removes the perf maps the app wrote into its
-# data directory; start --fixed-performance
+# data directory; start and cpu --pcache MODE set berberis.pcache to MODE:PKG for the run (root), put back after the
+# app is stopped, and record the size of the cache it left (arm-corpus.sh pcache-clear removes it); start --fixed-performance
 # and --platform-profile change one power setting for the run, journalled on the host first and put back (exit 4 and
 # a kept journal if that fails; then only `restore` runs); dexopt --yes recompiles one app. No install, uninstall,
 # data clearing or reboot.

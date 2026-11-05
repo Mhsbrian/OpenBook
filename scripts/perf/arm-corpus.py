@@ -682,6 +682,24 @@ def run_workload(dev, gate, cmd_line, mask, outfile, timeout, poll=2.0, where=""
         raise
 
 
+def cmd_pcache_clear(dev, a, rows, journal):
+    """Remove the translation cache files a test wrote into one of this tool's test installs (ANAL-381): only for a
+    package this tool installed on this device (its journal, and an installed APK this tool installs), while it isn't
+    running, and only the cache's own files (app-perf's checked listing). Root for the removal, given up after."""
+    pkgs = sorted(p for p, e in journal.mine().items() if e.get("id") == a.id)
+    if len(pkgs) != 1:
+        raise Invalid(f"{a.id}: not one of this tool's installs on this device ({pkgs or 'none'})")
+    pkg = pkgs[0]
+    own, why = ownership(dev, pkg, journal, rows)
+    if own is not True:
+        raise Invalid(f"{pkg}: {why}: its files are never touched")
+    AP.Gate(dev, a.idle_min, pkg)  # also: the app isn't running
+    try:
+        dev.root()
+        return {"id": a.id, "package": pkg, **AP.pcache_clear(dev, pkg)}
+    finally:
+        dev.unroot()
+
 def cleanup_device(dev):
     """Remove this tool's device directory, unless a benchmark of it may still run (dev.busy, found, or not
     checkable): then the directory stays and the reason is recorded."""
@@ -1015,6 +1033,9 @@ def main():
     p = sub.add_parser("remove")
     p.add_argument("out")
     p.add_argument("ids", nargs="*")
+    p = sub.add_parser("pcache-clear", help="remove the translation cache files of one of this tool's test installs")
+    p.add_argument("out")
+    p.add_argument("id")
     p = sub.add_parser("exe")
     p.add_argument("out")
     p.add_argument("--bench", action="append", choices=sorted(BENCH), help="default: both")
@@ -1067,6 +1088,8 @@ def main():
             raise Fail(f"recovery: {dev.busy}")
         if a.command == "install":
             run["result"] = cmd_install(dev, a, out, rows, journal)
+        elif a.command == "pcache-clear":
+            run["result"] = cmd_pcache_clear(dev, a, rows, journal)
         elif a.command == "remove":
             run["result"] = cmd_remove(dev, a, rows, journal)
             if run["result"]["unresolved"]:

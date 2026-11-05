@@ -180,6 +180,7 @@ scripts/gpu-diag.sh run OUT org.linaro.glmark2 --gpu radeon --component org.lina
 scripts/perf/arm-corpus.sh install OUT tps --abi arm64-v8a
 scripts/perf/arm-corpus.sh bench OUT tps --runs 3        # the TPS demo's benchmark, process-cold each run
 scripts/perf/arm-corpus.sh exe OUT --rounds 3            # CoreMark and simd-bench, each core type
+scripts/perf/arm-corpus.sh pcache-clear OUT tps         # remove a test install's translation cache (ANAL-381)
 scripts/perf/arm-corpus.sh remove OUT                    # uninstall every corpus app this tool installed
 ```
 

@@ -253,7 +253,8 @@ The bridge is part of the normal product build (`scripts/aosp-build.sh`). Nothin
       - **The cap** is now described as best effort: a flush can write several modules' batches, and 1 MiB is when a
         flush starts, not a limit on it.
       - **Found on the way:** libc++'s range `insert` measured about 2 µs a record in the host build, so records are
-        copied with `memcpy`. That also halved loading against patch 12.
+        copied with `memcpy`. Loading takes half as long as with patch 12. That's patch 13 as a whole: the
+        measurements don't separate `memcpy`'s share from the smaller format's.
       - **Host results** (2026-11-05, Lichess's 183,699 region starts):
         - **lite, default 128 MiB cap:** all 183,699 regions stored in 100.3 MB instead of 169 MB. Loading takes
           1.67 µs a region (patch 12: 3.45 µs, at its 1 GiB measurement cap). Writing adds 15% to lite translation
