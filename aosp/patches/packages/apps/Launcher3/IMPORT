@@ -2,4 +2,4 @@
 # android17-release commit plus OpenBook's commits; the three patches that used to live here are its first three.
 # aosp-patches.sh replaces this project's tree with this commit of the fork before every build.
 url https://github.com/Mhsbrian/OpenBookLauncher.git
-rev 99804150fbe1ecd41ea8b0b1b6abaddbbe60783c
+rev 7ad1b79b3779a6c9f5d746c02eb9b3bc4d7544ac

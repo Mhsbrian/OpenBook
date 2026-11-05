@@ -1,0 +1,16 @@
+# ARM-translation corpus (ANAL-380, docs/arm-performance.md), used by scripts/perf/arm-corpus.sh.
+# F-Droid rows were pinned from F-Droid's signed index-v2 (repo timestamp 1793534160246, signature and sha256 checked):
+# the APK's sha256 and its signer's certificate sha256. 'fat' means one APK with every ABI, installed twice with
+# --abi. 'github' rows are a project's own release asset, its sha256 equal to GitHub's published digest; the
+# signer is as first seen (the project publishes no fingerprint). 'build' rows are built locally by the named
+# script from a pinned source; their sha256 is recorded per run.
+id	package	abi	version_name	version_code	file	sha256	signer_sha256	source	license	represents	task
+stk	org.supertuxkart.stk	fat	1.5	-	SuperTuxKart-1.5.apk	e1f2f49152abfb8f3ed0ced47981e84096758bff9758563aa3b917111a2a3cbd	326b6dc20bfee3eda6bf25624e164a2a266e3f7a094d6fded99dda29da92f8bb	github:https://github.com/supertuxkart/stk-code/releases/download/1.5/SuperTuxKart-1.5.apk	GPL-3.0-or-later	native 3D game (C++, GLES); 1.5 has the built-in performance test for when it can run unattended	startup
+luanti	net.minetest.minetest	fat	5.17.0	5170000	net.minetest.minetest_5170000.apk	87a136d408ed560d3d56e55ca2ac780deb7a8941635b16960c88831fb33f9233	e7d6047c1d75719811b317964a4ab1c0ad3b003bc3b8b3d72925b4d605ca45ee	fdroid	LGPL-2.1-or-later	native 3D engine (C++, Irrlicht) plus Lua	startup
+mindustry	io.anuke.mindustry	fat	8-fdroid-160.7	1115	io.anuke.mindustry_1115.apk	64bf33842d8f5495656c44868ea3d11ca5998bf6e36bbb428064dcc58c2e9f44	fbd07935ef2e2ada5d918aea62ec25dd7dda7407492c6c3d1582b59b6cb84bed	fdroid	GPL-3.0-or-later	Java game on libGDX: game logic runs as x86_64 ART code, only libGDX's .so is translated	startup
+lichess	org.lichess.mobileV2	arm64-v8a	0.30.3	300303	org.lichess.mobileV2_300303.apk	badf7b44c6c3600b1f81415b95ed9f42006498063a32ac8613dc9f755e2e2234	496ed2c1542892a094a2a6e26d59cd07fb7e8c711355876dad3859ea82f8af62	fdroid	GPL-3.0-or-later	Flutter (Dart AOT) plus a NEON chess engine	startup
+lichess	org.lichess.mobileV2	x86_64	0.30.3	300301	org.lichess.mobileV2_300301.apk	87b67936d2b59c10cf8f958eab043979cf73431bd77cc320a8df1ef776e25d7a	496ed2c1542892a094a2a6e26d59cd07fb7e8c711355876dad3859ea82f8af62	fdroid	GPL-3.0-or-later	Flutter (Dart AOT) plus a NEON chess engine	startup
+jitsi	org.jitsi.meet	arm64-v8a	26.0.0	26000002	org.jitsi.meet_26000002.apk	72a89e53ca532b3ab44e9204644edeef282d7d66a366939ea55f062057c47df4	41605393b4a087feb25d13e91f421c7d1a1a9146251fc2be992fc1b30b3181f6	fdroid	Apache-2.0	React Native	startup
+jitsi	org.jitsi.meet	x86_64	26.0.0	26000004	org.jitsi.meet_26000004.apk	72aab4912b08431a2340fc1fb1f181be3a07e8b7ac607e0bb9e4c3814c2e4248	41605393b4a087feb25d13e91f421c7d1a1a9146251fc2be992fc1b30b3181f6	fdroid	Apache-2.0	React Native	startup
+glmark2	org.linaro.glmark2	fat	22c527cb	1	glmark2-fat.apk	-	-	build:scripts/perf/workloads/build-glmark2.sh	GPL-3.0-only	GL call path from a translated app (draw-call bound at high frame rates)	glmark2
+tps	org.openbook.bench.tpsdemo	fat	1.0	1	tps-demo-fat.apk	-	-	build:scripts/perf/workloads/build-tps-demo.sh	MIT (code) AND CC-BY-3.0 (assets)	demanding 3D game: Godot 4.7.2's mobile renderer, PBR, robots, particles; a fixed 60-second camera path	bench

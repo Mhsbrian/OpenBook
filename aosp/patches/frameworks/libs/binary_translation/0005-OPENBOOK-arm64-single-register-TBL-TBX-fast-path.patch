@@ -1,0 +1,386 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Wed, 4 Nov 2026 12:00:00 +0000
+Subject: [PATCH] OPENBOOK: arm64: single-register TBL/TBX fast path
+
+Constant byte shuffles compile to TBL with a one-register table, and both
+tiers lowered every TBL generically: per table register a subtract, a range
+mask (PSUBUSB + PCMPEQB), PSHUFB, PAND and POR, about 17 host instructions
+for the common case. simd-bench's swizzle kernel ran at 0.10x native on the
+G14 (ANAL-380, ANAL-382).
+
+For len == 0 both tiers now emit PADDUSB idx, 0x70 then PSHUFB: indices
+0..15 become 0x70..0x7F (bit 7 clear, low nibble kept) and 16..255 saturate
+to >= 0x80 (bit 7 set, which PSHUFB zeroes), exactly TBL's rule. TBX expands
+bit 7 to an all-ones byte with PCMPGTB(0, c) and keeps the old Vd byte there.
+All sources are read before Vd is written, so aliases read the original
+bytes; Q=0 zeroes the upper 64 bits, TBX included. SSSE3 as before. The 2..4
+register forms are unchanged.
+
+Tests, in each tier: every index 0..255, 8B and 16B, TBL and TBX, nonzero old
+Vd, zeros in the table, every alias of Vd, Vn and Vm, translated in the tier.
+---
+ heavy_optimizer/arm64/frontend.cc             |  38 ++++++
+ heavy_optimizer/arm64/frontend.h              |   2 +
+ heavy_optimizer/arm64/frontend_tests.cc       |  83 +++++++++++++
+ .../lite_translate_region_exec_tests.cc       | 113 ++++++++++++++++++
+ .../lite_translator_simd_three_diff_perm.inc  |  54 +++++++++
+ 5 files changed, 290 insertions(+)
+
+diff --git a/heavy_optimizer/arm64/frontend.cc b/heavy_optimizer/arm64/frontend.cc
+index 04f2cd60..079364ff 100644
+--- a/heavy_optimizer/arm64/frontend.cc
++++ b/heavy_optimizer/arm64/frontend.cc
+@@ -15525,10 +15525,48 @@ void HeavyOptimizerFrontend::AdvSimdPermute(uint8_t rd, uint8_t rn, uint8_t rm,
+   SetVRegFull(rd, xn, q);
+ }
+ 
++// OPENBOOK: single-table-register TBL/TBX (len == 0), the common case (constant
++// byte shuffles). Same lowering as the lite tier's AdvSimdTableLookupOneReg:
++//   c = PADDUSB(idx, 0x70): idx 0..15 -> 0x70..0x7F (bit 7 clear, low nibble =
++//   idx); idx 16..255 -> >= 0x80 (bit 7 set). PSHUFB(table, c) is then exactly
++//   TBL: table[idx] in range, 0 out of range. TBX: miss = PCMPGTB(0, c) expands
++//   bit 7 to an all-ones byte; result = lookup | (old_Vd & miss). Vm, Vn and Vd
++//   are read before SetVRegFull writes Vd, so aliases read the original bytes;
++//   SetVRegFull zeroes Vd[127:64] when q=false.
++void HeavyOptimizerFrontend::AdvSimdTableLookupOneReg(uint8_t rd, uint8_t rn, uint8_t rm, uint8_t op, bool q) {
++  FpRegister c = AllocTempSimdReg();
++  FpRegister out = AllocTempSimdReg();
++  FpRegister t = AllocTempSimdReg();
++  builder_.GenGetSimd<16>(c.machine_reg(), GetVRegOffset(rm));
++  builder_.Gen<x86_64::MovqXRegReg>(t.machine_reg(), GetImm(uint64_t{0x7070707070707070ULL}));
++  builder_.Gen<x86_64::PunpcklqdqXRegXReg>(t.machine_reg(), t.machine_reg());
++  builder_.Gen<x86_64::PaddusbXRegXReg>(c.machine_reg(), t.machine_reg());
++  builder_.GenGetSimd<16>(out.machine_reg(), GetVRegOffset(rn));
++  FpRegister old;
++  if (op /* TBX */) {
++    old = AllocTempSimdReg();
++    builder_.GenGetSimd<16>(old.machine_reg(), GetVRegOffset(rd));
++    // A full-def zero (MOVQ from a zero GP reg), as AdvSimdTableLookup does: a
++    // self-PXOR would read an undefined vreg in this tier's lifetime analysis.
++    builder_.Gen<x86_64::MovqXRegReg>(t.machine_reg(), GetImm(uint64_t{0}));
++    builder_.Gen<x86_64::PcmpgtbXRegXReg>(t.machine_reg(), c.machine_reg());
++    builder_.Gen<x86_64::PandXRegXReg>(old.machine_reg(), t.machine_reg());
++  }
++  builder_.Gen<x86_64::PshufbXRegXReg>(out.machine_reg(), c.machine_reg());
++  if (op /* TBX */) {
++    builder_.Gen<x86_64::PorXRegXReg>(out.machine_reg(), old.machine_reg());
++  }
++  SetVRegFull(rd, out, q);
++}
++
+ void HeavyOptimizerFrontend::AdvSimdTableLookup(uint8_t rd, uint8_t rn, uint8_t rm, uint8_t len, uint8_t op, bool q) {
+   if (!success()) {
+     return;
+   }
++  if (len == 0) {
++    AdvSimdTableLookupOneReg(rd, rn, rm, op, q);
++    return;
++  }
+   // TBL/TBX: per-byte gather across 1..4 consecutive table registers, mirroring
+   // the lite lowering (register-domain-pure, no BB-splits). For each table reg r,
+   // shift the index vector down by r*16 (bytewise) so PSHUFB picks lane (idx-r*16)
+diff --git a/heavy_optimizer/arm64/frontend.h b/heavy_optimizer/arm64/frontend.h
+index 790d5b4f..081f26a5 100644
+--- a/heavy_optimizer/arm64/frontend.h
++++ b/heavy_optimizer/arm64/frontend.h
+@@ -534,6 +534,8 @@ class HeavyOptimizerFrontend {
+   void AdvSimdPermute(uint8_t rd, uint8_t rn, uint8_t rm, uint8_t size, uint8_t opcode, bool q);
+ 
+   void AdvSimdTableLookup(uint8_t rd, uint8_t rn, uint8_t rm, uint8_t len, uint8_t op, bool q);
++  // OPENBOOK: the single-table-register case of AdvSimdTableLookup (len == 0).
++  void AdvSimdTableLookupOneReg(uint8_t rd, uint8_t rn, uint8_t rm, uint8_t op, bool q);
+ 
+   void AdvSimdMultiStruct(uint8_t rt,
+                           uint8_t rn,
+diff --git a/heavy_optimizer/arm64/frontend_tests.cc b/heavy_optimizer/arm64/frontend_tests.cc
+index 15e362e1..9dcb0b11 100644
+--- a/heavy_optimizer/arm64/frontend_tests.cc
++++ b/heavy_optimizer/arm64/frontend_tests.cc
+@@ -18219,4 +18219,87 @@ TEST_F(Arm64HeavyOptimizerFrontendTest, UshlVec16BBails) {
+   EXPECT_FALSE(RunOneInstruction(&state_, ToGuestAddr(code) + sizeof(code)));
+ }
+ 
++
++// OPENBOOK: the single-table-register TBL/TBX fast path (len == 0) in this tier:
++// every index value 0..255, both arrangements (8B, 16B), TBL and TBX, nonzero old
++// Vd bytes, zeros in the table, and every alias of Vd, Vn and Vm (the simd-bench
++// swizzle kernel itself compiles to TBL Vd=Vn). Each region must translate in this
++// tier, not fall back to the interpreter, and all 16 result bytes are checked
++// (the upper 8 must be zero for 8B, TBX included).
++namespace {
++
++struct OneRegTblAlias {
++  uint8_t rd, rn, rm;
++  const char* name;
++};
++constexpr OneRegTblAlias kOneRegTblAliases[] = {
++    {0, 1, 2, "distinct"}, {1, 1, 2, "d=n"}, {2, 1, 2, "d=m"}, {0, 1, 1, "n=m"}, {1, 1, 1, "d=n=m"}};
++
++constexpr uint32_t OneRegTblTbx(bool q, uint8_t rd, uint8_t rn, uint8_t rm, bool tbx) {
++  return (static_cast<uint32_t>(q) << 30) | 0x0E000000u | (static_cast<uint32_t>(rm) << 16) |
++         (static_cast<uint32_t>(tbx) << 12) | (static_cast<uint32_t>(rn) << 5) | rd;
++}
++
++// Arm semantics, from the register values before the instruction.
++uint8_t OneRegTblExpected(bool tbx, bool q, const uint8_t* table, const uint8_t* idx,
++                          const uint8_t* old, int lane) {
++  if (lane >= (q ? 16 : 8)) return 0;
++  const uint8_t i = idx[lane];
++  if (i < 16) return table[i];
++  return tbx ? old[lane] : 0;
++}
++
++// Runs every case through RUN(state, code, end) -> translated?, checking the results.
++template <typename RunFn>
++void OneRegTblSweep(ThreadState& state, RunFn run) {
++  for (bool tbx : {false, true}) {
++    for (bool q : {false, true}) {
++      for (const OneRegTblAlias& a : kOneRegTblAliases) {
++        const int chunks = q ? 16 : 32;  // 16 or 8 meaningful lanes per run: all 256 indices
++        for (int c = 0; c < chunks; ++c) {
++          uint8_t idx[16], table[16], old[16];
++          for (int l = 0; l < 16; ++l) {
++            idx[l] = (q || l < 8) ? static_cast<uint8_t>(c * (q ? 16 : 8) + l) : 0xEE;  // 8B: upper ignored
++            table[l] = (l % 4 == 0) ? 0 : static_cast<uint8_t>(0x11 * l + 3);
++            old[l] = static_cast<uint8_t>(0xC0 | l);
++          }
++          // Aliased registers share their bytes: the shared register holds the index bytes when Vm is
++          // aliased, else the table.
++          if (a.rd == a.rn) std::memcpy(old, table, 16);
++          if (a.rn == a.rm) std::memcpy(table, idx, 16);
++          if (a.rd == a.rm) std::memcpy(old, idx, 16);
++          if (a.rd == a.rn && a.rn == a.rm) {
++            std::memcpy(table, idx, 16);
++            std::memcpy(old, idx, 16);
++          }
++          std::memcpy(&state.cpu.v[a.rd], old, 16);
++          std::memcpy(&state.cpu.v[a.rn], table, 16);
++          std::memcpy(&state.cpu.v[a.rm], idx, 16);
++          static uint32_t code[1];
++          code[0] = OneRegTblTbx(q, a.rd, a.rn, a.rm, tbx);
++          ASSERT_TRUE(run(state, code, ToGuestAddr(code) + sizeof(code)))
++              << "not translated: " << (tbx ? "TBX" : "TBL") << (q ? ".16B " : ".8B ") << a.name;
++          uint8_t out[16];
++          std::memcpy(out, &state.cpu.v[a.rd], 16);
++          for (int l = 0; l < 16; ++l) {
++            EXPECT_EQ(out[l], OneRegTblExpected(tbx, q, table, idx, old, l))
++                << (tbx ? "TBX" : "TBL") << (q ? ".16B " : ".8B ") << a.name << " chunk " << c
++                << " lane " << l << " idx " << int{idx[l]};
++          }
++        }
++      }
++    }
++  }
++}
++
++}  // namespace
++
++TEST_F(Arm64HeavyOptimizerFrontendTest, OpenBookOneRegTblTbxAllIndicesAllAliases) {
++  OneRegTblSweep(state_, [](ThreadState& s, uint32_t(&code)[1], GuestAddr end) {
++    bool ok = false;
++    RunRegion(&s, code, end, &ok);
++    return ok;
++  });
++}
++
+ }  // namespace berberis
+diff --git a/lite_translator/arm64_to_x86_64/lite_translate_region_exec_tests.cc b/lite_translator/arm64_to_x86_64/lite_translate_region_exec_tests.cc
+index f795a958..ee1558d8 100644
+--- a/lite_translator/arm64_to_x86_64/lite_translate_region_exec_tests.cc
++++ b/lite_translator/arm64_to_x86_64/lite_translate_region_exec_tests.cc
+@@ -50497,6 +50497,119 @@ TEST_F(Arm64LiteTranslateRegionTest, FaddpV2D) {
+   EXPECT_EQ(out[1], 7.0);  // 3+4
+ }
+ 
++
++// OPENBOOK: the single-table-register TBL/TBX fast path (len == 0) in this tier:
++// every index value 0..255, both arrangements (8B, 16B), TBL and TBX, nonzero old
++// Vd bytes, zeros in the table, and every alias of Vd, Vn and Vm (the simd-bench
++// swizzle kernel itself compiles to TBL Vd=Vn). Each region must translate in this
++// tier, not fall back to the interpreter, and all 16 result bytes are checked
++// (the upper 8 must be zero for 8B, TBX included).
++
++struct OneRegTblAlias {
++  uint8_t rd, rn, rm;
++  const char* name;
++};
++constexpr OneRegTblAlias kOneRegTblAliases[] = {
++    {0, 1, 2, "distinct"}, {1, 1, 2, "d=n"}, {2, 1, 2, "d=m"}, {0, 1, 1, "n=m"}, {1, 1, 1, "d=n=m"}};
++
++constexpr uint32_t OneRegTblTbx(bool q, uint8_t rd, uint8_t rn, uint8_t rm, bool tbx) {
++  return (static_cast<uint32_t>(q) << 30) | 0x0E000000u | (static_cast<uint32_t>(rm) << 16) |
++         (static_cast<uint32_t>(tbx) << 12) | (static_cast<uint32_t>(rn) << 5) | rd;
++}
++
++// Arm semantics, from the register values before the instruction.
++uint8_t OneRegTblExpected(bool tbx, bool q, const uint8_t* table, const uint8_t* idx,
++                          const uint8_t* old, int lane) {
++  if (lane >= (q ? 16 : 8)) return 0;
++  const uint8_t i = idx[lane];
++  if (i < 16) return table[i];
++  return tbx ? old[lane] : 0;
++}
++
++// Runs every case through RUN(state, code, end) -> translated?, checking the results.
++template <typename RunFn>
++void OneRegTblSweep(ThreadState& state, RunFn run) {
++  for (bool tbx : {false, true}) {
++    for (bool q : {false, true}) {
++      for (const OneRegTblAlias& a : kOneRegTblAliases) {
++        const int chunks = q ? 16 : 32;  // 16 or 8 meaningful lanes per run: all 256 indices
++        for (int c = 0; c < chunks; ++c) {
++          uint8_t idx[16], table[16], old[16];
++          for (int l = 0; l < 16; ++l) {
++            idx[l] = (q || l < 8) ? static_cast<uint8_t>(c * (q ? 16 : 8) + l) : 0xEE;  // 8B: upper ignored
++            table[l] = (l % 4 == 0) ? 0 : static_cast<uint8_t>(0x11 * l + 3);
++            old[l] = static_cast<uint8_t>(0xC0 | l);
++          }
++          // Aliased registers share their bytes: the shared register holds the index bytes when Vm is
++          // aliased, else the table.
++          if (a.rd == a.rn) std::memcpy(old, table, 16);
++          if (a.rn == a.rm) std::memcpy(table, idx, 16);
++          if (a.rd == a.rm) std::memcpy(old, idx, 16);
++          if (a.rd == a.rn && a.rn == a.rm) {
++            std::memcpy(table, idx, 16);
++            std::memcpy(old, idx, 16);
++          }
++          std::memcpy(&state.cpu.v[a.rd], old, 16);
++          std::memcpy(&state.cpu.v[a.rn], table, 16);
++          std::memcpy(&state.cpu.v[a.rm], idx, 16);
++          static uint32_t code[1];
++          code[0] = OneRegTblTbx(q, a.rd, a.rn, a.rm, tbx);
++          ASSERT_TRUE(run(state, code, ToGuestAddr(code) + sizeof(code)))
++              << "not translated: " << (tbx ? "TBX" : "TBL") << (q ? ".16B " : ".8B ") << a.name;
++          uint8_t out[16];
++          std::memcpy(out, &state.cpu.v[a.rd], 16);
++          for (int l = 0; l < 16; ++l) {
++            EXPECT_EQ(out[l], OneRegTblExpected(tbx, q, table, idx, old, l))
++                << (tbx ? "TBX" : "TBL") << (q ? ".16B " : ".8B ") << a.name << " chunk " << c
++                << " lane " << l << " idx " << int{idx[l]};
++          }
++        }
++      }
++    }
++  }
++}
++
++
++// The fast path is the code actually emitted for a one-register TBL: PADDUSB and PSHUFB, and none of the
++// generic path's range masks (PSUBUSB + PCMPEQB). The 2-register form still takes the generic path.
++// (Opcode bytes, allowing a REX prefix between 66 and 0F for xmm8..15.)
++bool OneRegTblHasOpcode(const std::vector<uint8_t>& code, uint8_t op) {
++  for (size_t i = 0; i + 2 < code.size(); ++i) {
++    if (code[i] != 0x66) continue;
++    size_t j = i + 1;
++    if ((code[j] & 0xF0) == 0x40) ++j;
++    if (j + 1 < code.size() && code[j] == 0x0F && code[j + 1] == op) return true;
++  }
++  return false;
++}
++
++std::vector<uint8_t> OneRegTblLiteCode(const uint32_t* code, size_t n) {
++  MachineCode machine_code;
++  auto [success, stop_pc] = TryLiteTranslateRegion(
++      ToGuestAddr(code), &machine_code,
++      LiteTranslateParams{.end_pc = ToGuestAddr(code + n), .allow_dispatch = false});
++  EXPECT_TRUE(success);
++  // Installed through the code pool, as Run() does: relative jumps to entry points must be in range.
++  const auto* installed =
++      static_cast<const uint8_t*>(AsHostCode(GetDefaultCodePoolInstance()->Add(&machine_code)));
++  return std::vector<uint8_t>(installed, installed + machine_code.install_size());
++}
++
++TEST_F(Arm64LiteTranslateRegionTest, OpenBookOneRegTblEmitsTheFastPath) {
++  static const uint32_t one[] = {OneRegTblTbx(true, 1, 1, 0, false)};  // tbl v1.16b, {v1.16b}, v0.16b
++  const std::vector<uint8_t> fast = OneRegTblLiteCode(one, 1);
++  EXPECT_TRUE(OneRegTblHasOpcode(fast, 0xDC)) << "no PADDUSB";
++  EXPECT_FALSE(OneRegTblHasOpcode(fast, 0xD8)) << "PSUBUSB: the generic path";
++  EXPECT_FALSE(OneRegTblHasOpcode(fast, 0x74)) << "PCMPEQB: the generic path";
++  static const uint32_t two[] = {TblTbxEncoding(1, 0, 1, 2, 1, 0)};  // tbl v0.16b, {v1.16b, v2.16b}, v2.16b
++  const std::vector<uint8_t> generic = OneRegTblLiteCode(two, 1);
++  EXPECT_TRUE(OneRegTblHasOpcode(generic, 0xD8)) << "the 2-register form should keep the generic path";
++}
++
++TEST_F(Arm64LiteTranslateRegionTest, OpenBookOneRegTblTbxAllIndicesAllAliases) {
++  OneRegTblSweep(state_, [this](ThreadState&, uint32_t(&code)[1], GuestAddr end) { return Run(code, end); });
++}
++
+ }  // namespace
+ 
+ }  // namespace berberis
+diff --git a/lite_translator/arm64_to_x86_64/lite_translator_simd_three_diff_perm.inc b/lite_translator/arm64_to_x86_64/lite_translator_simd_three_diff_perm.inc
+index 2439226c..5eb2b6c6 100644
+--- a/lite_translator/arm64_to_x86_64/lite_translator_simd_three_diff_perm.inc
++++ b/lite_translator/arm64_to_x86_64/lite_translator_simd_three_diff_perm.inc
+@@ -965,6 +965,56 @@
+     as_.Movdqu({.base = Assembler::rbp, .disp = vd_off}, xn);
+   }
+ 
++  // OPENBOOK: single-table-register TBL/TBX (len == 0), the common case: constant
++  // byte shuffles compile to one TBL with a one-register table.  Two x86
++  // instructions give TBL exactly:
++  //   c[i] = PADDUSB(idx[i], 0x70)   (unsigned saturating add)
++  //   idx 0..15   -> c = 0x70..0x7F: bit 7 clear, low nibble = idx, so
++  //                  PSHUFB(table, c)[i] = table[idx]
++  //   idx 16..255 -> c >= 0x80 (saturates at 0xFF): bit 7 set, so PSHUFB
++  //                  gives 0, TBL's out-of-range result
++  // TBX keeps the old Vd byte in the out-of-range lanes: miss = PCMPGTB(0, c)
++  // expands bit 7 to an all-ones byte, and result = lookup | (old_Vd & miss).
++  // Vm, Vn and (TBX) Vd are read before Vd is written, so every alias (Vd == Vn,
++  // Vd == Vm, Vn == Vm, all three) reads the original bytes.  Q=0 zeroes the
++  // upper 64 bits, TBX included.  SSSE3 (PSHUFB) as before; no SSE4.1.
++  void AdvSimdTableLookupOneReg(uint8_t rd, uint8_t rn, uint8_t rm, uint8_t op,
++                                bool q) {
++    SimdRegister xmm_c   = AllocTempSimdReg();
++    SimdRegister xmm_out = AllocTempSimdReg();
++    SimdRegister xmm_t   = AllocTempSimdReg();  // 0x70 broadcast, then the miss mask
++    SimdRegister xmm_old = op ? AllocTempSimdReg() : xmm_t;
++    if (xmm_c == no_simd_register || xmm_out == no_simd_register ||
++        xmm_t == no_simd_register || xmm_old == no_simd_register) {
++      success_ = false; return;
++    }
++    Register r_const = AllocTempReg();
++    if (r_const == no_register) { success_ = false; return; }
++
++    as_.Movdqu(xmm_c, {.base = Assembler::rbp, .disp = VRegOffset(rm)});
++    as_.Movq(r_const, static_cast<int64_t>(0x7070707070707070LL));
++    as_.Movq(xmm_t, r_const);
++    as_.Punpcklqdq(xmm_t, xmm_t);
++    as_.Paddusb(xmm_c, xmm_t);
++    as_.Movdqu(xmm_out, {.base = Assembler::rbp, .disp = VRegOffset(rn)});
++    if (op /* TBX */) {
++      as_.Movdqu(xmm_old, {.base = Assembler::rbp, .disp = VRegOffset(rd)});
++      as_.Pxor(xmm_t, xmm_t);
++      as_.Pcmpgtb(xmm_t, xmm_c);  // 0xFF where c is negative (bit 7 set): a miss
++      as_.Pand(xmm_old, xmm_t);
++    }
++    as_.Pshufb(xmm_out, xmm_c);
++    if (op /* TBX */) {
++      as_.Por(xmm_out, xmm_old);
++    }
++    if (!q) {
++      // Q=0: zero the upper 64 bits per D-register semantics.
++      as_.Pslldq(xmm_out, int8_t{8});
++      as_.Psrldq(xmm_out, int8_t{8});
++    }
++    as_.Movdqu({.base = Assembler::rbp, .disp = VRegOffset(rd)}, xmm_out);
++  }
++
+   // JIT for AdvSIMD TBL/TBX (table lookup / table lookup extended).
+   //   TBL Vd.<T>, {Vn.16B [, V(n+1) [, V(n+2) [, V(n+3)]]]}, Vm.<T>
+   //   TBX Vd.<T>, {Vn.16B [, V(n+1) [, V(n+2) [, V(n+3)]]]}, Vm.<T>
+@@ -1001,6 +1051,10 @@
+   void AdvSimdTableLookup(uint8_t rd, uint8_t rn, uint8_t rm, uint8_t len,
+                           uint8_t op, bool q) {
+     NonRaisingSimdScope non_raising(this);
++    if (len == 0) {
++      AdvSimdTableLookupOneReg(rd, rn, rm, op, q);
++      return;
++    }
+     const uint8_t table_regs = static_cast<uint8_t>(len + 1);  // 1..4
+     const int32_t vm_off = VRegOffset(rm);
+     const int32_t vd_off = VRegOffset(rd);
+-- 
+2.56.0
+

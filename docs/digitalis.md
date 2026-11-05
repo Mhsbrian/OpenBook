@@ -60,6 +60,70 @@ The bridge is part of the normal product build (`scripts/aosp-build.sh`). Nothin
   2. An unused variable that Android 17's clang (`clang-r584948b`) rejects under `-Werror`.
   3. `MRS` of the ID registers.
   4. Bit-exact `FRECPE`/`FRSQRTE`.
+  5. A single-register `TBL`/`TBX` fast path in both tiers (ANAL-380, ANAL-382). Constant byte shuffles compile to a
+     one-register `TBL`. Both tiers lowered every `TBL` generically, with a range mask and a merge per table
+     register. For one register, `PADDUSB idx, 0x70` then `PSHUFB` is exact: indices 0–15 keep their low nibble
+     with bit 7 clear, and 16–255 saturate to bit 7 set, which `PSHUFB` zeroes. `TBX` keeps the old byte where
+     `PCMPGTB(0, c)` marks a miss. The 2–4-register forms are unchanged.
+  6. Translator counters and a stable region identity (ANAL-383).
+     - **Counters:** `berberis.stats=1` turns on process-wide counters (relaxed atomics).
+       - They sit in one self-describing block (`OBSTAT2`), whose address is logged at start. Root reads it from
+         `/proc/PID/mem`.
+       - There's no thread, because the native bridge also runs in app zygotes, and ART won't fork a zygote that
+         has one.
+       - A `fork()` child becomes the owner of its counts through a `pthread_atfork` handler, with what it
+         inherited kept as a baseline. A guest's raw clone runs no handler and keeps its parent as owner.
+       - A program run through the binfmt runner logs an `openbook-stats v1` line when it ends (patch 7).
+     - **What's counted:**
+       - installs per tier (published only) and results discarded at publication;
+       - elapsed compile time per tier;
+       - gear-ups and how each ended;
+       - interpreter batches;
+       - invalidation requests (by source), entries invalidated, in-flight translations thrown away, and dispatcher
+         flushes.
+     - **Off by default:** each counting site then costs one load of a flag.
+     - **Perf map:**
+       - Each region of a mapped file is now named with its file offset too (`_0x<addr>+<size>@0x<offset>`).
+         Anonymous memory gets no offset.
+       - The map belongs to one process: a fork or clone child opens its own instead of writing into its
+         parent's.
+     - `app-perf.sh cpu --translator` collects both ([app-performance.md](app-performance.md)).
+  7. The final `openbook-stats v1` line on `exit()` too (ANAL-383). Patch 6 logged it only at the guest's
+     `exit_group`, so only `_exit()` logged one; `exit()` and a return from `main` logged none (ANAL-384's VM run).
+     - **Why:** the guest bionic's `exit()` is a weak symbol for the native bridge. `native_bridge_support`'s guest
+       libc replaces it with one that runs the guest's `__cxa_finalize` and then calls the host's `exit()`
+       (`android_api/libc/exit.c`, `native_bridge_exit`). The host's `exit()` ends the process with its own
+       `exit_group`, which never goes through the guest syscall path.
+     - **Fix:** with counting on, an `atexit` handler logs the line from the host's `exit()`, and `_exit()` still
+       logs at the guest's `exit_group`. The logger remembers the last pid that logged:
+       - a second call in the same process logs nothing, so a process whose exit paths meet logs one line;
+       - a fork, vfork or raw-clone child still logs its own.
+       - **Not guaranteed:** if a shared-memory (`CLONE_VM`) child logs between two calls of its parent, the
+         parent's second call logs again (the Checker's reproduction, ANAL-383). That takes a parent that logs
+         and keeps running, which the exit paths don't do. Exact once-per-process for any interleaving would need
+         per-process state.
+       - The line's pid comes from the `getpid` syscall, not bionic's cached value.
+     - A process killed by a signal still logs none: its memory block is the only record.
+  8. `ClearExecutable` clears the executable-page shadow a word at a time (ANAL-379).
+     - **What it fixes:** every guest `mmap`, `mprotect` and `munmap` that isn't executable clears the range's bits in
+       the shadow bitmap (one bit per guest page). That was done page by page, writing every byte. A JIT engine
+       reserves, protects and releases gigabytes of never-executable address space, so a browser engine spent about
+       10% of its CPU there on the G14 with almost nothing to invalidate.
+     - **How:** whole shadow bytes are taken eight at a time (64 pages, 256 KiB of guest space, per step), and
+       read before written, so untouched shadow pages stay unpopulated. The bits cleared and the invalidation
+       requested are unchanged, and a range whose `start + size` overflows is rounded exactly as before.
+     - **Host result:** with `scripts/perf/mman-bench` reserving 4 GiB per iteration, 3082 µs → 156 µs (native 138).
+     - **New counters:** `clear_executable_calls`, `clear_executable_pages` and `clear_executable_ns`.
+  9. Gear-ups skip the heavy backend when their result would be discarded (ANAL-381).
+     - **What it fixes:** a hot lite region gears up. The heavy optimizer ran its frontend and then its backend
+       (`x86_64::GenCode`, the optimization passes and code generation), and only then did the caller look at the
+       outcome. Two outcomes throw the code away: a fully translated region below the minimum size, and a bail with
+       no in-region loop. On the G14, 86% of Lichess's heavy attempts were declined as too small.
+     - **How:** `HeavyOptimizeParams` gets `skip_codegen_below_instructions` and
+       `skip_codegen_if_bailed_without_backedge`, off by default. Gear-up turns them on, so for those two outcomes
+       the optimizer returns after the frontend. What's installed is unchanged.
+     - **Host result:** heavy-tier compile time fell 18% on CoreMark and 21% on simd-bench, with every gear-up
+       outcome and install count identical.
 - **ART patch** (`aosp/patches/art/`): `libnativebridge` sets `Build.CPU_ABI` and `CPU_ABI2` for bridged apps again (the Fennec fix).
 - **Device:** `device/anybook/common/native-bridge/`:
   - `native-bridge.mk` inherits Digitalis's `enable_arm64_to_x86_64.mk` and adds `openbook_bridge_check`;
@@ -318,4 +382,5 @@ DIGITALIS_JOBS=24 scripts/compat/digitalis/docker.sh /repo/scripts/compat/digita
 3. Why the G14 ratio is 0.36 and Cuttlefish's 0.39: pin CoreMark to a Zen 5 core and to a Zen 5c core in the add-on (`taskset`), and record the core each run used. Low priority.
 4. Merge android17-release into the fork once Digitalis tracks Android 17, or do it ourselves (64 conflicts).
 5. Upstream reports to DigitalisX64 and AOSP, after the owner's OK.
-6. A SIMD/JIT micro-benchmark: CoreMark alone may understate the heavy optimizer's NEON work.
+6. A SIMD/JIT micro-benchmark: CoreMark alone may understate the heavy optimizer's NEON work. simd-bench and the
+   ARM-translation corpus cover the SIMD part ([`arm-performance.md`](arm-performance.md)); JIT-heavy code is ANAL-379.
