@@ -201,30 +201,37 @@ The bridge is part of the normal product build (`scripts/aosp-build.sh`). Nothin
         - records are appended to a data file, with an index file;
         - a translating thread flushes at 1 MiB, or 2 s after the last flush, and so do exit and the guest's
           `exit_group`. No thread is started;
-        - 128 MiB per app;
+        - 128 MiB per app, checked against the cache directory's size at each flush, so other processes' files
+          count. Processes flushing at the same moment can each still go over by one batch;
         - a fork child, from the host's `fork()` or the guest's raw clone, stops using the cache without taking a
           lock, and closes its copies of the lock fds.
       - **`verify`:** a record is installed only if it equals a fresh translation, code and recovery points, re-linked
         to one address. Otherwise the fresh code is installed, and a second fresh translation tells a mismatch (the
-        two agree) from inconclusive.
+        two agree) from inconclusive. Both fresh translations read guest memory, so they run under the mapping lock
+        too, held from the checks until the chosen code is published.
       - **Counters:** `pcache_*` (hits, misses, rejects by reason, load and write time, records and bytes written,
         `verify` results). Loaded regions are `lite_cached` and `heavy_cached` in the perf map. The final stats line
         outgrew its buffer and the host's 1,024-byte log limit, so it's longer, and on the host it goes to stderr
         directly.
       - **Host results** (2026-11-05):
         - **Lichess's 183,699 region starts**, mapped from their files at a new address each launch:
-          - lite: 7.3 µs per region to translate, 3.3 µs to load (2.2× less);
-          - with every region geared up: 52 µs to translate, 3.5 µs to load;
-          - writing adds 13% to lite translation time, and 3% with the gear-ups.
+          - **lite, with a 1 GiB measurement cap** so every region is stored: 7.2 µs per region to translate,
+            3.45 µs to load;
+          - **lite at the default 128 MiB cap:** 148,217 regions are stored and 35,482 miss, and a launch
+            averages 4.2 µs per region;
+          - **every region geared up, 1 GiB cap:** 53 µs to translate, 3.6 µs to load. The loaded set is
+            163,057 lite regions (settled, or still counting) and 20,642 heavy ones;
+          - writing adds 14% to lite translation time, and 3% with the gear-ups.
         - **`verify`:**
           - every loaded lite region matched (183,699);
-          - in the geared-up run, 183,696 matched, 2 were inconclusive and 1 was a mismatch. That region, a heavy
-            one in `linker64`, matches 3 times out of 3 when replayed alone: heavy output that depends on what was
-            translated before (ANAL-389), not a bad record. Fresh code was installed for all three.
+          - in the geared-up run, 183,696 matched, 2 were inconclusive and 1 was a mismatch, a heavy region in
+            `linker64`. Replayed alone, in a replay that writes its own cache, it matched 3 times out of 3. That
+            suggests heavy output that depends on what was translated before (ANAL-389), but doesn't prove the
+            original record was sound. Fresh code was installed for all three.
         - **CoreMark through the runner, in separate processes:**
           - the second launch loaded 1,392 regions and translated 6;
-          - translator time fell from 28.4 ms to 5.3 ms, and wall time from 100 ms to 76 ms (medians of 5);
-          - the first launch cost 7% more lite translation time (one run) and 0.2 ms of writing.
+          - translator time fell from 28.5 ms to 5.3 ms, and wall time from 99 ms to 75 ms (medians of 5);
+          - the first launch cost 8% more lite translation time (one run) and 0.2 ms of writing.
         - **Storage:** a lite record averages 920 bytes with its index entry, for 402 bytes of code. Lichess's lite
           set is 169 MB, so the 128 MiB cap holds 81% of it.
       - **Not yet:** device measurement (P3), and the default and trust model (P4).

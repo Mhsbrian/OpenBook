@@ -1,6 +1,6 @@
-From 2e5f24d5dba5cc97b2616c564858b8fb63797656 Mon Sep 17 00:00:00 2001
+From 804b3cb3c4ae4a7598a23eac67927fdca0aa7d5d Mon Sep 17 00:00:00 2001
 From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
-Date: Thu, 5 Nov 2026 16:00:00 +0000
+Date: Thu, 5 Nov 2026 17:00:00 +0000
 Subject: [PATCH] OPENBOOK: arm64: keep translations across launches in a
  per-app cache
 
@@ -40,7 +40,8 @@ again. Off by default: berberis.pcache (BERBERIS_PCACHE) = off | on | verify.
   appended to: records, and an index log read at open. Queued records are
   flushed by a translating thread at 1 MiB or 2 s after the last flush, at
   exit and at the guest's exit_group (g_guest_exit_hooks). No thread is
-  started. 128 MiB cap per app.
+  started. 128 MiB cap per app, checked against the directory's size at
+  each flush, so it counts what the app's other processes wrote.
 - A fork child stops using the cache without taking a lock (pthread_atfork,
   and g_guest_fork_child_hooks from the guest's raw-clone fork): it drops
   the mapping observer and closes its copies of the writer lock fds.
@@ -48,18 +49,24 @@ again. Off by default: berberis.pcache (BERBERIS_PCACHE) = off | on | verify.
   re-linked to one address, equal a fresh translation with its tier,
   parameters and end. Otherwise the fresh one is installed, and a second
   fresh translation tells a mismatch (the two agree) from inconclusive.
+  Both fresh translations read guest memory, so they, and the install and
+  publication of whichever code is chosen, run under the same shared hold
+  of the mapping lock as the checks.
 - Counters pcache_* in translator_stats; loaded regions are lite_cached and
   heavy_cached in the perf map. The final stats line's buffer grows to fit
   them; on the host it goes to stderr directly, past liblog's 1024 bytes.
 
-Tests: persistent_cache_test.cc (21): loads in each tier in a new
+Tests: persistent_cache_test.cc (24): loads in each tier in a new
 "launch" at another address, verify match; each refusal and their order;
 torn and corrupt files; executable replacement; protection removal, remap
 and replacement before the check; an unmap racing the comparison; an
 invalidation during the load; the counter re-link; flush points; one
 writer across fork, an independent process and the guest's raw clone with
 the mapping lock held; verify's deterministic mismatch, nondeterminism and
-recovery-only mismatch, each checking the code installed.
+recovery-only mismatch, each checking the code installed; protection
+taken away and an unmap during verify's two translations, the second on
+the way to installing fresh code; the cap counting another process's
+files.
 PersistentCacheBench.DISABLED_ReplayCorpus replays a region corpus
 through write, load and verify launches.
 
@@ -77,18 +84,18 @@ Co-authored-by: multica-agent <github@multica.ai>
  .../arm64_to_x86_64/lite_translate_region.cc  |   18 +-
  .../lite_translator/lite_translate_region.h   |    7 +
  runtime/arm64/Android.bp                      |    4 +
- runtime/arm64/persistent_cache.cc             | 1483 +++++++++++++++++
+ runtime/arm64/persistent_cache.cc             | 1489 +++++++++++++++++
  runtime/arm64/persistent_cache.h              |  215 +++
- runtime/arm64/persistent_cache_test.cc        | 1257 ++++++++++++++
+ runtime/arm64/persistent_cache_test.cc        | 1373 +++++++++++++++
  runtime/arm64/relocatable_code.cc             |   84 +-
  runtime/arm64/relocatable_code.h              |   23 +-
  runtime/arm64/translator_stats_test.cc        |   17 +-
- runtime/arm64/translator_x86_64.cc            |  423 ++++-
+ runtime/arm64/translator_x86_64.cc            |  431 ++++-
  .../berberis/runtime_primitives/code_pool.h   |   41 +
  .../runtime_primitives/process_hooks.h        |   63 +
  .../runtime_primitives/translator_stats.h     |   24 +
  runtime_primitives/translator_stats.cc        |   28 +-
- 22 files changed, 3828 insertions(+), 59 deletions(-)
+ 22 files changed, 3958 insertions(+), 59 deletions(-)
  create mode 100644 kernel_api/include/berberis/kernel_api/guest_mapping_observer.h
  create mode 100644 runtime/arm64/persistent_cache.cc
  create mode 100644 runtime/arm64/persistent_cache.h
@@ -564,10 +571,10 @@ index 41884967..12342038 100644
          },
 diff --git a/runtime/arm64/persistent_cache.cc b/runtime/arm64/persistent_cache.cc
 new file mode 100644
-index 00000000..8980d5b7
+index 00000000..3440a369
 --- /dev/null
 +++ b/runtime/arm64/persistent_cache.cc
-@@ -0,0 +1,1483 @@
+@@ -0,0 +1,1489 @@
 +/*
 + * Copyright (C) 2026 The OpenBook Authors
 + *
@@ -845,7 +852,6 @@ index 00000000..8980d5b7
 +  std::mutex flush_mutex;
 +  std::atomic<uint64_t> pending_bytes{0};
 +  std::atomic<uint64_t> last_flush_ns{0};
-+  std::atomic<uint64_t> total_bytes{0};
 +  std::atomic<bool> cap_reached{false};
 +  uint64_t cap_bytes = kCapBytes;
 +};
@@ -1326,7 +1332,6 @@ index 00000000..8980d5b7
 +}
 +
 +bool CreateModuleFiles(Module* m) {
-+  State* state = GetState();
 +  uint64_t nonce = translator_stats::NowNs() ^ (uint64_t(GetpidSyscall()) << 40) ^
 +                   reinterpret_cast<uintptr_t>(m);
 +  FileHeader dh;
@@ -1339,7 +1344,6 @@ index 00000000..8980d5b7
 +  }
 +  m->data_size_on_disk = sizeof(FileHeader);
 +  m->index_size_on_disk = sizeof(FileHeader);
-+  state->total_bytes.fetch_add(2 * sizeof(FileHeader));
 +  return true;
 +}
 +
@@ -1446,13 +1450,17 @@ index 00000000..8980d5b7
 +  return ok;
 +}
 +
-+void WriteBatch(State* state, Batch* batch) {
++uint64_t DirectoryBytes(const std::string& dir);
++
++// `dir_bytes` is the cache directory's size, which every process of the app writes into: the cap
++// is the app's, not this process's.
++void WriteBatch(State* state, Batch* batch, uint64_t* dir_bytes) {
 +  Module* m = batch->module;
 +  if (m->write_failed.load() || GetpidSyscall() != state->pid) {
 +    return;
 +  }
 +  uint64_t bytes = batch->data.size() + batch->index.size() * sizeof(IndexEntry);
-+  if (state->total_bytes.load() + bytes > state->cap_bytes) {
++  if (*dir_bytes + bytes > state->cap_bytes) {
 +    state->cap_reached.store(true);
 +    Count(kNotPersistable, batch->index.size());
 +    return;
@@ -1481,7 +1489,7 @@ index 00000000..8980d5b7
 +    return;
 +  }
 +  m->index_size_on_disk += index_bytes;
-+  state->total_bytes.fetch_add(bytes);
++  *dir_bytes += bytes;
 +  Count(kRecordsWritten, batch->index.size());
 +  Count(kBytesWritten, bytes);
 +}
@@ -1501,8 +1509,14 @@ index 00000000..8980d5b7
 +    state->pending_bytes.store(0);
 +    state->last_flush_ns.store(translator_stats::NowNs());
 +  }
++  if (batches.empty()) {
++    return;
++  }
++  // Measured at each flush, so it counts what the app's other processes wrote. Processes flushing
++  // at the same moment can each still go over by one batch.
++  uint64_t dir_bytes = DirectoryBytes(state->dir);
 +  for (Batch& batch : batches) {
-+    WriteBatch(state, &batch);
++    WriteBatch(state, &batch, &dir_bytes);
 +  }
 +}
 +
@@ -1585,7 +1599,6 @@ index 00000000..8980d5b7
 +    return false;
 +  }
 +  state->registry = std::make_unique<Registry>();
-+  state->total_bytes.store(DirectoryBytes(dir));
 +  if (g_cap_bytes_for_testing != 0) {
 +    state->cap_bytes = g_cap_bytes_for_testing;
 +  }
@@ -2274,10 +2287,10 @@ index 00000000..8609e63b
 +#endif  // BERBERIS_RUNTIME_ARM64_PERSISTENT_CACHE_H_
 diff --git a/runtime/arm64/persistent_cache_test.cc b/runtime/arm64/persistent_cache_test.cc
 new file mode 100644
-index 00000000..ce583707
+index 00000000..2917daca
 --- /dev/null
 +++ b/runtime/arm64/persistent_cache_test.cc
-@@ -0,0 +1,1257 @@
+@@ -0,0 +1,1373 @@
 +/*
 + * Copyright (C) 2026 The OpenBook Authors
 + *
@@ -2343,6 +2356,7 @@ index 00000000..ce583707
 +extern "C" void berberis_HandleLiteCounterThresholdReached(ThreadState* state);
 +extern void (*g_before_publish_hook_for_testing)(GuestAddr pc);
 +extern void (*g_pcache_verify_fresh_hook_for_testing)(MachineCode* machine_code, int attempt);
++extern void (*g_pcache_verify_before_decode_hook_for_testing)(GuestAddr pc, int attempt);
 +size_t GetGearUpMinInsns();
 +
 +namespace {
@@ -2531,6 +2545,8 @@ index 00000000..ce583707
 +    pcache::g_in_mapping_check_hook_for_testing = nullptr;
 +    g_before_publish_hook_for_testing = nullptr;
 +    g_pcache_verify_fresh_hook_for_testing = nullptr;
++    g_pcache_verify_before_decode_hook_for_testing = nullptr;
++    pcache::SetCapForTesting(0);
 +    for (auto& [base, size] : mapped_) {
 +      MunmapForGuest(base, size);
 +    }
@@ -3301,6 +3317,119 @@ index 00000000..ce583707
 +  EXPECT_EQ(GetDefaultCodePoolInstance()->FindRecoveryCode(host + fault), host + recovery);
 +}
 +
++// ---- verify reads guest memory under the mapping lock too ----
++
++// A guest mapping call on another thread, started while `verify` is about to decode: it clears
++// the executable bits, then has to wait for the mapping lock, so the memory stays mapped while
++// the decoder reads it. Without the lock, the decoder would fault.
++struct RacingMappingCall {
++  static inline uint8_t* base;
++  static inline int attempt;      // Which of verify's translations to race.
++  static inline bool unmap;       // Unmap, or take all protection away.
++  static inline std::thread* thread;
++  static inline std::atomic<int> done;
++  static inline bool waited_while_locked;
++
++  static void Arm(uint8_t* b, int a, bool u) {
++    base = b;
++    attempt = a;
++    unmap = u;
++    thread = nullptr;
++    done = 0;
++    waited_while_locked = false;
++    g_pcache_verify_before_decode_hook_for_testing = Hook;
++  }
++
++  static void Hook(GuestAddr pc, int a) {
++    if (a != attempt || thread != nullptr) {
++      return;
++    }
++    thread = new std::thread([] {
++      size_t size = kCodeOffset + kCodeWords * 4;
++      if (unmap) {
++        MunmapForGuest(base, size);
++      } else {
++        MprotectForGuest(base, size, PROT_NONE);
++      }
++      done = 1;
++    });
++    for (int i = 0; i < 5000 && GuestMapShadow::GetInstance()->IsExecutable(pc, 4); i++) {
++      std::this_thread::sleep_for(std::chrono::milliseconds(1));
++    }
++    std::this_thread::sleep_for(std::chrono::milliseconds(100));
++    waited_while_locked = done == 0;
++  }
++
++  static void Join() {
++    if (thread != nullptr) {
++      thread->join();
++      delete thread;
++      thread = nullptr;
++    }
++  }
++};
++
++// Protection taken away during verify's first translation of a good candidate: the decode is
++// safe, and the invalidation the mprotect made stops the publication.
++TEST_F(PersistentCacheTest, VerifyHoldsTheMappingWhileTranslating) {
++  uint8_t* base1 = WriteRegionA();
++  StartProcess(Mode::kVerify);
++  uint8_t* base2 = Remap(base1, elf_path_);
++  GuestAddr pc = Pc(base2, kRegionA);
++  RacingMappingCall::Arm(base2, 1, /*unmap=*/false);
++  Counts c;
++  Translate(pc);
++  RacingMappingCall::Join();
++  EXPECT_TRUE(RacingMappingCall::waited_while_locked) << "the mprotect didn't wait for the lock";
++  EXPECT_EQ(RacingMappingCall::done, 1);
++  EXPECT_EQ(c.Delta(pcache::kVerifyMatch), 1u);
++  EXPECT_EQ(c.Delta(pcache::kHitsLite), 0u) << "published after the invalidation";
++  EXPECT_FALSE(IsTranslated(pc));
++}
++
++// The same for an unmap during the second translation, on the way to installing fresh code.
++TEST_F(PersistentCacheTest, VerifyHoldsTheMappingThroughTheFreshFallback) {
++  uint8_t* base1 = WriteRegionA();
++  Record r = FindRecord(kRegionA);
++  size_t k = r.FirstPlainCodeByte();
++  ASSERT_NE(k, SIZE_MAX);
++  r.bytes[r.code_at() + k] ^= 0xff;
++  r.FixCrc();
++  WriteRecord(r);
++  StartProcess(Mode::kVerify);
++  uint8_t* base2 = Remap(base1, elf_path_);
++  for (auto it = mapped_.begin(); it != mapped_.end(); ++it) {
++    if (it->first == base2) {
++      mapped_.erase(it);  // Unmapped by the test.
++      break;
++    }
++  }
++  GuestAddr pc = Pc(base2, kRegionA);
++  RacingMappingCall::Arm(base2, 2, /*unmap=*/true);
++  Counts c;
++  Translate(pc);
++  RacingMappingCall::Join();
++  EXPECT_TRUE(RacingMappingCall::waited_while_locked) << "the munmap didn't wait for the lock";
++  EXPECT_EQ(RacingMappingCall::done, 1);
++  EXPECT_EQ(c.Delta(pcache::kVerifyMismatch), 1u);
++  EXPECT_FALSE(IsTranslated(pc)) << "fresh code published after the invalidation";
++}
++
++// The cap is the app's: a flush counts what other processes wrote to the directory since start.
++TEST_F(PersistentCacheTest, CapCountsWhatOtherProcessesWrote) {
++  pcache::SetCapForTesting(1 << 20);
++  StartProcess();
++  uint8_t* base = MapElf(elf_path_);
++  Translate(Pc(base, kRegionA));
++  // Another process's module file, written after this one started.
++  WriteFile(cache_dir_ + "/other.pcache", std::vector<uint8_t>(1 << 20, 0));
++  Counts c;
++  pcache::FlushAll();
++  EXPECT_EQ(c.Delta(pcache::kRecordsWritten), 0u);
++  EXPECT_EQ(c.Delta(pcache::kNotPersistable), 1u);
++  EXPECT_EQ(IndexEntries(), 0u);
++}
++
 +// ---- Replay: load against compile on a real app's regions, run by hand ----
 +//
 +//   BERBERIS_PCACHE_REPLAY_CORPUS=<dir> berberis_arm64_host_tests \
@@ -3806,7 +3935,7 @@ index 7dfde012..36b91368 100644
    char small[24];
    memset(small, 'x', sizeof(small));
 diff --git a/runtime/arm64/translator_x86_64.cc b/runtime/arm64/translator_x86_64.cc
-index 5212aabf..b8b859c6 100644
+index 5212aabf..f25b6cd8 100644
 --- a/runtime/arm64/translator_x86_64.cc
 +++ b/runtime/arm64/translator_x86_64.cc
 @@ -16,15 +16,21 @@
@@ -3996,7 +4125,7 @@ index 5212aabf..b8b859c6 100644
        translator_stats::Add(translator_stats::kGearUpHeavyPrefix);
        return {true, heavy_piece, size, kHeavyOptimized};
        // endregion
-@@ -273,15 +340,294 @@ std::tuple<bool, HostCodePiece, size_t, GuestCodeEntry::Kind> HeavyOptimizeAndIn
+@@ -273,15 +340,302 @@ std::tuple<bool, HostCodePiece, size_t, GuestCodeEntry::Kind> HeavyOptimizeAndIn
      translator_stats::Add(translator_stats::kGearUpNoMem);
      return {false, {}, 0, {}};
    }
@@ -4023,6 +4152,9 @@ index 5212aabf..b8b859c6 100644
 +// Called on each fresh translation berberis.pcache=verify compares (attempt 1, then 2), so a test
 +// can make the translator not repeat itself. Null outside tests.
 +void (*g_pcache_verify_fresh_hook_for_testing)(MachineCode* machine_code, int attempt) = nullptr;
++// Called before each of those translations decodes, after its executable check, with the mapping
++// lock held. Null outside tests.
++void (*g_pcache_verify_before_decode_hook_for_testing)(GuestAddr pc, int attempt) = nullptr;
 +
 +// The persistent translation cache's side of a first-gear translation (ANAL-381).
 +namespace {
@@ -4043,12 +4175,20 @@ index 5212aabf..b8b859c6 100644
 +
 +// Translates the candidate's region again as the candidate was translated: its tier, its
 +// parameters, its end. False if that doesn't produce an installable translation of the same
-+// guest range.
++// guest range. With the mapping lock held: the decoder reads guest memory.
 +bool TranslateLikeCandidate(const pcache::Candidate& c,
 +                            GuestCodeEntry* entry,
-+                            MachineCode* machine_code) {
-+  if (c.end_pc - c.pc > GetExecutableRegionSize(c.pc)) {
-+    return false;  // Less of it is executable now; the same translation can't be made.
++                            MachineCode* machine_code,
++                            int attempt) {
++  // The lock keeps the memory mapped, but an unmap or mprotect clears the executable bits before
++  // it waits for the lock, so this can find less executable than before.
++  auto [is_executable, executable_size] =
++      GuestMapShadow::GetInstance()->GetExecutableRegionSize(c.pc, config::kGuestPageSize);
++  if (!is_executable || c.end_pc - c.pc > executable_size) {
++    return false;  // The same translation can't be made.
++  }
++  if (g_pcache_verify_before_decode_hook_for_testing != nullptr) {
++    g_pcache_verify_before_decode_hook_for_testing(c.pc, attempt);
 +  }
 +  if (c.tier == pcache::Tier::kHeavy) {
 +    bool has_in_region_backedge = false;
@@ -4151,18 +4291,14 @@ index 5212aabf..b8b859c6 100644
 +// points at one address, a fresh translation with its tier and parameters. Otherwise the fresh
 +// one is, and the region is translated once more to tell a wrong candidate (the two fresh ones
 +// agree: a mismatch) from a translator that doesn't repeat itself (they don't: inconclusive).
++// Called after the candidate's checks, with the mapping lock the caller holds until the chosen
++// code is published: both translations read guest memory.
 +Verdict VerifyCandidate(const pcache::Candidate& c,
 +                        GuestCodeEntry* entry,
 +                        uintptr_t counter,
 +                        MachineCode* fresh) {
-+  {
-+    pcache::ScopedMappingReadLock lock;
-+    if (!pcache::CheckMappingAndBytes(c)) {
-+      return Verdict::kTranslate;
-+    }
-+  }
 +  ScratchCode scratch;
-+  if (!scratch.ok() || !TranslateLikeCandidate(c, entry, fresh)) {
++  if (!scratch.ok() || !TranslateLikeCandidate(c, entry, fresh, 1)) {
 +    pcache::Count(pcache::kVerifyFallback);
 +    return Verdict::kTranslate;
 +  }
@@ -4185,7 +4321,7 @@ index 5212aabf..b8b859c6 100644
 +  }
 +  MachineCode again;
 +  Normalized fresh2;
-+  if (!TranslateLikeCandidate(c, entry, &again)) {
++  if (!TranslateLikeCandidate(c, entry, &again, 2)) {
 +    pcache::Count(pcache::kVerifyFallback);
 +    return Verdict::kFresh;
 +  }
@@ -4232,6 +4368,13 @@ index 5212aabf..b8b859c6 100644
 +  const GuestCodeEntry::Kind kind =
 +      c.tier == pcache::Tier::kHeavy ? kHeavyOptimized : kLiteTranslated;
 +  TranslationCache* cache = TranslationCache::GetInstance();
++  // Checks 3 and 4, verify's translations, the install and the publication under one hold of the
++  // mapping lock: the range can't be unmapped, re-protected or replaced in between. Nothing below
++  // takes it again.
++  pcache::ScopedMappingReadLock lock;
++  if (!pcache::CheckMappingAndBytes(c)) {
++    return false;
++  }
 +  if (pcache::GetMode() == pcache::Mode::kVerify) {
 +    MachineCode fresh;
 +    Verdict verdict = VerifyCandidate(c, entry, counter, &fresh);
@@ -4255,12 +4398,6 @@ index 5212aabf..b8b859c6 100644
 +      }
 +      return true;
 +    }
-+  }
-+  // Checks 3 and 4, install and publication under one hold of the mapping lock: the range can't
-+  // be unmapped, re-protected or replaced in between.
-+  pcache::ScopedMappingReadLock lock;
-+  if (!pcache::CheckMappingAndBytes(c)) {
-+    return false;
 +  }
 +  HostCodePiece piece = pcache::InstallCandidate(c, counter);
 +  if (piece.code == kNullHostCodeAddr) {
@@ -4291,7 +4428,7 @@ index 5212aabf..b8b859c6 100644
  template <TranslationGear kGear = TranslationGear::kFirst>
  void TranslateRegion(GuestAddr pc) {
    TranslationCache* cache = TranslationCache::GetInstance();
-@@ -307,6 +653,30 @@ void TranslateRegion(GuestAddr pc) {
+@@ -307,6 +661,30 @@ void TranslateRegion(GuestAddr pc) {
      return;
    }
  
@@ -4322,7 +4459,7 @@ index 5212aabf..b8b859c6 100644
    bool success = false;
    HostCodePiece host_code_piece{kEntryInterpret, 0};
    size_t size = first_insn_size;
-@@ -325,7 +695,8 @@ void TranslateRegion(GuestAddr pc) {
+@@ -325,7 +703,8 @@ void TranslateRegion(GuestAddr pc) {
      translator_stats::Add(translator_stats::kGearUpRequests);
      {
        translator_stats::ScopedTimer timer(translator_stats::kHeavyNs);
@@ -4332,7 +4469,7 @@ index 5212aabf..b8b859c6 100644
      }
      if (!success) {
        // The region is hot and settles on the lite tier for good (no
-@@ -334,7 +705,7 @@ void TranslateRegion(GuestAddr pc) {
+@@ -334,7 +713,7 @@ void TranslateRegion(GuestAddr pc) {
        params.allow_in_region_loops = true;
        translator_stats::ScopedTimer timer(translator_stats::kLiteNs);
        std::tie(success, host_code_piece, size, kind) =
@@ -4341,7 +4478,7 @@ index 5212aabf..b8b859c6 100644
      }
    } else {
      // First gear: lite-translate, falling back to the interpreter. In two-gear
-@@ -347,7 +718,8 @@ void TranslateRegion(GuestAddr pc) {
+@@ -347,7 +726,8 @@ void TranslateRegion(GuestAddr pc) {
        params.counter_location = &entry->invocation_counter;
      }
      translator_stats::ScopedTimer timer(translator_stats::kLiteNs);
@@ -4351,7 +4488,7 @@ index 5212aabf..b8b859c6 100644
    }
  
    if (!success) {
-@@ -365,18 +737,17 @@ void TranslateRegion(GuestAddr pc) {
+@@ -365,18 +745,17 @@ void TranslateRegion(GuestAddr pc) {
    if (translator_stats::Enabled() && !published) {
      translator_stats::Add(translator_stats::kDiscardedAtPublication);
    } else if (translator_stats::Enabled()) {

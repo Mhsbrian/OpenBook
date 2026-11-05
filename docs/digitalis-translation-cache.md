@@ -267,6 +267,8 @@ the 32-bit displacements and recovery points.
   - **Capture.** The translators decode each instruction from a copy of its word and keep the words, so a record
     holds exactly the bytes decoded. A translation is written only if its mapping is the one it started in, from
     before decoding until after publication.
+  - **The cap is the app's.** Each flush measures the cache directory, so it counts files other processes of the
+    app wrote. Processes that flush at the same moment can each still go over by one batch (about 1 MiB).
   - **Fork.** A fork child, from the host's `fork()` (`pthread_atfork`) or the guest's raw clone (a hook in
     `ResetCurrentGuestThreadAfterFork`), stops using the cache without taking a lock, and closes its copies of the
     lock fds. It translates as without a cache. An `flock` on an inherited fd would succeed in the child (the
@@ -299,9 +301,13 @@ the 32-bit displacements and recovery points.
   - `verify` adds `pcache_verify_match`, `_mismatch`, `_inconclusive` and `_fallback` (the fresh translation
     couldn't be made the candidate's way);
   - the perf map names are `lite_cached` and `heavy_cached`;
-  - **`verify`'s rule has a blind spot:** heavy output that depends on what was translated before (ANAL-389) looks
-    like a mismatch when the two fresh translations, made one after the other, agree. In Lichess's geared-up run,
-    one region did: it matches 3 times out of 3 replayed alone. Fresh code is installed either way.
+  - **`verify` holds the mapping lock** from the checks through both fresh translations to the publication of
+    whichever code it chooses: the translations read guest memory, which an unmap or `mprotect` could otherwise take
+    away under the decoder (the Checker's reproduction, PR #5);
+  - **`verify`'s rule may have a blind spot:** heavy output that depends on what was translated before (ANAL-389)
+    would look like a mismatch when the two fresh translations, made one after the other, agree. In Lichess's
+    geared-up run, one region was a mismatch, and replayed alone it matched 3 times out of 3. That fits the
+    suspicion but doesn't prove it. The count stays as observed, and fresh code is installed either way.
 
 ## 4. Security
 
@@ -436,14 +442,14 @@ Each step is one pull request or one test image, and each decides something:
 |---|---|---|---|
 | P1a | Relocatable lite and `code_gen_lib` output: records, typed emitters including heap resources, the pointer scan, the all-inputs differential and the fixtures. No change in behaviour | **Done, Digitalis patch 10, on the host.** Every lite region of Lichess's set is relocatable: all 183,699 persistable, no unrecorded pointer, no re-link mismatch between a module above and below 4 GiB (in-process; the second-process differential runs on the fixtures). Above 4 GiB the typed emitters keep `Movq`'s exact encoding; below it they're longer. The corpus totals 73,942,150 host bytes before and after, an equal aggregate rather than a per-translation comparison. The scan's ranges cover every translation subtable a module spans (from the review). Recording is opt-in: it costs a median 2.4% of lite translation time. Re-linking a region took 0.1 µs against 6–7 µs to translate it, but that isn't a load's whole cost | none |
 | P1b | The same for heavy: symbolic provenance on IR immediates and the fold rules | **Done, Digitalis patch 11, on the host.** Heavy-translating all 183,699 Lichess region starts: 182,912 persistable (99.6%), with no unrecorded pointer and no re-link mismatch; 785 refused for an unrepresentable fold. 9 comparisons are inconclusive (ANAL-389). The translation benchmark's total host bytes are equal for base and patch 11, an aggregate over comparable runs. Heavy translation time with recording off: +2.8% in the default host build, a measured regression that's layout-sensitive (none with aligned functions; reverting either half also removes it) but not shown to be free of added work | none |
-| P2 | The cache: format, writer, loader (3.3's eligibility and check order), counters, `berberis.pcache` off by default, `verify`, the replay harness, the invalidation-during-load test | **Done, Digitalis patch 12, on the host.** Lichess's 183,699 region starts, mapped from their files at a new address each launch: lite 7.3 µs per region to translate, 3.3 µs to load; with every region geared up, 52 µs to translate, 3.5 µs to load. Writing adds 13% to lite translation time (3% with gear-ups). `verify` matched every loaded lite region; in the geared-up run, 183,696 matched, 2 were inconclusive and 1 was a mismatch from context-dependent heavy output (3.7). CoreMark through the runner, in separate processes: translator time 28.4 → 5.3 ms, wall 100 → 76 ms (medians of 5). Lichess's lite set takes 169 MB, more than the cap (3.6) | none |
+| P2 | The cache: format, writer, loader (3.3's eligibility and check order), counters, `berberis.pcache` off by default, `verify`, the replay harness, the invalidation-during-load test | **Done, Digitalis patch 12, on the host.** Lichess's 183,699 region starts, mapped from their files at a new address each launch. With a 1 GiB measurement cap: lite 7.2 µs per region to translate, 3.45 µs to load; with every region geared up, 53 µs to translate, 3.6 µs to load (163,057 lite and 20,642 heavy regions loaded). At the default 128 MiB cap, 148,217 lite regions are stored, 35,482 miss, and a launch averages 4.2 µs per region. Writing adds 14% to lite translation time (3% with gear-ups). `verify` matched every loaded lite region; in the geared-up run, 183,696 matched, 2 were inconclusive and 1 was a mismatch, suspected to be context-dependent heavy output (3.7). CoreMark through the runner, in separate processes: translator time 28.5 → 5.3 ms, wall 99 → 75 ms (medians of 5). Lichess's lite set takes 169 MB, more than the cap (3.6) | none |
 | P3 | The next batched G14 test image | G14 start-up and absolute CPU before and after; correctness under `verify` | test image, one approval |
 | P4 | The default and the trust model (section 4), recorded before any production enablement | Accept the broader risk with the in-process writer, or build the privileged one; on or off | none |
 
 ## 9. Open questions
 
 - **How much compile falls before the first frame.** P2's runner measurement covers a benchmark executable only
-  (CoreMark: wall 100 → 76 ms). P3's timeline answers it for apps.
+  (CoreMark: wall 99 → 75 ms). P3's timeline answers it for apps.
 - **The two map inserts** (13% of translator CPU) stay even with the cache, because loaded regions still insert. Cheaper
   structures there are a separate lead: upstream's TODO b/232598137 (`code_pool.h:174`) asks for per-region recovery
   maps.
