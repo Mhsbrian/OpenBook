@@ -330,8 +330,9 @@ the 32-bit displacements and recovery points.
     whichever code it chooses: the translations read guest memory, which an unmap or `mprotect` could otherwise take
     away under the decoder (the Checker's reproduction, PR #5);
   - **For one app (patch 14):** `on:<package>` and `verify:<package>` turn the cache on only in that package's
-    processes, by exact name; anything else is off. `pcache_records_queued` and `pcache_records_dropped` count the
-    write queue: queued − written − dropped is what's still waiting when the counters are read. Drops at the cap
+    processes, by exact name; anything else is off. `pcache_records_queued` (counted under the write queue's lock)
+    and `pcache_records_dropped` count the write queue. Read from a running app, queued − written − dropped is an
+    estimate of what's waiting, not a coherent snapshot, and not the number lost at a later kill. Drops at the cap
     and at 4 GiB were counted as not persistable before patch 14;
   - **`verify`'s rule may have a blind spot:** heavy output that depends on what was translated before (ANAL-389)
     would look like a mismatch when the two fresh translations, made one after the other, agree. In Lichess's

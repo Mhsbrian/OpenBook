@@ -279,8 +279,11 @@ The bridge is part of the normal product build (`scripts/aosp-build.sh`). Nothin
         - `pcache_records_dropped`: records whose batch wasn't written (the cap, a file that would pass 4 GiB, a
           failed write).
 
-        Queued − written − dropped is what was still waiting when the counters were read, so a test can tell how
-        many records an app's force-stop lost. Drops at the cap were counted as not persistable before.
+        A record is counted as queued under the write queue's lock, so a flush can't count it as written first. Read
+        from a running app, queued − written − dropped **estimates** what's waiting: the counters aren't read as one
+        snapshot, and the app can still flush between the reading and a later kill. So it isn't the number a
+        force-stop loses. Tests keep the raw values and their read times. Drops at the cap were counted as not
+        persistable before.
 - **ART patch** (`aosp/patches/art/`): `libnativebridge` sets `Build.CPU_ABI` and `CPU_ABI2` for bridged apps again (the Fennec fix).
 - **Device:** `device/anybook/common/native-bridge/`:
   - `native-bridge.mk` inherits Digitalis's `enable_arm64_to_x86_64.mk` and adds `openbook_bridge_check`;

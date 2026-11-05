@@ -1,4 +1,4 @@
-From 06ec068d7de3a3a93f369f6f37c326134e8c204a Mon Sep 17 00:00:00 2001
+From 6eafcd41e9cf526d8f5cf60a835b5142e7fce94c Mon Sep 17 00:00:00 2001
 From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
 Date: Thu, 5 Nov 2026 19:00:00 +0000
 Subject: [PATCH] OPENBOOK: arm64: scope the translation cache to one app;
@@ -17,11 +17,13 @@ still waiting when an app was stopped.
   mode, extra fields) stay off. off, on and verify are unchanged. The scope
   is decided once, at initialization.
 - New counters pcache_records_queued and pcache_records_dropped. A record is
-  queued when it's published and appended to the write queue; dropped when
-  its batch isn't written (the cap, a file that would pass 4 GiB, a failed
-  or no longer owned write, a fork child). Queued - written - dropped is
-  what's still waiting, read from the counter block. Drops at the cap and
-  at 4 GiB were counted as not persistable; they're dropped now.
+  counted as queued under the write queue's lock, when it's published and
+  appended; dropped when its batch isn't written (the cap, a file that
+  would pass 4 GiB, a failed or no longer owned write, a fork child).
+  Queued - written - dropped, read from a running app's counter block,
+  estimates what's waiting: the counters aren't read as one snapshot, and
+  it isn't the number lost at a later kill. Drops at the cap and at 4 GiB
+  were counted as not persistable; they're dropped now.
 
 Tests: PersistentCacheConfig.ScopedValuesTurnTheCacheOnForTheirPackageOnly
 (exact match, prefix, case, no identity, twelve malformed values);
@@ -31,15 +33,15 @@ and 4 GiB tests check the dropped count.
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Co-authored-by: multica-agent <github@multica.ai>
 ---
- runtime/arm64/persistent_cache.cc             | 70 ++++++++++++++-----
+ runtime/arm64/persistent_cache.cc             | 71 ++++++++++++++-----
  runtime/arm64/persistent_cache.h              |  7 ++
  runtime/arm64/persistent_cache_test.cc        | 54 +++++++++++++-
- .../runtime_primitives/translator_stats.h     |  4 ++
+ .../runtime_primitives/translator_stats.h     |  5 ++
  runtime_primitives/translator_stats.cc        |  2 +
- 5 files changed, 118 insertions(+), 19 deletions(-)
+ 5 files changed, 120 insertions(+), 19 deletions(-)
 
 diff --git a/runtime/arm64/persistent_cache.cc b/runtime/arm64/persistent_cache.cc
-index 2a79b050..b4a53035 100644
+index 2a79b050..8f4682f8 100644
 --- a/runtime/arm64/persistent_cache.cc
 +++ b/runtime/arm64/persistent_cache.cc
 @@ -28,6 +28,7 @@
@@ -179,16 +181,17 @@ index 2a79b050..b4a53035 100644
  void Count(Counter counter, uint64_t value) {
    g_counters[counter].fetch_add(value, std::memory_order_relaxed);
    translator_stats::Add(kStatsCounter[counter], value);
-@@ -1663,6 +1700,7 @@ void Capture::Commit() {
+@@ -1662,6 +1699,8 @@ void Capture::Commit() {
+     memcpy(m->pending_data.data() + at, record.data(), record.size());
      m->pending_index.push_back(e);
      state->pending_bytes.fetch_add(record.size() + sizeof(IndexEntry));
++    // Counted under the queue's lock: a flush, which takes it, can't count the record written first.
++    Count(kRecordsQueued);
    }
-+  Count(kRecordsQueued);
    MaybeFlush();
  }
- 
 diff --git a/runtime/arm64/persistent_cache.h b/runtime/arm64/persistent_cache.h
-index 30317be0..4df4251a 100644
+index 30317be0..9e73acf7 100644
 --- a/runtime/arm64/persistent_cache.h
 +++ b/runtime/arm64/persistent_cache.h
 @@ -65,6 +65,11 @@ struct TranslatorSettings {
@@ -207,7 +210,7 @@ index 30317be0..4df4251a 100644
    kVerifyMismatch,
    kVerifyInconclusive,
    kVerifyFallback,
-+  kRecordsQueued,   // Queued for writing; queued - written - dropped are still waiting.
++  kRecordsQueued,   // Queued for writing. Queued - written - dropped estimates what's waiting (see the docs).
 +  kRecordsDropped,  // Dropped instead of written: the cap, a full file, a failed write.
    kNumCounters,
  };
@@ -302,15 +305,16 @@ index b4fcdd1c..60ad1832 100644
           ReadFileSize(cache_dir_, ".pidx"));
  
 diff --git a/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h b/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
-index 40ba5333..3a2d476b 100644
+index 40ba5333..fadafb39 100644
 --- a/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
 +++ b/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
-@@ -133,6 +133,10 @@ enum Counter : size_t {
+@@ -133,6 +133,11 @@ enum Counter : size_t {
    kPcacheVerifyMismatch,
    kPcacheVerifyInconclusive,
    kPcacheVerifyFallback,
 +  // Records queued for writing, and records dropped instead of written (the cap, a full file, a
-+  // failed write). Queued - written - dropped is what's still waiting (ANAL-381).
++  // failed write) (ANAL-381). Read while the app runs, queued - written - dropped is an estimate
++  // of what's waiting: the counters aren't read as one snapshot.
 +  kPcacheRecordsQueued,
 +  kPcacheRecordsDropped,
    kNumCounters,
