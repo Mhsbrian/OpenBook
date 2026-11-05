@@ -129,6 +129,30 @@ The bridge is part of the normal product build (`scripts/aosp-build.sh`). Nothin
        the optimizer returns after the frontend. What's installed is unchanged.
      - **Host result:** heavy-tier compile time fell 18% on CoreMark and 21% on simd-bench, with every gear-up
        outcome and install count identical.
+  10. Lite translations can record every absolute operand they embed (ANAL-381, step P1a of
+      [`digitalis-translation-cache.md`](digitalis-translation-cache.md)).
+      - **Why:** a persistent translation cache has to give a translation another process's addresses. Lite code
+        embeds guest PCs, translation-table slots, the main table, the hotness counter, helper and callback
+        addresses, entry trampolines and two heap-built tables.
+      - **How:**
+        - `MachineCode` can keep a `PersistentReloc` per operand. Recording is off by default (it costs a median
+          2.4% of lite translation time) and nothing persists yet.
+        - The assembler's `Call`, `Jmp` and `Jcc` record their 64-bit targets.
+        - `MovqPersistent` and `MovqGuestAddr` always emit the 10-byte `movabs`.
+          - **Above 4 GiB** (where Android puts guest code, slots, tables and counters), that's exactly `Movq`'s
+            encoding, checked per register.
+          - **Below 4 GiB**, a tagged operand is now 10 bytes where `Movq` chose a shorter form, recording or not.
+        - `runtime/arm64/relocatable_code` names, re-links and scans translations, for the tests.
+      - **Checks:**
+        - a pointer scan of installed code, against ranges that include every 16 MiB translation subtable the module
+          spans;
+        - a translation re-linked from a guest module above 4 GiB into one below it must equal that environment's own;
+          - in-process, for the fixtures and the region corpus;
+          - in a second process, where the image, heap, tables and entries all move, for the fixtures;
+        - leaving out any record kind fails both checks.
+      - **Host result:** all 183,699 region starts of a Lichess cold start (the G14 profile) are persistable, with no
+        unrecorded pointer and no re-link mismatch. Their total is 73,942,150 host bytes before and after. That's an
+        equal aggregate, not a byte comparison of each translation.
 - **ART patch** (`aosp/patches/art/`): `libnativebridge` sets `Build.CPU_ABI` and `CPU_ABI2` for bridged apps again (the Fennec fix).
 - **Device:** `device/anybook/common/native-bridge/`:
   - `native-bridge.mk` inherits Digitalis's `enable_arm64_to_x86_64.mk` and adds `openbook_bridge_check`;
