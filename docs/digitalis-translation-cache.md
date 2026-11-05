@@ -371,13 +371,18 @@ the 32-bit displacements and recovery points.
   - a counter re-linked to the new entry;
   - an unwritable `private_dir`.
 - **Device:** the compat corpus and the JIT and self-modifying-code coverage, with `pcache=verify`.
-- **Heavy determinism (found in P1b).** A heavy translation isn't always a function of its input alone: it reads some
-  uninitialized arena memory. Translated again after other work, 3–9 of Lichess's 183,699 regions come out different,
-  and still correct. That happens on the base translator too, and zero-filling arena allocations removes it.
-  - **For the checks:** the corpus test counts such regions apart, and with zero-filled arenas it finds no mismatch
-    at all.
-  - **For `verify` (P2):** a recompile can differ from the cached code for this reason alone. The cause should be
-    fixed first, or `verify` should recompile twice before calling a mismatch. That fix is ANAL-389.
+- **Heavy determinism (found in P1b).** A heavy translation isn't always a function of its input alone. Translated
+  again after other work, 3–9 of Lichess's 183,699 regions come out different, with no miscompile observed. That
+  happens on the base translator too, and zero-filling arena allocations removes it, which points to an
+  uninitialized read (suspected, not yet identified: ANAL-389).
+  - **For the checks:** a relink failure always counts as a failure. A byte difference counts as inconclusive, never
+    as a pass, only when a copy also translates differently again in its own place. The default build has 9
+    inconclusive comparisons; with zero-filled arenas, none and no mismatch.
+  - **For `verify` (P2):** an unverified candidate never runs. Whenever `verify` can't confirm a cached region, it
+    installs the fresh translation (3.7).
+    - Recompiling twice can diagnose instability, but instability never authorizes cached code.
+    - Until ANAL-389 is fixed, heavy `verify` coverage is reported with its inconclusive count, not claimed
+      complete.
 
 ## 7. Rejected alternatives
 
@@ -396,7 +401,7 @@ Each step is one pull request or one test image, and each decides something:
 | Step | What | Decides | Device |
 |---|---|---|---|
 | P1a | Relocatable lite and `code_gen_lib` output: records, typed emitters including heap resources, the pointer scan, the all-inputs differential and the fixtures. No change in behaviour | **Done, Digitalis patch 10, on the host.** Every lite region of Lichess's set is relocatable: all 183,699 persistable, no unrecorded pointer, no re-link mismatch between a module above and below 4 GiB (in-process; the second-process differential runs on the fixtures). Above 4 GiB the typed emitters keep `Movq`'s exact encoding; below it they're longer. The corpus totals 73,942,150 host bytes before and after, an equal aggregate rather than a per-translation comparison. The scan's ranges cover every translation subtable a module spans (from the review). Recording is opt-in: it costs a median 2.4% of lite translation time. Re-linking a region took 0.1 µs against 6–7 µs to translate it, but that isn't a load's whole cost | none |
-| P1b | The same for heavy: symbolic provenance on IR immediates and the fold rules | **Done, Digitalis patch 11, on the host.** Heavy-translating all 183,699 Lichess region starts: 182,912 persistable (99.6%), with no unrecorded pointer and no re-link mismatch; 785 refused for an unrepresentable fold. Total host bytes are the same before and after. Heavy translation time with recording off: +2.8% in the default build, but none with aligned functions, and reverting either half also removes it, so it's code layout, not work | none |
+| P1b | The same for heavy: symbolic provenance on IR immediates and the fold rules | **Done, Digitalis patch 11, on the host.** Heavy-translating all 183,699 Lichess region starts: 182,912 persistable (99.6%), with no unrecorded pointer and no re-link mismatch; 785 refused for an unrepresentable fold. 9 comparisons are inconclusive (ANAL-389). The translation benchmark's total host bytes are equal for base and patch 11, an aggregate over comparable runs. Heavy translation time with recording off: +2.8% in the default host build, a measured regression that's layout-sensitive (none with aligned functions; reverting either half also removes it) but not shown to be free of added work | none |
 | P2 | The cache: format, writer, loader (3.3's eligibility and check order), counters, `berberis.pcache` off by default, `verify`, the replay harness, the invalidation-during-load test | Load against compile cost per region; write cost; host start-up change | none |
 | P3 | The next batched G14 test image | G14 start-up and absolute CPU before and after; correctness under `verify` | test image, one approval |
 | P4 | The default and the trust model (section 4), recorded before any production enablement | Accept the broader risk with the in-process writer, or build the privileged one; on or off | none |

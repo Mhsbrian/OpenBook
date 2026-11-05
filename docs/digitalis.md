@@ -167,16 +167,20 @@ The bridge is part of the normal product build (`scripts/aosp-build.sh`). Nothin
       - **Checks:** the patch 10 checks, with 15 heavy fixtures among them, including ADRP+ADD (kept) and EOR and a
         32-bit add on an address (refused).
       - **Host result:** heavy-translating all 183,699 Lichess region starts:
-        - 182,912 are persistable (99.6%), with no unrecorded pointer and no re-link mismatch;
+        - 182,912 are persistable (99.6%), with no unrecorded pointer, no relink failure and no re-link mismatch;
         - 785 are refused for an unrepresentable fold;
-        - total host bytes are the same before and after (57,713,707).
-      - **Heavy translation time with recording off:**
-        - +2.8% in the default build (5 of 5 rounds);
-        - unchanged with `-falign-functions=64` (median 0.999), and reverting either half of the patch also removes
-          it. So it's a code-layout effect, not added work.
-      - **Found on the way:** heavy translation reads some uninitialized arena memory. Re-translated after other work,
-        3–9 of the 183,699 regions come out different (and still correct), on the base translator too. Zero-filling
-        arena allocations removes it (ANAL-389).
+        - 9 comparisons are inconclusive, because a copy translated differently again (below);
+        - the translation benchmark's total is 57,713,707 host bytes for both the base translator and patch 11. That's
+          an equal aggregate over comparable runs, not a byte comparison of each region.
+      - **Heavy translation time with recording off:** +2.8% in the default host build (5 of 5 rounds), a measured
+        regression of that binary.
+        - It's layout-sensitive: unchanged with `-falign-functions=64` (median 0.999), and reverting either half of the
+          patch also removes it.
+        - That doesn't show the patch adds no work, though: provenance is still initialized and checked with recording
+          off.
+      - **Found on the way:** heavy translation isn't always a function of its input. Re-translated after other work, 3–9
+        of the 183,699 regions come out different (no miscompile observed), on the base translator too. Zero-filling
+        arena allocations removes it, which points to an uninitialized read (suspected, not yet identified: ANAL-389).
 - **ART patch** (`aosp/patches/art/`): `libnativebridge` sets `Build.CPU_ABI` and `CPU_ABI2` for bridged apps again (the Fennec fix).
 - **Device:** `device/anybook/common/native-bridge/`:
   - `native-bridge.mk` inherits Digitalis's `enable_arm64_to_x86_64.mk` and adds `openbook_bridge_check`;
