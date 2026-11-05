@@ -1,0 +1,1453 @@
+From a9af0ca1ba19577c5e569c0e696c1ae88adb90ad Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 18:00:00 +0000
+Subject: [PATCH] OPENBOOK: arm64: a compact record format for the translation
+ cache
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Step P2b of the persistent translation cache (ANAL-381), on patch 12. A
+Lichess lite record averaged 920 bytes for 402 bytes of code: the 24-byte
+relocation entries were 41% of the cache, which put the app's lite set at
+169 MB, over the 128 MiB cap. Format version 2 stores the same contents
+with variable-length fields. Files of format 1 fail the header check and
+their writer replaces them.
+
+- A record is a 16-byte prefix (magic, size, CRC32C, tier, zero bytes),
+  then canonical LEB128 varints and unpadded bytes: the address, end, sizes
+  and counts; the guest bytes and code; each operand as an offset delta
+  from the previous operand's end, a tag byte (kind, a 4-byte displacement,
+  an explicit next_pc) and its argument, a guest offset or table slot
+  relative to the region's address; recovery points by fault offset, as
+  deltas.
+- Index entries are 24 bytes, with 32-bit offsets. A batch that would put a
+  record or its end past 4 GiB isn't written, rather than narrowed; file
+  positions stay 64-bit.
+- DecodeRecord checks the size and CRC first, on the private copy, then
+  decodes with canonical, length-limited varints and checked arithmetic:
+  truncated or overlong values, overflowing deltas, invalid tags, widths
+  and flags, operands outside the code, recovery points outside it,
+  counts the record can't hold (checked before anything grows) and
+  trailing bytes all refuse the record. A displacement may only name a
+  host entry or the translator image, a counter only appears in a counting
+  region, and every guest address must lie in the record's module.
+- RelinkTranslation refuses an image offset outside the translator image.
+- Records are copied with memcpy, not range inserts, which measured about
+  2 µs a record in the host build.
+- The cap is described as best effort: a flush can write several modules'
+  batches, and 1 MiB is when a flush starts, not a limit on it.
+
+Tests: PersistentCacheFormat (4): varints at every size and their
+non-canonical forms; a record with every symbol kind, both widths,
+default and explicit next_pc, negative guest and recovery deltas, a
+resource with an offset, every tier; what the encoder refuses; 29
+malformed records and every truncation. PersistentCacheTest gains every
+byte of a real record flipped (refused, or decoded and verified: the code
+installed is always the fresh translation), records near and past 4 GiB in
+a sparse file, and a format-1 file left alone by a reader and replaced by
+its writer.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Co-authored-by: multica-agent <github@multica.ai>
+---
+ runtime/arm64/persistent_cache.cc      | 564 ++++++++++++++++++-------
+ runtime/arm64/persistent_cache.h       |  39 ++
+ runtime/arm64/persistent_cache_test.cc | 520 +++++++++++++++++++++--
+ runtime/arm64/relocatable_code.cc      |  11 +-
+ 4 files changed, 945 insertions(+), 189 deletions(-)
+
+diff --git a/runtime/arm64/persistent_cache.cc b/runtime/arm64/persistent_cache.cc
+index 3440a369..2a79b050 100644
+--- a/runtime/arm64/persistent_cache.cc
++++ b/runtime/arm64/persistent_cache.cc
+@@ -64,7 +64,7 @@ void (*g_in_mapping_check_hook_for_testing)(GuestAddr pc) = nullptr;
+ 
+ namespace {
+ 
+-constexpr uint32_t kFormatVersion = 1;
++constexpr uint32_t kFormatVersion = 2;
+ constexpr size_t kPageSize = 4096;
+ constexpr uint64_t kFlushBytes = 1 << 20;
+ constexpr uint64_t kFlushIntervalNs = 2'000'000'000;
+@@ -173,48 +173,34 @@ struct FileHeader {
+ static_assert(sizeof(Fingerprint) == 120);
+ static_assert(sizeof(FileHeader) == 256);
+ 
+-constexpr uint32_t kRecordMagic = 0x4352424f;  // "OBRC"
+-
+-struct RecordHeader {
+-  uint32_t magic;
+-  uint32_t size;  // Of the whole record, a multiple of 8.
+-  uint32_t crc;   // Over the whole record, this field taken as zero.
+-  uint8_t tier;
+-  uint8_t reserved[3];
+-  uint64_t vaddr;  // Region start - module start: the ELF address.
+-  uint64_t end;    // The translation's end_pc - module start.
+-  uint32_t guest_size;
+-  uint32_t code_size;
+-  uint32_t num_operands;
+-  uint32_t num_recovery_points;
+-};
+-static_assert(sizeof(RecordHeader) == 48);
+-
+-struct PackedOperand {
+-  uint32_t offset;
+-  uint8_t width;
+-  uint8_t kind;
+-  uint16_t reserved;
+-  uint32_t next_pc;
+-  uint32_t reserved2;
+-  uint64_t arg;
+-};
+-static_assert(sizeof(PackedOperand) == 24);
++constexpr uint32_t kRecordMagic = 0x3252424f;  // "OBR2"
++// The record prefix: magic, size, CRC, tier and three zero bytes; varints follow (see the header).
++constexpr size_t kRecordPrefixSize = 16;
++constexpr size_t kRecordCrcAt = 8;
++constexpr size_t kRecordTierAt = 12;
++// Tag byte of an operand.
++constexpr uint8_t kTagKindMask = 0x07;
++constexpr uint8_t kTagDisp32 = 0x08;
++constexpr uint8_t kTagExplicitNextPc = 0x10;
++constexpr uint8_t kTagReserved = 0xe0;
+ 
+ struct IndexEntry {
+   uint64_t vaddr;
+-  uint64_t record_offset;
++  uint32_t record_offset;  // A record past 4 GiB isn't written (WriteBatch).
+   uint32_t record_size;
+   uint8_t tier;
+   uint8_t reserved[3];
+   uint32_t crc;  // Over the entry, this field taken as zero.
+-  uint32_t reserved2;
+ };
+-static_assert(sizeof(IndexEntry) == 32);
++static_assert(sizeof(IndexEntry) == 24);
+ 
+-constexpr uint64_t Pad8(uint64_t n) {
+-  return (n + 7) & ~uint64_t{7};
+-}
++// A queued record, by its offset in the queue: wide until it's placed in the file.
++struct PendingEntry {
++  uint64_t vaddr;
++  uint64_t offset;
++  uint64_t size;
++  uint8_t tier;
++};
+ 
+ // ---- State ----
+ 
+@@ -243,7 +229,7 @@ struct Module {
+   uint64_t index_size_on_disk = 0;
+   std::atomic<bool> write_failed{false};
+   std::vector<uint8_t> pending_data;
+-  std::vector<IndexEntry> pending_index;  // record_offset relative to pending_data.
++  std::vector<PendingEntry> pending_index;  // offset relative to pending_data.
+ };
+ 
+ struct Mapping {
+@@ -857,7 +843,7 @@ void EnsureOpen(Module* m) {
+ struct Batch {
+   Module* module;
+   std::vector<uint8_t> data;
+-  std::vector<IndexEntry> index;
++  std::vector<PendingEntry> index;
+ };
+ 
+ bool AppendToFile(const std::string& path, uint64_t ino, uint64_t expected_size, const void* buf,
+@@ -895,18 +881,32 @@ void WriteBatch(State* state, Batch* batch, uint64_t* dir_bytes) {
+   }
+   translator_stats::ScopedTimer timer(translator_stats::kPcacheWriteNs);
+   uint64_t base = m->data_size_on_disk;
++  // An index entry holds a 32-bit offset and size. A batch that would put a record, or its end,
++  // past that isn't written, rather than narrowed; the module's file is full.
++  if (base > UINT32_MAX || batch->data.size() > UINT32_MAX - base) {
++    m->write_failed.store(true);
++    Count(kNotPersistable, batch->index.size());
++    return;
++  }
++  std::vector<IndexEntry> entries;
++  entries.reserve(batch->index.size());
++  for (const PendingEntry& p : batch->index) {
++    IndexEntry e{};
++    e.vaddr = p.vaddr;
++    e.record_offset = static_cast<uint32_t>(base + p.offset);
++    e.record_size = static_cast<uint32_t>(p.size);
++    e.tier = p.tier;
++    e.crc =
++        Crc32cExcept(reinterpret_cast<const uint8_t*>(&e), sizeof(e), offsetof(IndexEntry, crc));
++    entries.push_back(e);
++  }
+   if (!AppendToFile(m->data_path, m->data_ino, base, batch->data.data(), batch->data.size())) {
+     m->write_failed.store(true);
+     return;
+   }
+   m->data_size_on_disk += batch->data.size();
+-  for (IndexEntry& e : batch->index) {
+-    e.record_offset += base;
+-    e.crc =
+-        Crc32cExcept(reinterpret_cast<const uint8_t*>(&e), sizeof(e), offsetof(IndexEntry, crc));
+-  }
+-  size_t index_bytes = batch->index.size() * sizeof(IndexEntry);
+-  if (!AppendToFile(m->index_path, m->index_ino, m->index_size_on_disk, batch->index.data(),
++  size_t index_bytes = entries.size() * sizeof(IndexEntry);
++  if (!AppendToFile(m->index_path, m->index_ino, m->index_size_on_disk, entries.data(),
+                     index_bytes)) {
+     m->write_failed.store(true);
+     return;
+@@ -935,8 +935,9 @@ void FlushLocked(State* state) {
+   if (batches.empty()) {
+     return;
+   }
+-  // Measured at each flush, so it counts what the app's other processes wrote. Processes flushing
+-  // at the same moment can each still go over by one batch.
++  // Measured at each flush, so it counts what the app's other processes wrote. Still best effort:
++  // a flush can write several modules' batches, and 1 MiB is when a flush starts, not a limit on
++  // it, so how far the app goes over depends on what its processes flush at the same moment.
+   uint64_t dir_bytes = DirectoryBytes(state->dir);
+   for (Batch& batch : batches) {
+     WriteBatch(state, &batch, &dir_bytes);
+@@ -1098,9 +1099,343 @@ ScopedMappingReadLock::~ScopedMappingReadLock() {
+   }
+ }
+ 
++// ---- The record format ----
++
++void PutVarint(std::vector<uint8_t>* out, uint64_t value) {
++  while (value >= 0x80) {
++    out->push_back(static_cast<uint8_t>(value) | 0x80);
++    value >>= 7;
++  }
++  out->push_back(static_cast<uint8_t>(value));
++}
++
++bool GetVarint(const uint8_t* p, size_t size, size_t* pos, uint64_t* value) {
++  uint64_t result = 0;
++  for (unsigned i = 0; i < 10; i++) {
++    if (*pos >= size) {
++      return false;  // Truncated.
++    }
++    uint8_t byte = p[(*pos)++];
++    if (i == 9 && byte > 1) {
++      return false;  // Past 64 bits.
++    }
++    result |= uint64_t{byte & 0x7fu} << (7 * i);
++    if ((byte & 0x80) == 0) {
++      if (i > 0 && byte == 0) {
++        return false;  // Overlong: a canonical varint doesn't end in a zero byte.
++      }
++      *value = result;
++      return true;
++    }
++  }
++  return false;  // More than 10 bytes.
++}
++
++namespace {
++
++constexpr uint64_t ZigZag(int64_t v) {
++  return (static_cast<uint64_t>(v) << 1) ^ static_cast<uint64_t>(v >> 63);
++}
++
++constexpr int64_t UnZigZag(uint64_t v) {
++  return static_cast<int64_t>(v >> 1) ^ -static_cast<int64_t>(v & 1);
++}
++
++// base + delta, or false if it leaves [0, UINT64_MAX].
++bool AddSigned(uint64_t base, int64_t delta, uint64_t* out) {
++  if (delta >= 0) {
++    if (base > UINT64_MAX - static_cast<uint64_t>(delta)) {
++      return false;
++    }
++    *out = base + static_cast<uint64_t>(delta);
++    return true;
++  }
++  uint64_t magnitude = static_cast<uint64_t>(-(delta + 1)) + 1;  // No overflow at INT64_MIN.
++  if (base < magnitude) {
++    return false;
++  }
++  *out = base - magnitude;
++  return true;
++}
++
++bool IsGuestKind(SymbolKind kind) {
++  return kind == SymbolKind::kGuestOffset || kind == SymbolKind::kTableSlot;
++}
++
++bool HasArg(SymbolKind kind) {
++  return kind != SymbolKind::kMainTable && kind != SymbolKind::kCounter;
++}
++
++// What a translation may contain: displacements only to host entries and the translator image
++// (SymbolizeTranslation's RelocAbsToDisp32 operands), a counter only in a counting region.
++bool OperandShapeValid(SymbolKind kind, uint8_t width, Tier tier) {
++  if (width == 4) {
++    return kind == SymbolKind::kEntry || kind == SymbolKind::kImageOffset;
++  }
++  if (width != 8) {
++    return false;
++  }
++  return kind != SymbolKind::kCounter || tier == Tier::kLiteCounter;
++}
++
++// Appends a record to `out`. Operands by offset, not overlapping; recovery points by fault offset.
++bool EncodeRecordInto(Tier tier,
++                      uint64_t vaddr,
++                      uint64_t end,
++                      const uint8_t* guest,
++                      size_t guest_size,
++                      const uint8_t* code,
++                      size_t code_size,
++                      const SymbolicOperand* operands,
++                      size_t num_operands,
++                      const std::pair<uint32_t, uint32_t>* recovery_points,
++                      size_t num_recovery_points,
++                      std::vector<uint8_t>* out) {
++  if (guest_size == 0 || guest_size > kMaxGuestSize || guest_size % 4 != 0 || code_size == 0 ||
++      code_size > kMaxCodeSize || num_operands > kMaxOperands ||
++      num_recovery_points > kMaxRecoveryPoints || end < vaddr || end - vaddr < guest_size) {
++    return false;
++  }
++  out->clear();
++  out->resize(kRecordPrefixSize, 0);
++  uint32_t magic = kRecordMagic;
++  memcpy(out->data(), &magic, 4);
++  (*out)[kRecordTierAt] = static_cast<uint8_t>(tier);
++  PutVarint(out, vaddr);
++  PutVarint(out, end - vaddr);
++  PutVarint(out, guest_size);
++  PutVarint(out, code_size);
++  PutVarint(out, num_operands);
++  PutVarint(out, num_recovery_points);
++  // Copied with memcpy, as everywhere on these paths: a range insert measured about 2 µs a record
++  // in the host build.
++  size_t at = out->size();
++  out->resize(at + guest_size + code_size);
++  memcpy(out->data() + at, guest, guest_size);
++  memcpy(out->data() + at + guest_size, code, code_size);
++  uint64_t prev_end = 0;
++  for (size_t i = 0; i < num_operands; i++) {
++    const SymbolicOperand& op = operands[i];
++    if (!OperandShapeValid(op.kind, op.width, tier) || op.offset < prev_end ||
++        uint64_t{op.offset} + op.width > code_size) {
++      return false;
++    }
++    PutVarint(out, op.offset - prev_end);
++    uint8_t tag = static_cast<uint8_t>(op.kind) | (op.width == 4 ? kTagDisp32 : 0);
++    if (op.width == 4) {
++      if (uint64_t{op.next_pc} < uint64_t{op.offset} + 4 || op.next_pc > code_size) {
++        return false;
++      }
++      bool explicit_next_pc = op.next_pc != op.offset + 4;
++      out->push_back(tag | (explicit_next_pc ? kTagExplicitNextPc : 0));
++      if (explicit_next_pc) {
++        PutVarint(out, op.next_pc - op.offset - 4);
++      }
++    } else {
++      out->push_back(tag);
++    }
++    if (IsGuestKind(op.kind)) {
++      // arg - vaddr as a signed 64-bit value.
++      if ((op.arg >= vaddr && op.arg - vaddr > uint64_t{INT64_MAX}) ||
++          (op.arg < vaddr && vaddr - op.arg > uint64_t{INT64_MAX})) {
++        return false;
++      }
++      int64_t delta = op.arg >= vaddr ? static_cast<int64_t>(op.arg - vaddr)
++                                      : -static_cast<int64_t>(vaddr - op.arg);
++      PutVarint(out, ZigZag(delta));
++    } else if (HasArg(op.kind)) {
++      PutVarint(out, op.arg);
++    } else if (op.arg != 0) {
++      return false;
++    }
++    prev_end = op.offset + op.width;
++  }
++  uint32_t prev_fault = 0;
++  for (size_t i = 0; i < num_recovery_points; i++) {
++    auto [fault, recovery] = recovery_points[i];
++    if (fault < prev_fault || fault >= code_size || recovery > code_size) {
++      return false;
++    }
++    PutVarint(out, fault - prev_fault);
++    PutVarint(out, ZigZag(int64_t{recovery} - int64_t{fault}));
++    prev_fault = fault;
++  }
++  if (out->size() > (16u << 20)) {
++    return false;
++  }
++  uint32_t size = static_cast<uint32_t>(out->size());
++  memcpy(out->data() + 4, &size, 4);
++  uint32_t crc = Crc32cExcept(out->data(), out->size(), kRecordCrcAt);
++  memcpy(out->data() + kRecordCrcAt, &crc, 4);
++  return true;
++}
++
++}  // namespace
++
++bool EncodeRecord(const RecordContents& contents, std::vector<uint8_t>* out) {
++  std::vector<std::pair<uint32_t, uint32_t>> recovery = contents.recovery_points;
++  std::sort(recovery.begin(), recovery.end());
++  return EncodeRecordInto(contents.tier,
++                          contents.vaddr,
++                          contents.end,
++                          contents.guest_bytes.data(),
++                          contents.guest_bytes.size(),
++                          contents.code.data(),
++                          contents.code.size(),
++                          contents.operands.data(),
++                          contents.operands.size(),
++                          recovery.data(),
++                          recovery.size(),
++                          out);
++}
++
++bool DecodeRecord(const uint8_t* rec,
++                  size_t size,
++                  GuestAddr module_start,
++                  GuestAddr module_end,
++                  Candidate* c) {
++  // The outer size and the CRC first, on the caller's private copy.
++  if (size < kRecordPrefixSize || size > (16u << 20) || module_end < module_start) {
++    return false;
++  }
++  uint32_t magic;
++  uint32_t declared_size;
++  uint32_t crc;
++  memcpy(&magic, rec, 4);
++  memcpy(&declared_size, rec + 4, 4);
++  memcpy(&crc, rec + kRecordCrcAt, 4);
++  uint8_t tier = rec[kRecordTierAt];
++  if (magic != kRecordMagic || declared_size != size || tier < 1 || tier > 3 ||
++      rec[kRecordTierAt + 1] != 0 || rec[kRecordTierAt + 2] != 0 || rec[kRecordTierAt + 3] != 0 ||
++      Crc32cExcept(rec, size, kRecordCrcAt) != crc) {
++    return false;
++  }
++  size_t pos = kRecordPrefixSize;
++  uint64_t vaddr;
++  uint64_t end_delta;
++  uint64_t guest_size;
++  uint64_t code_size;
++  uint64_t num_operands;
++  uint64_t num_recovery_points;
++  if (!GetVarint(rec, size, &pos, &vaddr) || !GetVarint(rec, size, &pos, &end_delta) ||
++      !GetVarint(rec, size, &pos, &guest_size) || !GetVarint(rec, size, &pos, &code_size) ||
++      !GetVarint(rec, size, &pos, &num_operands) ||
++      !GetVarint(rec, size, &pos, &num_recovery_points)) {
++    return false;
++  }
++  if (guest_size == 0 || guest_size > kMaxGuestSize || guest_size % 4 != 0 || code_size == 0 ||
++      code_size > kMaxCodeSize || end_delta < guest_size || vaddr > UINT64_MAX - end_delta) {
++    return false;
++  }
++  // The region and its end, as addresses: no wrapping, and the region inside the module.
++  uint64_t module_span = module_end - module_start;
++  uint64_t end = vaddr + end_delta;
++  if (vaddr > module_span || guest_size > module_span - vaddr || end > UINT64_MAX - module_start) {
++    return false;
++  }
++  if (guest_size > size - pos || code_size > size - pos - guest_size) {
++    return false;
++  }
++  size_t guest_at = pos;
++  size_t code_at = pos + guest_size;
++  pos = code_at + code_size;
++  // Counts bounded by what's left (an operand takes at least 2 bytes, a recovery point 2) before
++  // anything grows.
++  uint64_t left = size - pos;
++  if (num_operands > kMaxOperands || num_recovery_points > kMaxRecoveryPoints ||
++      2 * num_operands + 2 * num_recovery_points > left) {
++    return false;
++  }
++  c->operands.clear();
++  c->operands.reserve(num_operands);
++  uint64_t prev_end = 0;
++  for (uint64_t i = 0; i < num_operands; i++) {
++    uint64_t delta;
++    if (!GetVarint(rec, size, &pos, &delta) || delta > code_size - prev_end || pos >= size) {
++      return false;
++    }
++    uint64_t offset = prev_end + delta;
++    uint8_t tag = rec[pos++];
++    if ((tag & kTagReserved) != 0 || (tag & kTagKindMask) > uint8_t(SymbolKind::kResource)) {
++      return false;
++    }
++    auto kind = static_cast<SymbolKind>(tag & kTagKindMask);
++    uint8_t width = (tag & kTagDisp32) ? 4 : 8;
++    bool explicit_next_pc = (tag & kTagExplicitNextPc) != 0;
++    if (!OperandShapeValid(kind, width, static_cast<Tier>(tier)) ||
++        (explicit_next_pc && width != 4) || width > code_size - offset) {
++      return false;
++    }
++    uint64_t next_pc = 0;
++    if (width == 4) {
++      next_pc = offset + 4;
++      if (explicit_next_pc) {
++        uint64_t extra;
++        if (!GetVarint(rec, size, &pos, &extra) || extra == 0 || extra > code_size - next_pc) {
++          return false;  // Explicit means not offset + 4, and inside the code.
++        }
++        next_pc += extra;
++      }
++      if (next_pc > code_size) {
++        return false;
++      }
++    }
++    uint64_t arg = 0;
++    if (IsGuestKind(kind)) {
++      uint64_t zz;
++      if (!GetVarint(rec, size, &pos, &zz) || !AddSigned(vaddr, UnZigZag(zz), &arg) ||
++          arg > module_span) {
++        return false;  // A guest address must lie in the module: [start, end].
++      }
++    } else if (HasArg(kind) && !GetVarint(rec, size, &pos, &arg)) {
++      return false;
++    }
++    c->operands.push_back({static_cast<uint32_t>(offset),
++                           width,
++                           kind,
++                           static_cast<uint32_t>(next_pc),
++                           arg});
++    prev_end = offset + width;
++  }
++  c->recovery_points.clear();
++  c->recovery_points.reserve(num_recovery_points);
++  uint64_t prev_fault = 0;
++  for (uint64_t i = 0; i < num_recovery_points; i++) {
++    uint64_t delta;
++    uint64_t zz;
++    uint64_t recovery;
++    if (!GetVarint(rec, size, &pos, &delta) || delta >= code_size - prev_fault ||
++        !GetVarint(rec, size, &pos, &zz)) {
++      return false;
++    }
++    uint64_t fault = prev_fault + delta;
++    if (!AddSigned(fault, UnZigZag(zz), &recovery) || recovery > code_size) {
++      return false;
++    }
++    c->recovery_points.emplace_back(static_cast<uint32_t>(fault), static_cast<uint32_t>(recovery));
++    prev_fault = fault;
++  }
++  if (pos != size) {
++    return false;  // Trailing bytes.
++  }
++  c->module_start = module_start;
++  c->module_end = module_end;
++  c->pc = module_start + vaddr;
++  c->end_pc = module_start + end;
++  c->guest_size = static_cast<uint32_t>(guest_size);
++  c->code_size = static_cast<uint32_t>(code_size);
++  c->tier = static_cast<Tier>(tier);
++  c->guest_bytes_at = guest_at;
++  c->code_at = code_at;
++  return true;
++}
++
+ FindResult FindCandidate(GuestAddr pc, Candidate* c) {
+   State* state = GetState();
+   Module* m;
++  uint64_t mapping_id;
++  GuestAddr module_start;
++  GuestAddr module_end;
+   {
+     ScopedMappingReadLock lock;
+     const Mapping* mapping = state->registry->Lookup(pc, 4);
+@@ -1108,83 +1443,33 @@ FindResult FindCandidate(GuestAddr pc, Candidate* c) {
+       return FindResult::kNotCacheable;
+     }
+     m = mapping->module;
+-    c->module = m;
+-    c->mapping_id = mapping->id;
+-    c->module_start = mapping->module_start;
++    mapping_id = mapping->id;
++    module_start = mapping->module_start;
++    module_end = mapping->module_end;
+   }
+   EnsureOpen(m);
+-  auto it = m->index.find(pc - c->module_start);
++  auto it = m->index.find(pc - module_start);
+   if (m->data_map == nullptr || it == m->index.end()) {
+     Count(kMisses);
+     return FindResult::kMiss;
+   }
+   const IndexEntry& e = it->second;
+-  // Check 2, on a private copy.
+-  if (e.record_size < sizeof(RecordHeader) || e.record_size > (16u << 20) ||
++  // Check 2, on a private copy: nothing is read from the file twice.
++  if (e.record_size < kRecordPrefixSize || e.record_size > (16u << 20) ||
+       e.record_offset > m->data_size || e.record_size > m->data_size - e.record_offset) {
+     Count(kRejectsRecord);
+     return FindResult::kRejected;
+   }
+   std::vector<uint8_t>& rec = c->record;
+-  rec.assign(static_cast<const uint8_t*>(m->data_map) + e.record_offset,
+-             static_cast<const uint8_t*>(m->data_map) + e.record_offset + e.record_size);
+-  RecordHeader h;
+-  memcpy(&h, rec.data(), sizeof(h));
+-  uint64_t expected_size = sizeof(RecordHeader);
+-  bool ok = h.magic == kRecordMagic && h.size == rec.size() && h.tier >= 1 && h.tier <= 3 &&
+-            h.tier == e.tier && h.vaddr == e.vaddr && h.guest_size > 0 &&
+-            h.guest_size % 4 == 0 && h.guest_size <= kMaxGuestSize && h.code_size > 0 &&
+-            h.code_size <= kMaxCodeSize && h.num_operands <= kMaxOperands &&
+-            h.num_recovery_points <= kMaxRecoveryPoints;
+-  if (ok) {
+-    expected_size += Pad8(h.guest_size) + Pad8(h.code_size) +
+-                     uint64_t{h.num_operands} * sizeof(PackedOperand) +
+-                     uint64_t{h.num_recovery_points} * 8;
+-    ok = expected_size == h.size &&
+-         Crc32cExcept(rec.data(), rec.size(), offsetof(RecordHeader, crc)) == h.crc;
+-  }
+-  // pc + size and the end the translation was made with stay in range, without wrapping.
+-  GuestAddr start = c->module_start + h.vaddr;
+-  ok = ok && start == pc && h.vaddr <= UINT64_MAX - c->module_start &&
+-       start + h.guest_size > start && h.end >= h.vaddr + h.guest_size &&
+-       h.end <= UINT64_MAX - c->module_start;
+-  if (!ok) {
++  rec.resize(e.record_size);
++  memcpy(rec.data(), static_cast<const uint8_t*>(m->data_map) + e.record_offset, e.record_size);
++  if (!DecodeRecord(rec.data(), rec.size(), module_start, module_end, c) || c->pc != pc ||
++      static_cast<uint8_t>(c->tier) != e.tier) {
+     Count(kRejectsRecord);
+     return FindResult::kRejected;
+   }
+-  c->pc = pc;
+-  c->end_pc = c->module_start + h.end;
+-  c->guest_size = h.guest_size;
+-  c->code_size = h.code_size;
+-  c->tier = static_cast<Tier>(h.tier);
+-  c->guest_bytes_at = sizeof(RecordHeader);
+-  c->code_at = c->guest_bytes_at + Pad8(h.guest_size);
+-  const uint8_t* p = rec.data() + c->code_at + Pad8(h.code_size);
+-  c->operands.clear();
+-  c->operands.reserve(h.num_operands);
+-  for (uint32_t i = 0; i < h.num_operands; i++, p += sizeof(PackedOperand)) {
+-    PackedOperand po;
+-    memcpy(&po, p, sizeof(po));
+-    if ((po.width != 4 && po.width != 8) || po.kind > uint8_t(SymbolKind::kResource) ||
+-        po.offset > h.code_size || po.width > h.code_size - po.offset ||
+-        (po.width == 4 && po.next_pc > h.code_size)) {
+-      Count(kRejectsRecord);
+-      return FindResult::kRejected;
+-    }
+-    c->operands.push_back({po.offset, po.width, static_cast<SymbolKind>(po.kind), po.next_pc,
+-                           po.arg});
+-  }
+-  c->recovery_points.clear();
+-  c->recovery_points.reserve(h.num_recovery_points);
+-  for (uint32_t i = 0; i < h.num_recovery_points; i++, p += 8) {
+-    uint32_t v[2];
+-    memcpy(v, p, 8);
+-    if (v[0] >= h.code_size || v[1] > h.code_size) {
+-      Count(kRejectsRecord);
+-      return FindResult::kRejected;
+-    }
+-    c->recovery_points.emplace_back(v[0], v[1]);
+-  }
++  c->module = m;
++  c->mapping_id = mapping_id;
+   return FindResult::kFound;
+ }
+ 
+@@ -1240,6 +1525,7 @@ struct CaptureBuffers {
+   std::vector<uint32_t> decoded_insns;
+   std::vector<uint8_t> record;
+   SymbolizedCode symbolized;
++  std::vector<std::pair<uint32_t, uint32_t>> recovery_points;
+ };
+ 
+ CaptureBuffers& Buffers() {
+@@ -1317,43 +1603,33 @@ void Capture::OnInstalled(const MachineCode& machine_code,
+                            GuestModule{module_start_, module_end_},
+                            counter,
+                            &sym);
+-  if (sym.reason != NotPersistable::kNo || sym.operands.size() > kMaxOperands ||
+-      sym.recovery_points.size() > kMaxRecoveryPoints) {
++  if (sym.reason != NotPersistable::kNo) {
+     Count(kNotPersistable);
+     return;
+   }
+-  RecordHeader h{};
+-  h.magic = kRecordMagic;
+-  h.tier = static_cast<uint8_t>(tier);
+-  h.vaddr = pc - module_start_;
+-  h.end = end_pc - module_start_;
+-  h.guest_size = static_cast<uint32_t>(guest_size);
+-  h.code_size = piece.size;
+-  h.num_operands = sym.operands.size();
+-  h.num_recovery_points = sym.recovery_points.size();
+-  h.size = sizeof(RecordHeader) + Pad8(h.guest_size) + Pad8(h.code_size) +
+-           h.num_operands * sizeof(PackedOperand) + h.num_recovery_points * 8;
+-  std::vector<uint8_t>& record = buffers.record;
+-  record.assign(h.size, 0);
+-  uint8_t* p = record.data() + sizeof(RecordHeader);
+-  memcpy(p, buffers.decoded_insns.data(), guest_size);
+-  p += Pad8(h.guest_size);
+-  memcpy(p, code, piece.size);
+-  p += Pad8(h.code_size);
+-  for (const SymbolicOperand& op : sym.operands) {
+-    PackedOperand po{op.offset, op.width, static_cast<uint8_t>(op.kind), 0, op.next_pc, 0, op.arg};
+-    memcpy(p, &po, sizeof(po));
+-    p += sizeof(po);
+-  }
++  // Recovery points by fault offset, as the format stores them.
++  std::vector<std::pair<uint32_t, uint32_t>>& recovery = buffers.recovery_points;
++  recovery.clear();
+   for (const RecoveryPointOffsets& rp : sym.recovery_points) {
+-    uint32_t v[2] = {rp.fault, rp.recovery};
+-    memcpy(p, v, 8);
+-    p += 8;
++    recovery.emplace_back(rp.fault, rp.recovery);
+   }
+-  memcpy(record.data(), &h, sizeof(h));
+-  h.crc = Crc32cExcept(record.data(), record.size(), offsetof(RecordHeader, crc));
+-  memcpy(record.data(), &h, sizeof(h));
+-  vaddr_ = h.vaddr;
++  std::sort(recovery.begin(), recovery.end());
++  if (!EncodeRecordInto(tier,
++                        pc - module_start_,
++                        end_pc - module_start_,
++                        reinterpret_cast<const uint8_t*>(buffers.decoded_insns.data()),
++                        guest_size,
++                        code,
++                        piece.size,
++                        sym.operands.data(),
++                        sym.operands.size(),
++                        recovery.data(),
++                        recovery.size(),
++                        &buffers.record)) {
++    Count(kNotPersistable);
++    return;
++  }
++  vaddr_ = pc - module_start_;
+   tier_ = tier;
+   has_record_ = true;
+   active_ = true;
+@@ -1376,12 +1652,14 @@ void Capture::Commit() {
+     if (m->write_failed.load(std::memory_order_relaxed)) {
+       return;
+     }
+-    IndexEntry e{};
++    PendingEntry e{};
+     e.vaddr = vaddr_;
+-    e.record_offset = m->pending_data.size();
+-    e.record_size = record.size();
++    e.offset = m->pending_data.size();
++    e.size = record.size();
+     e.tier = static_cast<uint8_t>(tier_);
+-    m->pending_data.insert(m->pending_data.end(), record.begin(), record.end());
++    size_t at = m->pending_data.size();
++    m->pending_data.resize(at + record.size());
++    memcpy(m->pending_data.data() + at, record.data(), record.size());
+     m->pending_index.push_back(e);
+     state->pending_bytes.fetch_add(record.size() + sizeof(IndexEntry));
+   }
+diff --git a/runtime/arm64/persistent_cache.h b/runtime/arm64/persistent_cache.h
+index 8609e63b..30317be0 100644
+--- a/runtime/arm64/persistent_cache.h
++++ b/runtime/arm64/persistent_cache.h
+@@ -77,6 +77,7 @@ struct Candidate {
+   void* module = nullptr;
+   uint64_t mapping_id = 0;
+   GuestAddr module_start = 0;
++  GuestAddr module_end = 0;  // Embedded guest addresses lie in [module_start, module_end].
+   GuestAddr pc = 0;
+   GuestAddr end_pc = 0;  // The end the translation was made with.
+   uint32_t guest_size = 0;
+@@ -121,6 +122,44 @@ class ScopedMappingReadLock {
+ // The key of the candidate's module, for logs.
+ [[nodiscard]] const char* ModuleKey(const Candidate& candidate);
+ 
++// ---- The record format (version 2) ----
++//
++// A record is a fixed 16-byte prefix (magic, size, CRC32C over the record with the CRC taken as
++// zero, tier, three zero bytes), then canonical LEB128 varints and unpadded bytes:
++//   vaddr, end - vaddr, guest size, code size, operand count, recovery point count;
++//   the guest bytes; the code;
++//   each operand: its offset minus the previous operand's end, a tag byte (kind in bits 0-2, bit 3
++//     for a 4-byte displacement, bit 4 when next_pc isn't offset + 4, then next_pc - offset - 4),
++//     and its argument: zigzag(arg - vaddr) for a guest offset or table slot, nothing for the main
++//     table or counter, the argument itself otherwise;
++//   each recovery point, by fault offset: fault - previous fault, zigzag(recovery - fault).
++// Decoding fails closed: anything non-canonical, out of bounds, overflowing or left over refuses
++// the record.
++
++struct RecordContents {
++  Tier tier = Tier::kLiteCounter;
++  uint64_t vaddr = 0;  // Region start - module start.
++  uint64_t end = 0;    // The translation's end_pc - module start.
++  std::vector<uint8_t> guest_bytes;
++  std::vector<uint8_t> code;
++  std::vector<SymbolicOperand> operands;  // By offset, not overlapping.
++  std::vector<std::pair<uint32_t, uint32_t>> recovery_points;
++};
++
++// False if `contents` can't be represented (the record isn't persistable).
++[[nodiscard]] bool EncodeRecord(const RecordContents& contents, std::vector<uint8_t>* out);
++// Checks and decodes a whole record into `out`, for a module at [module_start, module_end]: fills
++// everything but the module and mapping, and pc and end_pc from module_start. `record` must be
++// out->record's data: out->guest_bytes() and out->code() point into it.
++[[nodiscard]] bool DecodeRecord(const uint8_t* record,
++                                size_t size,
++                                GuestAddr module_start,
++                                GuestAddr module_end,
++                                Candidate* out);
++void PutVarint(std::vector<uint8_t>* out, uint64_t value);
++// Reads a canonical varint at *pos, advancing it. False if it's truncated, overlong or overflows.
++[[nodiscard]] bool GetVarint(const uint8_t* p, size_t size, size_t* pos, uint64_t* value);
++
+ // The candidate re-linked as if installed at `install_addr`, into `out` (for verify).
+ [[nodiscard]] bool RelinkCandidateAt(const Candidate& candidate,
+                                      uint8_t* out,
+diff --git a/runtime/arm64/persistent_cache_test.cc b/runtime/arm64/persistent_cache_test.cc
+index 2917daca..b4fcdd1c 100644
+--- a/runtime/arm64/persistent_cache_test.cc
++++ b/runtime/arm64/persistent_cache_test.cc
+@@ -25,6 +25,7 @@
+ #include <elf.h>
+ #include <fcntl.h>
+ #include <signal.h>
++#include <sys/file.h>
+ #include <sys/mman.h>
+ #include <sys/stat.h>
+ #include <sys/syscall.h>
+@@ -39,6 +40,7 @@
+ #include <cstdlib>
+ #include <cstring>
+ #include <functional>
++#include <initializer_list>
+ #include <string>
+ #include <thread>
+ #include <vector>
+@@ -79,8 +81,9 @@ constexpr size_t kRegionA = 0;     // adrp, add, ldr, b: a guest address, a reco
+ constexpr size_t kRegionB = 16;    // 24 adds, ret: hot, heavy.
+ constexpr size_t kRegionC = 64;    // 3 adds, b: a declined gear-up, settled lite.
+ constexpr size_t kHeaderSize = 256;  // FileHeader.
+-constexpr size_t kIndexEntrySize = 32;
+-constexpr size_t kRecordHeaderSize = 48;
++constexpr size_t kIndexEntrySize = 24;
++constexpr size_t kRecordCrcAt = 8;
++constexpr size_t kModuleSpan = kCodeOffset + kCodeWords * 4;  // The test library's load span.
+ 
+ std::vector<uint32_t> DefaultCode() {
+   std::vector<uint32_t> code(kCodeWords, kNop);
+@@ -192,37 +195,49 @@ void RemoveTree(const std::string& dir) {
+   rmdir(dir.c_str());
+ }
+ 
++void SetCrc(std::vector<uint8_t>* record) {
++  uint32_t crc = Crc32c(record->data(), record->size(), kRecordCrcAt);
++  memcpy(record->data() + kRecordCrcAt, &crc, 4);
++}
++
++// A record as stored, and decoded through the cache's own decoder, for a module at 0.
+ struct Record {
+   uint64_t vaddr;
+   uint8_t tier;
+   uint64_t offset;  // In the data file.
+   std::vector<uint8_t> bytes;
+-  uint32_t guest_size() const { return Field<uint32_t>(32); }
+-  uint32_t code_size() const { return Field<uint32_t>(36); }
+-  uint32_t num_operands() const { return Field<uint32_t>(40); }
+-  uint32_t num_recovery_points() const { return Field<uint32_t>(44); }
+-  size_t code_at() const { return kRecordHeaderSize + ((guest_size() + 7) & ~7u); }
+-  size_t operands_at() const { return code_at() + ((code_size() + 7) & ~7u); }
+-  size_t recovery_at() const { return operands_at() + num_operands() * 24; }
+-  template <typename T>
+-  T Field(size_t at) const {
+-    T v;
+-    memcpy(&v, bytes.data() + at, sizeof(v));
+-    return v;
++
++  pcache::Candidate Decoded() const {
++    pcache::Candidate c;
++    c.record = bytes;
++    EXPECT_TRUE(pcache::DecodeRecord(c.record.data(), c.record.size(), 0, kModuleSpan, &c));
++    return c;
+   }
+-  template <typename T>
+-  void SetField(size_t at, T v) {
+-    memcpy(bytes.data() + at, &v, sizeof(v));
++  uint32_t guest_size() const { return Decoded().guest_size; }
++  uint32_t code_size() const { return Decoded().code_size; }
++  size_t num_operands() const { return Decoded().operands.size(); }
++  size_t num_recovery_points() const { return Decoded().recovery_points.size(); }
++  size_t code_at() const { return Decoded().code_at; }
++  void FixCrc() { SetCrc(&bytes); }
++  pcache::RecordContents Contents() const {
++    pcache::Candidate c = Decoded();
++    pcache::RecordContents contents;
++    contents.tier = c.tier;
++    contents.vaddr = c.pc;
++    contents.end = c.end_pc;
++    contents.guest_bytes.assign(c.guest_bytes(), c.guest_bytes() + c.guest_size);
++    contents.code.assign(c.code(), c.code() + c.code_size);
++    contents.operands = c.operands;
++    contents.recovery_points = c.recovery_points;
++    return contents;
+   }
+-  void FixCrc() { SetField<uint32_t>(8, Crc32c(bytes.data(), bytes.size(), 8)); }
+   // The first code byte no operand covers.
+   size_t FirstPlainCodeByte() const {
+-    for (size_t k = 0; k < code_size(); k++) {
++    pcache::Candidate c = Decoded();
++    for (size_t k = 0; k < c.code_size; k++) {
+       bool covered = false;
+-      for (uint32_t i = 0; i < num_operands(); i++) {
+-        uint32_t off = Field<uint32_t>(operands_at() + i * 24);
+-        uint8_t width = Field<uint8_t>(operands_at() + i * 24 + 4);
+-        covered |= k >= off && k < off + width;
++      for (const SymbolicOperand& op : c.operands) {
++        covered |= k >= op.offset && k < op.offset + op.width;
+       }
+       if (!covered) {
+         return k;
+@@ -232,6 +247,35 @@ struct Record {
+   }
+ };
+ 
++// Builds a record byte by byte, for malformed ones.
++struct RawRecord {
++  std::vector<uint8_t> b;
++  explicit RawRecord(uint8_t tier, uint32_t magic = 0x3252424f) {
++    b.resize(16, 0);
++    memcpy(b.data(), &magic, 4);
++    b[12] = tier;
++  }
++  RawRecord& V(uint64_t v) {
++    pcache::PutVarint(&b, v);
++    return *this;
++  }
++  RawRecord& Raw(std::initializer_list<uint8_t> bytes) {
++    b.insert(b.end(), bytes);
++    return *this;
++  }
++  RawRecord& Fill(size_t n, uint8_t value) {
++    b.insert(b.end(), n, value);
++    return *this;
++  }
++  std::vector<uint8_t> Finish() const {
++    std::vector<uint8_t> out = b;
++    uint32_t size = out.size();
++    memcpy(out.data() + 4, &size, 4);
++    SetCrc(&out);
++    return out;
++  }
++};
++
+ class PersistentCacheTest : public TranslationTest {
+  protected:
+   void SetUp() override {
+@@ -383,12 +427,12 @@ class PersistentCacheTest : public TranslationTest {
+     uint64_t vaddr = kCodeOffset + region * 4;
+     for (size_t at = kHeaderSize; at + kIndexEntrySize <= idx.size(); at += kIndexEntrySize) {
+       uint64_t v;
+-      uint64_t off;
++      uint32_t off;
+       uint32_t size;
+       memcpy(&v, idx.data() + at, 8);
+-      memcpy(&off, idx.data() + at + 8, 8);
+-      memcpy(&size, idx.data() + at + 16, 4);
+-      uint8_t t = idx[at + 20];
++      memcpy(&off, idx.data() + at + 8, 4);
++      memcpy(&size, idx.data() + at + 12, 4);
++      uint8_t t = idx[at + 16];
+       if (v == vaddr && (tier == 0 || t == tier) && off + size <= data.size()) {
+         r.vaddr = v;
+         r.tier = t;
+@@ -406,6 +450,25 @@ class PersistentCacheTest : public TranslationTest {
+     WriteFile(DataFile(), data);
+   }
+ 
++  // Appends a record and its index entry, which then wins over earlier ones of its tier.
++  void AppendRecord(const std::vector<uint8_t>& bytes, uint64_t vaddr, uint8_t tier) const {
++    std::vector<uint8_t> data = ReadFile(DataFile());
++    uint8_t entry[kIndexEntrySize] = {};
++    uint32_t offset = data.size();
++    uint32_t size = bytes.size();
++    memcpy(entry, &vaddr, 8);
++    memcpy(entry + 8, &offset, 4);
++    memcpy(entry + 12, &size, 4);
++    entry[16] = tier;
++    uint32_t crc = Crc32c(entry, sizeof(entry), 20);
++    memcpy(entry + 20, &crc, 4);
++    data.insert(data.end(), bytes.begin(), bytes.end());
++    WriteFile(DataFile(), data);
++    std::vector<uint8_t> idx = ReadFile(IndexFile());
++    idx.insert(idx.end(), entry, entry + sizeof(entry));
++    WriteFile(IndexFile(), idx);
++  }
++
+   // Counter deltas from a snapshot.
+   struct Counts {
+     uint64_t v[pcache::kNumCounters];
+@@ -501,9 +564,8 @@ TEST_F(PersistentCacheTest, HeavyAndSettledRegionsLoadInTheirTier) {
+   EXPECT_EQ(Entry(Pc(base2, kRegionC))->kind, GuestCodeEntry::Kind::kLiteTranslated);
+   // Settled: no counter, so it never asks to gear up again.
+   Record settled = FindRecord(kRegionC, uint8_t(pcache::Tier::kLiteSettled));
+-  for (uint32_t i = 0; i < settled.num_operands(); i++) {
+-    EXPECT_NE(settled.Field<uint8_t>(settled.operands_at() + i * 24 + 5),
+-              uint8_t(SymbolKind::kCounter));
++  for (const SymbolicOperand& op : settled.Decoded().operands) {
++    EXPECT_NE(op.kind, SymbolKind::kCounter);
+   }
+   EndProcess();
+ 
+@@ -650,9 +712,17 @@ TEST_F(PersistentCacheTest, CorruptAndTornFilesFailClosed) {
+ 
+   // A record whose lengths are out of bounds, even with a good CRC.
+   Record a = FindRecord(kRegionA);
+-  a.SetField<uint32_t>(36, 0xfffffff0u);  // code_size
+-  a.FixCrc();
+-  WriteRecord(a);
++  pcache::RecordContents contents = a.Contents();
++  RawRecord huge(uint8_t(contents.tier));
++  huge.V(contents.vaddr)
++      .V(contents.end - contents.vaddr)
++      .V(contents.guest_bytes.size())
++      .V(0xfffffff0u)  // code size
++      .V(0)
++      .V(0);
++  huge.b.insert(huge.b.end(), contents.guest_bytes.begin(), contents.guest_bytes.end());
++  huge.b.insert(huge.b.end(), contents.code.begin(), contents.code.end());
++  AppendRecord(huge.Finish(), a.vaddr, a.tier);
+   StartProcess();
+   Counts c3;
+   Translate(Pc(Remap(base3, elf_path_), kRegionA));
+@@ -816,12 +886,10 @@ TEST_F(PersistentCacheTest, LoadedCounterIsTheNewEntrys) {
+   uintptr_t counter = reinterpret_cast<uintptr_t>(&Entry(pc)->invocation_counter);
+   const uint8_t* code = HostCode(pc);
+   int found = 0;
+-  for (uint32_t i = 0; i < r.num_operands(); i++) {
+-    size_t at = r.operands_at() + i * 24;
+-    if (r.Field<uint8_t>(at + 5) == uint8_t(SymbolKind::kCounter) &&
+-        r.Field<uint8_t>(at + 4) == 8) {
++  for (const SymbolicOperand& op : r.Decoded().operands) {
++    if (op.kind == SymbolKind::kCounter && op.width == 8) {
+       uint64_t v;
+-      memcpy(&v, code + r.Field<uint32_t>(at), 8);
++      memcpy(&v, code + op.offset, 8);
+       EXPECT_EQ(v, counter);
+       found++;
+     }
+@@ -1006,12 +1074,13 @@ TEST_F(PersistentCacheTest, VerifyRecoveryOnlyMismatchInstallsFresh) {
+   uint8_t* base1 = WriteRegionA();
+   Record r = FindRecord(kRegionA);
+   ASSERT_GT(r.num_recovery_points(), 0u);
+-  uint32_t fault = r.Field<uint32_t>(r.recovery_at());
+-  uint32_t recovery = r.Field<uint32_t>(r.recovery_at() + 4);
+-  uint32_t wrong = recovery == 0 ? 1 : recovery - 1;
+-  r.SetField<uint32_t>(r.recovery_at() + 4, wrong);
+-  r.FixCrc();
+-  WriteRecord(r);
++  pcache::RecordContents contents = r.Contents();
++  uint32_t fault = contents.recovery_points[0].first;
++  uint32_t recovery = contents.recovery_points[0].second;
++  contents.recovery_points[0].second = recovery == 0 ? 1 : recovery - 1;
++  std::vector<uint8_t> changed;
++  ASSERT_TRUE(pcache::EncodeRecord(contents, &changed));
++  AppendRecord(changed, r.vaddr, r.tier);
+   StartProcess(Mode::kVerify);
+   Counts c;
+   uint8_t* base2 = Remap(base1, elf_path_);
+@@ -1024,6 +1093,226 @@ TEST_F(PersistentCacheTest, VerifyRecoveryOnlyMismatchInstallsFresh) {
+   EXPECT_EQ(GetDefaultCodePoolInstance()->FindRecoveryCode(host + fault), host + recovery);
+ }
+ 
++// ---- The record format ----
++
++TEST(PersistentCacheFormat, VarintsRoundTripAtEverySizeAndRefuseNonCanonicalForms) {
++  const std::pair<uint64_t, size_t> kValues[] = {
++      {0, 1},           {1, 1},           {127, 1},         {128, 2},          {16383, 2},
++      {16384, 3},       {(1u << 21) - 1, 3}, {1u << 21, 4},   {UINT32_MAX, 5},   {1ull << 32, 5},
++      {1ull << 56, 9},  {INT64_MAX, 9},   {1ull << 63, 10}, {UINT64_MAX, 10},
++  };
++  for (auto [value, length] : kValues) {
++    std::vector<uint8_t> b;
++    pcache::PutVarint(&b, value);
++    EXPECT_EQ(b.size(), length) << value;
++    size_t pos = 0;
++    uint64_t back = 0;
++    ASSERT_TRUE(pcache::GetVarint(b.data(), b.size(), &pos, &back)) << value;
++    EXPECT_EQ(back, value);
++    EXPECT_EQ(pos, b.size());
++    // Any shorter prefix is truncated.
++    for (size_t n = 0; n < b.size(); n++) {
++      pos = 0;
++      EXPECT_FALSE(pcache::GetVarint(b.data(), n, &pos, &back)) << value << " cut at " << n;
++    }
++  }
++  const std::vector<std::vector<uint8_t>> kBad = {
++      {0x80, 0x00},                                                     // 0, overlong
++      {0xff, 0x00},                                                     // 127, overlong
++      {0x80, 0x80, 0x00},                                               // overlong
++      {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x02},     // past 64 bits
++      {0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x01},  // 11 bytes
++  };
++  for (const auto& b : kBad) {
++    size_t pos = 0;
++    uint64_t v;
++    EXPECT_FALSE(pcache::GetVarint(b.data(), b.size(), &pos, &v)) << b.size();
++  }
++}
++
++constexpr GuestAddr kFormatModuleStart = 0x7000'0000'0000;
++constexpr uint64_t kFormatModuleSpan = 0x10000;
++
++pcache::RecordContents EveryKindContents() {
++  pcache::RecordContents c;
++  c.tier = pcache::Tier::kLiteCounter;
++  c.vaddr = 0x4000;
++  c.end = 0x4000 + 0x100;
++  c.guest_bytes.assign(16, 0xab);
++  c.code.resize(300);
++  for (size_t i = 0; i < c.code.size(); i++) {
++    c.code[i] = static_cast<uint8_t>(i * 7);
++  }
++  c.operands = {
++      {0, 8, SymbolKind::kGuestOffset, 0, 0x4000 + 0x100},         // forward
++      {8, 8, SymbolKind::kGuestOffset, 0, 0x4000 - 0x50},          // backward
++      {16, 8, SymbolKind::kGuestOffset, 0, 0},                     // the module's start
++      {24, 8, SymbolKind::kGuestOffset, 0, kFormatModuleSpan},     // its end, included
++      {40, 8, SymbolKind::kTableSlot, 0, 0x4000 + 4},
++      {200, 8, SymbolKind::kTableSlot, 0, 0x4000 - 0x3000},        // a 2-byte offset delta
++      {208, 8, SymbolKind::kMainTable, 0, 0},
++      {216, 8, SymbolKind::kCounter, 0, 0},
++      {224, 8, SymbolKind::kImageOffset, 0, 0x12'3456},
++      {232, 4, SymbolKind::kImageOffset, 236, 0x1000},             // next_pc = offset + 4
++      {240, 4, SymbolKind::kEntry, 250, 3},                        // explicit next_pc
++      {250, 8, SymbolKind::kEntry, 0, 1},
++      {258, 8, SymbolKind::kResource, 0, (uint64_t{0x123} << 8) | 3},  // a resource with an offset
++      {266, 8, SymbolKind::kImageOffset, 0, UINT64_MAX},           // a 10-byte varint
++      {274, 4, SymbolKind::kEntry, 299, 7},                        // explicit, near the end
++  };
++  c.recovery_points = {{10, 200}, {30, 5}, {30, 31}, {299, 300}, {0, 0}};
++  return c;
++}
++
++pcache::Candidate DecodeForFormatTest(const std::vector<uint8_t>& bytes, bool* ok) {
++  pcache::Candidate c;
++  c.record = bytes;
++  *ok = pcache::DecodeRecord(
++      c.record.data(), c.record.size(), kFormatModuleStart, kFormatModuleStart + kFormatModuleSpan, &c);
++  return c;
++}
++
++TEST(PersistentCacheFormat, EveryKindRoundTrips) {
++  pcache::RecordContents in = EveryKindContents();
++  std::vector<uint8_t> bytes;
++  ASSERT_TRUE(pcache::EncodeRecord(in, &bytes));
++  bool ok;
++  pcache::Candidate out = DecodeForFormatTest(bytes, &ok);
++  ASSERT_TRUE(ok);
++  EXPECT_EQ(out.tier, in.tier);
++  EXPECT_EQ(out.pc, kFormatModuleStart + in.vaddr);
++  EXPECT_EQ(out.end_pc, kFormatModuleStart + in.end);
++  EXPECT_EQ(std::vector<uint8_t>(out.guest_bytes(), out.guest_bytes() + out.guest_size),
++            in.guest_bytes);
++  EXPECT_EQ(std::vector<uint8_t>(out.code(), out.code() + out.code_size), in.code);
++  ASSERT_EQ(out.operands.size(), in.operands.size());
++  for (size_t i = 0; i < in.operands.size(); i++) {
++    const SymbolicOperand& a = in.operands[i];
++    const SymbolicOperand& b = out.operands[i];
++    EXPECT_EQ(a.offset, b.offset) << i;
++    EXPECT_EQ(a.width, b.width) << i;
++    EXPECT_EQ(a.kind, b.kind) << i;
++    EXPECT_EQ(a.next_pc, b.next_pc) << i;
++    EXPECT_EQ(a.arg, b.arg) << i;
++  }
++  std::vector<std::pair<uint32_t, uint32_t>> sorted = in.recovery_points;
++  std::sort(sorted.begin(), sorted.end());
++  EXPECT_EQ(out.recovery_points, sorted);
++  // Every tier.
++  for (pcache::Tier tier : {pcache::Tier::kLiteSettled, pcache::Tier::kHeavy}) {
++    pcache::RecordContents no_counter = in;
++    no_counter.tier = tier;
++    no_counter.operands.erase(no_counter.operands.begin() + 7);  // the counter
++    ASSERT_TRUE(pcache::EncodeRecord(no_counter, &bytes));
++    DecodeForFormatTest(bytes, &ok);
++    EXPECT_TRUE(ok) << int(tier);
++  }
++}
++
++TEST(PersistentCacheFormat, EncoderRefusesWhatItCantRepresent) {
++  std::vector<uint8_t> bytes;
++  auto refused = [&](void (*change)(pcache::RecordContents*)) {
++    pcache::RecordContents c = EveryKindContents();
++    change(&c);
++    return !pcache::EncodeRecord(c, &bytes);
++  };
++  EXPECT_TRUE(refused([](auto* c) { c->tier = pcache::Tier::kHeavy; }));  // a counter
++  EXPECT_TRUE(refused([](auto* c) { c->operands[0].width = 4; }));  // a guest displacement
++  EXPECT_TRUE(refused([](auto* c) { std::swap(c->operands[0], c->operands[1]); }));  // order
++  EXPECT_TRUE(refused([](auto* c) { c->operands[1].offset = 4; }));  // overlapping
++  EXPECT_TRUE(refused([](auto* c) { c->operands[6].arg = 1; }));     // a main table argument
++  EXPECT_TRUE(refused([](auto* c) { c->operands[9].next_pc = 235; }));  // inside the operand
++  EXPECT_TRUE(refused([](auto* c) { c->operands[0].arg = UINT64_MAX; }));  // past int64
++  EXPECT_TRUE(refused([](auto* c) { c->recovery_points[0].first = 300; }));  // past the code
++  EXPECT_TRUE(refused([](auto* c) { c->guest_bytes.resize(6); }));
++  EXPECT_TRUE(refused([](auto* c) { c->end = c->vaddr + 8; }));
++}
++
++// A small valid record, and the same with one thing wrong.
++std::vector<uint8_t> SmallRecord(void (*change)(RawRecord*) = nullptr, uint8_t tier = 1) {
++  RawRecord r(tier);
++  r.V(0x100).V(8).V(8).V(16).V(1).V(1);  // vaddr, end - vaddr, sizes, counts
++  r.Fill(8, 0x11).Fill(16, 0x22);
++  r.V(0).Raw({0x00}).V(0);  // a guest offset at 0, arg = vaddr
++  r.V(2).V(6);              // recovery {2, 5}
++  if (change != nullptr) {
++    change(&r);
++  }
++  return r.Finish();
++}
++
++TEST(PersistentCacheFormat, MalformedRecordsAreRefused) {
++  bool ok;
++  DecodeForFormatTest(SmallRecord(), &ok);
++  ASSERT_TRUE(ok) << "the baseline must decode";
++  // Cut anywhere, with a consistent size and CRC: refused.
++  std::vector<uint8_t> whole = SmallRecord();
++  for (size_t n = 16; n < whole.size(); n++) {
++    RawRecord cut(1);
++    cut.b.assign(whole.begin(), whole.begin() + n);
++    DecodeForFormatTest(cut.Finish(), &ok);
++    EXPECT_FALSE(ok) << "cut at " << n;
++  }
++  struct Case {
++    const char* what;
++    std::vector<uint8_t> bytes;
++  };
++  auto rebuilt = [](std::initializer_list<uint8_t> tail, uint64_t num_operands = 1,
++                    uint64_t num_recovery = 0, uint8_t tier = 1) {
++    RawRecord r(tier);
++    r.V(0x100).V(8).V(8).V(16).V(num_operands).V(num_recovery);
++    r.Fill(8, 0x11).Fill(16, 0x22).Raw(tail);
++    return r.Finish();
++  };
++  std::vector<Case> cases = {
++      {"magic", RawRecord(1, 0x4352424f).V(0x100).V(8).V(8).V(16).V(0).V(0).Fill(24, 0).Finish()},
++      {"tier 0", SmallRecord(nullptr, 0)},
++      {"tier 4", SmallRecord(nullptr, 4)},
++      {"reserved prefix byte", SmallRecord([](RawRecord* r) { r->b[13] = 1; })},
++      {"trailing byte", SmallRecord([](RawRecord* r) { r->Raw({0}); })},
++      {"overlong vaddr", [] {
++         RawRecord r(1);
++         r.Raw({0x80, 0x82, 0x00}).V(8).V(8).V(16).V(0).V(0).Fill(24, 0);
++         return r.Finish();
++       }()},
++      {"guest size 0", RawRecord(1).V(0x100).V(8).V(0).V(16).V(0).V(0).Fill(16, 0).Finish()},
++      {"guest size 6", RawRecord(1).V(0x100).V(8).V(6).V(16).V(0).V(0).Fill(22, 0).Finish()},
++      {"code size 0", RawRecord(1).V(0x100).V(8).V(8).V(0).V(0).V(0).Fill(8, 0).Finish()},
++      {"end before the region's end", RawRecord(1).V(0x100).V(4).V(8).V(16).V(0).V(0).Fill(24, 0).Finish()},
++      {"region past the module",
++       RawRecord(1).V(kFormatModuleSpan - 4).V(8).V(8).V(16).V(0).V(0).Fill(24, 0).Finish()},
++      {"counts past the record", rebuilt({0, 0x00, 0}, 1000, 0)},
++      {"recovery count past the record", rebuilt({0, 0x00, 0}, 1, 1000)},
++      {"operand past the code", rebuilt({17, 0x00, 0})},
++      {"8 bytes past the code", rebuilt({12, 0x00, 0})},
++      {"reserved tag bits", rebuilt({0, 0x20, 0})},
++      {"kind 7", rebuilt({0, 0x07, 0})},
++      {"explicit next_pc on 8 bytes", rebuilt({0, 0x10, 0, 0})},
++      {"explicit next_pc of offset + 4", rebuilt({0, 0x18 | 5, 0, 1})},  // entry, extra 0
++      {"next_pc past the code", rebuilt({0, 0x18 | 5, 20, 1})},
++      {"guest displacement", rebuilt({0, 0x08, 0})},
++      {"counter in a heavy region", rebuilt({0, 0x03}, 1, 0, 3)},
++      {"guest address past the module",
++       rebuilt({0, 0x00, 0xfe, 0xff, 0x07})},  // zigzag of about 2^19 forward
++      {"guest address before the module", rebuilt({0, 0x00, 0x81, 0x04})},  // -0x101
++      {"truncated argument", rebuilt({0, 0x04, 0x80})},
++      {"recovery fault past the code", rebuilt({0, 0x00, 0, 16, 0}, 1, 1)},
++      {"recovery before the code", rebuilt({0, 0x00, 0, 2, 5}, 1, 1)},  // 2 - 3
++      {"recovery past the code", rebuilt({0, 0x00, 0, 2, 30}, 1, 1)},   // 2 + 15
++      {"overflowing fault delta", rebuilt({0, 0x00, 0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
++                                           0xff, 0xff, 0x01, 0}, 1, 1)},
++  };
++  for (const Case& c : cases) {
++    DecodeForFormatTest(c.bytes, &ok);
++    EXPECT_FALSE(ok) << c.what;
++  }
++  // A bad CRC.
++  std::vector<uint8_t> bad_crc = SmallRecord();
++  bad_crc[20] ^= 1;
++  DecodeForFormatTest(bad_crc, &ok);
++  EXPECT_FALSE(ok);
++}
++
+ // ---- verify reads guest memory under the mapping lock too ----
+ 
+ // A guest mapping call on another thread, started while `verify` is about to decode: it clears
+@@ -1137,6 +1426,149 @@ TEST_F(PersistentCacheTest, CapCountsWhatOtherProcessesWrote) {
+   EXPECT_EQ(IndexEntries(), 0u);
+ }
+ 
++// ---- Format v2 in the cache ----
++
++// Every byte of a real record flipped in turn, its CRC repaired, then loaded with verify. A flip is
++// either refused outright, or the record decodes and verify decides: only code equal to a fresh
++// translation is published. Whatever happens, the code installed equals the unchanged record's
++// code re-linked there, which is the fresh translation. This doesn't authenticate records against
++// a writer who means harm (design doc, section 4).
++TEST_F(PersistentCacheTest, EveryFlippedByteIsRefusedOrVerified) {
++  uint8_t* base = WriteRegionA();
++  const std::vector<uint8_t> data = ReadFile(DataFile());
++  const std::vector<uint8_t> index = ReadFile(IndexFile());
++  const Record original = FindRecord(kRegionA);
++  ASSERT_FALSE(original.bytes.empty());
++  pcache::Candidate expected = original.Decoded();
++  size_t refused = 0;
++  size_t matched = 0;
++  size_t fresh = 0;
++  for (size_t i = 0; i < original.bytes.size(); i++) {
++    if (i >= kRecordCrcAt && i < kRecordCrcAt + 4) {
++      continue;  // The CRC itself: repairing it undoes the flip.
++    }
++    WriteFile(DataFile(), data);
++    WriteFile(IndexFile(), index);
++    Record flipped = original;
++    flipped.bytes[i] ^= 0xff;
++    flipped.FixCrc();
++    WriteRecord(flipped);
++    StartProcess(Mode::kVerify);
++    base = Remap(base, elf_path_);
++    GuestAddr pc = Pc(base, kRegionA);
++    Counts c;
++    Translate(pc);
++    if (c.Delta(pcache::kRejectsRecord) + c.Delta(pcache::kRejectsBytes) +
++            c.Delta(pcache::kRejectsMapping) >
++        0) {
++      refused++;
++    } else if (c.Delta(pcache::kVerifyMatch) > 0) {
++      matched++;
++    } else {
++      EXPECT_EQ(c.Delta(pcache::kVerifyMismatch) + c.Delta(pcache::kVerifyInconclusive) +
++                    c.Delta(pcache::kVerifyFallback),
++                1u)
++          << "byte " << i;
++      fresh++;
++    }
++    ASSERT_TRUE(IsTranslated(pc)) << "byte " << i;
++    GuestCodeEntry* entry = Entry(pc);
++    ASSERT_EQ(entry->host_size, expected.code_size) << "byte " << i;
++    std::vector<uint8_t> want(expected.code_size);
++    pcache::Candidate at_base = expected;
++    at_base.module_start = ToGuestAddr(base);
++    ASSERT_TRUE(pcache::RelinkCandidateAt(at_base,
++                                          want.data(),
++                                          reinterpret_cast<uintptr_t>(HostCode(pc)),
++                                          reinterpret_cast<uintptr_t>(&entry->invocation_counter)));
++    EXPECT_EQ(memcmp(HostCode(pc), want.data(), want.size()), 0) << "byte " << i;
++    EndProcess();
++  }
++  printf("flipped %zu bytes: %zu refused, %zu decoded and verified equal, %zu replaced by fresh code\n",
++         original.bytes.size() - 4, refused, matched, fresh);
++  EXPECT_EQ(refused + matched + fresh, original.bytes.size() - 4);
++  EXPECT_GT(refused, 0u);
++  EXPECT_GT(fresh, 0u);
++}
++
++// Index entries hold 32-bit offsets. A record that fits below 4 GiB is written and found; one that
++// would end past it isn't written, rather than narrowed. The file is sparse.
++TEST_F(PersistentCacheTest, OffsetsPast4GiBAreNotWritten) {
++  pcache::SetCapForTesting(1ull << 40);
++  uint8_t* base = WriteRegionA();
++  ASSERT_EQ(truncate(DataFile().c_str(), (1ll << 32) - (64 << 10)), 0);
++  StartProcess();
++  Counts c1;
++  base = Remap(base, elf_path_);
++  Translate(Pc(base, kRegionC));
++  pcache::FlushAll();
++  EXPECT_EQ(c1.Delta(pcache::kRecordsWritten), 1u);
++  EndProcess();
++  ASSERT_EQ(IndexEntries(), 2u);
++  EXPECT_GT(FindRecord(kRegionC).offset, (1ull << 32) - (64 << 10) - 1);
++
++  StartProcess();
++  Counts c2;
++  base = Remap(base, elf_path_);
++  Translate(Pc(base, kRegionC));
++  EXPECT_EQ(c2.Delta(pcache::kHitsLite), 1u) << "a record near 4 GiB loads";
++  EndProcess();
++
++  ASSERT_EQ(truncate(DataFile().c_str(), (1ll << 32) - 16), 0);
++  StartProcess();
++  Counts c3;
++  base = Remap(base, elf_path_);
++  Translate(Pc(base, kRegionB));
++  pcache::FlushAll();
++  EXPECT_EQ(c3.Delta(pcache::kRecordsWritten), 0u);
++  EXPECT_EQ(c3.Delta(pcache::kNotPersistable), 1u);
++  EndProcess();
++  EXPECT_EQ(IndexEntries(), 2u);
++}
++
++// A file of format 1 fails check 1. A process that doesn't hold the module's lock leaves it alone;
++// the writer replaces it.
++TEST_F(PersistentCacheTest, Version1FilesAreRefusedAndOnlyTheWriterReplacesThem) {
++  uint8_t* base = WriteRegionA();
++  for (const std::string& path : {DataFile(), IndexFile()}) {
++    std::vector<uint8_t> file = ReadFile(path);
++    uint32_t version = 1;
++    memcpy(file.data() + 60, &version, 4);  // FileHeader.fingerprint.format_version
++    uint32_t crc = Crc32c(file.data(), kHeaderSize, 12);
++    memcpy(file.data() + 12, &crc, 4);
++    WriteFile(path, file);
++  }
++  const std::vector<uint8_t> v1 = ReadFile(DataFile());
++  // Another process holds the lock: this one only reads.
++  int lock = open(FileWith(".lock").c_str(), O_RDWR | O_CLOEXEC);
++  ASSERT_GE(lock, 0);
++  ASSERT_EQ(flock(lock, LOCK_EX | LOCK_NB), 0);
++  StartProcess();
++  Counts c1;
++  base = Remap(base, elf_path_);
++  Translate(Pc(base, kRegionA));
++  EXPECT_EQ(c1.Delta(pcache::kRejectsFile), 1u);
++  EXPECT_EQ(c1.Delta(pcache::kHitsLite), 0u);
++  EndProcess();
++  EXPECT_EQ(ReadFile(DataFile()), v1) << "a reader replaced the file";
++  close(lock);
++
++  StartProcess();
++  Counts c2;
++  base = Remap(base, elf_path_);
++  Translate(Pc(base, kRegionA));
++  EXPECT_EQ(c2.Delta(pcache::kRejectsFile), 1u);
++  EndProcess();
++  EXPECT_NE(ReadFile(DataFile()), v1);
++  EXPECT_EQ(IndexEntries(), 1u);
++
++  StartProcess();
++  Counts c3;
++  base = Remap(base, elf_path_);
++  Translate(Pc(base, kRegionA));
++  EXPECT_EQ(c3.Delta(pcache::kHitsLite), 1u);
++}
++
+ // ---- Replay: load against compile on a real app's regions, run by hand ----
+ //
+ //   BERBERIS_PCACHE_REPLAY_CORPUS=<dir> berberis_arm64_host_tests \
+diff --git a/runtime/arm64/relocatable_code.cc b/runtime/arm64/relocatable_code.cc
+index 0945c1de..85d1fad7 100644
+--- a/runtime/arm64/relocatable_code.cc
++++ b/runtime/arm64/relocatable_code.cc
+@@ -349,8 +349,15 @@ uint64_t ResolveSymbol(SymbolKind kind, uint64_t arg, GuestAddr module_base, uin
+       return MainTable();
+     case SymbolKind::kCounter:
+       return counter;
+-    case SymbolKind::kImageOffset:
+-      return ThisImage().bias + arg;
++    case SymbolKind::kImageOffset: {
++      // Only inside this image: a record names nothing else by its offset.
++      const ImageRange image = ThisImage();
++      if (arg > image.end - image.bias || image.bias + arg < image.start ||
++          image.bias + arg >= image.end) {
++        return 0;
++      }
++      return image.bias + arg;
++    }
+     case SymbolKind::kEntry:
+       return HostEntry(arg);
+     case SymbolKind::kResource:
+-- 
+2.56.0
+

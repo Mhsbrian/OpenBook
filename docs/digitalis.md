@@ -235,6 +235,37 @@ The bridge is part of the normal product build (`scripts/aosp-build.sh`). Nothin
         - **Storage:** a lite record averages 920 bytes with its index entry, for 402 bytes of code. Lichess's lite
           set is 169 MB, so the 128 MiB cap holds 81% of it.
       - **Not yet:** device measurement (P3), and the default and trust model (P4).
+  13. A compact record format for the translation cache (ANAL-381, step P2b).
+      - **Why:** a Lichess lite record averaged 920 bytes for 402 bytes of code. The 24-byte relocation entries were
+        41% of the cache, which put the app's lite set at 169 MB, over the 128 MiB cap.
+      - **Format 2:**
+        - varints and unpadded bytes after a 16-byte prefix;
+        - operands as offset deltas with a tag byte, guest addresses relative to the region's;
+        - recovery points as deltas;
+        - 24-byte index entries with 32-bit offsets. A record past 4 GiB isn't written, rather than narrowed.
+      - **Decoding fails closed:**
+        - canonical, length-limited varints and checked arithmetic;
+        - every bound and combination checked, and no trailing bytes;
+        - counts bounded before anything grows;
+        - guest addresses must lie in the module, and an image offset in the translator image.
+
+        Format-1 files fail the header check, and their writer replaces them.
+      - **The cap** is now described as best effort: a flush can write several modules' batches, and 1 MiB is when a
+        flush starts, not a limit on it.
+      - **Found on the way:** libc++'s range `insert` measured about 2 µs a record in the host build, so records are
+        copied with `memcpy`. That also halved loading against patch 12.
+      - **Host results** (2026-11-05, Lichess's 183,699 region starts):
+        - **lite, default 128 MiB cap:** all 183,699 regions stored in 100.3 MB instead of 169 MB. Loading takes
+          1.67 µs a region (patch 12: 3.45 µs, at its 1 GiB measurement cap). Writing adds 15% to lite translation
+          time, and `verify` matched every region;
+        - **every region geared up:**
+          - 1 GiB cap: 202 MB instead of 339 MB, and loading takes 1.8 µs. `verify` is unchanged: 183,696 matched,
+            2 inconclusive, 1 mismatch;
+          - default cap: 249,543 of 367,360 records are stored;
+        - **every byte of a real record flipped**, with its CRC repaired: 75 were refused, 76 decoded and matched a
+          fresh translation (bytes that re-linking overwrites anyway), and 122 were replaced by fresh code. The code
+          installed was always the fresh translation's;
+        - **CoreMark through the runner:** 1.0 MB written instead of 1.6 MB, and the same checks pass.
 - **ART patch** (`aosp/patches/art/`): `libnativebridge` sets `Build.CPU_ABI` and `CPU_ABI2` for bridged apps again (the Fennec fix).
 - **Device:** `device/anybook/common/native-bridge/`:
   - `native-bridge.mk` inherits Digitalis's `enable_arm64_to_x86_64.mk` and adds `openbook_bridge_check`;
