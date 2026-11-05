@@ -34,7 +34,7 @@
 #                  exactly the projects the image's NOTICE files name (for when the AOSP tree has moved on)
 #   --notice-root  a directory with the image's {system,system_ext,product,vendor}/etc/NOTICE.xml.gz (default:
 #                  read from the image itself with image-notice.py)
-#   --home URL     where the release files are published (default https://github.com/Mhsbrian/openbook-releases)
+#   --home URL     where the release files are published (default https://github.com/Mhsbrian/OpenBook)
 #   --contact URL  where to ask for missing source (default <home>/issues)
 #   --mesa-note FILE  Markdown added to SOURCES.md's Mesa section: what a rebuild from these files was checked to give
 #   --install-note FILE  the same for the kernel install section
@@ -44,7 +44,7 @@ A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}
 R=$(cd "$(dirname "$0")/../.." && pwd)
 S=$A/aosp/src; P=$S/out/target/product/anybook_g14
 VER=; IMG=; KWS=; OUT=; REUSE=; NROOT=; MNOTE=; INOTE=
-HOME_URL=https://github.com/Mhsbrian/openbook-releases; CONTACT=
+HOME_URL=https://github.com/Mhsbrian/OpenBook; CONTACT=
 while [ $# -gt 0 ]; do
   case $1 in
     --version) VER=$2; shift 2 ;;
