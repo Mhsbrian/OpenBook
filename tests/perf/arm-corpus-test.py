@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 import types
 import unittest
+from unittest import mock
 import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -320,6 +321,7 @@ class Clock:
 
 class Sim:
     def __init__(self):
+        self.ps_ok_first = 0  # the first N process queries answer normally (the gate's), whatever comes after
         self.pkgs = {}            # installed package -> sha256 of its base APK
         self.flags = {}           # permission -> flags text
         self.pm_answers = []      # queued pm-list outcomes: "fail" (no answer) or None (answer normally)
@@ -463,6 +465,9 @@ class Sim:
                 self.app_alive = False
             return "", 0
         if cmd.startswith("l=$(ps -A -o PID,NAME)"):
+            if self.ps_ok_first > 0:
+                self.ps_ok_first -= 1
+                return "@header\n" + (f"@pid {self.launch_pid}\n" if self.app_alive else "") + "@end\n", 0
             if self.ps_fails_for > 0:
                 self.ps_fails_for -= 1
                 raise C.Fail("adb: no answer (simulated)")
@@ -597,6 +602,110 @@ class RemoveTest(DeviceTestBase):
         self.assertTrue(res["unresolved"])
         self.assertEqual([e for e in self.sim.events if e[0] == "run"], [])
         self.assertIn(PKG, self.journal.mine())
+
+
+class PcacheClearDevice:
+    """The gate's idle facts, the strict process query, root, an app's cache listing and its removal, for
+    cmd_pcache_clear. Every command is logged."""
+
+    LISTING = (f"@dir directory|10123|/data/data/{PKG}\n@dir directory|10123|/data/data/{PKG}/code_cache\n"
+               f"@dir directory|10123|/data/data/{PKG}/code_cache/berberis\n"
+               f"@entry regular file|9|/data/data/{PKG}/code_cache/berberis/b01-0.pcache\n"
+               f"@entry regular empty file|0|/data/data/{PKG}/code_cache/berberis/b01-0.lock\n@count 2\n@end 2\n")
+    GONE = (f"@dir directory|10123|/data/data/{PKG}\n@dir directory|10123|/data/data/{PKG}/code_cache\n"
+            f"@missing /data/data/{PKG}/code_cache/berberis\n@end 0\n")
+
+    def __init__(self, ps_fails_at=None, running_after_root=False, listing=None, listing_rc=0):
+        self.serial, self.busy, self.notes, self.rooted, self.log = "fake", None, {}, False, []
+        self.ps_calls, self.ps_fails_at, self.running_after_root = 0, ps_fails_at, running_after_root
+        self.listing, self.listing_rc = listing if listing is not None else self.LISTING, listing_rc
+
+    def root(self):
+        self.rooted = True
+        self.log.append("root")
+
+    def unroot(self):
+        self.rooted = False
+        self.log.append("unroot")
+
+    def helper(self, args, timeout=120, check=True):
+        return self.sh(f"sh {C.AP.D}/device.sh {args}", check=check)
+
+    def sh(self, cmd, timeout=120, check=True):
+        self.log.append(cmd)
+        if "gpu-diag-device.sh idle" in cmd:
+            return ("idle_ms=99999999 wakefulness=Awake keyguard_showing=false audio_started=0 "
+                    "user_activity_uptime_ms=7\n"), 0
+        if cmd.startswith("l=$(ps -A -o PID,NAME)"):
+            self.ps_calls += 1
+            if self.ps_calls == self.ps_fails_at:
+                return "@ps-failed 1\n", 1
+            return "@header\n" + ("@pid 4321\n" if self.running_after_root and self.rooted else "") + "@end\n", 0
+        if cmd.startswith("e=0; for p in '/data/data/"):
+            return self.listing, self.listing_rc
+        if cmd.startswith("rm -f -- "):
+            self.listing, self.listing_rc = self.GONE, 0
+            return "", 0
+        raise AssertionError(cmd)
+
+
+class PcacheClearTest(DeviceTestBase):
+    def clear(self, dev, own=(True, "ours"), entry=True):
+        if entry:
+            self.journal.put(PKG, {"id": "t", "state": "installed", "apk_sha256s": [self.apk_sha]})
+        with mock.patch.object(C, "ownership", lambda *a: own):
+            return C.cmd_pcache_clear(dev, self.args(), self.rows, self.journal)
+
+    @staticmethod
+    def removals(dev):
+        return [c for c in dev.log if c.startswith("rm ")]
+
+    def test_clears_this_tools_own_install(self):
+        dev = PcacheClearDevice()
+        res = self.clear(dev)
+        self.assertEqual((res["package"], res["removed"]), (PKG, 2))
+        self.assertFalse(res["after"]["exists"])
+        self.assertEqual(len(self.removals(dev)), 1)
+        self.assertEqual(dev.log[-1], "unroot")
+        self.assertFalse(dev.rooted)
+
+    def test_a_missing_cache_removes_nothing(self):
+        dev = PcacheClearDevice(listing=PcacheClearDevice.GONE)
+        self.assertEqual(self.clear(dev)["removed"], 0)
+        self.assertEqual(self.removals(dev), [])
+
+    def test_never_touches_an_app_this_tool_didnt_install(self):
+        dev = PcacheClearDevice()
+        with self.assertRaises(C.Invalid):
+            self.clear(dev, entry=False)  # not in this tool's journal
+        for own in ((False, "not installed by this tool"), (None, "can't read the installed APK"),
+                    (False, "someone reinstalled it")):
+            with self.assertRaises(C.Invalid):
+                self.clear(dev, own=own)
+        self.assertEqual(self.removals(dev), [])
+
+    def test_a_failed_process_query_removes_nothing(self):
+        for fails_at in (1, 2):  # at the gate, or just before clearing (after adbd restarted as root)
+            dev = PcacheClearDevice(ps_fails_at=fails_at)
+            with self.assertRaises((C.Invalid, C.Fail)):
+                self.clear(dev)
+            self.assertEqual(self.removals(dev), [], fails_at)
+            self.assertFalse(dev.rooted)
+
+    def test_an_app_running_just_before_the_clear_removes_nothing(self):
+        dev = PcacheClearDevice(running_after_root=True)
+        with self.assertRaisesRegex(C.Fail, "not confirmed stopped"):
+            self.clear(dev)
+        self.assertEqual(self.removals(dev), [])
+
+    def test_a_failed_listing_removes_nothing(self):
+        stat_error = PcacheClearDevice.LISTING.replace(
+            "@count 2", f"@error /data/data/{PKG}/code_cache/berberis/b01-0.pidx\n@count 2")
+        for dev in (PcacheClearDevice(listing_rc=1), PcacheClearDevice(listing=stat_error, listing_rc=1),
+                    PcacheClearDevice(listing=PcacheClearDevice.LISTING.replace("@count 2", "@count 3"))):
+            with self.assertRaises(C.Fail):
+                self.clear(dev)
+            self.assertEqual(self.removals(dev), [])
 
 
 class WorkloadTest(DeviceTestBase):
@@ -869,6 +978,7 @@ class BenchTest(DeviceTestBase):
 
     def test_a_transient_adb_failure_while_stopping_is_retried(self):
         self.sim.stop_fails_for = 1
+        self.sim.ps_ok_first = 1  # the gate's query; then the stop's fails once
         self.sim.ps_fails_for = 1
         res = self.bench()
         self.assertTrue(res["valid"])
@@ -897,8 +1007,8 @@ class BenchTest(DeviceTestBase):
     def test_a_failing_ps_with_a_failing_stop_never_confirms(self):
         # The Checker's case: force-stop fails and ps itself fails while the app is still alive.
         d = tempfile.mkdtemp(dir=self.tmp.name)
-        with open(os.path.join(d, "ps"), "w") as f:
-            f.write("#!/bin/sh\nexit 1\n")
+        with open(os.path.join(d, "ps"), "w") as f:  # answers the gate's query once, then fails
+            f.write("#!/bin/sh\n[ -e \"$0.used\" ] && exit 1\n: > \"$0.used\"\nprintf 'PID NAME\\n'\n")
         os.chmod(os.path.join(d, "ps"), 0o755)
         self.dev = LocalShellDevice(self.sim, d)
         self.sim.app_survives = True
@@ -910,6 +1020,7 @@ class BenchTest(DeviceTestBase):
         self.assertTrue(C.cleanup_device(self.dev).startswith("skipped"))
 
     def test_a_ps_that_fails_on_the_device_is_retried_and_stays_unconfirmed(self):
+        self.sim.ps_ok_first = 1  # the gate's query
         self.sim.ps_command_fails = True
         with self.assertRaises(C.Fail):
             self.bench()

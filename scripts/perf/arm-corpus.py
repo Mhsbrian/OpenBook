@@ -682,6 +682,27 @@ def run_workload(dev, gate, cmd_line, mask, outfile, timeout, poll=2.0, where=""
         raise
 
 
+def cmd_pcache_clear(dev, a, rows, journal):
+    """Remove the translation cache files a test wrote into one of this tool's test installs (ANAL-381): only for a
+    package this tool installed on this device (its journal, and an installed APK this tool installs), while it isn't
+    running, and only the cache's own files (app-perf's checked listing). Root for the removal, given up after."""
+    pkgs = sorted(p for p, e in journal.mine().items() if e.get("id") == a.id)
+    if len(pkgs) != 1:
+        raise Invalid(f"{a.id}: not one of this tool's installs on this device ({pkgs or 'none'})")
+    pkg = pkgs[0]
+    own, why = ownership(dev, pkg, journal, rows)
+    if own is not True:
+        raise Invalid(f"{pkg}: {why}: its files are never touched")
+    gate = AP.Gate(dev, a.idle_min, pkg)  # also: a process query that succeeded found none of the app's
+    try:
+        dev.root()  # restarts adbd: the input token and the app's absence are checked again after it
+        gate.check("after adbd restarted as root")
+        if app_pids(dev, pkg) != []:
+            raise Fail(f"{pkg}: not confirmed stopped just before clearing its cache; nothing removed")
+        return {"id": a.id, "package": pkg, **AP.pcache_clear(dev, pkg)}
+    finally:
+        dev.unroot()
+
 def cleanup_device(dev):
     """Remove this tool's device directory, unless a benchmark of it may still run (dev.busy, found, or not
     checkable): then the directory stays and the reason is recorded."""
@@ -853,19 +874,8 @@ def parse_bench(text, pid=None):
     return out
 
 
-def app_pids_cmd(pkg):
-    """The shell command behind app_pids. The listing must prove itself: ps's own exit status is checked, its header
-    must be there and the filter must succeed, or the command fails, so a failed listing never reads as "none"."""
-    return ("l=$(ps -A -o PID,NAME) || { echo \"@ps-failed $?\"; exit 1; }; "
-            "printf '%s\\n' \"$l\" | awk -v p=" + AP.q(pkg) + " 'NR == 1 && $1 == \"PID\" {print \"@header\"} "
-            "NR > 1 && ($2 == p || index($2, p \":\") == 1) {print \"@pid \" $1}' || exit 1; echo @end")
-
-
-def parse_app_pids(out, rc):
-    lines = out.splitlines() if rc is not None else []
-    if rc != 0 or "@end" not in lines or "@header" not in lines:
-        return None
-    return [l.split()[1] for l in lines if l.startswith("@pid ")]
+# The strict process query lives in app-perf, whose gate uses it too.
+app_pids_cmd, parse_app_pids = AP.app_pids_cmd, AP.parse_app_pids
 
 
 def app_pids(dev, pkg):
@@ -1015,6 +1025,9 @@ def main():
     p = sub.add_parser("remove")
     p.add_argument("out")
     p.add_argument("ids", nargs="*")
+    p = sub.add_parser("pcache-clear", help="remove the translation cache files of one of this tool's test installs")
+    p.add_argument("out")
+    p.add_argument("id")
     p = sub.add_parser("exe")
     p.add_argument("out")
     p.add_argument("--bench", action="append", choices=sorted(BENCH), help="default: both")
@@ -1067,6 +1080,8 @@ def main():
             raise Fail(f"recovery: {dev.busy}")
         if a.command == "install":
             run["result"] = cmd_install(dev, a, out, rows, journal)
+        elif a.command == "pcache-clear":
+            run["result"] = cmd_pcache_clear(dev, a, rows, journal)
         elif a.command == "remove":
             run["result"] = cmd_remove(dev, a, rows, journal)
             if run["result"]["unresolved"]:

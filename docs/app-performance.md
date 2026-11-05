@@ -25,6 +25,7 @@ scripts/perf/app-perf.sh start OUT PKG --fixed-performance          # one power 
 scripts/perf/app-perf.sh start OUT PKG --platform-profile performance
 scripts/perf/app-perf.sh cpu OUT PKG [--seconds 20]
 scripts/perf/app-perf.sh cpu OUT PKG --translator           # plus Digitalis's own profile (an image with ANAL-383)
+scripts/perf/app-perf.sh start|cpu OUT PKG --pcache on|verify|off   # Digitalis's translation cache for this run
 scripts/perf/app-perf.sh dexopt OUT PKG --filter speed --yes        # recompiles one app; it can't be undone exactly
 scripts/perf/app-perf.sh table RUN_DIR...                # a Markdown table of runs
 scripts/perf/app-perf.sh restore                         # after a failed restore: put the power setting back
@@ -209,6 +210,26 @@ Chromium's app-zygote renderers too. The G14 run comes with that image.
 - **Cost.** Profiling costs a little on every region compiled: a maps lookup and a write to the map. So a
   `--translator` run is its own run; don't compare its CPU totals with plain `cpu` runs. ANAL-383 has the host
   measurement for the counters alone (no perf map).
+
+**The translation cache (`--pcache`, Digitalis patch 14, ANAL-381)**
+- **What it sets:** `berberis.pcache=MODE:PKG` (or `off` for a control run), as root, before the run's first
+  process-cold launch. Only that package's processes, by exact name, use the cache.
+- **Putting it back:** the app is force-stopped first and confirmed stopped (a process query that ran to completion
+  finds none of its processes), then the property gets back its earlier value. A process left running keeps the
+  mode it read at start, so an unconfirmed stop fails the run (`run.json` `pcache_stop`), and so does a failed
+  restore (`pcache_restore`); the property is put back either way. It's volatile: a run killed outright leaves it
+  set, for that package only, until the next reboot.
+- **What `run.json` records:** `pcache` holds the mode, the restore, and the cache left in
+  `/data/data/PKG/code_cache/berberis` (files and bytes). With `--translator`, the counters include the cache's
+  (`pcache_*`), with the time they were read. `pcache_records_queued` − `_written` − `_dropped` estimates what was
+  waiting to be written: the counters aren't read as one snapshot, and the app keeps running (and may flush) until
+  it's stopped later, so it isn't the number the stop lost.
+- **Each launch reads the cache the previous one left.** A first-write measurement needs the cache cleared just
+  before it: `arm-corpus.sh pcache-clear OUT ID`, for this tool's own test installs only. It removes nothing unless
+  a process query that succeeded, made again after adbd restarts as root, finds none of the app's processes, and the
+  listing of the cache ran without a failure and accounts for every entry. Within one `start`, the
+  first cold launch writes and the later ones reuse, and a `cpu` after a `start` is a reuse. Use `--warm-runs 0` for
+  cold-start trials.
 
 ### dexopt
 
