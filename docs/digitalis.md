@@ -103,6 +103,11 @@ The bridge is part of the normal product build (`scripts/aosp-build.sh`). Nothin
          and keeps running, which the exit paths don't do. Exact once-per-process for any interleaving would need
          per-process state.
        - The line's pid comes from the `getpid` syscall, not bionic's cached value.
+     - **Executables only, not apps.** An app's `System.exit()` runs `JVM_Exit`, then the framework's exit hook,
+       `AndroidRuntime::exit()`, which ends the process with the host's `_exit()` ("VM exiting with result code 0,
+       cleanup skipped"). No `atexit` handler runs, so an app logs no final line, before or after this patch
+       (ANAL-387, VM, an arm64 test app). `app-perf.sh cpu --translator` reads an app's counters from its memory
+       instead, so app profiles don't depend on the line.
      - A process killed by a signal still logs none: its memory block is the only record.
   8. `ClearExecutable` clears the executable-page shadow a word at a time (ANAL-379).
      - **What it fixes:** every guest `mmap`, `mprotect` and `munmap` that isn't executable clears the range's bits in
