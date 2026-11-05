@@ -21,7 +21,7 @@
 > **OpenBook is in early development.**
 > - **Works today:** our Android 17 desktop runs on an ASUS ROG Zephyrus G14 at 120 fps. It was [installed on the laptop's own drive](docs/installer.md) by our installer, and it updated itself over Wi-Fi into a spare slot, with automatic rollback.
 > - **New, 2026-10-30:** NVIDIA's open kernel driver. The laptop's RTX GPU now has a driver and powers itself off when idle. [What that covers →](docs/nvidia-open.md)
-> - **Latest release:** [0.1.0-preview.2](docs/STATUS.md#latest-release) (2026-10-31), a `userdebug` developer preview with test keys. Its download links on openbook.page are broken for now (only the torrent works) while the repository is private; fixing that is in progress.
+> - **Latest release:** [0.1.0-preview.2](https://github.com/Mhsbrian/OpenBook/releases/tag/v0.1.0-preview.2) (2026-10-31), a `userdebug` developer preview with test keys. Download it from [openbook.page](https://openbook.page) or this repository's releases.
 > - **Not yet:** apps rendering on the NVIDIA GPU and the deepest sleep state (S0i3). Since 2026-10-23 the G14 has run our sibling image based on Google's own Googlebook OS. That image shares this kernel and vendor layer, and much of the hardware evidence below comes from it.
 
 <br>

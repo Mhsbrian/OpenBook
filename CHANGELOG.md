@@ -55,5 +55,5 @@ The first public build. It was withdrawn about 12 minutes after publication beca
 preview.2 fixes. It added the live USB stick and its installer, NVIDIA's open kernel driver with its GSP firmware
 (under NVIDIA's distribution terms), and the GPL/LGPL source bundle.
 
-[0.1.0-preview.3]: https://github.com/Mhsbrian/openbook-releases/releases/tag/v0.1.0-preview.3
-[0.1.0-preview.2]: https://github.com/Mhsbrian/openbook-releases/releases/tag/v0.1.0-preview.2
+[0.1.0-preview.3]: https://github.com/Mhsbrian/OpenBook/releases/tag/v0.1.0-preview.3
+[0.1.0-preview.2]: https://github.com/Mhsbrian/OpenBook/releases/tag/v0.1.0-preview.2

@@ -108,7 +108,7 @@ every piece (845/845 for the real file), and one flipped byte fails exactly one 
 
 ## 4. Hosting: three paths, each for what it does well
 
-The site is [`Mhsbrian/openbook.page`](https://github.com/Mhsbrian/openbook.page) (private): one Portainer stack
+The site, openbook.page, is built from a separate private repository: one Portainer stack
 on the Synology with a `web` container and a `seed` container. Both read the releases folder read-only.
 
 ```mermaid
@@ -124,7 +124,7 @@ flowchart LR
 |---|---|---|
 | **openbook.page** via cloudflared to the NAS | the site, `releases.json`, `.torrent`, `<id>.sha256(.sig)` | small files, which suit the tunnel and the CDN |
 | **BitTorrent** from the stack's seed | the image, peer to peer | the NAS seeds without a CDN in the middle, and every downloader adds bandwidth |
-| **HTTP mirror**: a GitHub Release on `Mhsbrian/openbook-releases`, a public repository that holds only release files (or R2 at `dl.openbook.page`) | the direct-download button (`url` in `releases.json`), and the torrent's web seed | keeps the 0.9 GB file off the tunnel (below) |
+| **HTTP mirror**: a GitHub Release in this repository, `Mhsbrian/OpenBook` (or R2 at `dl.openbook.page`) | the direct-download button (`url` in `releases.json`), and the torrent's web seed | keeps the 0.9 GB file off the tunnel (below) |
 
 **Keep the `.img.xz` off the Cloudflare tunnel.** Cloudflare's terms say a non-Enterprise plan should serve video
 and other large files from a Cloudflare product built for them, such as R2 or Stream, not through the CDN in front
@@ -280,8 +280,8 @@ scripts/installer-image.sh --label <label> --no-xz
 # 1. the source offer, then the release folder (the mirror URL is baked into the torrent as its web seed)
 scripts/release/make-sources.sh --version <V> --image ~/anybook/installer/out/<label>.img
 scripts/release/make-release.sh --image ~/anybook/installer/out/<label>.img --version <V> --channel preview \
-  --mirror https://github.com/Mhsbrian/openbook-releases/releases/download/v<V>/ \
-  --source-url https://github.com/Mhsbrian/openbook-releases/releases/tag/v<V> \
+  --mirror https://github.com/Mhsbrian/OpenBook/releases/download/v<V>/ \
+  --source-url https://github.com/Mhsbrian/OpenBook/releases/tag/v<V> \
   --nvidia-licence <firmware dir>/vendor/firmware/LICENSES/LICENSE.nvidia-driver-615.78.08 \
   --owner-approved [--waive release_keys,user_build]
 # the owner signs in their own terminal (the key has a passphrase), then the folder is finalised with that signature
@@ -290,7 +290,7 @@ scripts/release/make-release.sh <the same arguments> --sign-pub keys/openbook-re
 scripts/release/tracker-probe.py
 scripts/release/swarm-test.sh ~/anybook/release/out/<V>
 # 2. the mirror
-gh release create v<V> --repo Mhsbrian/openbook-releases --prerelease --title "OpenBook <V>" --notes-file <notes> \
+gh release create v<V> --repo Mhsbrian/OpenBook --prerelease --title "OpenBook <V>" --notes-file <notes> \
   ~/anybook/release/out/<V>/{openbook-<V>-x86_64-live.img.xz,openbook-<V>-x86_64-live.img.xz.torrent,SHA256SUMS,SHA256SUMS.sig,openbook-release.pub,LICENSE.nvidia-driver-615.78.08} \
   ~/anybook/release/out/<V>/sources/{openbook-<V>-source-kernel.tar.xz,openbook-<V>-source-userspace.tar.xz,openbook-<V>-source-systemd-boot.tar.xz,openbook-<V>-source-build.tar.xz,aosp-manifest.xml,SOURCES.md}
 # 3. the site: publish-release.sh (openbook.page) into a local copy of the NAS folder, then copy it over with the
