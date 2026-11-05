@@ -1,12 +1,13 @@
 # Digitalis: a persistent translation cache
 
-A design, partly built. Revision 5, 2026-11-05:
+A design, partly built. Revision 6, 2026-11-05:
 - **Revision 2** carried the corrections from the plan review of revision 1 (Proceed with follow-ups, ANAL-381).
 - **Revision 3** records step P1a (Digitalis patch 10: relocatable lite output, section 8). It also takes in the
   review's two clarifications for P2 (3.6 and 7), and corrects which libraries Lichess's regions come from (1 and 7).
 - **Revision 4** records step P1b (Digitalis patch 11: relocatable heavy output, 3.4 and 8). It also adds what P1b
   found about the heavy tier's determinism (6).
 - **Revision 5** records step P2 (Digitalis patch 12: the cache itself, off by default; 3.6, 3.7, 8 and 9).
+- **Revision 6** records step P2b (Digitalis patch 13: a compact record format, 3.6, 8 and 9).
 
 Digitalis translates every ARM region again in every process. Lichess's second cold start on the G14 compiled 99.8% of
 the same file-backed code as its first. This design keeps translated regions in the app's private storage and loads
@@ -251,9 +252,13 @@ the 32-bit displacements and recovery points.
     code would shrink it, and that's tracked with ANAL-382.
   - **Measured (patch 12):** Lichess's lite set takes 169 MB. A record averages 920 bytes with its index entry, for
     402 bytes of code: the relocation list, at 24 bytes an operand, is most of the rest. The cap holds 81% of it.
+  - **Measured (patch 13, format 2):** Lichess's lite set takes 100.3 MB (96 MB of records, 4.4 MB of index), 546
+    bytes a region, and fits the cap with 34 MB to spare. With every region geared up it would take 202 MB, two
+    records a region; at the cap, 249,543 of those 367,360 records are stored. P3's corpus shows how many regions
+    really gear up.
 - **As built (patch 12):**
-  - **Files:** `<module key>.pcache` (header, then records), `<module key>.pidx` (header, then 32-byte entries) and
-    `<module key>.lock`. The key is `b<build-id>-<ELF offset>`, or `s<dev>-<ino>-<size>-<mtime>-<ELF offset>`.
+  - **Files:** `<module key>.pcache` (header, then records), `<module key>.pidx` (header, then 24-byte entries,
+    patch 13) and `<module key>.lock`. The key is `b<build-id>-<ELF offset>`, or `s<dev>-<ino>-<size>-<mtime>-<ELF offset>`.
     The two headers carry the settings fingerprint, the key and a nonce that pairs them; a reader uses neither file if
     either header doesn't match.
   - **Failing closed with an index.** The reader finds records through the index, which it reads at open: the scan
@@ -267,8 +272,26 @@ the 32-bit displacements and recovery points.
   - **Capture.** The translators decode each instruction from a copy of its word and keep the words, so a record
     holds exactly the bytes decoded. A translation is written only if its mapping is the one it started in, from
     before decoding until after publication.
-  - **The cap is the app's.** Each flush measures the cache directory, so it counts files other processes of the
-    app wrote. Processes that flush at the same moment can each still go over by one batch (about 1 MiB).
+  - **The cap is the app's, and best effort.** Each flush measures the cache directory, so it counts files other
+    processes of the app wrote. A flush can write several modules' batches, though, and 1 MiB is when a flush starts,
+    not a limit on it, so how far the app goes over depends on what its processes flush at the same moment (patch 13).
+- **Format 2 (patch 13):**
+  - **A record** is a 16-byte prefix (magic, size, CRC32C, tier, three zero bytes), then canonical LEB128 varints and
+    unpadded bytes:
+    - the region's ELF address, its end, the guest and code sizes, and the operand and recovery point counts;
+    - the guest bytes and the code;
+    - each operand: its offset as a delta from the previous operand's end, a tag byte (the kind, a 4-byte
+      displacement, and whether `next_pc` isn't `offset + 4`), then its argument. A guest offset or table slot is
+      stored relative to the region's address, zigzagged; the main table and counter have none;
+    - recovery points by fault offset, as deltas.
+  - **An index entry** is 24 bytes, with 32-bit offsets. A batch that would put a record or its end past 4 GiB isn't
+    written; file positions stay 64-bit until then.
+  - **Decoding fails closed.** The size and CRC are checked first, on the private copy. Then a truncated, overlong
+    or overflowing value, an invalid tag, width or flag, an operand or recovery point outside the code, counts the
+    record can't hold (checked before anything grows) or trailing bytes refuse the record. A displacement may only
+    name a host entry or the translator image, a counter only appears in a counting region, and every guest address
+    must lie in the record's module. Re-linking also refuses an image offset outside the translator image.
+  - Files of format 1 fail check 1, and their writer replaces them.
   - **Fork.** A fork child, from the host's `fork()` (`pthread_atfork`) or the guest's raw clone (a hook in
     `ResetCurrentGuestThreadAfterFork`), stops using the cache without taking a lock, and closes its copies of the
     lock fds. It translates as without a cache. An `flock` on an inherited fd would succeed in the child (the
@@ -443,6 +466,7 @@ Each step is one pull request or one test image, and each decides something:
 | P1a | Relocatable lite and `code_gen_lib` output: records, typed emitters including heap resources, the pointer scan, the all-inputs differential and the fixtures. No change in behaviour | **Done, Digitalis patch 10, on the host.** Every lite region of Lichess's set is relocatable: all 183,699 persistable, no unrecorded pointer, no re-link mismatch between a module above and below 4 GiB (in-process; the second-process differential runs on the fixtures). Above 4 GiB the typed emitters keep `Movq`'s exact encoding; below it they're longer. The corpus totals 73,942,150 host bytes before and after, an equal aggregate rather than a per-translation comparison. The scan's ranges cover every translation subtable a module spans (from the review). Recording is opt-in: it costs a median 2.4% of lite translation time. Re-linking a region took 0.1 µs against 6–7 µs to translate it, but that isn't a load's whole cost | none |
 | P1b | The same for heavy: symbolic provenance on IR immediates and the fold rules | **Done, Digitalis patch 11, on the host.** Heavy-translating all 183,699 Lichess region starts: 182,912 persistable (99.6%), with no unrecorded pointer and no re-link mismatch; 785 refused for an unrepresentable fold. 9 comparisons are inconclusive (ANAL-389). The translation benchmark's total host bytes are equal for base and patch 11, an aggregate over comparable runs. Heavy translation time with recording off: +2.8% in the default host build, a measured regression that's layout-sensitive (none with aligned functions; reverting either half also removes it) but not shown to be free of added work | none |
 | P2 | The cache: format, writer, loader (3.3's eligibility and check order), counters, `berberis.pcache` off by default, `verify`, the replay harness, the invalidation-during-load test | **Done, Digitalis patch 12, on the host.** Lichess's 183,699 region starts, mapped from their files at a new address each launch. With a 1 GiB measurement cap: lite 7.2 µs per region to translate, 3.45 µs to load; with every region geared up, 53 µs to translate, 3.6 µs to load (163,057 lite and 20,642 heavy regions loaded). At the default 128 MiB cap, 148,217 lite regions are stored, 35,482 miss, and a launch averages 4.2 µs per region. Writing adds 14% to lite translation time (3% with gear-ups). `verify` matched every loaded lite region; in the geared-up run, 183,696 matched, 2 were inconclusive and 1 was a mismatch, suspected to be context-dependent heavy output (3.7). CoreMark through the runner, in separate processes: translator time 28.5 → 5.3 ms, wall 99 → 75 ms (medians of 5). Lichess's lite set takes 169 MB, more than the cap (3.6) | none |
+| P2b | A compact record format before the device image (the P2 review) | **Done, Digitalis patch 13, on the host.** Lichess's lite set takes 100.3 MB instead of 169 MB, so all 183,699 regions fit the default cap; loading takes 1.67 µs a region (P2: 3.45 µs, at its 1 GiB measurement cap). Writing adds 15% to lite translation time. `verify` matched every loaded lite region; the geared-up run (1 GiB cap) is unchanged: 183,696 matched, 2 inconclusive, 1 mismatch (3.7). A sweep flipping every byte of a real record: each was refused, or decoded and verified, and the code installed was always the fresh translation's | none |
 | P3 | The next batched G14 test image | G14 start-up and absolute CPU before and after; correctness under `verify` | test image, one approval |
 | P4 | The default and the trust model (section 4), recorded before any production enablement | Accept the broader risk with the in-process writer, or build the privileged one; on or off | none |
 
@@ -453,5 +477,5 @@ Each step is one pull request or one test image, and each decides something:
 - **The two map inserts** (13% of translator CPU) stay even with the cache, because loaded regions still insert. Cheaper
   structures there are a separate lead: upstream's TODO b/232598137 (`code_pool.h:174`) asks for per-region recovery
   maps.
-- **Whether 128 MiB is the right cap** for large games. P3's corpus decides. Lichess alone needs 169 MB in patch 12's
-  format, so a smaller relocation list (variable-length operands) or a larger cap comes first.
+- **Whether 128 MiB is the right cap** for large games. P3's corpus decides. Lichess's lite set takes 100 MB in
+  patch 13's format; how much of it gears up on a device, and how much bigger games are, is P3's to measure.
