@@ -135,8 +135,8 @@ The bridge is part of the normal product build (`scripts/aosp-build.sh`). Nothin
         embeds guest PCs, translation-table slots, the main table, the hotness counter, helper and callback
         addresses, entry trampolines and two heap-built tables.
       - **How:**
-        - `MachineCode` can keep a `PersistentReloc` per operand. Recording is off by default (it costs a median
-          2.4% of lite translation time) and nothing persists yet.
+        - `MachineCode` can keep a `PersistentReloc` per operand. Recording is off unless the cache (patch 12) is
+          on; it costs a median 2.4% of lite translation time.
         - The assembler's `Call`, `Jmp` and `Jcc` record their 64-bit targets.
         - `MovqPersistent` and `MovqGuestAddr` always emit the 10-byte `movabs`.
           - **Above 4 GiB** (where Android puts guest code, slots, tables and counters), that's exactly `Movq`'s
@@ -181,6 +181,60 @@ The bridge is part of the normal product build (`scripts/aosp-build.sh`). Nothin
       - **Found on the way:** heavy translation isn't always a function of its input. Re-translated after other work, 3–9
         of the 183,699 regions come out different (no miscompile observed), on the base translator too. Zero-filling
         arena allocations removes it, which points to an uninitialized read (suspected, not yet identified: ANAL-389).
+  12. A persistent translation cache, off by default (ANAL-381, step P2 of
+      [`digitalis-translation-cache.md`](digitalis-translation-cache.md)).
+      - **What:** translations of file-backed guest code are kept in the app's `code_cache/berberis` and installed on a
+        later launch instead of being translated again. `berberis.pcache` (`BERBERIS_PCACHE`) is `off` (the default),
+        `on` or `verify`. Executables run through the program runner use `BERBERIS_PCACHE_DIR`.
+      - **When a record is used:** the design's checks (3.3), in its order: the file header (the translator's build-id
+        and settings), the record (CRC32C and bounds), the mapping (executable, and still the mapping the record was
+        found through), then the guest bytes, exactly. The record is re-linked into the code pool and published like a
+        translation, so an invalidation during the load discards it. A region starts in the tier it ended on.
+      - **Mappings:** a registry follows every guest `mmap`, `munmap`, `mprotect` and `mremap`, under a lock held
+        around the host call. It attributes an executable file mapping to its ELF image by checking the image's
+        program headers against the mappings. The checks, the compare, the install and the publication hold the lock
+        shared, so the code can't be unmapped, re-protected or replaced underneath them.
+      - **A fix on the way:** an executable mapping replaced by another one (`MAP_FIXED`) now invalidates the old
+        code's translations. It kept the shadow's executable bits, so nothing was invalidated before.
+      - **Writing:**
+        - one writer process per module, by `flock` on a lock file;
+        - records are appended to a data file, with an index file;
+        - a translating thread flushes at 1 MiB, or 2 s after the last flush, and so do exit and the guest's
+          `exit_group`. No thread is started;
+        - 128 MiB per app, checked against the cache directory's size at each flush, so other processes' files
+          count. Processes flushing at the same moment can each still go over by one batch;
+        - a fork child, from the host's `fork()` or the guest's raw clone, stops using the cache without taking a
+          lock, and closes its copies of the lock fds.
+      - **`verify`:** a record is installed only if it equals a fresh translation, code and recovery points, re-linked
+        to one address. Otherwise the fresh code is installed, and a second fresh translation tells a mismatch (the
+        two agree) from inconclusive. Both fresh translations read guest memory, so they run under the mapping lock
+        too, held from the checks until the chosen code is published.
+      - **Counters:** `pcache_*` (hits, misses, rejects by reason, load and write time, records and bytes written,
+        `verify` results). Loaded regions are `lite_cached` and `heavy_cached` in the perf map. The final stats line
+        outgrew its buffer and the host's 1,024-byte log limit, so it's longer, and on the host it goes to stderr
+        directly.
+      - **Host results** (2026-11-05):
+        - **Lichess's 183,699 region starts**, mapped from their files at a new address each launch:
+          - **lite, with a 1 GiB measurement cap** so every region is stored: 7.2 µs per region to translate,
+            3.45 µs to load;
+          - **lite at the default 128 MiB cap:** 148,217 regions are stored and 35,482 miss, and a launch
+            averages 4.2 µs per region;
+          - **every region geared up, 1 GiB cap:** 53 µs to translate, 3.6 µs to load. The loaded set is
+            163,057 lite regions (settled, or still counting) and 20,642 heavy ones;
+          - writing adds 14% to lite translation time, and 3% with the gear-ups.
+        - **`verify`:**
+          - every loaded lite region matched (183,699);
+          - in the geared-up run, 183,696 matched, 2 were inconclusive and 1 was a mismatch, a heavy region in
+            `linker64`. Replayed alone, in a replay that writes its own cache, it matched 3 times out of 3. That
+            suggests heavy output that depends on what was translated before (ANAL-389), but doesn't prove the
+            original record was sound. Fresh code was installed for all three.
+        - **CoreMark through the runner, in separate processes:**
+          - the second launch loaded 1,392 regions and translated 6;
+          - translator time fell from 28.5 ms to 5.3 ms, and wall time from 99 ms to 75 ms (medians of 5);
+          - the first launch cost 8% more lite translation time (one run) and 0.2 ms of writing.
+        - **Storage:** a lite record averages 920 bytes with its index entry, for 402 bytes of code. Lichess's lite
+          set is 169 MB, so the 128 MiB cap holds 81% of it.
+      - **Not yet:** device measurement (P3), and the default and trust model (P4).
 - **ART patch** (`aosp/patches/art/`): `libnativebridge` sets `Build.CPU_ABI` and `CPU_ABI2` for bridged apps again (the Fennec fix).
 - **Device:** `device/anybook/common/native-bridge/`:
   - `native-bridge.mk` inherits Digitalis's `enable_arm64_to_x86_64.mk` and adds `openbook_bridge_check`;

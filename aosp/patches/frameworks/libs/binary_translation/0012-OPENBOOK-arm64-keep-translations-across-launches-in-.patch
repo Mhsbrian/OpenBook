@@ -1,0 +1,4740 @@
+From 804b3cb3c4ae4a7598a23eac67927fdca0aa7d5d Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 17:00:00 +0000
+Subject: [PATCH] OPENBOOK: arm64: keep translations across launches in a
+ per-app cache
+
+Step P2 of the persistent translation cache (ANAL-381), on patches 10 and
+11. Translations of file-backed guest code are written to the app's
+code_cache and installed on a later launch instead of being translated
+again. Off by default: berberis.pcache (BERBERIS_PCACHE) = off | on | verify.
+
+- Loading is lazy, in TranslateRegion's first gear, after
+  AddAndLockForTranslation. A record is installed only if, in this order:
+  the file's header matches this translator (build-id) and its settings
+  (mode, gear-up threshold, flags, host CPU features, page sizes); the
+  record's private copy has a good CRC32C and in-bounds lengths and
+  operands; [pc, pc + size) is executable and still in the mapping the
+  record was found through; and the guest bytes equal the bytes the
+  translation was made from. Then it's re-linked into the code pool
+  (CodePool::AddPrebuilt) and published like a translation, so an
+  invalidation during the load discards it. Regions start in the tier they
+  ended on: heavy, lite with its counter (re-linked to the new entry's), or
+  lite settled after a declined gear-up.
+- A mapping registry (GuestMappingObserver, set by the cache) follows every
+  guest mmap, munmap, mprotect and mremap under an exclusive lock around
+  the host call. An executable file mapping is attributed to its ELF image
+  (GNU build-id, or dev/ino/size/mtime, plus the ELF's file offset) by
+  checking its program headers against the mappings. Checks, the byte
+  compare, install and publication hold the shared lock, so the range
+  can't be unmapped, re-protected or replaced underneath them. A changed
+  mapping loses its attribution: a conservative miss.
+- MmapForGuest invalidates the translations of executable code replaced by
+  an executable MAP_FIXED mapping, which keeps the shadow's bits and
+  invalidated nothing before.
+- The translators capture the instruction words they decode (decoded_insns
+  in the lite and heavy params). A translation is symbolized after install
+  and queued after publication if the mapping is the one it started in.
+- Writing: one writer per module, by flock on a lock file, holding it on a
+  host-owned fd checked before each write. Files are created by rename and
+  appended to: records, and an index log read at open. Queued records are
+  flushed by a translating thread at 1 MiB or 2 s after the last flush, at
+  exit and at the guest's exit_group (g_guest_exit_hooks). No thread is
+  started. 128 MiB cap per app, checked against the directory's size at
+  each flush, so it counts what the app's other processes wrote.
+- A fork child stops using the cache without taking a lock (pthread_atfork,
+  and g_guest_fork_child_hooks from the guest's raw-clone fork): it drops
+  the mapping observer and closes its copies of the writer lock fds.
+- verify: the candidate is installed only if its code and recovery points,
+  re-linked to one address, equal a fresh translation with its tier,
+  parameters and end. Otherwise the fresh one is installed, and a second
+  fresh translation tells a mismatch (the two agree) from inconclusive.
+  Both fresh translations read guest memory, so they, and the install and
+  publication of whichever code is chosen, run under the same shared hold
+  of the mapping lock as the checks.
+- Counters pcache_* in translator_stats; loaded regions are lite_cached and
+  heavy_cached in the perf map. The final stats line's buffer grows to fit
+  them; on the host it goes to stderr directly, past liblog's 1024 bytes.
+
+Tests: persistent_cache_test.cc (24): loads in each tier in a new
+"launch" at another address, verify match; each refusal and their order;
+torn and corrupt files; executable replacement; protection removal, remap
+and replacement before the check; an unmap racing the comparison; an
+invalidation during the load; the counter re-link; flush points; one
+writer across fork, an independent process and the guest's raw clone with
+the mapping lock held; verify's deterministic mismatch, nondeterminism and
+recovery-only mismatch, each checking the code installed; protection
+taken away and an unmap during verify's two translations, the second on
+the way to installing fresh code; the cap counting another process's
+files.
+PersistentCacheBench.DISABLED_ReplayCorpus replays a region corpus
+through write, load and verify launches.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Co-authored-by: multica-agent <github@multica.ai>
+---
+ guest_os_primitives/guest_map_shadow.cc       |   10 +
+ guest_os_primitives/guest_thread_manager.cc   |    2 +
+ .../guest_os_primitives/guest_map_shadow.h    |    7 +
+ .../arm64/heavy_optimize_region.cc            |   18 +-
+ .../arm64/heavy_optimize_region.h             |    6 +
+ kernel_api/arm64/syscall_emulation.cc         |    2 +
+ .../kernel_api/guest_mapping_observer.h       |   53 +
+ kernel_api/sys_mman_emulation.cc              |  102 +-
+ .../arm64_to_x86_64/lite_translate_region.cc  |   18 +-
+ .../lite_translator/lite_translate_region.h   |    7 +
+ runtime/arm64/Android.bp                      |    4 +
+ runtime/arm64/persistent_cache.cc             | 1489 +++++++++++++++++
+ runtime/arm64/persistent_cache.h              |  215 +++
+ runtime/arm64/persistent_cache_test.cc        | 1373 +++++++++++++++
+ runtime/arm64/relocatable_code.cc             |   84 +-
+ runtime/arm64/relocatable_code.h              |   23 +-
+ runtime/arm64/translator_stats_test.cc        |   17 +-
+ runtime/arm64/translator_x86_64.cc            |  431 ++++-
+ .../berberis/runtime_primitives/code_pool.h   |   41 +
+ .../runtime_primitives/process_hooks.h        |   63 +
+ .../runtime_primitives/translator_stats.h     |   24 +
+ runtime_primitives/translator_stats.cc        |   28 +-
+ 22 files changed, 3958 insertions(+), 59 deletions(-)
+ create mode 100644 kernel_api/include/berberis/kernel_api/guest_mapping_observer.h
+ create mode 100644 runtime/arm64/persistent_cache.cc
+ create mode 100644 runtime/arm64/persistent_cache.h
+ create mode 100644 runtime/arm64/persistent_cache_test.cc
+ create mode 100644 runtime_primitives/include/berberis/runtime_primitives/process_hooks.h
+
+diff --git a/guest_os_primitives/guest_map_shadow.cc b/guest_os_primitives/guest_map_shadow.cc
+index 288f6074..d44670eb 100644
+--- a/guest_os_primitives/guest_map_shadow.cc
++++ b/guest_os_primitives/guest_map_shadow.cc
+@@ -285,6 +285,16 @@ void GuestMapShadow::ClearExecutable(GuestAddr start, size_t size) {
+   }
+ }
+ 
++// region digitalis
++void GuestMapShadow::InvalidateExecutable(GuestAddr start, size_t size) {
++  if (size == 0 || start + size < start) {
++    return;
++  }
++  translator_stats::Add(translator_stats::kInvalidationsFromUnmap);
++  InvalidateGuestRange(start, start + size);
++}
++// endregion
++
+ void GuestMapShadow::RemapExecutable(GuestAddr old_start,
+                                      size_t old_size,
+                                      GuestAddr new_start,
+diff --git a/guest_os_primitives/guest_thread_manager.cc b/guest_os_primitives/guest_thread_manager.cc
+index 701052e1..ee7bfb50 100644
+--- a/guest_os_primitives/guest_thread_manager.cc
++++ b/guest_os_primitives/guest_thread_manager.cc
+@@ -24,6 +24,7 @@
+ #include "berberis/guest_os_primitives/guest_thread_manager.h"
+ #include "berberis/instrument/guest_thread.h"
+ #include "berberis/runtime_primitives/code_pool.h"  // ResetAllExecRegions
++#include "berberis/runtime_primitives/process_hooks.h"  // digitalis
+ #include "berberis/runtime_primitives/translator_stats.h"
+ #include "guest_thread_manager_impl.h"
+ #include "guest_thread_map.h"
+@@ -83,6 +84,7 @@ void ResetCurrentGuestThreadAfterFork(GuestThread* thread) {
+   CHECK_NE(gettid(), -1);
+ #endif
+   ResetAllExecRegions();
++  g_guest_fork_child_hooks.Run();  // digitalis
+ }
+ 
+ bool GetGuestThreadAttr(pid_t tid,
+diff --git a/guest_os_primitives/include/berberis/guest_os_primitives/guest_map_shadow.h b/guest_os_primitives/include/berberis/guest_os_primitives/guest_map_shadow.h
+index 4827e314..fd2af83b 100644
+--- a/guest_os_primitives/include/berberis/guest_os_primitives/guest_map_shadow.h
++++ b/guest_os_primitives/include/berberis/guest_os_primitives/guest_map_shadow.h
+@@ -63,6 +63,13 @@ class GuestMapShadow {
+   // Mark region start..start+size as not executable.
+   void ClearExecutable(GuestAddr start, size_t size);
+ 
++  // region digitalis
++  // Invalidates the translations of start..start+size without changing its bits: an executable
++  // mapping replaced by another one (MAP_FIXED) keeps its executable bits, but its old code is
++  // gone (ANAL-381).
++  void InvalidateExecutable(GuestAddr start, size_t size);
++  // endregion
++
+   void RemapExecutable(GuestAddr old_start, size_t old_size, GuestAddr new_start, size_t new_size);
+ 
+   void AddProtectedMapping(const void* start, const void* end);
+diff --git a/heavy_optimizer/arm64/heavy_optimize_region.cc b/heavy_optimizer/arm64/heavy_optimize_region.cc
+index 123ea0f8..86ea9032 100644
+--- a/heavy_optimizer/arm64/heavy_optimize_region.cc
++++ b/heavy_optimizer/arm64/heavy_optimize_region.cc
+@@ -18,6 +18,7 @@
+ 
+ #include <cstddef>
+ #include <cstdint>
++#include <cstring>
+ #include <tuple>
+ 
+ #include "berberis/assembler/machine_code.h"
+@@ -52,15 +53,30 @@ std::tuple<GuestAddr, bool, size_t> HeavyOptimizeRegion(GuestAddr pc,
+   SemanticsPlayer sem_player(&frontend);
+   Decoder decoder(&sem_player);
+   size_t number_of_instructions = 0;
++  if (params.decoded_insns != nullptr) {  // digitalis
++    params.decoded_insns->clear();
++  }
+ 
+   while (number_of_instructions != params.max_number_of_instructions &&
+          frontend.GetInsnAddr() < params.end_pc && !frontend.IsRegionEndReached()) {
+     frontend.StartInsn();
+-    auto size = decoder.Decode(ToHostAddr<const uint16_t>(frontend.GetInsnAddr()));
++    // region digitalis
++    uint32_t insn_copy = 0;
++    uint8_t size;
++    if (params.decoded_insns != nullptr) {
++      memcpy(&insn_copy, ToHostAddr<const uint8_t>(frontend.GetInsnAddr()), sizeof(insn_copy));
++      size = decoder.Decode(reinterpret_cast<const uint16_t*>(&insn_copy));
++    } else {
++      size = decoder.Decode(ToHostAddr<const uint16_t>(frontend.GetInsnAddr()));
++    }
++    // endregion
+     if (!frontend.success()) {
+       // Do not increment the insn counter if we could not generate the instruction.
+       break;
+     }
++    if (params.decoded_insns != nullptr) {  // digitalis
++      params.decoded_insns->push_back(insn_copy);
++    }
+     frontend.IncrementInsnAddr(size);
+     number_of_instructions++;
+   }
+diff --git a/heavy_optimizer/arm64/include/berberis/heavy_optimizer/arm64/heavy_optimize_region.h b/heavy_optimizer/arm64/include/berberis/heavy_optimizer/arm64/heavy_optimize_region.h
+index 60e28b54..07323870 100644
+--- a/heavy_optimizer/arm64/include/berberis/heavy_optimizer/arm64/heavy_optimize_region.h
++++ b/heavy_optimizer/arm64/include/berberis/heavy_optimizer/arm64/heavy_optimize_region.h
+@@ -19,6 +19,7 @@
+ 
+ #include <cstddef>
+ #include <tuple>
++#include <vector>
+ 
+ #include "berberis/assembler/machine_code.h"
+ #include "berberis/guest_state/guest_addr.h"
+@@ -39,6 +40,11 @@ struct HeavyOptimizeParams {
+   // the same as with codegen. The defaults keep codegen for every region.
+   size_t skip_codegen_below_instructions = 0;
+   bool skip_codegen_if_bailed_without_backedge = false;
++  // region digitalis
++  // As LiteTranslateParams::decoded_insns: the words of the translated instructions, decoded
++  // from copies (ANAL-381).
++  std::vector<uint32_t>* decoded_insns = nullptr;
++  // endregion
+ };
+ 
+ // Optimizing (second-gear) translation of the ARM64 region at `pc` into
+diff --git a/kernel_api/arm64/syscall_emulation.cc b/kernel_api/arm64/syscall_emulation.cc
+index bc9d7bc4..4731276e 100644
+--- a/kernel_api/arm64/syscall_emulation.cc
++++ b/kernel_api/arm64/syscall_emulation.cc
+@@ -40,6 +40,7 @@
+ #include "berberis/kernel_api/syscall_emulation_common.h"
+ 
+ #include "berberis/guest_os_primitives/scoped_pending_signals.h"
++#include "berberis/runtime_primitives/process_hooks.h"  // digitalis
+ #include "berberis/runtime_primitives/runtime_library.h"
+ #include "berberis/runtime_primitives/translator_stats.h"
+ 
+@@ -193,6 +194,7 @@ void RunGuestSyscall(ThreadState* state) {
+   // handlers, so the translator counters log their last line here. A guest
+   // exit() ends in the host's exit() instead, and logs from its atexit handler.
+   if (guest_nr == kGuestNrExitGroup) {
++    g_guest_exit_hooks.Run();  // digitalis: e.g. flush the persistent translation cache.
+     translator_stats::LogFinalLine();
+   }
+ 
+diff --git a/kernel_api/include/berberis/kernel_api/guest_mapping_observer.h b/kernel_api/include/berberis/kernel_api/guest_mapping_observer.h
+new file mode 100644
+index 00000000..aa60003c
+--- /dev/null
++++ b/kernel_api/include/berberis/kernel_api/guest_mapping_observer.h
+@@ -0,0 +1,53 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef BERBERIS_KERNEL_API_GUEST_MAPPING_OBSERVER_H_
++#define BERBERIS_KERNEL_API_GUEST_MAPPING_OBSERVER_H_
++
++#include <sys/types.h>
++
++#include <cstddef>
++
++namespace berberis {
++
++// region digitalis
++// Something that tracks guest mappings: the persistent translation cache's module registry
++// (ANAL-381). While one is set, every guest mmap, munmap, mprotect and mremap takes its
++// exclusive lock around the host call and the notification, so a reader holding the shared lock
++// sees mappings that can't change, and guest memory that can't be unmapped, under it. The
++// shadow updates and the invalidations they cause stay outside the lock. Without an observer,
++// the guest calls cost one atomic load.
++class GuestMappingObserver {
++ public:
++  virtual void LockExclusive() = 0;
++  virtual void UnlockExclusive() = 0;
++  // Called with the exclusive lock held, after the host call.
++  virtual void OnMap(void* addr, size_t length, int prot, int flags, int fd, off64_t offset) = 0;
++  virtual void OnUnmap(void* addr, size_t length) = 0;
++  virtual void OnProtect(void* addr, size_t length, int prot) = 0;
++  virtual void OnRemap(void* old_addr, size_t old_size, void* new_addr, size_t new_size) = 0;
++
++ protected:
++  ~GuestMappingObserver() = default;
++};
++
++void SetGuestMappingObserver(GuestMappingObserver* observer);
++[[nodiscard]] GuestMappingObserver* GetGuestMappingObserver();
++// endregion
++
++}  // namespace berberis
++
++#endif  // BERBERIS_KERNEL_API_GUEST_MAPPING_OBSERVER_H_
+diff --git a/kernel_api/sys_mman_emulation.cc b/kernel_api/sys_mman_emulation.cc
+index df9b8e00..4e9a3ed8 100644
+--- a/kernel_api/sys_mman_emulation.cc
++++ b/kernel_api/sys_mman_emulation.cc
+@@ -18,6 +18,7 @@
+ 
+ #include <sys/mman.h>
+ 
++#include <atomic>  // digitalis
+ #include <cerrno>
+ // region digitalis
+ #if defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64)
+@@ -34,6 +35,7 @@
+ #include "berberis/base/tracing.h"
+ #include "berberis/guest_os_primitives/guest_map_shadow.h"
+ #include "berberis/guest_state/guest_addr.h"
++#include "berberis/kernel_api/guest_mapping_observer.h"
+ 
+ namespace berberis {
+ 
+@@ -67,11 +69,74 @@ void UpdateGuestProt(int guest_prot, void* addr, size_t length) {
+ // If other thread starts translation after actual mmap/mprotect/munmap but before xbit update,
+ // it might pick up an already obsolete code.
+ 
++// region digitalis
++namespace {
++
++std::atomic<GuestMappingObserver*> g_guest_mapping_observer{nullptr};
++
++// Holds the observer's exclusive lock, if there's an observer, around a host call.
++class ScopedObserverLock {
++ public:
++  ScopedObserverLock() : observer_(g_guest_mapping_observer.load(std::memory_order_acquire)) {
++    if (observer_ != nullptr) {
++      observer_->LockExclusive();
++    }
++  }
++  ~ScopedObserverLock() {
++    if (observer_ != nullptr) {
++      observer_->UnlockExclusive();
++    }
++  }
++  ScopedObserverLock(const ScopedObserverLock&) = delete;
++  ScopedObserverLock& operator=(const ScopedObserverLock&) = delete;
++  [[nodiscard]] GuestMappingObserver* observer() const { return observer_; }
++
++ private:
++  GuestMappingObserver* observer_;
++};
++
++}  // namespace
++
++void SetGuestMappingObserver(GuestMappingObserver* observer) {
++  g_guest_mapping_observer.store(observer, std::memory_order_release);
++}
++
++GuestMappingObserver* GetGuestMappingObserver() {
++  return g_guest_mapping_observer.load(std::memory_order_acquire);
++}
++// endregion
++
+ void* MmapForGuest(void* addr, size_t length, int prot, int flags, int fd, off64_t offset) {
+-  void* result = mmap64(addr, length, ToHostProt(prot), flags, fd, offset);
++  // region digitalis
++  // An executable mapping placed over executable code (MAP_FIXED) keeps the shadow's executable
++  // bits, so SetExecutable below invalidates nothing: the old code's translations would survive
++  // the new code. Invalidate them explicitly (ANAL-381).
++  const bool replaces_executable =
++      (flags & MAP_FIXED) && (prot & PROT_EXEC) &&
++      GuestMapShadow::GetInstance()->GetExecutable(ToGuestAddr(addr), length) != kBitUnset;
++  void* result;
++  {
++    ScopedObserverLock lock;
++    result = mmap64(addr, length, ToHostProt(prot), flags, fd, offset);
++    if (lock.observer() != nullptr) {
++      int saved_errno = errno;
++      if (result != MAP_FAILED) {
++        lock.observer()->OnMap(result, length, prot, flags, fd, offset);
++      } else if (flags & MAP_FIXED) {
++        lock.observer()->OnUnmap(addr, length);  // A failed MAP_FIXED may have unmapped some.
++      }
++      errno = saved_errno;
++    }
++  }
+   if (result != MAP_FAILED) {
+     UpdateGuestProt(prot, result, length);
++    if (replaces_executable) {
++      int saved_errno = errno;
++      GuestMapShadow::GetInstance()->InvalidateExecutable(ToGuestAddr(result), length);
++      errno = saved_errno;
++    }
+   }
++  // endregion
+   // region digitalis - zero .bss partial pages for ELF segment mappings
+ #if defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64)
+   // When the guest linker mmaps a file-backed page for a LOAD segment that has
+@@ -184,7 +249,16 @@ void* MmapForGuest(void* addr, size_t length, int prot, int flags, int fd, off64
+ 
+ int MunmapForGuest(void* addr, size_t length) {
+   GuestMapShadow::GetInstance()->ClearExecutable(ToGuestAddr(addr), length);
+-  return munmap(addr, length);
++  // region digitalis
++  ScopedObserverLock lock;
++  int result = munmap(addr, length);
++  if (lock.observer() != nullptr) {
++    int saved_errno = errno;
++    lock.observer()->OnUnmap(addr, length);
++    errno = saved_errno;
++  }
++  return result;
++  // endregion
+ }
+ 
+ int MprotectForGuest(void* addr, size_t length, int prot) {
+@@ -200,7 +274,16 @@ int MprotectForGuest(void* addr, size_t length, int prot) {
+   }
+ 
+   UpdateGuestProt(prot, addr, length);
+-  return mprotect(addr, length, ToHostProt(prot));
++  // region digitalis
++  ScopedObserverLock lock;
++  int result = mprotect(addr, length, ToHostProt(prot));
++  if (lock.observer() != nullptr) {
++    int saved_errno = errno;
++    lock.observer()->OnProtect(addr, length, prot);
++    errno = saved_errno;
++  }
++  return result;
++  // endregion
+ }
+ 
+ void* MremapForGuest(void* old_addr, size_t old_size, size_t new_size, int flags, void* new_addr) {
+@@ -224,7 +307,18 @@ void* MremapForGuest(void* old_addr, size_t old_size, size_t new_size, int flags
+     }
+   }
+ 
+-  void* result = mremap(old_addr, old_size, new_size, flags, new_addr);
++  // region digitalis
++  void* result;
++  {
++    ScopedObserverLock lock;
++    result = mremap(old_addr, old_size, new_size, flags, new_addr);
++    if (lock.observer() != nullptr && result != MAP_FAILED) {
++      int saved_errno = errno;
++      lock.observer()->OnRemap(old_addr, old_size, result, new_size);
++      errno = saved_errno;
++    }
++  }
++  // endregion
+ 
+   if (result != MAP_FAILED) {
+     shadow->RemapExecutable(ToGuestAddr(old_addr), old_size, ToGuestAddr(result), new_size);
+diff --git a/lite_translator/arm64_to_x86_64/lite_translate_region.cc b/lite_translator/arm64_to_x86_64/lite_translate_region.cc
+index 77abe2f9..7e8951ca 100644
+--- a/lite_translator/arm64_to_x86_64/lite_translate_region.cc
++++ b/lite_translator/arm64_to_x86_64/lite_translate_region.cc
+@@ -16,6 +16,7 @@
+ #include "berberis/lite_translator/lite_translate_region.h"
+ 
+ #include <cstdint>
++#include <cstring>
+ #include <tuple>
+ 
+ #include "berberis/assembler/machine_code.h"
+@@ -73,6 +74,9 @@ PassResult TranslatePass(GuestAddr start_pc,
+   if (loop_entry != nullptr) {
+     translator.EmitLoopHead(*loop_entry);
+   }
++  if (params.decoded_insns != nullptr) {  // digitalis
++    params.decoded_insns->clear();
++  }
+ 
+   while (translator.GetInsnAddr() < params.end_pc && !translator.is_region_end_reached()) {
+     // No early termination on register pressure: the allocator reserves a
+@@ -82,7 +86,16 @@ PassResult TranslatePass(GuestAddr start_pc,
+     // and translation continues to the region's natural end. Ending the region
+     // here instead would split hot straight-line code (function prologues are
+     // the worst case) into fragments too small for the heavy tier to gear up.
+-    uint8_t insn_size = decoder.Decode(ToHostAddr<const uint16_t>(translator.GetInsnAddr()));
++    // region digitalis
++    uint32_t insn_copy = 0;
++    uint8_t insn_size;
++    if (params.decoded_insns != nullptr) {
++      memcpy(&insn_copy, ToHostAddr<const uint8_t>(translator.GetInsnAddr()), sizeof(insn_copy));
++      insn_size = decoder.Decode(reinterpret_cast<const uint16_t*>(&insn_copy));
++    } else {
++      insn_size = decoder.Decode(ToHostAddr<const uint16_t>(translator.GetInsnAddr()));
++    }
++    // endregion
+     if (!translator.success()) {
+       // JIT break profiling
+       static uint64_t break_count = 0;
+@@ -97,6 +110,9 @@ PassResult TranslatePass(GuestAddr start_pc,
+       }
+       return {false, translator.GetInsnAddr(), false, {}};
+     }
++    if (params.decoded_insns != nullptr) {  // digitalis
++      params.decoded_insns->push_back(insn_copy);
++    }
+     translator.FreeTempRegs();
+     translator.IncrementInsnAddr(insn_size);
+   }
+diff --git a/lite_translator/include/berberis/lite_translator/lite_translate_region.h b/lite_translator/include/berberis/lite_translator/lite_translate_region.h
+index 6b29b5e9..e23821bc 100644
+--- a/lite_translator/include/berberis/lite_translator/lite_translate_region.h
++++ b/lite_translator/include/berberis/lite_translator/lite_translate_region.h
+@@ -18,6 +18,7 @@
+ #define BERBERIS_LITE_TRANSLATOR_LITE_TRANSLATE_REGION_H_
+ 
+ #include <tuple>
++#include <vector>
+ 
+ #include "berberis/assembler/machine_code.h"
+ #include "berberis/base/config.h"
+@@ -42,6 +43,12 @@ struct LiteTranslateParams {
+   uint32_t counter_threshold = config::kGearSwitchThreshold;
+   HostCode counter_threshold_callback =
+       AsHostCode(berberis::berberis_entry_HandleLiteCounterThresholdReached);
++  // region digitalis
++  // When set, each instruction is decoded from a copy of its word, and the words of the
++  // translated region are left here: exactly the bytes the code was made from, for the
++  // persistent translation cache (ANAL-381). Each translation pass starts it afresh.
++  std::vector<uint32_t>* decoded_insns = nullptr;
++  // endregion
+ };
+ 
+ std::tuple<bool, GuestAddr> TryLiteTranslateRegion(GuestAddr start_pc,
+diff --git a/runtime/arm64/Android.bp b/runtime/arm64/Android.bp
+index 41884967..12342038 100644
+--- a/runtime/arm64/Android.bp
++++ b/runtime/arm64/Android.bp
+@@ -27,11 +27,13 @@ cc_library_static {
+     arch: {
+         x86_64: {
+             srcs: [
++                "persistent_cache.cc",
+                 "relocatable_code.cc",
+                 "translator_x86_64.cc",
+             ],
+             header_libs: [
+                 "libberberis_heavy_optimizer_arm64_headers",
++                "libberberis_kernel_api_headers",
+                 "libberberis_lite_translator_headers",
+             ],
+         },
+@@ -65,6 +67,7 @@ cc_test_library {
+         x86_64: {
+             srcs: [
+                 "ic_ivau_invalidation_test.cc",
++                "persistent_cache_test.cc",
+                 "relocatable_code_test.cc",
+                 "translate_corpus_bench_test.cc",
+                 "translator_stats_test.cc",
+@@ -74,6 +77,7 @@ cc_test_library {
+                 "berberis_test_utils_headers",
+                 "libberberis_heavy_optimizer_arm64_headers",
+                 "libberberis_interpreter_arm64_headers",
++                "libberberis_kernel_api_headers",
+                 "libberberis_lite_translator_headers",
+             ],
+         },
+diff --git a/runtime/arm64/persistent_cache.cc b/runtime/arm64/persistent_cache.cc
+new file mode 100644
+index 00000000..3440a369
+--- /dev/null
++++ b/runtime/arm64/persistent_cache.cc
+@@ -0,0 +1,1489 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "persistent_cache.h"
++
++#include <dirent.h>
++#include <elf.h>
++#include <fcntl.h>
++#include <link.h>
++#include <pthread.h>
++#include <sys/file.h>
++#include <sys/mman.h>
++#include <sys/stat.h>
++#include <unistd.h>
++
++#include <algorithm>
++#include <atomic>
++#include <cerrno>
++#include <cstdint>
++#include <cstdio>
++#include <cstdlib>
++#include <cstring>
++#include <map>
++#include <memory>
++#include <mutex>
++#include <shared_mutex>
++#include <string>
++#include <unordered_map>
++#include <vector>
++
++#include "berberis/base/bit_util.h"
++#include "berberis/base/checks.h"
++#include "berberis/base/config.h"
++#include "berberis/base/config_globals.h"
++#include "berberis/base/fd.h"
++#include "berberis/base/gettid.h"
++#include "berberis/base/logging.h"
++#include "berberis/base/tracing.h"
++#include "berberis/guest_os_primitives/guest_map_shadow.h"
++#include "berberis/kernel_api/guest_mapping_observer.h"
++#include "berberis/runtime_primitives/code_pool.h"
++#include "berberis/runtime_primitives/platform.h"
++#include "berberis/runtime_primitives/process_hooks.h"
++#include "berberis/runtime_primitives/translator_stats.h"
++
++namespace berberis::pcache {
++
++// region digitalis
++void (*g_before_mapping_check_hook_for_testing)(GuestAddr pc) = nullptr;
++void (*g_in_mapping_check_hook_for_testing)(GuestAddr pc) = nullptr;
++
++namespace {
++
++constexpr uint32_t kFormatVersion = 1;
++constexpr size_t kPageSize = 4096;
++constexpr uint64_t kFlushBytes = 1 << 20;
++constexpr uint64_t kFlushIntervalNs = 2'000'000'000;
++constexpr uint64_t kCapBytes = 128ull << 20;
++uint64_t g_cap_bytes_for_testing = 0;
++// Bounds on what a record may claim, checked before anything is allocated for it.
++constexpr uint32_t kMaxGuestSize = 64 * 1024;
++constexpr uint32_t kMaxCodeSize = 1 << 20;
++constexpr uint32_t kMaxOperands = 1 << 16;
++constexpr uint32_t kMaxRecoveryPoints = 1 << 16;
++// Writer lock fds a fork child must close without taking any lock.
++constexpr size_t kMaxWriterModules = 256;
++// Preceding mappings searched for a module's ELF header.
++constexpr int kMaxHeaderCandidates = 8;
++// The mapping-type bits of mmap flags (MAP_TYPE, which not every libc defines).
++constexpr int kMapType = 0x0f;
++
++// ---- CRC32C ----
++
++constexpr auto kCrc32cTable = [] {
++  struct {
++    uint32_t v[256];
++  } table{};
++  for (uint32_t i = 0; i < 256; i++) {
++    uint32_t c = i;
++    for (int k = 0; k < 8; k++) {
++      c = (c & 1) ? (c >> 1) ^ 0x82f63b78u : c >> 1;
++    }
++    table.v[i] = c;
++  }
++  return table;
++}();
++
++uint32_t Crc32cSoftware(uint32_t crc, const uint8_t* p, size_t n) {
++  for (size_t i = 0; i < n; i++) {
++    crc = kCrc32cTable.v[(crc ^ p[i]) & 0xff] ^ (crc >> 8);
++  }
++  return crc;
++}
++
++#if defined(__x86_64__)
++__attribute__((target("sse4.2"))) uint32_t Crc32cHardware(uint32_t crc, const uint8_t* p,
++                                                          size_t n) {
++  uint64_t c = crc;
++  for (; n >= 8; n -= 8, p += 8) {
++    uint64_t v;
++    memcpy(&v, p, 8);
++    c = __builtin_ia32_crc32di(c, v);
++  }
++  uint32_t c32 = static_cast<uint32_t>(c);
++  for (; n > 0; n--, p++) {
++    c32 = __builtin_ia32_crc32qi(c32, *p);
++  }
++  return c32;
++}
++#endif
++
++uint32_t Crc32cUpdate(uint32_t crc, const uint8_t* p, size_t n) {
++#if defined(__x86_64__)
++  if (host_platform::kHasSSE4_2) {
++    return Crc32cHardware(crc, p, n);
++  }
++#endif
++  return Crc32cSoftware(crc, p, n);
++}
++
++// CRC32C of `n` bytes, with the 4 bytes at `zero_at` taken as zero (where the CRC itself goes).
++uint32_t Crc32cExcept(const uint8_t* p, size_t n, size_t zero_at) {
++  static const uint8_t kZero[4] = {};
++  uint32_t crc = ~0u;
++  crc = Crc32cUpdate(crc, p, zero_at);
++  crc = Crc32cUpdate(crc, kZero, 4);
++  crc = Crc32cUpdate(crc, p + zero_at + 4, n - zero_at - 4);
++  return ~crc;
++}
++
++// ---- File format ----
++
++// What a translation depends on besides its guest bytes and addresses (section 3.3, check 1).
++struct Fingerprint {
++  uint8_t translator_build_id[32];
++  uint32_t translator_build_id_size;
++  uint32_t format_version;
++  uint32_t translation_mode;
++  uint32_t gearup_min_insns;
++  uint64_t config_flags;
++  uint8_t host_cpu[48];
++  uint32_t host_page_size;
++  uint32_t guest_page_size;
++  uint32_t guest_machine;
++  uint32_t recording;
++};
++static_assert(sizeof(host_platform::PlatformCapabilities) <= sizeof(Fingerprint::host_cpu));
++
++constexpr char kDataMagic[8] = {'O', 'B', 'P', 'C', 'D', 'A', 'T', '1'};
++constexpr char kIndexMagic[8] = {'O', 'B', 'P', 'C', 'I', 'D', 'X', '1'};
++
++struct FileHeader {
++  char magic[8];
++  uint32_t header_size;
++  uint32_t crc;  // Over the header, this field taken as zero.
++  uint64_t nonce;  // Pairs an index with its data file.
++  Fingerprint fingerprint;
++  char module_key[112];
++};
++static_assert(sizeof(Fingerprint) == 120);
++static_assert(sizeof(FileHeader) == 256);
++
++constexpr uint32_t kRecordMagic = 0x4352424f;  // "OBRC"
++
++struct RecordHeader {
++  uint32_t magic;
++  uint32_t size;  // Of the whole record, a multiple of 8.
++  uint32_t crc;   // Over the whole record, this field taken as zero.
++  uint8_t tier;
++  uint8_t reserved[3];
++  uint64_t vaddr;  // Region start - module start: the ELF address.
++  uint64_t end;    // The translation's end_pc - module start.
++  uint32_t guest_size;
++  uint32_t code_size;
++  uint32_t num_operands;
++  uint32_t num_recovery_points;
++};
++static_assert(sizeof(RecordHeader) == 48);
++
++struct PackedOperand {
++  uint32_t offset;
++  uint8_t width;
++  uint8_t kind;
++  uint16_t reserved;
++  uint32_t next_pc;
++  uint32_t reserved2;
++  uint64_t arg;
++};
++static_assert(sizeof(PackedOperand) == 24);
++
++struct IndexEntry {
++  uint64_t vaddr;
++  uint64_t record_offset;
++  uint32_t record_size;
++  uint8_t tier;
++  uint8_t reserved[3];
++  uint32_t crc;  // Over the entry, this field taken as zero.
++  uint32_t reserved2;
++};
++static_assert(sizeof(IndexEntry) == 32);
++
++constexpr uint64_t Pad8(uint64_t n) {
++  return (n + 7) & ~uint64_t{7};
++}
++
++// ---- State ----
++
++struct Module {
++  std::string key;
++  std::string data_path;
++  std::string index_path;
++  std::string lock_path;
++
++  std::mutex open_mutex;
++  std::atomic<bool> opened{false};
++  // Reader: immutable once opened.
++  void* data_map = nullptr;
++  size_t data_size = 0;
++  std::unordered_map<uint64_t, IndexEntry> index;
++
++  // Writer: set when opened; then guarded by State::writer_mutex (pending) or
++  // State::flush_mutex (the on-disk state).
++  bool writer = false;
++  int lock_slot = -1;
++  int lock_fd = -1;
++  FdIdentity lock_identity;
++  uint64_t data_ino = 0;
++  uint64_t index_ino = 0;
++  uint64_t data_size_on_disk = 0;
++  uint64_t index_size_on_disk = 0;
++  std::atomic<bool> write_failed{false};
++  std::vector<uint8_t> pending_data;
++  std::vector<IndexEntry> pending_index;  // record_offset relative to pending_data.
++};
++
++struct Mapping {
++  GuestAddr end;
++  uint64_t id;
++  uint64_t dev;
++  uint64_t ino;
++  uint64_t offset;
++  int prot;
++  Module* module;  // Set for an executable mapping attributed to a module.
++  GuestAddr module_start;
++  GuestAddr module_end;
++};
++
++class Registry;
++
++struct State {
++  Mode mode = Mode::kOff;
++  std::string dir;
++  Fingerprint fingerprint{};
++  pid_t pid = 0;
++  std::unique_ptr<Registry> registry;
++
++  std::mutex modules_mutex;
++  std::unordered_map<std::string, std::unique_ptr<Module>> modules;
++
++  std::mutex writer_mutex;
++  std::vector<Module*> writer_modules;
++  std::mutex flush_mutex;
++  std::atomic<uint64_t> pending_bytes{0};
++  std::atomic<uint64_t> last_flush_ns{0};
++  std::atomic<bool> cap_reached{false};
++  uint64_t cap_bytes = kCapBytes;
++};
++
++std::atomic<State*> g_state{nullptr};
++std::atomic<bool> g_disabled{false};
++std::atomic<int> g_lock_fds[kMaxWriterModules];
++std::atomic<uint64_t> g_counters[kNumCounters];
++bool g_record_default_before = false;
++
++constexpr translator_stats::Counter kStatsCounter[kNumCounters] = {
++    translator_stats::kPcacheHitsLite,
++    translator_stats::kPcacheHitsHeavy,
++    translator_stats::kPcacheMisses,
++    translator_stats::kPcacheRejectsFile,
++    translator_stats::kPcacheRejectsRecord,
++    translator_stats::kPcacheRejectsMapping,
++    translator_stats::kPcacheRejectsBytes,
++    translator_stats::kPcacheNotPersistable,
++    translator_stats::kPcacheRecordsWritten,
++    translator_stats::kPcacheBytesWritten,
++    translator_stats::kPcacheVerifyMatch,
++    translator_stats::kPcacheVerifyMismatch,
++    translator_stats::kPcacheVerifyInconclusive,
++    translator_stats::kPcacheVerifyFallback,
++};
++
++State* GetState() {
++  return g_state.load(std::memory_order_acquire);
++}
++
++uint64_t PageStart(uint64_t v) {
++  return v & ~uint64_t{kPageSize - 1};
++}
++
++std::string Hex(const uint8_t* p, size_t n) {
++  static const char kDigits[] = "0123456789abcdef";
++  std::string s;
++  for (size_t i = 0; i < n; i++) {
++    s += kDigits[p[i] >> 4];
++    s += kDigits[p[i] & 15];
++  }
++  return s;
++}
++
++std::string HexNum(uint64_t v) {
++  char buf[24];
++  snprintf(buf, sizeof(buf), "%llx", static_cast<unsigned long long>(v));
++  return buf;
++}
++
++// The GNU build-id in the notes at [p, p + size), or empty.
++std::string FindBuildId(const uint8_t* p, size_t size) {
++  size_t pos = 0;
++  while (pos + sizeof(Elf64_Nhdr) <= size) {
++    Elf64_Nhdr nh;
++    memcpy(&nh, p + pos, sizeof(nh));
++    size_t name_at = pos + sizeof(nh);
++    size_t desc_at = name_at + ((nh.n_namesz + 3) & ~size_t{3});
++    size_t next = desc_at + ((nh.n_descsz + 3) & ~size_t{3});
++    if (next > size || desc_at > size || nh.n_descsz > size) {
++      break;
++    }
++    if (nh.n_type == NT_GNU_BUILD_ID && nh.n_namesz == 4 && memcmp(p + name_at, "GNU", 4) == 0 &&
++        nh.n_descsz > 0 && nh.n_descsz <= 32) {
++      return std::string(reinterpret_cast<const char*>(p + desc_at), nh.n_descsz);
++    }
++    pos = next;
++  }
++  return {};
++}
++
++// The build-id of the image this code is in: the translator.
++std::string TranslatorBuildId() {
++  struct Search {
++    uintptr_t addr;
++    std::string id;
++  } search{reinterpret_cast<uintptr_t>(&TranslatorBuildId), {}};
++  dl_iterate_phdr(
++      [](dl_phdr_info* info, size_t, void* arg) -> int {
++        auto* s = static_cast<Search*>(arg);
++        bool contains = false;
++        for (int i = 0; i < info->dlpi_phnum; i++) {
++          const auto& ph = info->dlpi_phdr[i];
++          uintptr_t start = info->dlpi_addr + ph.p_vaddr;
++          if (ph.p_type == PT_LOAD && s->addr >= start && s->addr < start + ph.p_memsz) {
++            contains = true;
++          }
++        }
++        if (!contains) {
++          return 0;
++        }
++        for (int i = 0; i < info->dlpi_phnum; i++) {
++          const auto& ph = info->dlpi_phdr[i];
++          if (ph.p_type == PT_NOTE) {
++            s->id = FindBuildId(reinterpret_cast<const uint8_t*>(info->dlpi_addr + ph.p_vaddr),
++                                ph.p_memsz);
++            if (!s->id.empty()) {
++              break;
++            }
++          }
++        }
++        return 1;
++      },
++      &search);
++  return search.id;
++}
++
++bool MakeFingerprint(const TranslatorSettings& settings, Fingerprint* fp) {
++  memset(fp, 0, sizeof(*fp));
++  std::string id = TranslatorBuildId();
++  if (id.empty() || id.size() > sizeof(fp->translator_build_id)) {
++    return false;
++  }
++  memcpy(fp->translator_build_id, id.data(), id.size());
++  fp->translator_build_id_size = id.size();
++  fp->format_version = kFormatVersion;
++  fp->translation_mode = settings.translation_mode;
++  fp->gearup_min_insns = settings.gearup_min_insns;
++  for (int f = 0; f < kNumConfigFlags; f++) {
++    if (IsConfigFlagSet(static_cast<ConfigFlag>(f))) {
++      fp->config_flags |= uint64_t{1} << f;
++    }
++  }
++  memcpy(fp->host_cpu, &host_platform::kPlatformCapabilities,
++         sizeof(host_platform::kPlatformCapabilities));
++  fp->host_page_size = static_cast<uint32_t>(sysconf(_SC_PAGESIZE));
++  fp->guest_page_size = config::kGuestPageSize;
++  fp->guest_machine = EM_AARCH64;
++  fp->recording = 1;
++  return true;
++}
++
++void MakeHeader(const char (&magic)[8], const std::string& key, uint64_t nonce, FileHeader* h) {
++  State* state = GetState();
++  memset(h, 0, sizeof(*h));
++  memcpy(h->magic, magic, sizeof(h->magic));
++  h->header_size = sizeof(FileHeader);
++  h->nonce = nonce;
++  h->fingerprint = state->fingerprint;
++  memcpy(h->module_key, key.data(), std::min(key.size(), sizeof(h->module_key) - 1));
++  h->crc = Crc32cExcept(reinterpret_cast<const uint8_t*>(h), sizeof(*h), offsetof(FileHeader, crc));
++}
++
++bool HeaderMatches(const FileHeader& h, const char (&magic)[8], const std::string& key) {
++  FileHeader expected;
++  MakeHeader(magic, key, h.nonce, &expected);
++  return memcmp(&h, &expected, sizeof(h)) == 0;
++}
++
++bool ReadFull(int fd, void* buf, size_t n, off_t offset) {
++  auto* p = static_cast<uint8_t*>(buf);
++  while (n > 0) {
++    ssize_t r = pread(fd, p, n, offset);
++    if (r <= 0) {
++      if (r < 0 && errno == EINTR) {
++        continue;
++      }
++      return false;
++    }
++    p += r;
++    n -= r;
++    offset += r;
++  }
++  return true;
++}
++
++bool WriteFull(int fd, const void* buf, size_t n) {
++  auto* p = static_cast<const uint8_t*>(buf);
++  while (n > 0) {
++    ssize_t r = write(fd, p, n);
++    if (r <= 0) {
++      if (r < 0 && errno == EINTR) {
++        continue;
++      }
++      return false;
++    }
++    p += r;
++    n -= r;
++  }
++  return true;
++}
++
++// ---- Mapping registry ----
++
++class Registry final : public GuestMappingObserver {
++ public:
++  void LockExclusive() override { mutex_.lock(); }
++  void UnlockExclusive() override { mutex_.unlock(); }
++  void LockShared() { mutex_.lock_shared(); }
++  void UnlockShared() { mutex_.unlock_shared(); }
++
++  void OnMap(void* addr, size_t length, int prot, int flags, int fd, off64_t offset) override {
++    GuestAddr start = ToGuestAddr(addr);
++    GuestAddr end = start + AlignUp(length, kPageSize);
++    Remove(start, end);
++    if (fd < 0 || (flags & MAP_ANONYMOUS) || (flags & kMapType) != MAP_PRIVATE) {
++      return;
++    }
++    struct stat st;
++    if (fstat(fd, &st) != 0 || !S_ISREG(st.st_mode) || st.st_nlink == 0) {
++      return;  // Deleted files and memfds are never cached.
++    }
++    Mapping m{end, next_id_++, static_cast<uint64_t>(st.st_dev), static_cast<uint64_t>(st.st_ino),
++              static_cast<uint64_t>(offset), prot, nullptr, 0, 0};
++    if ((prot & PROT_EXEC) && !(prot & PROT_WRITE)) {
++      Attribute(start, fd, st, &m);
++    }
++    mappings_.emplace(start, m);
++  }
++
++  void OnUnmap(void* addr, size_t length) override {
++    GuestAddr start = ToGuestAddr(addr);
++    Remove(start, start + AlignUp(length, kPageSize));
++  }
++
++  void OnProtect(void* addr, size_t length, int prot) override {
++    GuestAddr start = ToGuestAddr(addr);
++    GuestAddr end = start + AlignUp(length, kPageSize);
++    std::vector<std::pair<GuestAddr, Mapping>> changed;
++    for (auto it = FirstOverlap(start); it != mappings_.end() && it->first < end;) {
++      if (it->second.prot == prot) {
++        ++it;
++        continue;
++      }
++      changed.emplace_back(*it);
++      it = mappings_.erase(it);
++    }
++    for (auto& [m_start, m] : changed) {
++      // Whatever changed protection loses its attribution: write access, or none, means the
++      // bytes may not be what was mapped.
++      GuestAddr mid_start = std::max(m_start, start);
++      GuestAddr mid_end = std::min(m.end, end);
++      AddPiece(m_start, m, m_start, mid_start, m.prot);
++      AddPiece(m_start, m, mid_start, mid_end, prot);
++      AddPiece(m_start, m, mid_end, m.end, m.prot);
++    }
++  }
++
++  void OnRemap(void* old_addr, size_t old_size, void* new_addr, size_t new_size) override {
++    GuestAddr old_start = ToGuestAddr(old_addr);
++    GuestAddr new_start = ToGuestAddr(new_addr);
++    // The moved range isn't attributed again: a conservative miss.
++    Remove(old_start, old_start + AlignUp(old_size, kPageSize));
++    Remove(new_start, new_start + AlignUp(new_size, kPageSize));
++  }
++
++  // With the lock held: the attributed mapping holding all of [pc, pc + size), or null.
++  const Mapping* Lookup(GuestAddr pc, size_t size) const {
++    auto it = mappings_.upper_bound(pc);
++    if (it == mappings_.begin()) {
++      return nullptr;
++    }
++    --it;
++    const Mapping& m = it->second;
++    if (m.module == nullptr || pc + size < pc || pc + size > m.end) {
++      return nullptr;
++    }
++    return &m;
++  }
++
++  void Clear() { mappings_.clear(); }
++
++ private:
++  std::map<GuestAddr, Mapping>::iterator FirstOverlap(GuestAddr start) {
++    auto it = mappings_.upper_bound(start);
++    if (it != mappings_.begin()) {
++      auto prev = std::prev(it);
++      if (prev->second.end > start) {
++        return prev;
++      }
++    }
++    return it;
++  }
++
++  // Adds [start, end) of `m` (which started at m_start) as a new, unattributed mapping.
++  void AddPiece(GuestAddr m_start, const Mapping& m, GuestAddr start, GuestAddr end, int prot) {
++    if (start >= end) {
++      return;
++    }
++    Mapping piece = m;
++    piece.end = end;
++    piece.id = next_id_++;
++    piece.offset = m.offset + (start - m_start);
++    piece.prot = prot;
++    piece.module = nullptr;
++    piece.module_start = piece.module_end = 0;
++    mappings_.emplace(start, piece);
++  }
++
++  // Forgets [start, end): what was there is gone or replaced. Parts of mappings outside it stay,
++  // unattributed.
++  void Remove(GuestAddr start, GuestAddr end) {
++    std::vector<std::pair<GuestAddr, Mapping>> removed;
++    for (auto it = FirstOverlap(start); it != mappings_.end() && it->first < end;) {
++      removed.emplace_back(*it);
++      it = mappings_.erase(it);
++    }
++    for (auto& [m_start, m] : removed) {
++      AddPiece(m_start, m, m_start, std::min(start, m.end), m.prot);
++      AddPiece(m_start, m, std::max(end, m_start), m.end, m.prot);
++    }
++  }
++
++  // Finds the ELF image an executable mapping at `start` belongs to: a tracked mapping of the same
++  // file at or below it whose file offset holds an AArch64 ELF header, whose first PT_LOAD it is,
++  // and whose executable PT_LOAD this mapping is, at the matching address and file offset.
++  void Attribute(GuestAddr start, int fd, const struct stat& st, Mapping* exec) {
++    std::vector<std::pair<GuestAddr, uint64_t>> candidates;  // {mapping start, file offset}
++    candidates.emplace_back(start, exec->offset);
++    auto it = mappings_.lower_bound(start);
++    for (int i = 0; i < kMaxHeaderCandidates && it != mappings_.begin(); i++) {
++      --it;
++      if (it->second.dev == exec->dev && it->second.ino == exec->ino &&
++          start - it->first <= (1ull << 30)) {
++        candidates.emplace_back(it->first, it->second.offset);
++      }
++    }
++    for (const auto& [cand_start, elf_offset] : candidates) {
++      Elf64_Ehdr eh;
++      if (!ReadFull(fd, &eh, sizeof(eh), elf_offset) || memcmp(eh.e_ident, ELFMAG, SELFMAG) != 0 ||
++          eh.e_ident[EI_CLASS] != ELFCLASS64 || eh.e_ident[EI_DATA] != ELFDATA2LSB ||
++          eh.e_machine != EM_AARCH64 || eh.e_phentsize != sizeof(Elf64_Phdr) || eh.e_phnum == 0 ||
++          eh.e_phnum > 64) {
++        continue;
++      }
++      Elf64_Phdr ph[64];
++      if (!ReadFull(fd, ph, eh.e_phnum * sizeof(Elf64_Phdr), elf_offset + eh.e_phoff)) {
++        continue;
++      }
++      const Elf64_Phdr* first = nullptr;
++      uint64_t load_end = 0;
++      for (int i = 0; i < eh.e_phnum; i++) {
++        if (ph[i].p_type == PT_LOAD) {
++          if (first == nullptr || ph[i].p_vaddr < first->p_vaddr) {
++            first = &ph[i];
++          }
++          load_end = std::max<uint64_t>(load_end, ph[i].p_vaddr + ph[i].p_memsz);
++        }
++      }
++      if (first == nullptr || PageStart(first->p_offset) != 0) {
++        continue;
++      }
++      GuestAddr bias = cand_start - PageStart(first->p_vaddr);
++      bool matched = false;
++      for (int i = 0; i < eh.e_phnum && !matched; i++) {
++        matched = ph[i].p_type == PT_LOAD && (ph[i].p_flags & PF_X) &&
++                  bias + PageStart(ph[i].p_vaddr) == start &&
++                  elf_offset + PageStart(ph[i].p_offset) == exec->offset;
++      }
++      if (!matched) {
++        continue;
++      }
++      std::string build_id;
++      for (int i = 0; i < eh.e_phnum && build_id.empty(); i++) {
++        if (ph[i].p_type == PT_NOTE && ph[i].p_filesz <= 1024) {
++          uint8_t notes[1024];
++          if (ReadFull(fd, notes, ph[i].p_filesz, elf_offset + ph[i].p_offset)) {
++            build_id = FindBuildId(notes, ph[i].p_filesz);
++          }
++        }
++      }
++      std::string key;
++      if (!build_id.empty()) {
++        key = "b" + Hex(reinterpret_cast<const uint8_t*>(build_id.data()), build_id.size());
++      } else {
++        uint64_t mtime_ns = static_cast<uint64_t>(st.st_mtim.tv_sec) * 1'000'000'000ull +
++                            static_cast<uint64_t>(st.st_mtim.tv_nsec);
++        key = "s" + HexNum(st.st_dev) + "-" + HexNum(st.st_ino) + "-" + HexNum(st.st_size) + "-" +
++              HexNum(mtime_ns);
++      }
++      key += "-" + HexNum(elf_offset);
++      exec->module = GetModule(key);
++      exec->module_start = bias;
++      exec->module_end = bias + load_end;
++      return;
++    }
++  }
++
++  static Module* GetModule(const std::string& key) {
++    State* state = GetState();
++    std::lock_guard<std::mutex> lock(state->modules_mutex);
++    auto& slot = state->modules[key];
++    if (!slot) {
++      slot = std::make_unique<Module>();
++      slot->key = key;
++      std::string base = state->dir + "/" + key;
++      slot->data_path = base + ".pcache";
++      slot->index_path = base + ".pidx";
++      slot->lock_path = base + ".lock";
++    }
++    return slot.get();
++  }
++
++  std::shared_mutex mutex_;
++  std::map<GuestAddr, Mapping> mappings_;
++  uint64_t next_id_ = 1;
++};
++
++// ---- Module files ----
++
++// Opens the module's files for reading, given a matching header pair. Fills the index; on a bad
++// index entry, keeps what came before it. `valid_index_size` is the index file's good prefix.
++bool ReadModuleFiles(Module* m, uint64_t* valid_index_size) {
++  int ifd = open(m->index_path.c_str(), O_RDONLY | O_CLOEXEC);
++  if (ifd < 0) {
++    return false;
++  }
++  struct stat ist;
++  FileHeader ih;
++  bool ok = fstat(ifd, &ist) == 0 && ReadFull(ifd, &ih, sizeof(ih), 0) &&
++            HeaderMatches(ih, kIndexMagic, m->key);
++  std::vector<IndexEntry> entries;
++  if (ok) {
++    size_t n = (ist.st_size - sizeof(FileHeader)) / sizeof(IndexEntry);
++    entries.resize(n);
++    ok = n == 0 || ReadFull(ifd, entries.data(), n * sizeof(IndexEntry), sizeof(FileHeader));
++  }
++  close(ifd);
++  if (!ok) {
++    return false;
++  }
++  // The data file is opened second: every index entry read above was written after its record.
++  int dfd = open(m->data_path.c_str(), O_RDONLY | O_CLOEXEC);
++  if (dfd < 0) {
++    return false;
++  }
++  struct stat dst;
++  FileHeader dh;
++  ok = fstat(dfd, &dst) == 0 && ReadFull(dfd, &dh, sizeof(dh), 0) &&
++       HeaderMatches(dh, kDataMagic, m->key) && dh.nonce == ih.nonce;
++  void* map = MAP_FAILED;
++  if (ok) {
++    map = mmap(nullptr, dst.st_size, PROT_READ, MAP_PRIVATE, dfd, 0);
++  }
++  close(dfd);
++  if (map == MAP_FAILED) {
++    return false;
++  }
++  m->data_map = map;
++  m->data_size = dst.st_size;
++  m->data_ino = dst.st_ino;
++  m->index_ino = ist.st_ino;
++  m->data_size_on_disk = dst.st_size;
++  *valid_index_size = sizeof(FileHeader);
++  for (const IndexEntry& e : entries) {
++    if (Crc32cExcept(reinterpret_cast<const uint8_t*>(&e), sizeof(e), offsetof(IndexEntry, crc)) !=
++        e.crc) {
++      break;  // A torn or corrupt tail: everything past it is translated afresh.
++    }
++    *valid_index_size += sizeof(IndexEntry);
++    auto [it, inserted] = m->index.emplace(e.vaddr, e);
++    // The tier a region ended on wins; within a tier, the later record.
++    if (!inserted && e.tier >= it->second.tier) {
++      it->second = e;
++    }
++  }
++  return true;
++}
++
++// Writes a header to a temporary file and renames it into place.
++bool PublishFile(const std::string& path, const FileHeader& header, uint64_t* ino) {
++  std::string tmp = path + ".tmp." + std::to_string(GetpidSyscall());
++  int fd = open(tmp.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0600);
++  if (fd < 0) {
++    return false;
++  }
++  bool ok = WriteFull(fd, &header, sizeof(header));
++  struct stat st;
++  ok = ok && fstat(fd, &st) == 0;
++  close(fd);
++  if (!ok || rename(tmp.c_str(), path.c_str()) != 0) {
++    unlink(tmp.c_str());
++    return false;
++  }
++  *ino = st.st_ino;
++  return true;
++}
++
++bool CreateModuleFiles(Module* m) {
++  uint64_t nonce = translator_stats::NowNs() ^ (uint64_t(GetpidSyscall()) << 40) ^
++                   reinterpret_cast<uintptr_t>(m);
++  FileHeader dh;
++  FileHeader ih;
++  MakeHeader(kDataMagic, m->key, nonce, &dh);
++  MakeHeader(kIndexMagic, m->key, nonce, &ih);
++  if (!PublishFile(m->data_path, dh, &m->data_ino) ||
++      !PublishFile(m->index_path, ih, &m->index_ino)) {
++    return false;
++  }
++  m->data_size_on_disk = sizeof(FileHeader);
++  m->index_size_on_disk = sizeof(FileHeader);
++  return true;
++}
++
++bool TryBecomeWriter(Module* m) {
++  State* state = GetState();
++  if (state->cap_reached.load(std::memory_order_relaxed)) {
++    return false;
++  }
++  int fd = open(m->lock_path.c_str(), O_RDWR | O_CREAT | O_CLOEXEC, 0600);
++  if (fd < 0) {
++    return false;
++  }
++  TagHostOwnedFdUnsafe(fd);
++  if (flock(fd, LOCK_EX | LOCK_NB) != 0) {
++    CloseHostOwnedFdUnsafe(fd);  // Another process writes this module; this one only reads.
++    return false;
++  }
++  for (size_t i = 0; i < kMaxWriterModules; i++) {
++    int expected = -1;
++    if (g_lock_fds[i].compare_exchange_strong(expected, fd)) {
++      m->lock_slot = static_cast<int>(i);
++      m->lock_fd = fd;
++      m->lock_identity = GetFdIdentityUnsafe(fd);
++      return true;
++    }
++  }
++  CloseHostOwnedFdUnsafe(fd);
++  return false;
++}
++
++void OpenModule(Module* m) {
++  std::lock_guard<std::mutex> lock(m->open_mutex);
++  if (m->opened.load(std::memory_order_relaxed)) {
++    return;
++  }
++  State* state = GetState();
++  bool writer = TryBecomeWriter(m);
++  uint64_t valid_index_size = 0;
++  bool exists = access(m->data_path.c_str(), F_OK) == 0;
++  bool readable = ReadModuleFiles(m, &valid_index_size);
++  if (!readable) {
++    if (exists) {
++      Count(kRejectsFile);
++    }
++    if (m->data_map != nullptr) {
++      munmap(m->data_map, m->data_size);
++    }
++    m->data_map = nullptr;
++    m->data_size = 0;
++    m->index.clear();
++    if (writer && !CreateModuleFiles(m)) {
++      writer = false;
++    }
++  } else if (writer) {
++    // Drop a torn index tail, so new entries aren't appended after it.
++    int ifd = open(m->index_path.c_str(), O_WRONLY | O_CLOEXEC);
++    struct stat st;
++    if (ifd < 0 || fstat(ifd, &st) != 0 || static_cast<uint64_t>(st.st_ino) != m->index_ino ||
++        ftruncate(ifd, valid_index_size) != 0) {
++      writer = false;
++    }
++    if (ifd >= 0) {
++      close(ifd);
++    }
++    m->index_size_on_disk = valid_index_size;
++  }
++  if (!writer && m->lock_fd >= 0) {
++    g_lock_fds[m->lock_slot].store(-1);
++    CloseHostOwnedFdUnsafe(m->lock_fd);
++    m->lock_fd = -1;
++  }
++  m->writer = writer;
++  if (writer) {
++    std::lock_guard<std::mutex> wlock(state->writer_mutex);
++    state->writer_modules.push_back(m);
++  }
++  m->opened.store(true, std::memory_order_release);
++}
++
++void EnsureOpen(Module* m) {
++  if (!m->opened.load(std::memory_order_acquire)) {
++    OpenModule(m);
++  }
++}
++
++// ---- Flushing ----
++
++struct Batch {
++  Module* module;
++  std::vector<uint8_t> data;
++  std::vector<IndexEntry> index;
++};
++
++bool AppendToFile(const std::string& path, uint64_t ino, uint64_t expected_size, const void* buf,
++                  size_t n) {
++  int fd = open(path.c_str(), O_WRONLY | O_APPEND | O_CLOEXEC);
++  if (fd < 0) {
++    return false;
++  }
++  struct stat st;
++  bool ok = fstat(fd, &st) == 0 && static_cast<uint64_t>(st.st_ino) == ino &&
++            static_cast<uint64_t>(st.st_size) == expected_size && WriteFull(fd, buf, n);
++  close(fd);
++  return ok;
++}
++
++uint64_t DirectoryBytes(const std::string& dir);
++
++// `dir_bytes` is the cache directory's size, which every process of the app writes into: the cap
++// is the app's, not this process's.
++void WriteBatch(State* state, Batch* batch, uint64_t* dir_bytes) {
++  Module* m = batch->module;
++  if (m->write_failed.load() || GetpidSyscall() != state->pid) {
++    return;
++  }
++  uint64_t bytes = batch->data.size() + batch->index.size() * sizeof(IndexEntry);
++  if (*dir_bytes + bytes > state->cap_bytes) {
++    state->cap_reached.store(true);
++    Count(kNotPersistable, batch->index.size());
++    return;
++  }
++  // The lock is held through an fd the guest could have closed or dup2'ed over.
++  if (!FdIdentityMatches(GetFdIdentityUnsafe(m->lock_fd), m->lock_identity)) {
++    m->write_failed.store(true);
++    return;
++  }
++  translator_stats::ScopedTimer timer(translator_stats::kPcacheWriteNs);
++  uint64_t base = m->data_size_on_disk;
++  if (!AppendToFile(m->data_path, m->data_ino, base, batch->data.data(), batch->data.size())) {
++    m->write_failed.store(true);
++    return;
++  }
++  m->data_size_on_disk += batch->data.size();
++  for (IndexEntry& e : batch->index) {
++    e.record_offset += base;
++    e.crc =
++        Crc32cExcept(reinterpret_cast<const uint8_t*>(&e), sizeof(e), offsetof(IndexEntry, crc));
++  }
++  size_t index_bytes = batch->index.size() * sizeof(IndexEntry);
++  if (!AppendToFile(m->index_path, m->index_ino, m->index_size_on_disk, batch->index.data(),
++                    index_bytes)) {
++    m->write_failed.store(true);
++    return;
++  }
++  m->index_size_on_disk += index_bytes;
++  *dir_bytes += bytes;
++  Count(kRecordsWritten, batch->index.size());
++  Count(kBytesWritten, bytes);
++}
++
++// With flush_mutex held.
++void FlushLocked(State* state) {
++  std::vector<Batch> batches;
++  {
++    std::lock_guard<std::mutex> lock(state->writer_mutex);
++    for (Module* m : state->writer_modules) {
++      if (!m->pending_index.empty()) {
++        batches.push_back({m, std::move(m->pending_data), std::move(m->pending_index)});
++        m->pending_data.clear();
++        m->pending_index.clear();
++      }
++    }
++    state->pending_bytes.store(0);
++    state->last_flush_ns.store(translator_stats::NowNs());
++  }
++  if (batches.empty()) {
++    return;
++  }
++  // Measured at each flush, so it counts what the app's other processes wrote. Processes flushing
++  // at the same moment can each still go over by one batch.
++  uint64_t dir_bytes = DirectoryBytes(state->dir);
++  for (Batch& batch : batches) {
++    WriteBatch(state, &batch, &dir_bytes);
++  }
++}
++
++void FlushAtExit() {
++  if (Active()) {
++    FlushAll();
++  }
++}
++
++// In a fork child: stop, without taking any lock the parent may have held. The child's copies of
++// the writer lock fds are closed, so a lock outlives neither its owner nor this child.
++void OnForkChild() {
++  if (g_disabled.exchange(true)) {
++    return;
++  }
++  State* state = GetState();
++  if (state != nullptr && GetGuestMappingObserver() == state->registry.get()) {
++    SetGuestMappingObserver(nullptr);
++  }
++  for (auto& slot : g_lock_fds) {
++    int fd = slot.exchange(-1);
++    if (fd >= 0) {
++      CloseHostOwnedFdUnsafe(fd);
++    }
++  }
++}
++
++Mode ParseMode() {
++  static ConfigStr config("BERBERIS_PCACHE", "berberis.pcache");
++  const char* value = config.get();
++  if (value == nullptr || *value == '\0' || strcmp(value, "off") == 0) {
++    return Mode::kOff;
++  }
++  if (strcmp(value, "on") == 0) {
++    return Mode::kOn;
++  }
++  if (strcmp(value, "verify") == 0) {
++    return Mode::kVerify;
++  }
++  ALOGW("berberis.pcache: unknown value '%s', off", value);
++  return Mode::kOff;
++}
++
++uint64_t DirectoryBytes(const std::string& dir) {
++  uint64_t total = 0;
++  DIR* d = opendir(dir.c_str());
++  if (d == nullptr) {
++    return 0;
++  }
++  while (dirent* e = readdir(d)) {
++    struct stat st;
++    if (fstatat(dirfd(d), e->d_name, &st, AT_SYMLINK_NOFOLLOW) == 0 && S_ISREG(st.st_mode)) {
++      total += st.st_size;
++    }
++  }
++  closedir(d);
++  return total;
++}
++
++bool Start(Mode mode, const std::string& dir, const TranslatorSettings& settings) {
++  if (mode == Mode::kOff || dir.empty()) {
++    return false;
++  }
++  if (mkdir(dir.c_str(), 0700) != 0 && errno != EEXIST) {
++    ALOGW("berberis.pcache: can't create %s: %s", dir.c_str(), strerror(errno));
++    return false;
++  }
++  struct stat st;
++  if (stat(dir.c_str(), &st) != 0 || !S_ISDIR(st.st_mode) || st.st_uid != geteuid()) {
++    ALOGW("berberis.pcache: %s isn't a directory of this user", dir.c_str());
++    return false;
++  }
++  auto* state = new State();
++  state->mode = mode;
++  state->dir = dir;
++  state->pid = GetpidSyscall();
++  if (!MakeFingerprint(settings, &state->fingerprint)) {
++    ALOGW("berberis.pcache: the translator has no build-id; off");
++    delete state;
++    return false;
++  }
++  state->registry = std::make_unique<Registry>();
++  if (g_cap_bytes_for_testing != 0) {
++    state->cap_bytes = g_cap_bytes_for_testing;
++  }
++  state->last_flush_ns.store(translator_stats::NowNs());
++  for (auto& slot : g_lock_fds) {
++    slot.store(-1);
++  }
++  g_record_default_before = g_record_persistent_relocs_by_default;
++  // Persisted translations name every absolute operand; the records come from the translator.
++  g_record_persistent_relocs_by_default = true;
++  g_state.store(state, std::memory_order_release);
++  g_disabled.store(false);
++  SetGuestMappingObserver(state->registry.get());
++  static bool hooks_registered = [] {
++    pthread_atfork(nullptr, nullptr, OnForkChild);
++    g_guest_fork_child_hooks.Add(OnForkChild);
++    g_guest_exit_hooks.Add(FlushAtExit);
++    atexit(FlushAtExit);
++    return true;
++  }();
++  (void)hooks_registered;
++  return true;
++}
++
++}  // namespace
++
++void Count(Counter counter, uint64_t value) {
++  g_counters[counter].fetch_add(value, std::memory_order_relaxed);
++  translator_stats::Add(kStatsCounter[counter], value);
++}
++
++uint64_t GetCounter(Counter counter) {
++  return g_counters[counter].load(std::memory_order_relaxed);
++}
++
++void Init(const TranslatorSettings& settings) {
++  Mode mode = ParseMode();
++  if (mode == Mode::kOff) {
++    return;
++  }
++  std::string dir;
++  if (const char* env = getenv("BERBERIS_PCACHE_DIR"); env != nullptr && *env != '\0') {
++    dir = env;
++  } else if (const char* app = GetAppPrivateDir(); app != nullptr) {
++    dir = std::string(app) + "/code_cache/berberis";
++  } else {
++    return;  // Isolated processes and others without a private directory translate as today.
++  }
++  if (!Start(mode, dir, settings)) {
++    return;
++  }
++  ALOGI("berberis.pcache: %s, %s", mode == Mode::kVerify ? "verify" : "on", dir.c_str());
++}
++
++bool Active() {
++  State* state = GetState();
++  return state != nullptr && !g_disabled.load(std::memory_order_relaxed);
++}
++
++Mode GetMode() {
++  State* state = GetState();
++  return state != nullptr ? state->mode : Mode::kOff;
++}
++
++ScopedMappingReadLock::ScopedMappingReadLock() : locked_(Active()) {
++  if (locked_) {
++    GetState()->registry->LockShared();
++  }
++}
++
++ScopedMappingReadLock::~ScopedMappingReadLock() {
++  if (locked_) {
++    GetState()->registry->UnlockShared();
++  }
++}
++
++FindResult FindCandidate(GuestAddr pc, Candidate* c) {
++  State* state = GetState();
++  Module* m;
++  {
++    ScopedMappingReadLock lock;
++    const Mapping* mapping = state->registry->Lookup(pc, 4);
++    if (mapping == nullptr) {
++      return FindResult::kNotCacheable;
++    }
++    m = mapping->module;
++    c->module = m;
++    c->mapping_id = mapping->id;
++    c->module_start = mapping->module_start;
++  }
++  EnsureOpen(m);
++  auto it = m->index.find(pc - c->module_start);
++  if (m->data_map == nullptr || it == m->index.end()) {
++    Count(kMisses);
++    return FindResult::kMiss;
++  }
++  const IndexEntry& e = it->second;
++  // Check 2, on a private copy.
++  if (e.record_size < sizeof(RecordHeader) || e.record_size > (16u << 20) ||
++      e.record_offset > m->data_size || e.record_size > m->data_size - e.record_offset) {
++    Count(kRejectsRecord);
++    return FindResult::kRejected;
++  }
++  std::vector<uint8_t>& rec = c->record;
++  rec.assign(static_cast<const uint8_t*>(m->data_map) + e.record_offset,
++             static_cast<const uint8_t*>(m->data_map) + e.record_offset + e.record_size);
++  RecordHeader h;
++  memcpy(&h, rec.data(), sizeof(h));
++  uint64_t expected_size = sizeof(RecordHeader);
++  bool ok = h.magic == kRecordMagic && h.size == rec.size() && h.tier >= 1 && h.tier <= 3 &&
++            h.tier == e.tier && h.vaddr == e.vaddr && h.guest_size > 0 &&
++            h.guest_size % 4 == 0 && h.guest_size <= kMaxGuestSize && h.code_size > 0 &&
++            h.code_size <= kMaxCodeSize && h.num_operands <= kMaxOperands &&
++            h.num_recovery_points <= kMaxRecoveryPoints;
++  if (ok) {
++    expected_size += Pad8(h.guest_size) + Pad8(h.code_size) +
++                     uint64_t{h.num_operands} * sizeof(PackedOperand) +
++                     uint64_t{h.num_recovery_points} * 8;
++    ok = expected_size == h.size &&
++         Crc32cExcept(rec.data(), rec.size(), offsetof(RecordHeader, crc)) == h.crc;
++  }
++  // pc + size and the end the translation was made with stay in range, without wrapping.
++  GuestAddr start = c->module_start + h.vaddr;
++  ok = ok && start == pc && h.vaddr <= UINT64_MAX - c->module_start &&
++       start + h.guest_size > start && h.end >= h.vaddr + h.guest_size &&
++       h.end <= UINT64_MAX - c->module_start;
++  if (!ok) {
++    Count(kRejectsRecord);
++    return FindResult::kRejected;
++  }
++  c->pc = pc;
++  c->end_pc = c->module_start + h.end;
++  c->guest_size = h.guest_size;
++  c->code_size = h.code_size;
++  c->tier = static_cast<Tier>(h.tier);
++  c->guest_bytes_at = sizeof(RecordHeader);
++  c->code_at = c->guest_bytes_at + Pad8(h.guest_size);
++  const uint8_t* p = rec.data() + c->code_at + Pad8(h.code_size);
++  c->operands.clear();
++  c->operands.reserve(h.num_operands);
++  for (uint32_t i = 0; i < h.num_operands; i++, p += sizeof(PackedOperand)) {
++    PackedOperand po;
++    memcpy(&po, p, sizeof(po));
++    if ((po.width != 4 && po.width != 8) || po.kind > uint8_t(SymbolKind::kResource) ||
++        po.offset > h.code_size || po.width > h.code_size - po.offset ||
++        (po.width == 4 && po.next_pc > h.code_size)) {
++      Count(kRejectsRecord);
++      return FindResult::kRejected;
++    }
++    c->operands.push_back({po.offset, po.width, static_cast<SymbolKind>(po.kind), po.next_pc,
++                           po.arg});
++  }
++  c->recovery_points.clear();
++  c->recovery_points.reserve(h.num_recovery_points);
++  for (uint32_t i = 0; i < h.num_recovery_points; i++, p += 8) {
++    uint32_t v[2];
++    memcpy(v, p, 8);
++    if (v[0] >= h.code_size || v[1] > h.code_size) {
++      Count(kRejectsRecord);
++      return FindResult::kRejected;
++    }
++    c->recovery_points.emplace_back(v[0], v[1]);
++  }
++  return FindResult::kFound;
++}
++
++bool CheckMappingAndBytes(const Candidate& c) {
++  if (g_in_mapping_check_hook_for_testing != nullptr) {
++    g_in_mapping_check_hook_for_testing(c.pc);
++  }
++  const Mapping* mapping = GetState()->registry->Lookup(c.pc, c.guest_size);
++  if (mapping == nullptr || mapping->id != c.mapping_id || mapping->module != c.module ||
++      !GuestMapShadow::GetInstance()->IsExecutable(c.pc, c.guest_size)) {
++    Count(kRejectsMapping);
++    return false;
++  }
++  // Mapped and readable while the lock is held: the registry only lists what's mapped.
++  if (memcmp(ToHostAddr<const void>(c.pc), c.guest_bytes(), c.guest_size) != 0) {
++    Count(kRejectsBytes);
++    return false;
++  }
++  return true;
++}
++
++bool RelinkCandidateAt(const Candidate& c, uint8_t* out, uintptr_t install_addr,
++                       uintptr_t counter) {
++  memcpy(out, c.code(), c.code_size);
++  return RelinkTranslation(out,
++                           c.code_size,
++                           c.operands.data(),
++                           c.operands.size(),
++                           c.module_start,
++                           install_addr,
++                           counter);
++}
++
++const char* ModuleKey(const Candidate& c) {
++  return c.module != nullptr ? static_cast<const Module*>(c.module)->key.c_str() : "?";
++}
++
++HostCodePiece InstallCandidate(const Candidate& c, uintptr_t counter) {
++  HostCodeAddr addr = GetDefaultCodePoolInstance()->AddPrebuilt(
++      c.code_size,
++      [&](uint8_t* bytes, uintptr_t install_addr) {
++        return RelinkCandidateAt(c, bytes, install_addr, counter);
++      },
++      c.recovery_points.data(),
++      c.recovery_points.size());
++  return {addr, c.code_size};
++}
++
++namespace {
++
++// A capture's storage, per thread: a thread translates one region at a time.
++struct CaptureBuffers {
++  std::vector<uint32_t> decoded_insns;
++  std::vector<uint8_t> record;
++  SymbolizedCode symbolized;
++};
++
++CaptureBuffers& Buffers() {
++  thread_local CaptureBuffers buffers;
++  return buffers;
++}
++
++}  // namespace
++
++std::vector<uint32_t>* Capture::decoded_insns() {
++  return active_ ? &Buffers().decoded_insns : nullptr;
++}
++
++void Capture::Begin(GuestAddr pc) {
++  active_ = false;
++  has_record_ = false;
++  State* state = GetState();
++  if (!Active() || state->cap_reached.load(std::memory_order_relaxed)) {
++    return;
++  }
++  Module* m;
++  {
++    ScopedMappingReadLock lock;
++    const Mapping* mapping = state->registry->Lookup(pc, 4);
++    if (mapping == nullptr) {
++      return;
++    }
++    m = mapping->module;
++    mapping_id_ = mapping->id;
++    module_start_ = mapping->module_start;
++    module_end_ = mapping->module_end;
++  }
++  EnsureOpen(m);
++  if (!m->writer || m->write_failed.load(std::memory_order_relaxed)) {
++    return;  // Another process writes this module.
++  }
++  module_ = m;
++  Buffers().decoded_insns.clear();
++  active_ = true;
++}
++
++void Capture::OnInstalled(const MachineCode& machine_code,
++                          HostCodePiece piece,
++                          GuestAddr pc,
++                          size_t guest_size,
++                          GuestAddr end_pc,
++                          Tier tier,
++                          uintptr_t counter) {
++  if (!active_) {
++    return;
++  }
++  active_ = false;
++  CaptureBuffers& buffers = Buffers();
++  if (guest_size == 0 || guest_size > kMaxGuestSize ||
++      buffers.decoded_insns.size() * 4 != guest_size ||
++      !machine_code.record_persistent_relocs() || end_pc < pc + guest_size ||
++      pc < module_start_ || piece.size == 0 || piece.size > kMaxCodeSize) {
++    Count(kNotPersistable);
++    return;
++  }
++  {
++    // The bytes were decoded from this mapping only if it's the one Begin saw.
++    ScopedMappingReadLock lock;
++    const Mapping* mapping = GetState()->registry->Lookup(pc, guest_size);
++    if (mapping == nullptr || mapping->id != mapping_id_) {
++      Count(kNotPersistable);
++      return;
++    }
++  }
++  const auto* code = reinterpret_cast<const uint8_t*>(AsHostCode(piece.code));
++  SymbolizedCode& sym = buffers.symbolized;
++  SymbolizeTranslationInto(machine_code,
++                           code,
++                           reinterpret_cast<uintptr_t>(code),
++                           GuestModule{module_start_, module_end_},
++                           counter,
++                           &sym);
++  if (sym.reason != NotPersistable::kNo || sym.operands.size() > kMaxOperands ||
++      sym.recovery_points.size() > kMaxRecoveryPoints) {
++    Count(kNotPersistable);
++    return;
++  }
++  RecordHeader h{};
++  h.magic = kRecordMagic;
++  h.tier = static_cast<uint8_t>(tier);
++  h.vaddr = pc - module_start_;
++  h.end = end_pc - module_start_;
++  h.guest_size = static_cast<uint32_t>(guest_size);
++  h.code_size = piece.size;
++  h.num_operands = sym.operands.size();
++  h.num_recovery_points = sym.recovery_points.size();
++  h.size = sizeof(RecordHeader) + Pad8(h.guest_size) + Pad8(h.code_size) +
++           h.num_operands * sizeof(PackedOperand) + h.num_recovery_points * 8;
++  std::vector<uint8_t>& record = buffers.record;
++  record.assign(h.size, 0);
++  uint8_t* p = record.data() + sizeof(RecordHeader);
++  memcpy(p, buffers.decoded_insns.data(), guest_size);
++  p += Pad8(h.guest_size);
++  memcpy(p, code, piece.size);
++  p += Pad8(h.code_size);
++  for (const SymbolicOperand& op : sym.operands) {
++    PackedOperand po{op.offset, op.width, static_cast<uint8_t>(op.kind), 0, op.next_pc, 0, op.arg};
++    memcpy(p, &po, sizeof(po));
++    p += sizeof(po);
++  }
++  for (const RecoveryPointOffsets& rp : sym.recovery_points) {
++    uint32_t v[2] = {rp.fault, rp.recovery};
++    memcpy(p, v, 8);
++    p += 8;
++  }
++  memcpy(record.data(), &h, sizeof(h));
++  h.crc = Crc32cExcept(record.data(), record.size(), offsetof(RecordHeader, crc));
++  memcpy(record.data(), &h, sizeof(h));
++  vaddr_ = h.vaddr;
++  tier_ = tier;
++  has_record_ = true;
++  active_ = true;
++}
++
++void Capture::Commit() {
++  if (!active_ || !has_record_) {
++    return;
++  }
++  active_ = false;
++  has_record_ = false;
++  const std::vector<uint8_t>& record = Buffers().record;
++  State* state = GetState();
++  if (!Active()) {
++    return;
++  }
++  auto* m = static_cast<Module*>(module_);
++  {
++    std::lock_guard<std::mutex> lock(state->writer_mutex);
++    if (m->write_failed.load(std::memory_order_relaxed)) {
++      return;
++    }
++    IndexEntry e{};
++    e.vaddr = vaddr_;
++    e.record_offset = m->pending_data.size();
++    e.record_size = record.size();
++    e.tier = static_cast<uint8_t>(tier_);
++    m->pending_data.insert(m->pending_data.end(), record.begin(), record.end());
++    m->pending_index.push_back(e);
++    state->pending_bytes.fetch_add(record.size() + sizeof(IndexEntry));
++  }
++  MaybeFlush();
++}
++
++void MaybeFlush() {
++  State* state = GetState();
++  if (state == nullptr || g_disabled.load(std::memory_order_relaxed)) {
++    return;
++  }
++  uint64_t pending = state->pending_bytes.load(std::memory_order_relaxed);
++  if (pending == 0) {
++    return;
++  }
++  // Opportunistic: a translating thread flushes when it gets here, not on a timer.
++  if (pending < kFlushBytes &&
++      translator_stats::NowNs() - state->last_flush_ns.load(std::memory_order_relaxed) <
++          kFlushIntervalNs) {
++    return;
++  }
++  if (state->flush_mutex.try_lock()) {
++    FlushLocked(state);
++    state->flush_mutex.unlock();
++  }
++}
++
++void FlushAll() {
++  State* state = GetState();
++  if (state == nullptr || g_disabled.load(std::memory_order_relaxed)) {
++    return;
++  }
++  std::lock_guard<std::mutex> lock(state->flush_mutex);
++  FlushLocked(state);
++}
++
++void InitForTesting(Mode mode, const std::string& dir, const TranslatorSettings& settings) {
++  ShutdownForTesting();
++  Start(mode, dir, settings);
++}
++
++void ShutdownForTesting() {
++  State* state = GetState();
++  if (state == nullptr) {
++    return;
++  }
++  if (!g_disabled.load()) {
++    FlushAll();
++  }
++  if (GetGuestMappingObserver() == state->registry.get()) {
++    SetGuestMappingObserver(nullptr);
++  }
++  for (auto& [key, m] : state->modules) {
++    if (m->data_map != nullptr) {
++      munmap(m->data_map, m->data_size);
++    }
++    if (m->lock_slot >= 0 && g_lock_fds[m->lock_slot].exchange(-1) >= 0) {
++      CloseHostOwnedFdUnsafe(m->lock_fd);
++    }
++  }
++  g_state.store(nullptr);
++  delete state;
++  g_record_persistent_relocs_by_default = g_record_default_before;
++  g_disabled.store(false);
++}
++
++void OnForkChildForTesting() {
++  OnForkChild();
++}
++
++bool IsWriterForTesting(const std::string& key_part) {
++  State* state = GetState();
++  if (state == nullptr) {
++    return false;
++  }
++  std::lock_guard<std::mutex> lock(state->modules_mutex);
++  for (auto& [key, m] : state->modules) {
++    if (key.find(key_part) != std::string::npos && m->opened.load() && m->writer &&
++        !m->write_failed.load() && !g_disabled.load()) {
++      return true;
++    }
++  }
++  return false;
++}
++
++void SetCapForTesting(uint64_t bytes) {
++  g_cap_bytes_for_testing = bytes;
++}
++
++int WriterLockFdForTesting(const std::string& key_part) {
++  State* state = GetState();
++  if (state == nullptr) {
++    return -1;
++  }
++  std::lock_guard<std::mutex> lock(state->modules_mutex);
++  for (auto& [key, m] : state->modules) {
++    if (key.find(key_part) != std::string::npos && m->opened.load() && m->writer) {
++      return m->lock_fd;
++    }
++  }
++  return -1;
++}
++// endregion
++
++}  // namespace berberis::pcache
+diff --git a/runtime/arm64/persistent_cache.h b/runtime/arm64/persistent_cache.h
+new file mode 100644
+index 00000000..8609e63b
+--- /dev/null
++++ b/runtime/arm64/persistent_cache.h
+@@ -0,0 +1,215 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef BERBERIS_RUNTIME_ARM64_PERSISTENT_CACHE_H_
++#define BERBERIS_RUNTIME_ARM64_PERSISTENT_CACHE_H_
++
++#include <atomic>
++#include <cstddef>
++#include <cstdint>
++#include <string>
++#include <utility>
++#include <vector>
++
++#include "berberis/assembler/machine_code.h"
++#include "berberis/guest_state/guest_addr.h"
++#include "berberis/runtime_primitives/host_code.h"
++
++#include "relocatable_code.h"
++
++namespace berberis::pcache {
++
++// region digitalis
++// The persistent translation cache (ANAL-381, OpenBook docs/digitalis-translation-cache.md):
++// translations of file-backed guest code, kept in the app's code_cache and installed on a later
++// launch instead of being translated again.
++//
++// - Lookup is lazy, per region, in TranslateRegion. A record is installed only if the file was
++//   written by this translator with these settings, the record is intact, the range is still
++//   executable and attributed to the record's module, and the guest bytes equal the bytes the
++//   record was translated from (section 3.3), in that order.
++// - Writes are appended per module by the one process holding the module's lock file; records
++//   collect in memory and are flushed by a translating thread (1 MiB, or 2 s after the last
++//   flush), at exit and at the guest's exit_group. No thread is started.
++// - berberis.pcache (BERBERIS_PCACHE) = off (the default) | on | verify.
++
++enum class Mode : uint8_t { kOff, kOn, kVerify };
++
++// The tier a region ended on, which is the tier it's installed as.
++enum class Tier : uint8_t {
++  kLiteCounter = 1,  // First-gear lite, with its hotness counter.
++  kLiteSettled = 2,  // Lite for good: a declined or bailed gear-up, in-region loops, no counter.
++  kHeavy = 3,
++};
++
++// What the translation depends on besides its guest bytes; the file header carries it.
++struct TranslatorSettings {
++  uint32_t translation_mode;
++  uint32_t gearup_min_insns;
++};
++
++// Reads the mode and the directory and starts tracking guest mappings. Once, from
++// InitTranslatorArch, after the translation settings are final.
++void Init(const TranslatorSettings& settings);
++
++// Whether this process uses the cache. False after a fork until reinitialized.
++[[nodiscard]] bool Active();
++[[nodiscard]] Mode GetMode();
++
++// ---- Loading ----
++
++// A record found for a region and checked for integrity: an owned copy, so nothing is read from
++// the file twice. Reusable: its storage is kept from one candidate to the next.
++struct Candidate {
++  void* module = nullptr;
++  uint64_t mapping_id = 0;
++  GuestAddr module_start = 0;
++  GuestAddr pc = 0;
++  GuestAddr end_pc = 0;  // The end the translation was made with.
++  uint32_t guest_size = 0;
++  uint32_t code_size = 0;
++  Tier tier = Tier::kLiteCounter;
++  std::vector<uint8_t> record;  // The private copy; guest bytes and code are in it.
++  size_t guest_bytes_at = 0;
++  size_t code_at = 0;
++  std::vector<SymbolicOperand> operands;
++  std::vector<std::pair<uint32_t, uint32_t>> recovery_points;
++
++  [[nodiscard]] const uint8_t* guest_bytes() const { return record.data() + guest_bytes_at; }
++  [[nodiscard]] const uint8_t* code() const { return record.data() + code_at; }
++};
++
++enum class FindResult { kNotCacheable, kMiss, kRejected, kFound };
++
++// Steps 1 and 2 of section 3.3: the module's file (settings) and the record (CRC, bounds).
++[[nodiscard]] FindResult FindCandidate(GuestAddr pc, Candidate* candidate);
++
++// Holds the mapping registry's shared lock: guest mmap, munmap, mprotect and mremap wait, so
++// guest memory checked under it stays mapped and attributed until it's released.
++class ScopedMappingReadLock {
++ public:
++  ScopedMappingReadLock();
++  ~ScopedMappingReadLock();
++  ScopedMappingReadLock(const ScopedMappingReadLock&) = delete;
++  ScopedMappingReadLock& operator=(const ScopedMappingReadLock&) = delete;
++
++ private:
++  bool locked_;
++};
++
++// Steps 3 and 4, under ScopedMappingReadLock: [pc, pc + size) is executable and still in the
++// mapping the candidate was found through, and holds the record's bytes. Counts the reject.
++[[nodiscard]] bool CheckMappingAndBytes(const Candidate& candidate);
++
++// Copies the candidate into the code pool, re-linked for its address there. `counter` is the
++// entry's hotness counter for kLiteCounter, else 0. kNullHostCodeAddr on failure.
++[[nodiscard]] HostCodePiece InstallCandidate(const Candidate& candidate, uintptr_t counter);
++
++// The key of the candidate's module, for logs.
++[[nodiscard]] const char* ModuleKey(const Candidate& candidate);
++
++// The candidate re-linked as if installed at `install_addr`, into `out` (for verify).
++[[nodiscard]] bool RelinkCandidateAt(const Candidate& candidate,
++                                     uint8_t* out,
++                                     uintptr_t install_addr,
++                                     uintptr_t counter);
++
++// ---- Writing ----
++
++// One translation, from before it's translated until it's published. Its buffers are per thread
++// and kept, so a capture doesn't allocate once they've grown.
++class Capture {
++ public:
++  // Before translating `pc`: notes the mapping it's in. Inactive if the code isn't cacheable.
++  void Begin(GuestAddr pc);
++  [[nodiscard]] bool active() const { return active_; }
++  // Where the translator leaves the instruction words it decoded.
++  [[nodiscard]] std::vector<uint32_t>* decoded_insns();
++  // After install, before publication: names the code's operands and builds the record. The
++  // mapping must be the one Begin saw.
++  void OnInstalled(const MachineCode& machine_code,
++                   HostCodePiece piece,
++                   GuestAddr pc,
++                   size_t guest_size,
++                   GuestAddr end_pc,
++                   Tier tier,
++                   uintptr_t counter);
++  // After a successful publication: queues the record for writing.
++  void Commit();
++
++ private:
++  bool active_ = false;
++  void* module_ = nullptr;
++  uint64_t mapping_id_ = 0;
++  GuestAddr module_start_ = 0;
++  GuestAddr module_end_ = 0;
++  bool has_record_ = false;
++  uint64_t vaddr_ = 0;
++  Tier tier_ = Tier::kLiteCounter;
++};
++
++// Flushes queued records if 2 s have passed since the last flush. Cheap when nothing is queued.
++void MaybeFlush();
++// Flushes everything queued now.
++void FlushAll();
++
++// ---- Counters (also in translator_stats when that's on) ----
++
++enum Counter {
++  kHitsLite,
++  kHitsHeavy,
++  kMisses,
++  kRejectsFile,
++  kRejectsRecord,
++  kRejectsMapping,
++  kRejectsBytes,
++  kNotPersistable,
++  kRecordsWritten,
++  kBytesWritten,
++  kVerifyMatch,
++  kVerifyMismatch,
++  kVerifyInconclusive,
++  kVerifyFallback,
++  kNumCounters,
++};
++void Count(Counter counter, uint64_t value = 1);
++[[nodiscard]] uint64_t GetCounter(Counter counter);
++
++// ---- Testing ----
++
++// Starts the cache in `mode` with `dir`, as Init would, dropping any earlier state (files stay).
++// The caller must be the only thread using the translator.
++void InitForTesting(Mode mode, const std::string& dir, const TranslatorSettings& settings);
++// Flushes, then forgets every module and mapping and stops: as if the process ended.
++void ShutdownForTesting();
++// The fork child handler, for tests.
++void OnForkChildForTesting();
++// Whether this process holds the writer lock of a module whose key contains `key_part`.
++[[nodiscard]] bool IsWriterForTesting(const std::string& key_part);
++// The fd holding that lock, or -1.
++[[nodiscard]] int WriterLockFdForTesting(const std::string& key_part);
++// Replaces the 128 MiB cap, for measurements; 0 restores it. Takes effect at the next start.
++void SetCapForTesting(uint64_t bytes);
++
++// Called before taking the mapping lock to check a candidate, and with it held. Null outside
++// tests.
++extern void (*g_before_mapping_check_hook_for_testing)(GuestAddr pc);
++extern void (*g_in_mapping_check_hook_for_testing)(GuestAddr pc);
++// endregion
++
++}  // namespace berberis::pcache
++
++#endif  // BERBERIS_RUNTIME_ARM64_PERSISTENT_CACHE_H_
+diff --git a/runtime/arm64/persistent_cache_test.cc b/runtime/arm64/persistent_cache_test.cc
+new file mode 100644
+index 00000000..2917daca
+--- /dev/null
++++ b/runtime/arm64/persistent_cache_test.cc
+@@ -0,0 +1,1373 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++// The persistent translation cache (ANAL-381): what's written, what's installed on a later
++// "launch", and what is refused. A launch is pcache::InitForTesting ... ShutdownForTesting with
++// the module mapped afresh (at another address), so records cross a re-link as they would cross
++// processes; the fork tests use real child processes.
++
++#include "gtest/gtest.h"
++
++#include <dirent.h>
++#include <elf.h>
++#include <fcntl.h>
++#include <signal.h>
++#include <sys/mman.h>
++#include <sys/stat.h>
++#include <sys/syscall.h>
++#include <sys/wait.h>
++#include <unistd.h>
++
++#include <algorithm>
++#include <atomic>
++#include <chrono>
++#include <ctime>
++#include <cstdint>
++#include <cstdlib>
++#include <cstring>
++#include <functional>
++#include <string>
++#include <thread>
++#include <vector>
++
++#include "berberis/assembler/machine_code.h"
++#include "berberis/guest_os_primitives/guest_map_shadow.h"
++#include "berberis/guest_state/guest_addr.h"
++#include "berberis/guest_state/guest_state.h"
++#include "berberis/kernel_api/guest_mapping_observer.h"
++#include "berberis/kernel_api/sys_mman_emulation.h"
++#include "berberis/runtime_primitives/code_pool.h"
++#include "berberis/runtime_primitives/host_code.h"
++#include "berberis/runtime_primitives/process_hooks.h"
++#include "berberis/runtime_primitives/translation_cache.h"
++#include "berberis/test_utils/translation_test.h"
++
++#include "persistent_cache.h"
++
++namespace berberis {
++
++extern "C" void berberis_HandleNotTranslated(ThreadState* state);
++extern "C" void berberis_HandleLiteCounterThresholdReached(ThreadState* state);
++extern void (*g_before_publish_hook_for_testing)(GuestAddr pc);
++extern void (*g_pcache_verify_fresh_hook_for_testing)(MachineCode* machine_code, int attempt);
++extern void (*g_pcache_verify_before_decode_hook_for_testing)(GuestAddr pc, int attempt);
++size_t GetGearUpMinInsns();
++
++namespace {
++
++using pcache::Mode;
++
++constexpr uint32_t kNop = 0xd503201f;
++constexpr uint32_t kBranchNext = 0x14000001;  // b .+4: ends a region.
++constexpr size_t kCodeOffset = 0x1000;        // File offset and ELF address of the code.
++constexpr size_t kCodeWords = 128;
++// Regions, as word offsets in the code.
++constexpr size_t kRegionA = 0;     // adrp, add, ldr, b: a guest address, a recovery point, a slot.
++constexpr size_t kRegionB = 16;    // 24 adds, ret: hot, heavy.
++constexpr size_t kRegionC = 64;    // 3 adds, b: a declined gear-up, settled lite.
++constexpr size_t kHeaderSize = 256;  // FileHeader.
++constexpr size_t kIndexEntrySize = 32;
++constexpr size_t kRecordHeaderSize = 48;
++
++std::vector<uint32_t> DefaultCode() {
++  std::vector<uint32_t> code(kCodeWords, kNop);
++  code[kRegionA + 0] = 0x90000000;  // adrp x0, .
++  code[kRegionA + 1] = 0x8b020023;  // add x3, x1, x2
++  code[kRegionA + 2] = 0xf9400020;  // ldr x0, [x1]
++  code[kRegionA + 3] = kBranchNext;
++  for (size_t i = 0; i < 24; i++) {
++    code[kRegionB + i] = 0x8b020063;  // add x3, x3, x2
++  }
++  code[kRegionB + 24] = 0xd65f03c0;  // ret: an indirect branch, through the main table.
++  for (size_t i = 0; i < 3; i++) {
++    code[kRegionC + i] = 0x8b020063;
++  }
++  code[kRegionC + 3] = kBranchNext;
++  return code;
++}
++
++// A minimal AArch64 ELF: one R+X PT_LOAD from offset 0, a GNU build-id note, the code at 0x1000.
++std::vector<uint8_t> MakeElf(const std::vector<uint32_t>& code, uint8_t build_id_seed) {
++  std::vector<uint8_t> f(kCodeOffset + code.size() * 4, 0);
++  Elf64_Ehdr eh{};
++  memcpy(eh.e_ident, ELFMAG, SELFMAG);
++  eh.e_ident[EI_CLASS] = ELFCLASS64;
++  eh.e_ident[EI_DATA] = ELFDATA2LSB;
++  eh.e_ident[EI_VERSION] = EV_CURRENT;
++  eh.e_type = ET_DYN;
++  eh.e_machine = EM_AARCH64;
++  eh.e_version = EV_CURRENT;
++  eh.e_phoff = sizeof(Elf64_Ehdr);
++  eh.e_ehsize = sizeof(Elf64_Ehdr);
++  eh.e_phentsize = sizeof(Elf64_Phdr);
++  eh.e_phnum = 2;
++  memcpy(f.data(), &eh, sizeof(eh));
++  Elf64_Phdr ph[2] = {};
++  ph[0].p_type = PT_LOAD;
++  ph[0].p_flags = PF_R | PF_X;
++  ph[0].p_filesz = ph[0].p_memsz = f.size();
++  ph[0].p_align = 0x1000;
++  ph[1].p_type = PT_NOTE;
++  ph[1].p_flags = PF_R;
++  ph[1].p_offset = ph[1].p_vaddr = 0x100;
++  ph[1].p_filesz = ph[1].p_memsz = 12 + 4 + 20;
++  ph[1].p_align = 4;
++  memcpy(f.data() + eh.e_phoff, ph, sizeof(ph));
++  uint32_t nhdr[3] = {4, 20, NT_GNU_BUILD_ID};
++  memcpy(f.data() + 0x100, nhdr, sizeof(nhdr));
++  memcpy(f.data() + 0x10c, "GNU", 4);
++  for (int i = 0; i < 20; i++) {
++    f[0x110 + i] = static_cast<uint8_t>(build_id_seed * 31 + i);
++  }
++  memcpy(f.data() + kCodeOffset, code.data(), code.size() * 4);
++  return f;
++}
++
++uint32_t Crc32c(const uint8_t* p, size_t n, size_t zero_at) {
++  uint32_t crc = ~0u;
++  for (size_t i = 0; i < n; i++) {
++    uint8_t b = (i >= zero_at && i < zero_at + 4) ? 0 : p[i];
++    crc ^= b;
++    for (int k = 0; k < 8; k++) {
++      crc = (crc & 1) ? (crc >> 1) ^ 0x82f63b78u : crc >> 1;
++    }
++  }
++  return ~crc;
++}
++
++std::vector<uint8_t> ReadFile(const std::string& path) {
++  std::vector<uint8_t> out;
++  FILE* f = fopen(path.c_str(), "rb");
++  if (f == nullptr) {
++    return out;
++  }
++  uint8_t buf[65536];
++  size_t n;
++  while ((n = fread(buf, 1, sizeof(buf), f)) > 0) {
++    out.insert(out.end(), buf, buf + n);
++  }
++  fclose(f);
++  return out;
++}
++
++void WriteFile(const std::string& path, const std::vector<uint8_t>& bytes) {
++  FILE* f = fopen(path.c_str(), "wb");
++  ASSERT_NE(f, nullptr) << path;
++  ASSERT_EQ(fwrite(bytes.data(), 1, bytes.size(), f), bytes.size());
++  fclose(f);
++}
++
++void RemoveTree(const std::string& dir) {
++  DIR* d = opendir(dir.c_str());
++  if (d == nullptr) {
++    return;
++  }
++  while (dirent* e = readdir(d)) {
++    std::string name = e->d_name;
++    if (name == "." || name == "..") {
++      continue;
++    }
++    std::string path = dir + "/" + name;
++    struct stat st;
++    if (lstat(path.c_str(), &st) == 0 && S_ISDIR(st.st_mode)) {
++      RemoveTree(path);
++    } else {
++      unlink(path.c_str());
++    }
++  }
++  closedir(d);
++  rmdir(dir.c_str());
++}
++
++struct Record {
++  uint64_t vaddr;
++  uint8_t tier;
++  uint64_t offset;  // In the data file.
++  std::vector<uint8_t> bytes;
++  uint32_t guest_size() const { return Field<uint32_t>(32); }
++  uint32_t code_size() const { return Field<uint32_t>(36); }
++  uint32_t num_operands() const { return Field<uint32_t>(40); }
++  uint32_t num_recovery_points() const { return Field<uint32_t>(44); }
++  size_t code_at() const { return kRecordHeaderSize + ((guest_size() + 7) & ~7u); }
++  size_t operands_at() const { return code_at() + ((code_size() + 7) & ~7u); }
++  size_t recovery_at() const { return operands_at() + num_operands() * 24; }
++  template <typename T>
++  T Field(size_t at) const {
++    T v;
++    memcpy(&v, bytes.data() + at, sizeof(v));
++    return v;
++  }
++  template <typename T>
++  void SetField(size_t at, T v) {
++    memcpy(bytes.data() + at, &v, sizeof(v));
++  }
++  void FixCrc() { SetField<uint32_t>(8, Crc32c(bytes.data(), bytes.size(), 8)); }
++  // The first code byte no operand covers.
++  size_t FirstPlainCodeByte() const {
++    for (size_t k = 0; k < code_size(); k++) {
++      bool covered = false;
++      for (uint32_t i = 0; i < num_operands(); i++) {
++        uint32_t off = Field<uint32_t>(operands_at() + i * 24);
++        uint8_t width = Field<uint8_t>(operands_at() + i * 24 + 4);
++        covered |= k >= off && k < off + width;
++      }
++      if (!covered) {
++        return k;
++      }
++    }
++    return SIZE_MAX;
++  }
++};
++
++class PersistentCacheTest : public TranslationTest {
++ protected:
++  void SetUp() override {
++    TranslationTest::SetUp();
++    std::string tmpl = ::testing::TempDir() + "/pcache-XXXXXX";
++    std::vector<char> buf(tmpl.begin(), tmpl.end());
++    buf.push_back('\0');
++    ASSERT_NE(mkdtemp(buf.data()), nullptr);
++    root_ = buf.data();
++    cache_dir_ = root_ + "/cache";
++    elf_path_ = root_ + "/lib.so";
++    WriteFile(elf_path_, MakeElf(DefaultCode(), 1));
++    settings_ = {2 /* two-gear */, static_cast<uint32_t>(GetGearUpMinInsns())};
++  }
++
++  void TearDown() override {
++    pcache::g_before_mapping_check_hook_for_testing = nullptr;
++    pcache::g_in_mapping_check_hook_for_testing = nullptr;
++    g_before_publish_hook_for_testing = nullptr;
++    g_pcache_verify_fresh_hook_for_testing = nullptr;
++    g_pcache_verify_before_decode_hook_for_testing = nullptr;
++    pcache::SetCapForTesting(0);
++    for (auto& [base, size] : mapped_) {
++      MunmapForGuest(base, size);
++    }
++    pcache::ShutdownForTesting();
++    RemoveTree(root_);
++    TranslationTest::TearDown();
++  }
++
++  void StartProcess(Mode mode = Mode::kOn) { pcache::InitForTesting(mode, cache_dir_, settings_); }
++  void EndProcess() { pcache::ShutdownForTesting(); }
++
++  size_t ElfSize() const { return kCodeOffset + kCodeWords * 4; }
++
++  // Maps `path` as the guest linker maps an executable segment.
++  uint8_t* MapElf(const std::string& path, void* fixed = nullptr) {
++    int fd = open(path.c_str(), O_RDONLY | O_CLOEXEC);
++    EXPECT_GE(fd, 0);
++    void* p = MmapForGuest(
++        fixed, ElfSize(), PROT_READ | PROT_EXEC, MAP_PRIVATE | (fixed ? MAP_FIXED : 0), fd, 0);
++    close(fd);
++    EXPECT_NE(p, MAP_FAILED);
++    if (fixed == nullptr) {
++      mapped_.emplace_back(p, ElfSize());
++    }
++    return static_cast<uint8_t*>(p);
++  }
++
++  void Unmap(uint8_t* base) {
++    for (auto it = mapped_.begin(); it != mapped_.end(); ++it) {
++      if (it->first == base) {
++        mapped_.erase(it);
++        break;
++      }
++    }
++    MunmapForGuest(base, ElfSize());
++  }
++
++  // Maps the library at a new address, and unmaps the old mapping if there is one.
++  uint8_t* Remap(uint8_t* old_base, const std::string& path) {
++    uint8_t* base = MapElf(path);
++    if (old_base != nullptr) {
++      EXPECT_NE(base, old_base);
++      Unmap(old_base);
++    }
++    return base;
++  }
++
++  static GuestAddr Pc(uint8_t* base, size_t region) {
++    return ToGuestAddr(base + kCodeOffset + region * 4);
++  }
++
++  static void Translate(GuestAddr pc) {
++    ThreadState state{};
++    state.cpu.insn_addr = pc;
++    berberis_HandleNotTranslated(&state);
++  }
++
++  static void GearUp(GuestAddr pc) {
++    ThreadState state{};
++    state.cpu.insn_addr = pc;
++    berberis_HandleLiteCounterThresholdReached(&state);
++  }
++
++  static GuestCodeEntry* Entry(GuestAddr pc) {
++    return TranslationCache::GetInstance()->ProfilerLookupGuestCodeEntryByGuestPC(pc);
++  }
++
++  static bool IsTranslated(GuestAddr pc) {
++    HostCodeAddr code = TranslationCache::GetInstance()->GetHostCodePtr(pc)->load();
++    return code != kEntryNotTranslated && code != kEntryNoExec && code != kEntryInterpret;
++  }
++
++  static const uint8_t* HostCode(GuestAddr pc) {
++    return static_cast<const uint8_t*>(
++        AsHostCode(TranslationCache::GetInstance()->GetHostCodePtr(pc)->load()));
++  }
++
++  // The module's cache file names (one module per test library).
++  std::string FileWith(const char* suffix) const {
++    std::string found;
++    DIR* d = opendir(cache_dir_.c_str());
++    if (d == nullptr) {
++      return found;
++    }
++    while (dirent* e = readdir(d)) {
++      std::string name = e->d_name;
++      if (name.size() > strlen(suffix) &&
++          name.compare(name.size() - strlen(suffix), strlen(suffix), suffix) == 0) {
++        found = cache_dir_ + "/" + name;
++      }
++    }
++    closedir(d);
++    return found;
++  }
++  std::string DataFile() const { return FileWith(".pcache"); }
++  // Total size of the cache files ending in `suffix`.
++  static size_t ReadFileSize(const std::string& dir, const char* suffix) {
++    size_t total = 0;
++    DIR* d = opendir(dir.c_str());
++    if (d == nullptr) {
++      return 0;
++    }
++    while (dirent* e = readdir(d)) {
++      std::string name = e->d_name;
++      struct stat st;
++      if (name.size() > strlen(suffix) &&
++          name.compare(name.size() - strlen(suffix), strlen(suffix), suffix) == 0 &&
++          stat((dir + "/" + name).c_str(), &st) == 0) {
++        total += st.st_size;
++      }
++    }
++    closedir(d);
++    return total;
++  }
++  std::string IndexFile() const { return FileWith(".pidx"); }
++
++  size_t IndexEntries() const {
++    std::vector<uint8_t> idx = ReadFile(IndexFile());
++    return idx.size() < kHeaderSize ? 0 : (idx.size() - kHeaderSize) / kIndexEntrySize;
++  }
++
++  // The last record written for `region`.
++  Record FindRecord(size_t region, uint8_t tier = 0) const {
++    std::vector<uint8_t> idx = ReadFile(IndexFile());
++    std::vector<uint8_t> data = ReadFile(DataFile());
++    Record r{};
++    uint64_t vaddr = kCodeOffset + region * 4;
++    for (size_t at = kHeaderSize; at + kIndexEntrySize <= idx.size(); at += kIndexEntrySize) {
++      uint64_t v;
++      uint64_t off;
++      uint32_t size;
++      memcpy(&v, idx.data() + at, 8);
++      memcpy(&off, idx.data() + at + 8, 8);
++      memcpy(&size, idx.data() + at + 16, 4);
++      uint8_t t = idx[at + 20];
++      if (v == vaddr && (tier == 0 || t == tier) && off + size <= data.size()) {
++        r.vaddr = v;
++        r.tier = t;
++        r.offset = off;
++        r.bytes.assign(data.begin() + off, data.begin() + off + size);
++      }
++    }
++    return r;
++  }
++
++  void WriteRecord(const Record& r) const {
++    std::vector<uint8_t> data = ReadFile(DataFile());
++    ASSERT_LE(r.offset + r.bytes.size(), data.size());
++    memcpy(data.data() + r.offset, r.bytes.data(), r.bytes.size());
++    WriteFile(DataFile(), data);
++  }
++
++  // Counter deltas from a snapshot.
++  struct Counts {
++    uint64_t v[pcache::kNumCounters];
++    Counts() {
++      for (int i = 0; i < pcache::kNumCounters; i++) {
++        v[i] = pcache::GetCounter(static_cast<pcache::Counter>(i));
++      }
++    }
++    uint64_t Delta(pcache::Counter c) const { return pcache::GetCounter(c) - v[c]; }
++  };
++
++  // Writes region A's record in one launch, from a library mapped at a first address.
++  uint8_t* WriteRegionA() {
++    StartProcess();
++    uint8_t* base = MapElf(elf_path_);
++    Translate(Pc(base, kRegionA));
++    EXPECT_TRUE(IsTranslated(Pc(base, kRegionA)));
++    EndProcess();
++    EXPECT_EQ(IndexEntries(), 1u);
++    return base;
++  }
++
++  std::string root_;
++  std::string cache_dir_;
++  std::string elf_path_;
++  pcache::TranslatorSettings settings_;
++  std::vector<std::pair<void*, size_t>> mapped_;
++};
++
++TEST_F(PersistentCacheTest, OffByDefault) {
++  EXPECT_FALSE(pcache::Active());
++  EXPECT_EQ(pcache::GetMode(), Mode::kOff);
++}
++
++// A region written by one launch is installed by the next, re-linked for the module's new address,
++// and matches a fresh translation there.
++TEST_F(PersistentCacheTest, LiteRegionLoadsInTheNextLaunch) {
++  Counts c0;
++  uint8_t* base1 = WriteRegionA();
++  EXPECT_EQ(c0.Delta(pcache::kMisses), 1u);
++  EXPECT_EQ(c0.Delta(pcache::kRecordsWritten), 1u);
++  Record r = FindRecord(kRegionA);
++  ASSERT_FALSE(r.bytes.empty());
++  EXPECT_EQ(r.tier, uint8_t(pcache::Tier::kLiteCounter));
++  EXPECT_EQ(r.guest_size(), 16u);
++  EXPECT_GT(r.num_operands(), 0u);
++  EXPECT_GT(r.num_recovery_points(), 0u);
++
++  StartProcess();
++  Counts c1;
++  uint8_t* base2 = Remap(base1, elf_path_);
++  Translate(Pc(base2, kRegionA));
++  EXPECT_EQ(c1.Delta(pcache::kHitsLite), 1u);
++  EXPECT_EQ(c1.Delta(pcache::kMisses), 0u);
++  ASSERT_TRUE(IsTranslated(Pc(base2, kRegionA)));
++  EXPECT_EQ(Entry(Pc(base2, kRegionA))->kind, GuestCodeEntry::Kind::kLiteTranslated);
++  EXPECT_EQ(Entry(Pc(base2, kRegionA))->guest_size, 16u);
++  EndProcess();
++  EXPECT_EQ(IndexEntries(), 1u) << "a loaded region is written again";
++
++  StartProcess(Mode::kVerify);
++  Counts c2;
++  uint8_t* base3 = Remap(base2, elf_path_);
++  Translate(Pc(base3, kRegionA));
++  EXPECT_EQ(c2.Delta(pcache::kVerifyMatch), 1u);
++  EXPECT_EQ(c2.Delta(pcache::kHitsLite), 1u);
++  EXPECT_EQ(c2.Delta(pcache::kVerifyMismatch) + c2.Delta(pcache::kVerifyInconclusive), 0u);
++}
++
++// Hot regions start in the tier they ended on: heavy, or lite settled after a declined gear-up.
++TEST_F(PersistentCacheTest, HeavyAndSettledRegionsLoadInTheirTier) {
++  StartProcess();
++  uint8_t* base1 = MapElf(elf_path_);
++  Translate(Pc(base1, kRegionB));
++  GearUp(Pc(base1, kRegionB));
++  ASSERT_EQ(Entry(Pc(base1, kRegionB))->kind, GuestCodeEntry::Kind::kHeavyOptimized);
++  Translate(Pc(base1, kRegionC));
++  GearUp(Pc(base1, kRegionC));
++  ASSERT_EQ(Entry(Pc(base1, kRegionC))->kind, GuestCodeEntry::Kind::kLiteTranslated);
++  EndProcess();
++  EXPECT_EQ(IndexEntries(), 4u);
++  EXPECT_FALSE(FindRecord(kRegionB, uint8_t(pcache::Tier::kHeavy)).bytes.empty());
++  EXPECT_FALSE(FindRecord(kRegionC, uint8_t(pcache::Tier::kLiteSettled)).bytes.empty());
++
++  StartProcess();
++  Counts c1;
++  uint8_t* base2 = Remap(base1, elf_path_);
++  Translate(Pc(base2, kRegionB));
++  Translate(Pc(base2, kRegionC));
++  EXPECT_EQ(c1.Delta(pcache::kHitsHeavy), 1u);
++  EXPECT_EQ(c1.Delta(pcache::kHitsLite), 1u);
++  EXPECT_EQ(Entry(Pc(base2, kRegionB))->kind, GuestCodeEntry::Kind::kHeavyOptimized);
++  EXPECT_EQ(Entry(Pc(base2, kRegionC))->kind, GuestCodeEntry::Kind::kLiteTranslated);
++  // Settled: no counter, so it never asks to gear up again.
++  Record settled = FindRecord(kRegionC, uint8_t(pcache::Tier::kLiteSettled));
++  for (uint32_t i = 0; i < settled.num_operands(); i++) {
++    EXPECT_NE(settled.Field<uint8_t>(settled.operands_at() + i * 24 + 5),
++              uint8_t(SymbolKind::kCounter));
++  }
++  EndProcess();
++
++  StartProcess(Mode::kVerify);
++  Counts c2;
++  uint8_t* base3 = Remap(base2, elf_path_);
++  Translate(Pc(base3, kRegionB));
++  Translate(Pc(base3, kRegionC));
++  EXPECT_EQ(c2.Delta(pcache::kVerifyMatch), 2u);
++  EXPECT_EQ(c2.Delta(pcache::kVerifyMismatch), 0u);
++}
++
++// ---- What's refused, in the order of section 3.3 ----
++
++TEST_F(PersistentCacheTest, OtherSettingsIgnoreTheFileWhichItsWriterReplaces) {
++  uint8_t* base1 = WriteRegionA();
++  settings_.gearup_min_insns++;
++  StartProcess();
++  Counts c1;
++  uint8_t* base2 = Remap(base1, elf_path_);
++  Translate(Pc(base2, kRegionA));
++  EXPECT_EQ(c1.Delta(pcache::kRejectsFile), 1u);
++  EXPECT_EQ(c1.Delta(pcache::kHitsLite), 0u);
++  EndProcess();
++  EXPECT_EQ(IndexEntries(), 1u) << "the writer replaces the file and writes its own record";
++
++  StartProcess();
++  Counts c2;
++  uint8_t* base3 = Remap(base2, elf_path_);
++  Translate(Pc(base3, kRegionA));
++  EXPECT_EQ(c2.Delta(pcache::kHitsLite), 1u);
++  EXPECT_EQ(c2.Delta(pcache::kRejectsFile), 0u);
++}
++
++TEST_F(PersistentCacheTest, SettingsAreCheckedBeforeTheRecord) {
++  uint8_t* base1 = WriteRegionA();
++  Record r = FindRecord(kRegionA);
++  r.bytes[r.code_at()] ^= 0xff;  // A bad CRC.
++  WriteRecord(r);
++  settings_.gearup_min_insns++;
++  StartProcess();
++  Counts c;
++  Translate(Pc(Remap(base1, elf_path_), kRegionA));
++  EXPECT_EQ(c.Delta(pcache::kRejectsFile), 1u);
++  EXPECT_EQ(c.Delta(pcache::kRejectsRecord), 0u);
++}
++
++TEST_F(PersistentCacheTest, RecordIsCheckedBeforeTheBytes) {
++  uint8_t* base1 = WriteRegionA();
++  Record r = FindRecord(kRegionA);
++  r.bytes[r.code_at()] ^= 0xff;  // A bad CRC.
++  WriteRecord(r);
++  // The same library (build-id) with other code in region A.
++  std::vector<uint32_t> code = DefaultCode();
++  code[kRegionA + 1] = 0x8b030023;  // add x3, x1, x3
++  std::string other = root_ + "/other.so";
++  WriteFile(other, MakeElf(code, 1));
++  StartProcess();
++  Counts c;
++  Translate(Pc(Remap(base1, other), kRegionA));
++  EXPECT_EQ(c.Delta(pcache::kRejectsRecord), 1u);
++  EXPECT_EQ(c.Delta(pcache::kRejectsBytes), 0u);
++}
++
++TEST_F(PersistentCacheTest, ChangedBytesAreRefused) {
++  uint8_t* base1 = WriteRegionA();
++  std::vector<uint32_t> code = DefaultCode();
++  code[kRegionA + 1] = 0x8b030023;
++  std::string other = root_ + "/other.so";
++  WriteFile(other, MakeElf(code, 1));
++  StartProcess();
++  Counts c;
++  uint8_t* base2 = Remap(base1, other);
++  Translate(Pc(base2, kRegionA));
++  EXPECT_EQ(c.Delta(pcache::kRejectsBytes), 1u);
++  EXPECT_EQ(c.Delta(pcache::kHitsLite), 0u);
++  EXPECT_TRUE(IsTranslated(Pc(base2, kRegionA))) << "translated afresh";
++}
++
++TEST_F(PersistentCacheTest, MappingIsCheckedBeforeTheBytes) {
++  uint8_t* base1 = WriteRegionA();
++  std::vector<uint32_t> code = DefaultCode();
++  code[kRegionA + 1] = 0x8b030023;
++  std::string other = root_ + "/other.so";
++  WriteFile(other, MakeElf(code, 1));
++  StartProcess();
++  Counts c;
++  static uint8_t* g_base;
++  static std::string* g_path;
++  g_base = Remap(base1, other);
++  g_path = &other;
++  // Replaced, with the same file, between finding the record and checking it.
++  pcache::g_before_mapping_check_hook_for_testing = [](GuestAddr) {
++    int fd = open(g_path->c_str(), O_RDONLY | O_CLOEXEC);
++    MmapForGuest(g_base,
++                 kCodeOffset + kCodeWords * 4,
++                 PROT_READ | PROT_EXEC,
++                 MAP_PRIVATE | MAP_FIXED,
++                 fd,
++                 0);
++    close(fd);
++  };
++  Translate(Pc(g_base, kRegionA));
++  EXPECT_EQ(c.Delta(pcache::kRejectsMapping), 1u);
++  EXPECT_EQ(c.Delta(pcache::kRejectsBytes), 0u);
++}
++
++TEST_F(PersistentCacheTest, CorruptAndTornFilesFailClosed) {
++  StartProcess();
++  uint8_t* base1 = MapElf(elf_path_);
++  Translate(Pc(base1, kRegionA));
++  Translate(Pc(base1, kRegionC));
++  EndProcess();
++  ASSERT_EQ(IndexEntries(), 2u);
++
++  // A torn index tail: the entries before it still load; the region past it is translated.
++  std::vector<uint8_t> idx = ReadFile(IndexFile());
++  idx.resize(idx.size() - 10);
++  WriteFile(IndexFile(), idx);
++  StartProcess();
++  Counts c1;
++  uint8_t* base2 = Remap(base1, elf_path_);
++  Translate(Pc(base2, kRegionA));
++  Translate(Pc(base2, kRegionC));
++  EXPECT_EQ(c1.Delta(pcache::kHitsLite), 1u);
++  EXPECT_EQ(c1.Delta(pcache::kMisses), 1u);
++  EndProcess();
++  EXPECT_EQ(IndexEntries(), 2u) << "the writer drops the torn entry, then appends";
++
++  // A truncated data file: the record past its end is refused.
++  Record last = FindRecord(kRegionC);
++  ASSERT_FALSE(last.bytes.empty());
++  std::vector<uint8_t> data = ReadFile(DataFile());
++  data.resize(last.offset + last.bytes.size() / 2);
++  WriteFile(DataFile(), data);
++  StartProcess();
++  Counts c2;
++  uint8_t* base3 = Remap(base2, elf_path_);
++  Translate(Pc(base3, kRegionA));
++  Translate(Pc(base3, kRegionC));
++  EXPECT_EQ(c2.Delta(pcache::kHitsLite), 1u);
++  EXPECT_EQ(c2.Delta(pcache::kRejectsRecord), 1u);
++  EndProcess();
++
++  // A record whose lengths are out of bounds, even with a good CRC.
++  Record a = FindRecord(kRegionA);
++  a.SetField<uint32_t>(36, 0xfffffff0u);  // code_size
++  a.FixCrc();
++  WriteRecord(a);
++  StartProcess();
++  Counts c3;
++  Translate(Pc(Remap(base3, elf_path_), kRegionA));
++  EXPECT_EQ(c3.Delta(pcache::kRejectsRecord), 1u);
++  EXPECT_EQ(c3.Delta(pcache::kHitsLite), 0u);
++}
++
++// ---- Mappings changing around a load ----
++
++// An executable mapping replaced by another (MAP_FIXED) drops the old code's translations: the
++// shadow's executable bits alone don't change, so nothing else would.
++TEST_F(PersistentCacheTest, ExecutableReplacementInvalidates) {
++  std::vector<uint32_t> code = DefaultCode();
++  code[kRegionA + 1] = 0x8b030023;
++  std::string other = root_ + "/other.so";
++  WriteFile(other, MakeElf(code, 2));
++  for (Mode mode : {Mode::kOff, Mode::kOn}) {
++    StartProcess(mode);
++    uint8_t* base = MapElf(elf_path_);
++    GuestAddr pc = Pc(base, kRegionA);
++    Translate(pc);
++    ASSERT_TRUE(IsTranslated(pc));
++    MapElf(other, base);
++    EXPECT_FALSE(IsTranslated(pc)) << "mode " << int(mode);
++    Translate(pc);
++    EXPECT_TRUE(IsTranslated(pc));
++    Unmap(base);
++    EndProcess();
++  }
++}
++
++TEST_F(PersistentCacheTest, ProtectionRemovedBeforeTheCheck) {
++  uint8_t* base1 = WriteRegionA();
++  StartProcess();
++  static uint8_t* g_base;
++  g_base = Remap(base1, elf_path_);
++  pcache::g_before_mapping_check_hook_for_testing = [](GuestAddr) {
++    MprotectForGuest(g_base, kCodeOffset + kCodeWords * 4, PROT_READ);
++    MprotectForGuest(g_base, kCodeOffset + kCodeWords * 4, PROT_READ | PROT_EXEC);
++  };
++  Counts c;
++  Translate(Pc(g_base, kRegionA));
++  EXPECT_EQ(c.Delta(pcache::kRejectsMapping), 1u);
++  EXPECT_EQ(c.Delta(pcache::kHitsLite), 0u);
++  pcache::g_before_mapping_check_hook_for_testing = nullptr;
++  // Re-protected code isn't attributed again: a conservative miss from here on.
++  Counts c2;
++  Translate(Pc(g_base, kRegionA));
++  EXPECT_TRUE(IsTranslated(Pc(g_base, kRegionA)));
++  EXPECT_EQ(c2.Delta(pcache::kHitsLite) + c2.Delta(pcache::kMisses), 0u);
++}
++
++TEST_F(PersistentCacheTest, RemappedBeforeTheCheck) {
++  uint8_t* base1 = WriteRegionA();
++  StartProcess();
++  static uint8_t* g_base;
++  static uint8_t* g_moved;
++  static const std::string* g_path;
++  g_base = Remap(base1, elf_path_);
++  g_path = &elf_path_;
++  g_moved = static_cast<uint8_t*>(
++      mmap(nullptr, ElfSize(), PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
++  ASSERT_NE(g_moved, MAP_FAILED);
++  // Moved away, and the same file mapped back in its place.
++  pcache::g_before_mapping_check_hook_for_testing = [](GuestAddr) {
++    void* r = MremapForGuest(g_base,
++                             kCodeOffset + kCodeWords * 4,
++                             kCodeOffset + kCodeWords * 4,
++                             MREMAP_MAYMOVE | MREMAP_FIXED,
++                             g_moved);
++    ASSERT_EQ(r, g_moved);
++    int fd = open(g_path->c_str(), O_RDONLY | O_CLOEXEC);
++    MmapForGuest(g_base,
++                 kCodeOffset + kCodeWords * 4,
++                 PROT_READ | PROT_EXEC,
++                 MAP_PRIVATE | MAP_FIXED,
++                 fd,
++                 0);
++    close(fd);
++  };
++  Counts c;
++  Translate(Pc(g_base, kRegionA));
++  EXPECT_EQ(c.Delta(pcache::kRejectsMapping), 1u);
++  pcache::g_before_mapping_check_hook_for_testing = nullptr;
++  // The replacement invalidated the translation in flight, so it wasn't published. The mapping
++  // now in place is attributed afresh, and the record loads from it.
++  Counts c2;
++  Translate(Pc(g_base, kRegionA));
++  EXPECT_EQ(c2.Delta(pcache::kHitsLite), 1u);
++  MunmapForGuest(g_moved, ElfSize());
++}
++
++// An unmap that starts while a candidate is compared waits for the comparison: guest memory read
++// under the mapping lock stays mapped. Its invalidation, made before it waits, stops the load.
++TEST_F(PersistentCacheTest, UnmapWaitsForTheComparison) {
++  uint8_t* base1 = WriteRegionA();
++  StartProcess();
++  static uint8_t* g_base;
++  static std::atomic<int> g_unmapped;
++  static std::thread* g_thread;
++  static bool g_waited_while_locked;
++  g_base = Remap(base1, elf_path_);
++  for (auto it = mapped_.begin(); it != mapped_.end(); ++it) {
++    if (it->first == g_base) {
++      mapped_.erase(it);  // Unmapped by the test.
++      break;
++    }
++  }
++  g_unmapped = 0;
++  g_waited_while_locked = false;
++  pcache::g_in_mapping_check_hook_for_testing = [](GuestAddr pc) {
++    g_thread = new std::thread([] {
++      MunmapForGuest(g_base, kCodeOffset + kCodeWords * 4);
++      g_unmapped = 1;
++    });
++    // Wait for the unmap's invalidation, then give the unmap time to finish if it could.
++    for (int i = 0; i < 5000 && GuestMapShadow::GetInstance()->IsExecutable(pc, 4); i++) {
++      std::this_thread::sleep_for(std::chrono::milliseconds(1));
++    }
++    std::this_thread::sleep_for(std::chrono::milliseconds(100));
++    g_waited_while_locked = g_unmapped == 0;
++  };
++  Counts c;
++  Translate(Pc(g_base, kRegionA));
++  g_thread->join();
++  delete g_thread;
++  EXPECT_TRUE(g_waited_while_locked) << "the unmap didn't wait for the mapping lock";
++  EXPECT_EQ(g_unmapped, 1);
++  EXPECT_EQ(c.Delta(pcache::kRejectsMapping), 1u);
++  EXPECT_EQ(c.Delta(pcache::kHitsLite), 0u);
++  EXPECT_FALSE(IsTranslated(Pc(g_base, kRegionA)));
++}
++
++// A load that races with an invalidation is discarded at publication, like a translation.
++TEST_F(PersistentCacheTest, InvalidationDuringLoadDiscardsIt) {
++  uint8_t* base1 = WriteRegionA();
++  StartProcess();
++  uint8_t* base2 = Remap(base1, elf_path_);
++  g_before_publish_hook_for_testing = [](GuestAddr pc) {
++    TranslationCache::GetInstance()->InvalidateGuestRange(pc, pc + 4);
++  };
++  Counts c;
++  Translate(Pc(base2, kRegionA));
++  EXPECT_FALSE(IsTranslated(Pc(base2, kRegionA)));
++  EXPECT_EQ(c.Delta(pcache::kHitsLite), 0u);
++  g_before_publish_hook_for_testing = nullptr;
++  Translate(Pc(base2, kRegionA));
++  EXPECT_TRUE(IsTranslated(Pc(base2, kRegionA)));
++  EXPECT_EQ(c.Delta(pcache::kHitsLite), 1u);
++}
++
++// A counter re-linked to the new entry: the loaded code counts into it.
++TEST_F(PersistentCacheTest, LoadedCounterIsTheNewEntrys) {
++  uint8_t* base1 = WriteRegionA();
++  StartProcess();
++  uint8_t* base2 = Remap(base1, elf_path_);
++  GuestAddr pc = Pc(base2, kRegionA);
++  Translate(pc);
++  ASSERT_TRUE(IsTranslated(pc));
++  Record r = FindRecord(kRegionA);
++  uintptr_t counter = reinterpret_cast<uintptr_t>(&Entry(pc)->invocation_counter);
++  const uint8_t* code = HostCode(pc);
++  int found = 0;
++  for (uint32_t i = 0; i < r.num_operands(); i++) {
++    size_t at = r.operands_at() + i * 24;
++    if (r.Field<uint8_t>(at + 5) == uint8_t(SymbolKind::kCounter) &&
++        r.Field<uint8_t>(at + 4) == 8) {
++      uint64_t v;
++      memcpy(&v, code + r.Field<uint32_t>(at), 8);
++      EXPECT_EQ(v, counter);
++      found++;
++    }
++  }
++  EXPECT_GT(found, 0);
++}
++
++// ---- Writing ----
++
++TEST_F(PersistentCacheTest, RecordsWaitForAFlush) {
++  StartProcess();
++  uint8_t* base = MapElf(elf_path_);
++  Translate(Pc(base, kRegionA));
++  EXPECT_EQ(IndexEntries(), 0u) << "written before 1 MiB or 2 s";
++  pcache::MaybeFlush();
++  EXPECT_EQ(IndexEntries(), 0u);
++  pcache::FlushAll();
++  EXPECT_EQ(IndexEntries(), 1u);
++  // The guest's exit_group flushes too.
++  Translate(Pc(base, kRegionC));
++  g_guest_exit_hooks.Run();
++  EXPECT_EQ(IndexEntries(), 2u);
++}
++
++// One writer per module. A process that inherits the writer's lock fd by fork closes its copy and
++// doesn't write; an independent process (its own open of the lock file) can't take the lock.
++TEST_F(PersistentCacheTest, OneWriterAcrossForks) {
++  StartProcess();
++  uint8_t* base = MapElf(elf_path_);
++  Translate(Pc(base, kRegionA));
++  pcache::FlushAll();
++  ASSERT_TRUE(pcache::IsWriterForTesting("b"));
++  int lock_fd = pcache::WriterLockFdForTesting("b");
++  ASSERT_GE(lock_fd, 0);
++  size_t entries = IndexEntries();
++
++  // Fork, then go on as the parent's child.
++  pid_t pid = fork();
++  if (pid == 0) {
++    int status = 0;
++    if (pcache::Active()) status |= 1;
++    if (fcntl(lock_fd, F_GETFD) != -1 || errno != EBADF) status |= 2;
++    Translate(Pc(base, kRegionC));
++    pcache::FlushAll();
++    if (IndexEntries() != entries) status |= 4;
++    _exit(status);
++  }
++  ASSERT_GT(pid, 0);
++  int status;
++  ASSERT_EQ(waitpid(pid, &status, 0), pid);
++  ASSERT_TRUE(WIFEXITED(status));
++  EXPECT_EQ(WEXITSTATUS(status), 0) << "1: still active, 2: lock fd kept, 4: wrote";
++
++  // Fork, then start afresh as an independent process would.
++  pid = fork();
++  if (pid == 0) {
++    int status = 0;
++    pcache::InitForTesting(Mode::kOn, cache_dir_, settings_);
++    if (!pcache::Active()) status |= 1;
++    int fd = open(elf_path_.c_str(), O_RDONLY | O_CLOEXEC);
++    void* p = MmapForGuest(nullptr, ElfSize(), PROT_READ | PROT_EXEC, MAP_PRIVATE, fd, 0);
++    close(fd);
++    Translate(Pc(static_cast<uint8_t*>(p), kRegionC));
++    if (pcache::IsWriterForTesting("b")) status |= 2;
++    pcache::FlushAll();
++    if (IndexEntries() != entries) status |= 4;
++    _exit(status);
++  }
++  ASSERT_GT(pid, 0);
++  ASSERT_EQ(waitpid(pid, &status, 0), pid);
++  ASSERT_TRUE(WIFEXITED(status));
++  EXPECT_EQ(WEXITSTATUS(status), 0) << "1: not active, 2: became a writer, 4: wrote";
++
++  // The parent still writes.
++  EXPECT_TRUE(pcache::IsWriterForTesting("b"));
++  Translate(Pc(base, kRegionC));
++  pcache::FlushAll();
++  EXPECT_EQ(IndexEntries(), entries + 1);
++  Unmap(base);
++  EndProcess();
++
++  // Its lock released, the next launch writes.
++  StartProcess();
++  base = MapElf(elf_path_);
++  Translate(Pc(base, kRegionB));
++  EXPECT_TRUE(pcache::IsWriterForTesting("b"));
++}
++
++// The guest's fork is a raw clone without CLONE_VM, which runs no pthread_atfork handler; its
++// child runs the guest fork hooks. They must stop the cache without touching a lock the parent
++// may hold: here the mapping lock is held across the clone.
++TEST_F(PersistentCacheTest, GuestForkChildStopsWithoutLocks) {
++  StartProcess();
++  uint8_t* base = MapElf(elf_path_);
++  Translate(Pc(base, kRegionA));
++  int lock_fd = pcache::WriterLockFdForTesting("b");
++  ASSERT_GE(lock_fd, 0);
++  GuestMappingObserver* observer = GetGuestMappingObserver();
++  ASSERT_NE(observer, nullptr);
++  observer->LockExclusive();
++  long pid = syscall(SYS_clone, SIGCHLD, 0, 0, 0, 0);
++  if (pid == 0) {
++    g_guest_fork_child_hooks.Run();
++    int status = 0;
++    if (pcache::Active()) status |= 1;
++    if (fcntl(lock_fd, F_GETFD) != -1 || errno != EBADF) status |= 2;
++    // A guest mmap must not wait for the inherited, held lock.
++    void* p = MmapForGuest(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1,
++                           0);
++    if (p == MAP_FAILED || MunmapForGuest(p, 4096) != 0) status |= 4;
++    _exit(status);
++  }
++  observer->UnlockExclusive();
++  ASSERT_GT(pid, 0);
++  int status = 0;
++  bool exited = false;
++  for (int i = 0; i < 1000 && !exited; i++) {
++    exited = waitpid(pid, &status, WNOHANG) == pid;
++    if (!exited) {
++      std::this_thread::sleep_for(std::chrono::milliseconds(10));
++    }
++  }
++  if (!exited) {
++    kill(pid, SIGKILL);
++    waitpid(pid, &status, 0);
++  }
++  ASSERT_TRUE(exited) << "the child deadlocked on the inherited mapping lock";
++  ASSERT_TRUE(WIFEXITED(status));
++  EXPECT_EQ(WEXITSTATUS(status), 0) << "1: still active, 2: lock fd kept, 4: mmap failed";
++  EXPECT_TRUE(pcache::Active());
++  EXPECT_TRUE(pcache::IsWriterForTesting("b"));
++}
++
++// ---- verify ----
++
++// The candidate differs from a fresh translation, which repeats itself: a mismatch. The fresh
++// code is installed.
++TEST_F(PersistentCacheTest, VerifyDeterministicMismatchInstallsFresh) {
++  uint8_t* base1 = WriteRegionA();
++  Record r = FindRecord(kRegionA);
++  size_t k = r.FirstPlainCodeByte();
++  ASSERT_NE(k, SIZE_MAX);
++  uint8_t original = r.bytes[r.code_at() + k];
++  r.bytes[r.code_at() + k] ^= 0xff;
++  r.FixCrc();
++  WriteRecord(r);
++  StartProcess(Mode::kVerify);
++  Counts c;
++  uint8_t* base2 = Remap(base1, elf_path_);
++  GuestAddr pc = Pc(base2, kRegionA);
++  Translate(pc);
++  EXPECT_EQ(c.Delta(pcache::kVerifyMismatch), 1u);
++  EXPECT_EQ(c.Delta(pcache::kVerifyMatch) + c.Delta(pcache::kVerifyInconclusive), 0u);
++  EXPECT_EQ(c.Delta(pcache::kHitsLite), 0u);
++  ASSERT_TRUE(IsTranslated(pc));
++  EXPECT_EQ(HostCode(pc)[k], original) << "the candidate was installed";
++}
++
++// The fresh translations disagree with each other: inconclusive. The first is installed.
++TEST_F(PersistentCacheTest, VerifyNondeterminismIsInconclusiveAndInstallsFresh) {
++  uint8_t* base1 = WriteRegionA();
++  uint32_t candidate_size = FindRecord(kRegionA).code_size();
++  StartProcess(Mode::kVerify);
++  g_pcache_verify_fresh_hook_for_testing = [](MachineCode* machine_code, int attempt) {
++    if (attempt == 1) {
++      machine_code->AddU8(0x90);  // nop
++    }
++  };
++  Counts c;
++  uint8_t* base2 = Remap(base1, elf_path_);
++  GuestAddr pc = Pc(base2, kRegionA);
++  Translate(pc);
++  EXPECT_EQ(c.Delta(pcache::kVerifyInconclusive), 1u);
++  EXPECT_EQ(c.Delta(pcache::kVerifyMatch) + c.Delta(pcache::kVerifyMismatch), 0u);
++  ASSERT_TRUE(IsTranslated(pc));
++  EXPECT_EQ(Entry(pc)->host_size, candidate_size + 1) << "not the first fresh translation";
++}
++
++// Code equal, recovery points not: a mismatch all the same, and the fresh code's recovery points
++// are the ones registered.
++TEST_F(PersistentCacheTest, VerifyRecoveryOnlyMismatchInstallsFresh) {
++  uint8_t* base1 = WriteRegionA();
++  Record r = FindRecord(kRegionA);
++  ASSERT_GT(r.num_recovery_points(), 0u);
++  uint32_t fault = r.Field<uint32_t>(r.recovery_at());
++  uint32_t recovery = r.Field<uint32_t>(r.recovery_at() + 4);
++  uint32_t wrong = recovery == 0 ? 1 : recovery - 1;
++  r.SetField<uint32_t>(r.recovery_at() + 4, wrong);
++  r.FixCrc();
++  WriteRecord(r);
++  StartProcess(Mode::kVerify);
++  Counts c;
++  uint8_t* base2 = Remap(base1, elf_path_);
++  GuestAddr pc = Pc(base2, kRegionA);
++  Translate(pc);
++  EXPECT_EQ(c.Delta(pcache::kVerifyMismatch), 1u);
++  EXPECT_EQ(c.Delta(pcache::kHitsLite), 0u);
++  ASSERT_TRUE(IsTranslated(pc));
++  uintptr_t host = reinterpret_cast<uintptr_t>(HostCode(pc));
++  EXPECT_EQ(GetDefaultCodePoolInstance()->FindRecoveryCode(host + fault), host + recovery);
++}
++
++// ---- verify reads guest memory under the mapping lock too ----
++
++// A guest mapping call on another thread, started while `verify` is about to decode: it clears
++// the executable bits, then has to wait for the mapping lock, so the memory stays mapped while
++// the decoder reads it. Without the lock, the decoder would fault.
++struct RacingMappingCall {
++  static inline uint8_t* base;
++  static inline int attempt;      // Which of verify's translations to race.
++  static inline bool unmap;       // Unmap, or take all protection away.
++  static inline std::thread* thread;
++  static inline std::atomic<int> done;
++  static inline bool waited_while_locked;
++
++  static void Arm(uint8_t* b, int a, bool u) {
++    base = b;
++    attempt = a;
++    unmap = u;
++    thread = nullptr;
++    done = 0;
++    waited_while_locked = false;
++    g_pcache_verify_before_decode_hook_for_testing = Hook;
++  }
++
++  static void Hook(GuestAddr pc, int a) {
++    if (a != attempt || thread != nullptr) {
++      return;
++    }
++    thread = new std::thread([] {
++      size_t size = kCodeOffset + kCodeWords * 4;
++      if (unmap) {
++        MunmapForGuest(base, size);
++      } else {
++        MprotectForGuest(base, size, PROT_NONE);
++      }
++      done = 1;
++    });
++    for (int i = 0; i < 5000 && GuestMapShadow::GetInstance()->IsExecutable(pc, 4); i++) {
++      std::this_thread::sleep_for(std::chrono::milliseconds(1));
++    }
++    std::this_thread::sleep_for(std::chrono::milliseconds(100));
++    waited_while_locked = done == 0;
++  }
++
++  static void Join() {
++    if (thread != nullptr) {
++      thread->join();
++      delete thread;
++      thread = nullptr;
++    }
++  }
++};
++
++// Protection taken away during verify's first translation of a good candidate: the decode is
++// safe, and the invalidation the mprotect made stops the publication.
++TEST_F(PersistentCacheTest, VerifyHoldsTheMappingWhileTranslating) {
++  uint8_t* base1 = WriteRegionA();
++  StartProcess(Mode::kVerify);
++  uint8_t* base2 = Remap(base1, elf_path_);
++  GuestAddr pc = Pc(base2, kRegionA);
++  RacingMappingCall::Arm(base2, 1, /*unmap=*/false);
++  Counts c;
++  Translate(pc);
++  RacingMappingCall::Join();
++  EXPECT_TRUE(RacingMappingCall::waited_while_locked) << "the mprotect didn't wait for the lock";
++  EXPECT_EQ(RacingMappingCall::done, 1);
++  EXPECT_EQ(c.Delta(pcache::kVerifyMatch), 1u);
++  EXPECT_EQ(c.Delta(pcache::kHitsLite), 0u) << "published after the invalidation";
++  EXPECT_FALSE(IsTranslated(pc));
++}
++
++// The same for an unmap during the second translation, on the way to installing fresh code.
++TEST_F(PersistentCacheTest, VerifyHoldsTheMappingThroughTheFreshFallback) {
++  uint8_t* base1 = WriteRegionA();
++  Record r = FindRecord(kRegionA);
++  size_t k = r.FirstPlainCodeByte();
++  ASSERT_NE(k, SIZE_MAX);
++  r.bytes[r.code_at() + k] ^= 0xff;
++  r.FixCrc();
++  WriteRecord(r);
++  StartProcess(Mode::kVerify);
++  uint8_t* base2 = Remap(base1, elf_path_);
++  for (auto it = mapped_.begin(); it != mapped_.end(); ++it) {
++    if (it->first == base2) {
++      mapped_.erase(it);  // Unmapped by the test.
++      break;
++    }
++  }
++  GuestAddr pc = Pc(base2, kRegionA);
++  RacingMappingCall::Arm(base2, 2, /*unmap=*/true);
++  Counts c;
++  Translate(pc);
++  RacingMappingCall::Join();
++  EXPECT_TRUE(RacingMappingCall::waited_while_locked) << "the munmap didn't wait for the lock";
++  EXPECT_EQ(RacingMappingCall::done, 1);
++  EXPECT_EQ(c.Delta(pcache::kVerifyMismatch), 1u);
++  EXPECT_FALSE(IsTranslated(pc)) << "fresh code published after the invalidation";
++}
++
++// The cap is the app's: a flush counts what other processes wrote to the directory since start.
++TEST_F(PersistentCacheTest, CapCountsWhatOtherProcessesWrote) {
++  pcache::SetCapForTesting(1 << 20);
++  StartProcess();
++  uint8_t* base = MapElf(elf_path_);
++  Translate(Pc(base, kRegionA));
++  // Another process's module file, written after this one started.
++  WriteFile(cache_dir_ + "/other.pcache", std::vector<uint8_t>(1 << 20, 0));
++  Counts c;
++  pcache::FlushAll();
++  EXPECT_EQ(c.Delta(pcache::kRecordsWritten), 0u);
++  EXPECT_EQ(c.Delta(pcache::kNotPersistable), 1u);
++  EXPECT_EQ(IndexEntries(), 0u);
++}
++
++// ---- Replay: load against compile on a real app's regions, run by hand ----
++//
++//   BERBERIS_PCACHE_REPLAY_CORPUS=<dir> berberis_arm64_host_tests \
++//       --gtest_filter=PersistentCacheBench.DISABLED_ReplayCorpus --gtest_also_run_disabled_tests
++//
++// <dir> is the translate-corpus format (libs.txt, libs/, regions.txt). Each library is mapped as
++// the guest linker maps it, segment by segment from its file, so the cache attributes it as it
++// would on a device. Passes, each with the libraries mapped afresh at new addresses:
++//   off     translate every region start with the cache off (compile);
++//   write   the same with the cache on, then flush (compile + capture, and the write);
++//   load    the same in a new launch (load where there's a record);
++//   verify  berberis.pcache=verify (load, and compare with a fresh translation);
++//   off     again, for drift.
++// BERBERIS_PCACHE_REPLAY_TIER=heavy gears every region up after translating it in the off and
++// write passes, so heavy and settled-lite regions are stored and loaded.
++
++struct ReplayLib {
++  std::string path;
++  size_t span = 0;
++  uint64_t lo = 0;
++};
++
++class PersistentCacheBench : public PersistentCacheTest {
++ protected:
++  // Maps a library segment by segment; returns its load bias, or 0.
++  uintptr_t MapLibrary(const ReplayLib& lib) {
++    int fd = open(lib.path.c_str(), O_RDONLY | O_CLOEXEC);
++    if (fd < 0) {
++      return 0;
++    }
++    Elf64_Ehdr eh;
++    Elf64_Phdr ph[64];
++    if (pread(fd, &eh, sizeof(eh), 0) != sizeof(eh) || eh.e_phnum > 64 ||
++        pread(fd, ph, eh.e_phnum * sizeof(Elf64_Phdr), eh.e_phoff) !=
++            ssize_t(eh.e_phnum * sizeof(Elf64_Phdr))) {
++      close(fd);
++      return 0;
++    }
++    void* reserve = mmap(nullptr, lib.span, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++    if (reserve == MAP_FAILED) {
++      close(fd);
++      return 0;
++    }
++    uintptr_t bias = reinterpret_cast<uintptr_t>(reserve) - lib.lo;
++    for (int i = 0; i < eh.e_phnum; i++) {
++      if (ph[i].p_type != PT_LOAD || ph[i].p_filesz == 0) {
++        continue;
++      }
++      uint64_t start = ph[i].p_vaddr & ~uint64_t{4095};
++      uint64_t end = (ph[i].p_vaddr + ph[i].p_filesz + 4095) & ~uint64_t{4095};
++      int prot = ((ph[i].p_flags & PF_R) ? PROT_READ : 0) |
++                 ((ph[i].p_flags & PF_W) ? PROT_WRITE : 0) |
++                 ((ph[i].p_flags & PF_X) ? PROT_EXEC : 0);
++      void* p = MmapForGuest(reinterpret_cast<void*>(bias + start),
++                             end - start,
++                             prot,
++                             MAP_PRIVATE | MAP_FIXED,
++                             fd,
++                             ph[i].p_offset & ~uint64_t{4095});
++      if (p == MAP_FAILED) {
++        close(fd);
++        return 0;
++      }
++    }
++    close(fd);
++    return bias;
++  }
++
++  std::vector<uintptr_t> MapAll() {
++    std::vector<uintptr_t> biases;
++    for (const ReplayLib& lib : libs_) {
++      biases.push_back(MapLibrary(lib));
++    }
++    return biases;
++  }
++
++  void UnmapAll(const std::vector<uintptr_t>& biases) {
++    for (size_t i = 0; i < libs_.size(); i++) {
++      if (biases[i] != 0) {
++        MunmapForGuest(reinterpret_cast<void*>(biases[i] + libs_[i].lo), libs_[i].span);
++      }
++    }
++  }
++
++  static uint64_t NowNs() {
++    timespec ts;
++    clock_gettime(CLOCK_MONOTONIC, &ts);
++    return ts.tv_sec * 1'000'000'000ull + ts.tv_nsec;
++  }
++
++  // Translates every region start; returns the elapsed ns.
++  uint64_t TranslateAll(const std::vector<uintptr_t>& biases, bool gear_up, size_t* translated) {
++    *translated = 0;
++    uint64_t start = NowNs();
++    for (const auto& [li, vaddr] : regions_) {
++      if (biases[li] == 0) {
++        continue;
++      }
++      GuestAddr pc = biases[li] + vaddr;
++      if (!GuestMapShadow::GetInstance()->IsExecutable(pc, 4)) {
++        continue;
++      }
++      Translate(pc);
++      if (gear_up) {
++        GearUp(pc);
++      }
++      (*translated)++;
++    }
++    return NowNs() - start;
++  }
++
++  std::vector<ReplayLib> libs_;
++  std::vector<std::pair<unsigned, uint64_t>> regions_;
++};
++
++TEST_F(PersistentCacheBench, DISABLED_ReplayCorpus) {
++  const char* dir = getenv("BERBERIS_PCACHE_REPLAY_CORPUS");
++  if (dir == nullptr) {
++    GTEST_SKIP() << "set BERBERIS_PCACHE_REPLAY_CORPUS";
++  }
++  const char* tier = getenv("BERBERIS_PCACHE_REPLAY_TIER");
++  const bool heavy = tier != nullptr && strcmp(tier, "heavy") == 0;
++  {
++    FILE* f = fopen((std::string(dir) + "/libs.txt").c_str(), "r");
++    ASSERT_NE(f, nullptr);
++    char line[512];
++    while (fgets(line, sizeof(line), f)) {
++      ReplayLib lib;
++      lib.path = std::string(dir) + "/libs/" + std::string(line, strcspn(line, "\n"));
++      std::vector<uint8_t> file = ReadFile(lib.path);
++      ASSERT_GE(file.size(), sizeof(Elf64_Ehdr)) << lib.path;
++      Elf64_Ehdr eh;
++      memcpy(&eh, file.data(), sizeof(eh));
++      uint64_t lo = UINT64_MAX;
++      uint64_t hi = 0;
++      for (int i = 0; i < eh.e_phnum; i++) {
++        Elf64_Phdr ph;
++        memcpy(&ph, file.data() + eh.e_phoff + i * sizeof(ph), sizeof(ph));
++        if (ph.p_type == PT_LOAD) {
++          lo = std::min<uint64_t>(lo, ph.p_vaddr & ~uint64_t{4095});
++          hi = std::max<uint64_t>(hi, ph.p_vaddr + ph.p_memsz);
++        }
++      }
++      lib.lo = lo;
++      lib.span = ((hi + 4095) & ~uint64_t{4095}) - lo;
++      libs_.push_back(lib);
++    }
++    fclose(f);
++  }
++  {
++    FILE* f = fopen((std::string(dir) + "/regions.txt").c_str(), "r");
++    ASSERT_NE(f, nullptr);
++    unsigned li;
++    unsigned long long vaddr;
++    while (fscanf(f, "%u %llx", &li, &vaddr) == 2) {
++      ASSERT_LT(li, libs_.size());
++      regions_.emplace_back(li, vaddr);
++    }
++    fclose(f);
++  }
++  // BERBERIS_PCACHE_REPLAY_CAP_MB: another cap, to measure loads past the default 128 MiB.
++  if (const char* cap = getenv("BERBERIS_PCACHE_REPLAY_CAP_MB"); cap != nullptr) {
++    pcache::SetCapForTesting(strtoull(cap, nullptr, 10) << 20);
++  }
++  size_t n = 0;
++  auto report = [&](const char* pass, uint64_t ns) {
++    printf("REPLAY %s %s: %zu regions, %.0f ms, %.2f us/region\n",
++           heavy ? "heavy" : "lite",
++           pass,
++           n,
++           ns / 1e6,
++           n ? ns / 1e3 / n : 0.0);
++  };
++
++  std::vector<uintptr_t> off = MapAll();
++  report("off", TranslateAll(off, heavy, &n));
++
++  StartProcess(Mode::kOn);
++  std::vector<uintptr_t> write = MapAll();
++  UnmapAll(off);
++  Counts c_write;
++  report("write", TranslateAll(write, heavy, &n));
++  uint64_t flush_start = NowNs();
++  pcache::FlushAll();
++  report("write-flush", NowNs() - flush_start);
++  EndProcess();
++  printf("REPLAY write: %lu records, %lu bytes, %lu not persistable; data %zu bytes, index %zu\n",
++         (unsigned long)c_write.Delta(pcache::kRecordsWritten),
++         (unsigned long)c_write.Delta(pcache::kBytesWritten),
++         (unsigned long)c_write.Delta(pcache::kNotPersistable),
++         ReadFileSize(cache_dir_, ".pcache"),
++         ReadFileSize(cache_dir_, ".pidx"));
++
++  StartProcess(Mode::kOn);
++  std::vector<uintptr_t> load = MapAll();
++  UnmapAll(write);
++  Counts c_load;
++  report("load", TranslateAll(load, false, &n));
++  EndProcess();
++  printf("REPLAY load: hits lite %lu heavy %lu, misses %lu, rejects file %lu record %lu "
++         "mapping %lu bytes %lu, records written %lu\n",
++         (unsigned long)c_load.Delta(pcache::kHitsLite),
++         (unsigned long)c_load.Delta(pcache::kHitsHeavy),
++         (unsigned long)c_load.Delta(pcache::kMisses),
++         (unsigned long)c_load.Delta(pcache::kRejectsFile),
++         (unsigned long)c_load.Delta(pcache::kRejectsRecord),
++         (unsigned long)c_load.Delta(pcache::kRejectsMapping),
++         (unsigned long)c_load.Delta(pcache::kRejectsBytes),
++         (unsigned long)c_load.Delta(pcache::kRecordsWritten));
++
++  StartProcess(Mode::kVerify);
++  std::vector<uintptr_t> verify = MapAll();
++  UnmapAll(load);
++  Counts c_verify;
++  report("verify", TranslateAll(verify, false, &n));
++  EndProcess();
++  printf("REPLAY verify: match %lu, mismatch %lu, inconclusive %lu, fallback %lu, rejects record "
++         "%lu\n",
++         (unsigned long)c_verify.Delta(pcache::kVerifyMatch),
++         (unsigned long)c_verify.Delta(pcache::kVerifyMismatch),
++         (unsigned long)c_verify.Delta(pcache::kVerifyInconclusive),
++         (unsigned long)c_verify.Delta(pcache::kVerifyFallback),
++         (unsigned long)c_verify.Delta(pcache::kRejectsRecord));
++
++  std::vector<uintptr_t> off2 = MapAll();
++  UnmapAll(verify);
++  report("off-again", TranslateAll(off2, heavy, &n));
++  UnmapAll(off2);
++  pcache::SetCapForTesting(0);
++}
++
++}  // namespace
++
++}  // namespace berberis
+diff --git a/runtime/arm64/relocatable_code.cc b/runtime/arm64/relocatable_code.cc
+index dd6ba370..0945c1de 100644
+--- a/runtime/arm64/relocatable_code.cc
++++ b/runtime/arm64/relocatable_code.cc
+@@ -194,21 +194,36 @@ SymbolizedCode SymbolizeTranslation(const MachineCode& machine_code,
+                                     GuestModule module,
+                                     uintptr_t counter) {
+   SymbolizedCode out;
++  SymbolizeTranslationInto(machine_code, code, install_addr, module, counter, &out);
++  return out;
++}
++
++void SymbolizeTranslationInto(const MachineCode& machine_code,
++                              const uint8_t* code,
++                              uintptr_t install_addr,
++                              GuestModule module,
++                              uintptr_t counter,
++                              SymbolizedCode* result) {
++  SymbolizedCode& out = *result;
++  out.reason = NotPersistable::kNo;
++  out.operands.clear();
++  out.recovery_points.clear();
+   const size_t size = machine_code.install_size();
+   auto fail = [&out](NotPersistable reason) {
+     out.reason = reason;
+     out.operands.clear();
+     out.recovery_points.clear();
+-    return out;
+   };
+   auto in_module = [&module](uint64_t addr) { return addr >= module.start && addr <= module.end; };
+   if (machine_code.not_persistable()) {
+-    return fail(NotPersistable::kUnrepresentableFold);
++    fail(NotPersistable::kUnrepresentableFold);
++    return;
+   }
+ 
+   for (const PersistentReloc& reloc : machine_code.persistent_relocs()) {
+     if (reloc.width != 8 || reloc.offset > size || size - reloc.offset < 8) {
+-      return fail(NotPersistable::kOperandMismatch);
++      fail(NotPersistable::kOperandMismatch);
++      return;
+     }
+     uint64_t value;
+     memcpy(&value, code + reloc.offset, sizeof(value));
+@@ -216,61 +231,73 @@ SymbolizedCode SymbolizeTranslation(const MachineCode& machine_code,
+     switch (reloc.kind) {
+       case PersistentOperand::kGuestAddr:
+         if (value != reloc.value) {
+-          return fail(NotPersistable::kOperandMismatch);
++          fail(NotPersistable::kOperandMismatch);
++          return;
+         }
+         if (!in_module(reloc.value)) {
+-          return fail(NotPersistable::kGuestAddrOutsideModule);
++          fail(NotPersistable::kGuestAddrOutsideModule);
++          return;
+         }
+         op.kind = SymbolKind::kGuestOffset;
+         op.arg = reloc.value - module.start;
+         break;
+       case PersistentOperand::kTableSlot:
+         if (!in_module(reloc.value)) {
+-          return fail(NotPersistable::kGuestAddrOutsideModule);
++          fail(NotPersistable::kGuestAddrOutsideModule);
++          return;
+         }
+         if (value != TableSlot(reloc.value)) {
+-          return fail(NotPersistable::kOperandMismatch);
++          fail(NotPersistable::kOperandMismatch);
++          return;
+         }
+         op.kind = SymbolKind::kTableSlot;
+         op.arg = reloc.value - module.start;
+         break;
+       case PersistentOperand::kMainTable:
+         if (value != MainTable()) {
+-          return fail(NotPersistable::kOperandMismatch);
++          fail(NotPersistable::kOperandMismatch);
++          return;
+         }
+         op.kind = SymbolKind::kMainTable;
+         break;
+       case PersistentOperand::kCounter:
+         if (counter == 0) {
+-          return fail(NotPersistable::kNoCounter);
++          fail(NotPersistable::kNoCounter);
++          return;
+         }
+         if (value != counter) {
+-          return fail(NotPersistable::kOperandMismatch);
++          fail(NotPersistable::kOperandMismatch);
++          return;
+         }
+         op.kind = SymbolKind::kCounter;
+         break;
+       case PersistentOperand::kHostAddr:
+         if (value != reloc.value) {
+-          return fail(NotPersistable::kOperandMismatch);
++          fail(NotPersistable::kOperandMismatch);
++          return;
+         }
+         if (!ClassifyHostAddr(reloc.value, &op.kind, &op.arg)) {
+-          return fail(NotPersistable::kUnknownHostAddr);
++          fail(NotPersistable::kUnknownHostAddr);
++          return;
+         }
+         break;
+       case PersistentOperand::kHostResource: {
+         uintptr_t resource = ResourceAddress(reloc.value);
+         if (resource == 0) {
+-          return fail(NotPersistable::kUnknownResource);
++          fail(NotPersistable::kUnknownResource);
++          return;
+         }
+         if (value != resource) {
+-          return fail(NotPersistable::kOperandMismatch);
++          fail(NotPersistable::kOperandMismatch);
++          return;
+         }
+         op.kind = SymbolKind::kResource;
+         op.arg = reloc.value;
+         break;
+       }
+       case PersistentOperand::kNumKinds:
+-        return fail(NotPersistable::kOperandMismatch);
++        fail(NotPersistable::kOperandMismatch);
++        return;
+     }
+     out.operands.push_back(op);
+   }
+@@ -284,16 +311,19 @@ SymbolizedCode SymbolizeTranslation(const MachineCode& machine_code,
+       continue;
+     }
+     if (reloc.dst > size || size - reloc.dst < 4) {
+-      return fail(NotPersistable::kOperandMismatch);
++      fail(NotPersistable::kOperandMismatch);
++      return;
+     }
+     int32_t disp;
+     memcpy(&disp, code + reloc.dst, sizeof(disp));
+     if (static_cast<intptr_t>(install_addr + reloc.pc) + disp != reloc.data) {
+-      return fail(NotPersistable::kOperandMismatch);
++      fail(NotPersistable::kOperandMismatch);
++      return;
+     }
+     SymbolicOperand op{reloc.dst, 4, SymbolKind::kEntry, reloc.pc, 0};
+     if (!ClassifyHostAddr(reloc.data, &op.kind, &op.arg)) {
+-      return fail(NotPersistable::kUnknownDispTarget);
++      fail(NotPersistable::kUnknownDispTarget);
++      return;
+     }
+     out.operands.push_back(op);
+   }
+@@ -303,10 +333,10 @@ SymbolizedCode SymbolizeTranslation(const MachineCode& machine_code,
+   });
+   for (size_t i = 1; i < out.operands.size(); i++) {
+     if (out.operands[i - 1].offset + out.operands[i - 1].width > out.operands[i].offset) {
+-      return fail(NotPersistable::kOverlappingOperands);
++      fail(NotPersistable::kOverlappingOperands);
++      return;
+     }
+   }
+-  return out;
+ }
+ 
+ uint64_t ResolveSymbol(SymbolKind kind, uint64_t arg, GuestAddr module_base, uintptr_t counter) {
+@@ -335,7 +365,19 @@ bool RelinkTranslation(uint8_t* code,
+                        GuestAddr module_base,
+                        uintptr_t install_addr,
+                        uintptr_t counter) {
+-  for (const SymbolicOperand& op : operands) {
++  return RelinkTranslation(
++      code, size, operands.data(), operands.size(), module_base, install_addr, counter);
++}
++
++bool RelinkTranslation(uint8_t* code,
++                       size_t size,
++                       const SymbolicOperand* operands,
++                       size_t num_operands,
++                       GuestAddr module_base,
++                       uintptr_t install_addr,
++                       uintptr_t counter) {
++  for (size_t i = 0; i < num_operands; i++) {
++    const SymbolicOperand& op = operands[i];
+     if (op.offset > size || size - op.offset < op.width) {
+       return false;
+     }
+diff --git a/runtime/arm64/relocatable_code.h b/runtime/arm64/relocatable_code.h
+index d0345f93..0d7f8c76 100644
+--- a/runtime/arm64/relocatable_code.h
++++ b/runtime/arm64/relocatable_code.h
+@@ -27,10 +27,10 @@
+ namespace berberis {
+ 
+ // region digitalis
+-// Naming a translation's absolute operands so it can be given another process's addresses: the
+-// groundwork for a persistent translation cache (ANAL-381, OpenBook
+-// docs/digitalis-translation-cache.md, section 3.4). Nothing is persisted yet; the completeness
+-// checks in relocatable_code_test.cc use this to show every operand is named.
++// Naming a translation's absolute operands so it can be given another process's addresses: what
++// the persistent translation cache stores and re-links (ANAL-381, OpenBook
++// docs/digitalis-translation-cache.md, section 3.4; persistent_cache.h). The completeness checks
++// in relocatable_code_test.cc show every operand is named.
+ 
+ // What a named operand resolves to in the process the code is re-linked into.
+ enum class SymbolKind : uint8_t {
+@@ -90,6 +90,14 @@ SymbolizedCode SymbolizeTranslation(const MachineCode& machine_code,
+                                     uintptr_t install_addr,
+                                     GuestModule module,
+                                     uintptr_t counter);
++// The same into `out`, reusing its storage (the persistent cache symbolizes every translation it
++// writes).
++void SymbolizeTranslationInto(const MachineCode& machine_code,
++                              const uint8_t* code,
++                              uintptr_t install_addr,
++                              GuestModule module,
++                              uintptr_t counter,
++                              SymbolizedCode* out);
+ 
+ // Gives `code` (a copy of a translation's bytes) this process's addresses: its module at
+ // `module_base`, installed at `install_addr`, with counter `counter`. False if an operand is out
+@@ -100,6 +108,13 @@ bool RelinkTranslation(uint8_t* code,
+                        GuestAddr module_base,
+                        uintptr_t install_addr,
+                        uintptr_t counter);
++bool RelinkTranslation(uint8_t* code,
++                       size_t size,
++                       const SymbolicOperand* operands,
++                       size_t num_operands,
++                       GuestAddr module_base,
++                       uintptr_t install_addr,
++                       uintptr_t counter);
+ 
+ // Where an operand's value would point in this process; for the completeness checks.
+ uint64_t ResolveSymbol(SymbolKind kind, uint64_t arg, GuestAddr module_base, uintptr_t counter);
+diff --git a/runtime/arm64/translator_stats_test.cc b/runtime/arm64/translator_stats_test.cc
+index 7dfde012..36b91368 100644
+--- a/runtime/arm64/translator_stats_test.cc
++++ b/runtime/arm64/translator_stats_test.cc
+@@ -198,7 +198,7 @@ TEST_F(TranslatorStats, ConcurrentAddsAreExact) {
+ 
+ TEST_F(TranslatorStats, FormatNamesEveryCounter) {
+   ts::Add(ts::kDispatcherFlushes, 7);
+-  char buf[1536];
++  char buf[3072];  // As LogFinalLine's.
+   size_t len = ts::Format(buf, sizeof(buf));
+   ASSERT_EQ(len, strlen(buf));
+   std::string line(buf);
+@@ -209,6 +209,21 @@ TEST_F(TranslatorStats, FormatNamesEveryCounter) {
+   }
+   EXPECT_NE(line.find(" dispatcher_flushes=7"), std::string::npos) << line;
+ 
++  // The final line's buffer holds every counter at its largest value.
++  uint64_t saved[ts::kNumCounters];
++  for (size_t i = 0; i < ts::kNumCounters; i++) {
++    saved[i] = ts::g_block.counters[i].exchange(UINT64_MAX);
++  }
++  len = ts::Format(buf, sizeof(buf));
++  for (size_t i = 0; i < ts::kNumCounters; i++) {
++    ts::g_block.counters[i].store(saved[i]);
++  }
++  EXPECT_LT(len + 1, sizeof(buf));
++  std::string last =
++      std::string(" ") + ts::GetName(static_cast<ts::Counter>(ts::kNumCounters - 1)) +
++      "=18446744073709551615";
++  EXPECT_EQ(std::string(buf).substr(len - last.size()), last);
++
+   // A short buffer truncates, still NUL-terminated.
+   char small[24];
+   memset(small, 'x', sizeof(small));
+diff --git a/runtime/arm64/translator_x86_64.cc b/runtime/arm64/translator_x86_64.cc
+index 5212aabf..f25b6cd8 100644
+--- a/runtime/arm64/translator_x86_64.cc
++++ b/runtime/arm64/translator_x86_64.cc
+@@ -16,15 +16,21 @@
+ 
+ #include "translator.h"
+ 
++#include <sys/mman.h>
++
++#include <algorithm>
+ #include <cstdint>
+ #include <cstdlib>
+ #include <cstring>
+ #include <tuple>
++#include <utility>
++#include <vector>
+ 
+ #include "berberis/assembler/machine_code.h"
+ #include "berberis/base/checks.h"
+ #include "berberis/base/config.h"
+ #include "berberis/base/config_globals.h"
++#include "berberis/base/logging.h"
+ #include "berberis/base/tracing.h"
+ #include "berberis/guest_os_primitives/guest_map_shadow.h"
+ #include "berberis/guest_os_primitives/guest_signal.h"
+@@ -34,10 +40,13 @@
+ #include "berberis/interpreter/arm64/interpreter.h"
+ #include "berberis/lite_translator/lite_translate_region.h"
+ #include "berberis/runtime_primitives/host_code.h"
++#include "berberis/runtime_primitives/profiler_interface.h"
+ #include "berberis/runtime_primitives/runtime_library.h"
+ #include "berberis/runtime_primitives/translation_cache.h"
+ #include "berberis/runtime_primitives/translator_stats.h"
+ 
++#include "persistent_cache.h"
++
+ namespace berberis {
+ 
+ namespace {
+@@ -105,6 +114,8 @@ size_t GetExecutableRegionSize(GuestAddr pc) {
+ 
+ }  // namespace
+ 
++size_t GetGearUpMinInsns();
++
+ void InitTranslatorArch() {
+   // Install Berberis's host SIGSEGV/SIGBUS handler. This used to live in
+   // runtime/berberis.cc inside `#if defined(NATIVE_BRIDGE_GUEST_ARCH_ARM64)`,
+@@ -115,27 +126,53 @@ void InitTranslatorArch() {
+   ClaimHostFaultSignals();
+   UpdateTranslationMode();
+   translator_stats::Init();
++  // region digitalis
++  // After the counters, so its exit flush runs before their final line.
++  pcache::Init({static_cast<uint32_t>(g_translation_mode),
++                static_cast<uint32_t>(GetGearUpMinInsns())});
++  // endregion
+ }
+ 
+-// Exported for testing only.
+-std::tuple<bool, HostCodePiece, size_t, GuestCodeEntry::Kind> TryLiteTranslateAndInstallRegion(
+-    GuestAddr pc,
+-    LiteTranslateParams params = LiteTranslateParams()) {
+-  MachineCode machine_code;
++namespace {
+ 
+-  params.end_pc = pc + GetExecutableRegionSize(pc);
++// The lite parameters every translation uses, whatever its tier.
++void SetCommonLiteParams(LiteTranslateParams* params) {
+   // enable direct dispatch
+   // JIT is stable (16 breaks total, all register pressure). Enable direct
+   // dispatch so regions chain directly through the translation cache instead
+   // of returning to the ExecuteGuest loop on every region boundary.
+-  params.allow_dispatch = true;
++  params->allow_dispatch = true;
+   // Diagnostic knob: BERBERIS_FLAGS=disable-reg-map (or
+   // `setprop berberis.flags disable-reg-map`) turns off cross-instruction
+   // guest->host register mapping so every guest register read/write goes
+   // through ThreadState memory. Mirrors the riscv64 translator; used to bisect
+   // register-mapping codegen bugs from the interpreter-equivalent path.
+   if (IsConfigFlagSet(kDisableRegMap)) {
+-    params.enable_reg_mapping = false;
++    params->enable_reg_mapping = false;
++  }
++}
++
++// region digitalis
++// The tier a lite translation is persisted as (ANAL-381).
++pcache::Tier LiteTier(const LiteTranslateParams& params) {
++  return params.enable_self_profiling ? pcache::Tier::kLiteCounter : pcache::Tier::kLiteSettled;
++}
++
++uintptr_t LiteCounter(const LiteTranslateParams& params) {
++  return params.enable_self_profiling ? reinterpret_cast<uintptr_t>(params.counter_location) : 0;
++}
++// endregion
++
++std::tuple<bool, HostCodePiece, size_t, GuestCodeEntry::Kind> LiteTranslateAndInstallRegion(
++    GuestAddr pc,
++    LiteTranslateParams params,
++    pcache::Capture* capture) {
++  MachineCode machine_code;
++
++  params.end_pc = pc + GetExecutableRegionSize(pc);
++  SetCommonLiteParams(&params);
++  if (capture != nullptr) {
++    params.decoded_insns = capture->decoded_insns();  // digitalis
+   }
+   auto [success, stop_pc] = TryLiteTranslateRegion(pc, &machine_code, params);
+ 
+@@ -151,6 +188,10 @@ std::tuple<bool, HostCodePiece, size_t, GuestCodeEntry::Kind> TryLiteTranslateAn
+     if (piece.code == kNullHostCodeAddr) {
+       return {false, {}, 0, {}};
+     }
++    if (capture != nullptr) {
++      capture->OnInstalled(
++          machine_code, piece, pc, size, params.end_pc, LiteTier(params), LiteCounter(params));
++    }
+     return {true, piece, size, kLiteTranslated};
+     // endregion
+   }
+@@ -172,10 +213,28 @@ std::tuple<bool, HostCodePiece, size_t, GuestCodeEntry::Kind> TryLiteTranslateAn
+   if (range_piece.code == kNullHostCodeAddr) {
+     return {false, {}, 0, {}};
+   }
++  if (capture != nullptr) {
++    capture->OnInstalled(another_machine_code,
++                         range_piece,
++                         pc,
++                         size,
++                         params.end_pc,
++                         LiteTier(params),
++                         LiteCounter(params));
++  }
+   // endregion
+   return {true, range_piece, size, kLiteTranslated};
+ }
+ 
++}  // namespace
++
++// Exported for testing only.
++std::tuple<bool, HostCodePiece, size_t, GuestCodeEntry::Kind> TryLiteTranslateAndInstallRegion(
++    GuestAddr pc,
++    LiteTranslateParams params = LiteTranslateParams()) {
++  return LiteTranslateAndInstallRegion(pc, params, nullptr);
++}
++
+ // translation profiling counters
+ static struct TranslationStats {
+   uint64_t total_translations = 0;
+@@ -214,10 +273,14 @@ size_t GetGearUpMinInsns() {
+ // Optimizing (second-gear) translation install. The heavy optimizer translates
+ // the region; if it bails on an instruction it does not yet handle, this returns
+ // {false, ...} and the caller re-lite-translates the whole region.
+-std::tuple<bool, HostCodePiece, size_t, GuestCodeEntry::Kind> HeavyOptimizeAndInstallRegion(
+-    GuestAddr pc) {
++namespace {
++
++std::tuple<bool, HostCodePiece, size_t, GuestCodeEntry::Kind> HeavyOptimizeAndInstallRegionImpl(
++    GuestAddr pc,
++    pcache::Capture* capture) {
+   MachineCode machine_code;
+   bool has_in_region_backedge = false;
++  const GuestAddr end_pc = pc + GetExecutableRegionSize(pc);
+   // The outcomes below that discard the result (declined as too small, bailed
+   // without a captured loop) are known once the frontend has run, so the
+   // optimizer's backend is skipped for them. 86% of Lichess's gear-ups on the
+@@ -225,9 +288,10 @@ std::tuple<bool, HostCodePiece, size_t, GuestCodeEntry::Kind> HeavyOptimizeAndIn
+   auto [stop_pc, success, number_of_instructions] =
+       HeavyOptimizeRegion(pc,
+                           &machine_code,
+-                          {.end_pc = pc + GetExecutableRegionSize(pc),
++                          {.end_pc = end_pc,
+                            .skip_codegen_below_instructions = GetGearUpMinInsns(),
+-                           .skip_codegen_if_bailed_without_backedge = true},
++                           .skip_codegen_if_bailed_without_backedge = true,
++                           .decoded_insns = capture ? capture->decoded_insns() : nullptr},
+                           &has_in_region_backedge);
+   size_t size = stop_pc - pc;
+   // When the heavy frontend bails partway through, the prefix it did translate is
+@@ -247,6 +311,9 @@ std::tuple<bool, HostCodePiece, size_t, GuestCodeEntry::Kind> HeavyOptimizeAndIn
+         translator_stats::Add(translator_stats::kGearUpNoMem);
+         return {false, {}, 0, {}};
+       }
++      if (capture != nullptr) {
++        capture->OnInstalled(machine_code, heavy_piece, pc, size, end_pc, pcache::Tier::kHeavy, 0);
++      }
+       translator_stats::Add(translator_stats::kGearUpHeavyPrefix);
+       return {true, heavy_piece, size, kHeavyOptimized};
+       // endregion
+@@ -273,15 +340,302 @@ std::tuple<bool, HostCodePiece, size_t, GuestCodeEntry::Kind> HeavyOptimizeAndIn
+     translator_stats::Add(translator_stats::kGearUpNoMem);
+     return {false, {}, 0, {}};
+   }
++  if (capture != nullptr) {
++    capture->OnInstalled(machine_code, heavy_piece2, pc, size, end_pc, pcache::Tier::kHeavy, 0);
++  }
+   translator_stats::Add(translator_stats::kGearUpHeavy);
+   return {true, heavy_piece2, size, kHeavyOptimized};
+   // endregion
+ }
+ 
++}  // namespace
++
++std::tuple<bool, HostCodePiece, size_t, GuestCodeEntry::Kind> HeavyOptimizeAndInstallRegion(
++    GuestAddr pc) {
++  return HeavyOptimizeAndInstallRegionImpl(pc, nullptr);
++}
++
+ // Called after translating and before publishing, so a test can invalidate the
+ // region in between exactly as another thread can. Null outside tests.
+ void (*g_before_publish_hook_for_testing)(GuestAddr pc) = nullptr;
+ 
++// region digitalis
++// Called on each fresh translation berberis.pcache=verify compares (attempt 1, then 2), so a test
++// can make the translator not repeat itself. Null outside tests.
++void (*g_pcache_verify_fresh_hook_for_testing)(MachineCode* machine_code, int attempt) = nullptr;
++// Called before each of those translations decodes, after its executable check, with the mapping
++// lock held. Null outside tests.
++void (*g_pcache_verify_before_decode_hook_for_testing)(GuestAddr pc, int attempt) = nullptr;
++
++// The persistent translation cache's side of a first-gear translation (ANAL-381).
++namespace {
++
++void CountInstalled(GuestCodeEntry::Kind kind, size_t guest_size, size_t host_size) {
++  if (kind == kHeavyOptimized) {
++    translator_stats::Add(translator_stats::kInstalledHeavy);
++    translator_stats::Add(translator_stats::kHeavyGuestBytes, guest_size);
++    translator_stats::Add(translator_stats::kHeavyHostBytes, host_size);
++  } else if (kind == kLiteTranslated) {
++    translator_stats::Add(translator_stats::kInstalledLite);
++    translator_stats::Add(translator_stats::kLiteGuestBytes, guest_size);
++    translator_stats::Add(translator_stats::kLiteHostBytes, host_size);
++  } else {
++    translator_stats::Add(translator_stats::kInstalledInterp);
++  }
++}
++
++// Translates the candidate's region again as the candidate was translated: its tier, its
++// parameters, its end. False if that doesn't produce an installable translation of the same
++// guest range. With the mapping lock held: the decoder reads guest memory.
++bool TranslateLikeCandidate(const pcache::Candidate& c,
++                            GuestCodeEntry* entry,
++                            MachineCode* machine_code,
++                            int attempt) {
++  // The lock keeps the memory mapped, but an unmap or mprotect clears the executable bits before
++  // it waits for the lock, so this can find less executable than before.
++  auto [is_executable, executable_size] =
++      GuestMapShadow::GetInstance()->GetExecutableRegionSize(c.pc, config::kGuestPageSize);
++  if (!is_executable || c.end_pc - c.pc > executable_size) {
++    return false;  // The same translation can't be made.
++  }
++  if (g_pcache_verify_before_decode_hook_for_testing != nullptr) {
++    g_pcache_verify_before_decode_hook_for_testing(c.pc, attempt);
++  }
++  if (c.tier == pcache::Tier::kHeavy) {
++    bool has_in_region_backedge = false;
++    auto [stop_pc, success, number_of_instructions] =
++        HeavyOptimizeRegion(c.pc,
++                            machine_code,
++                            {.end_pc = c.end_pc,
++                             .skip_codegen_below_instructions = GetGearUpMinInsns(),
++                             .skip_codegen_if_bailed_without_backedge = true},
++                            &has_in_region_backedge);
++    bool installed = success ? number_of_instructions >= GetGearUpMinInsns()
++                             : has_in_region_backedge;
++    return installed && stop_pc - c.pc == c.guest_size && machine_code->install_size() > 0;
++  }
++  LiteTranslateParams params;
++  SetCommonLiteParams(&params);
++  params.end_pc = c.end_pc;
++  if (c.tier == pcache::Tier::kLiteCounter) {
++    params.enable_self_profiling = true;
++    params.counter_location = &entry->invocation_counter;
++  } else {
++    params.allow_in_region_loops = true;
++  }
++  auto [success, stop_pc] = TryLiteTranslateRegion(c.pc, machine_code, params);
++  return success && stop_pc - c.pc == c.guest_size;
++}
++
++// Code and recovery points as they'd be installed at one address, for comparing translations.
++struct Normalized {
++  std::vector<uint8_t> code;
++  std::vector<std::pair<uint32_t, uint32_t>> recovery_points;
++  bool operator==(const Normalized& other) const {
++    return code == other.code && recovery_points == other.recovery_points;
++  }
++};
++
++// A writable buffer in the low 2 GiB, as the code pool is, where translations are installed to
++// be compared. Never executed.
++class ScratchCode {
++ public:
++  static constexpr size_t kSize = 1 << 20;
++  ScratchCode()
++      : buf_(mmap(nullptr,
++                  kSize,
++                  PROT_READ | PROT_WRITE,
++                  MAP_PRIVATE | MAP_ANONYMOUS | MAP_32BIT,
++                  -1,
++                  0)) {}
++  ~ScratchCode() {
++    if (buf_ != MAP_FAILED) {
++      munmap(buf_, kSize);
++    }
++  }
++  ScratchCode(const ScratchCode&) = delete;
++  ScratchCode& operator=(const ScratchCode&) = delete;
++  [[nodiscard]] bool ok() const { return buf_ != MAP_FAILED; }
++  [[nodiscard]] uint8_t* data() const { return static_cast<uint8_t*>(buf_); }
++
++ private:
++  void* buf_;
++};
++
++bool NormalizeFresh(MachineCode* machine_code, const ScratchCode& scratch, Normalized* out) {
++  if (machine_code->install_size() > ScratchCode::kSize) {
++    return false;
++  }
++  RecoveryMap recovery_map;
++  machine_code->InstallUnsafe(scratch.data(), &recovery_map);
++  uintptr_t base = reinterpret_cast<uintptr_t>(scratch.data());
++  out->code.assign(scratch.data(), scratch.data() + machine_code->install_size());
++  out->recovery_points.clear();
++  for (const auto& [fault, recovery] : recovery_map) {
++    out->recovery_points.emplace_back(fault - base, recovery - base);
++  }
++  std::sort(out->recovery_points.begin(), out->recovery_points.end());
++  return true;
++}
++
++bool NormalizeCandidate(const pcache::Candidate& c,
++                        const ScratchCode& scratch,
++                        uintptr_t counter,
++                        Normalized* out) {
++  out->code.resize(c.code_size);
++  if (!pcache::RelinkCandidateAt(
++          c, out->code.data(), reinterpret_cast<uintptr_t>(scratch.data()), counter)) {
++    return false;
++  }
++  out->recovery_points = c.recovery_points;
++  std::sort(out->recovery_points.begin(), out->recovery_points.end());
++  return true;
++}
++
++enum class Verdict {
++  kCandidate,  // The candidate matches a fresh translation: install it.
++  kFresh,      // Install the fresh translation.
++  kTranslate,  // Translate as usual.
++};
++
++// berberis.pcache=verify. The candidate is installed only if it equals, code and recovery
++// points at one address, a fresh translation with its tier and parameters. Otherwise the fresh
++// one is, and the region is translated once more to tell a wrong candidate (the two fresh ones
++// agree: a mismatch) from a translator that doesn't repeat itself (they don't: inconclusive).
++// Called after the candidate's checks, with the mapping lock the caller holds until the chosen
++// code is published: both translations read guest memory.
++Verdict VerifyCandidate(const pcache::Candidate& c,
++                        GuestCodeEntry* entry,
++                        uintptr_t counter,
++                        MachineCode* fresh) {
++  ScratchCode scratch;
++  if (!scratch.ok() || !TranslateLikeCandidate(c, entry, fresh, 1)) {
++    pcache::Count(pcache::kVerifyFallback);
++    return Verdict::kTranslate;
++  }
++  if (g_pcache_verify_fresh_hook_for_testing != nullptr) {
++    g_pcache_verify_fresh_hook_for_testing(fresh, 1);
++  }
++  Normalized candidate;
++  Normalized fresh1;
++  if (!NormalizeFresh(fresh, scratch, &fresh1)) {
++    pcache::Count(pcache::kVerifyFallback);
++    return Verdict::kFresh;
++  }
++  if (!NormalizeCandidate(c, scratch, counter, &candidate)) {
++    pcache::Count(pcache::kRejectsRecord);
++    return Verdict::kFresh;
++  }
++  if (candidate == fresh1) {
++    pcache::Count(pcache::kVerifyMatch);
++    return Verdict::kCandidate;
++  }
++  MachineCode again;
++  Normalized fresh2;
++  if (!TranslateLikeCandidate(c, entry, &again, 2)) {
++    pcache::Count(pcache::kVerifyFallback);
++    return Verdict::kFresh;
++  }
++  if (g_pcache_verify_fresh_hook_for_testing != nullptr) {
++    g_pcache_verify_fresh_hook_for_testing(&again, 2);
++  }
++  if (!NormalizeFresh(&again, scratch, &fresh2)) {
++    pcache::Count(pcache::kVerifyFallback);
++    return Verdict::kFresh;
++  }
++  bool code_differs = candidate.code != fresh1.code;
++  if (fresh1 == fresh2) {
++    pcache::Count(pcache::kVerifyMismatch);
++    ALOGW("berberis.pcache: verify mismatch at 0x%lx, module %s + 0x%lx (+%u, tier %d): %s differ",
++          static_cast<unsigned long>(c.pc),
++          pcache::ModuleKey(c),
++          static_cast<unsigned long>(c.pc - c.module_start),
++          c.guest_size,
++          static_cast<int>(c.tier),
++          code_differs ? "code" : "recovery points");
++  } else {
++    pcache::Count(pcache::kVerifyInconclusive);
++  }
++  return Verdict::kFresh;
++}
++
++// Installs the region from the persistent cache if it may be (section 3.3 of the design). True
++// when it's done: published, or discarded at publication like any translation. False when the
++// region must be translated as usual; the entry is still locked then.
++bool TryInstallFromPersistentCache(GuestAddr pc, GuestCodeEntry* entry) {
++  translator_stats::ScopedTimer timer(translator_stats::kPcacheLoadNs);
++  // Kept per thread, so a load doesn't allocate once it has grown.
++  thread_local pcache::Candidate t_candidate;
++  pcache::Candidate& c = t_candidate;
++  if (pcache::FindCandidate(pc, &c) != pcache::FindResult::kFound) {
++    return false;
++  }
++  if (pcache::g_before_mapping_check_hook_for_testing != nullptr) {
++    pcache::g_before_mapping_check_hook_for_testing(pc);
++  }
++  const uintptr_t counter = c.tier == pcache::Tier::kLiteCounter
++                                ? reinterpret_cast<uintptr_t>(&entry->invocation_counter)
++                                : 0;
++  const GuestCodeEntry::Kind kind =
++      c.tier == pcache::Tier::kHeavy ? kHeavyOptimized : kLiteTranslated;
++  TranslationCache* cache = TranslationCache::GetInstance();
++  // Checks 3 and 4, verify's translations, the install and the publication under one hold of the
++  // mapping lock: the range can't be unmapped, re-protected or replaced in between. Nothing below
++  // takes it again.
++  pcache::ScopedMappingReadLock lock;
++  if (!pcache::CheckMappingAndBytes(c)) {
++    return false;
++  }
++  if (pcache::GetMode() == pcache::Mode::kVerify) {
++    MachineCode fresh;
++    Verdict verdict = VerifyCandidate(c, entry, counter, &fresh);
++    if (verdict == Verdict::kTranslate) {
++      return false;
++    }
++    if (verdict == Verdict::kFresh) {
++      HostCodePiece piece = InstallTranslated(
++          &fresh, pc, c.guest_size, kind == kHeavyOptimized ? "heavy" : "lite");
++      if (piece.code == kNullHostCodeAddr) {
++        return false;
++      }
++      if (g_before_publish_hook_for_testing) {
++        g_before_publish_hook_for_testing(pc);
++      }
++      bool published = cache->SetTranslatedAndUnlock(pc, entry, c.guest_size, kind, piece);
++      if (published) {
++        CountInstalled(kind, c.guest_size, piece.size);
++      } else {
++        translator_stats::Add(translator_stats::kDiscardedAtPublication);
++      }
++      return true;
++    }
++  }
++  HostCodePiece piece = pcache::InstallCandidate(c, counter);
++  if (piece.code == kNullHostCodeAddr) {
++    pcache::Count(pcache::kRejectsRecord);
++    return false;
++  }
++  ProfilerLogGeneratedCode(AsHostCode(piece.code),
++                           piece.size,
++                           pc,
++                           c.guest_size,
++                           kind == kHeavyOptimized ? "heavy_cached" : "lite_cached");
++  if (g_before_publish_hook_for_testing) {
++    g_before_publish_hook_for_testing(pc);
++  }
++  bool published = cache->SetTranslatedAndUnlock(pc, entry, c.guest_size, kind, piece);
++  if (published) {
++    pcache::Count(kind == kHeavyOptimized ? pcache::kHitsHeavy : pcache::kHitsLite);
++    CountInstalled(kind, c.guest_size, piece.size);
++  } else {
++    translator_stats::Add(translator_stats::kDiscardedAtPublication);
++  }
++  return true;
++}
++
++}  // namespace
++// endregion
++
+ template <TranslationGear kGear = TranslationGear::kFirst>
+ void TranslateRegion(GuestAddr pc) {
+   TranslationCache* cache = TranslationCache::GetInstance();
+@@ -307,6 +661,30 @@ void TranslateRegion(GuestAddr pc) {
+     return;
+   }
+ 
++  // region digitalis
++  const bool use_pcache =
++      g_translation_mode == TranslationMode::kTwoGear && pcache::Active();
++  if constexpr (kGear == TranslationGear::kFirst) {
++    if (use_pcache && TryInstallFromPersistentCache(pc, entry)) {
++      pcache::MaybeFlush();
++      return;
++    }
++    // A load can be refused because the code stopped being executable meanwhile.
++    if (use_pcache && !std::get<0>(IsPcExecutable(pc, guest_map_shadow))) {
++      bool published = cache->SetTranslatedAndUnlock(
++          pc, entry, first_insn_size, kSpecialHandler, {kEntryNoExec, 0});
++      translator_stats::Add(published ? translator_stats::kInstalledNoExec
++                                      : translator_stats::kDiscardedAtPublication);
++      return;
++    }
++  }
++  pcache::Capture capture;
++  if (use_pcache) {
++    capture.Begin(pc);
++  }
++  pcache::Capture* const capture_ptr = capture.active() ? &capture : nullptr;
++  // endregion
++
+   bool success = false;
+   HostCodePiece host_code_piece{kEntryInterpret, 0};
+   size_t size = first_insn_size;
+@@ -325,7 +703,8 @@ void TranslateRegion(GuestAddr pc) {
+     translator_stats::Add(translator_stats::kGearUpRequests);
+     {
+       translator_stats::ScopedTimer timer(translator_stats::kHeavyNs);
+-      std::tie(success, host_code_piece, size, kind) = HeavyOptimizeAndInstallRegion(pc);
++      std::tie(success, host_code_piece, size, kind) =
++          HeavyOptimizeAndInstallRegionImpl(pc, capture_ptr);
+     }
+     if (!success) {
+       // The region is hot and settles on the lite tier for good (no
+@@ -334,7 +713,7 @@ void TranslateRegion(GuestAddr pc) {
+       params.allow_in_region_loops = true;
+       translator_stats::ScopedTimer timer(translator_stats::kLiteNs);
+       std::tie(success, host_code_piece, size, kind) =
+-          TryLiteTranslateAndInstallRegion(pc, params);
++          LiteTranslateAndInstallRegion(pc, params, capture_ptr);
+     }
+   } else {
+     // First gear: lite-translate, falling back to the interpreter. In two-gear
+@@ -347,7 +726,8 @@ void TranslateRegion(GuestAddr pc) {
+       params.counter_location = &entry->invocation_counter;
+     }
+     translator_stats::ScopedTimer timer(translator_stats::kLiteNs);
+-    std::tie(success, host_code_piece, size, kind) = TryLiteTranslateAndInstallRegion(pc, params);
++    std::tie(success, host_code_piece, size, kind) =
++        LiteTranslateAndInstallRegion(pc, params, capture_ptr);
+   }
+ 
+   if (!success) {
+@@ -365,18 +745,17 @@ void TranslateRegion(GuestAddr pc) {
+   if (translator_stats::Enabled() && !published) {
+     translator_stats::Add(translator_stats::kDiscardedAtPublication);
+   } else if (translator_stats::Enabled()) {
+-    if (kind == kHeavyOptimized) {
+-      translator_stats::Add(translator_stats::kInstalledHeavy);
+-      translator_stats::Add(translator_stats::kHeavyGuestBytes, size);
+-      translator_stats::Add(translator_stats::kHeavyHostBytes, host_code_piece.size);
+-    } else if (kind == kLiteTranslated) {
+-      translator_stats::Add(translator_stats::kInstalledLite);
+-      translator_stats::Add(translator_stats::kLiteGuestBytes, size);
+-      translator_stats::Add(translator_stats::kLiteHostBytes, host_code_piece.size);
+-    } else {
+-      translator_stats::Add(translator_stats::kInstalledInterp);
+-    }
++    CountInstalled(kind, size, host_code_piece.size);
+   }
++  // region digitalis
++  // Only a published translation is persisted.
++  if (published && success) {
++    capture.Commit();
++  }
++  if (use_pcache) {
++    pcache::MaybeFlush();
++  }
++  // endregion
+ 
+   // profiling
+   if (success) {
+diff --git a/runtime_primitives/include/berberis/runtime_primitives/code_pool.h b/runtime_primitives/include/berberis/runtime_primitives/code_pool.h
+index 1a183214..792f14b7 100644
+--- a/runtime_primitives/include/berberis/runtime_primitives/code_pool.h
++++ b/runtime_primitives/include/berberis/runtime_primitives/code_pool.h
+@@ -23,6 +23,8 @@
+ 
+ #include <cstdint>
+ #include <mutex>
++#include <utility>
++#include <vector>
+ #include <type_traits>
+ 
+ #include "berberis/assembler/machine_code.h"
+@@ -120,6 +122,45 @@ class CodePool {
+     return AsHostCodeAddr(result);
+   }
+ 
++  // region digitalis
++  // Installs code generated earlier (a persisted translation, ANAL-381). Reserves `size` bytes
++  // like Add, then calls fill(bytes, address), which writes into `bytes` the code as it must be
++  // at `address` and returns false if it can't. Writes it and adds its recovery points,
++  // {fault offset, recovery offset} from the start. Returns kNullHostCodeAddr when there's no
++  // space or fill fails (the reserved space is then left unused).
++  template <typename Fill>
++  [[nodiscard]] HostCodeAddr AddPrebuilt(uint32_t size,
++                                         Fill fill,
++                                         const std::pair<uint32_t, uint32_t>* recovery_points,
++                                         size_t num_recovery_points) {
++    std::lock_guard<std::mutex> lock(mutex_);
++    pid_t cur_pid = getpid();
++    if (cur_pid != owner_pid_) {  // The same fork safety as Add.
++      ResetExecRegion();
++      owner_pid_ = cur_pid;
++    }
++    current_address_ = AlignUp(current_address_, 64);
++    CHECK_NE(current_address_, nullptr);
++    if (exec_.end() < current_address_ + size && !TryResetExecRegion(size)) {
++      return kNullHostCodeAddr;
++    }
++    const uint8_t* result = current_address_;
++    current_address_ += size;
++    thread_local std::vector<uint8_t> staging;  // Kept: an install doesn't allocate.
++    staging.resize(size);
++    uint8_t* bytes = staging.data();
++    bool filled = fill(bytes, reinterpret_cast<uintptr_t>(result));
++    if (filled) {
++      exec_.Write(result, bytes, size);
++      for (size_t i = 0; i < num_recovery_points; i++) {
++        recovery_map_[reinterpret_cast<uintptr_t>(result) + recovery_points[i].first] =
++            reinterpret_cast<uintptr_t>(result) + recovery_points[i].second;
++      }
++    }
++    return filled ? AsHostCodeAddr(result) : kNullHostCodeAddr;
++  }
++  // endregion
++
+   [[nodiscard]] uintptr_t FindRecoveryCode(uintptr_t fault_addr) const {
+     std::lock_guard<std::mutex> lock(mutex_);
+     auto it = recovery_map_.find(fault_addr);
+diff --git a/runtime_primitives/include/berberis/runtime_primitives/process_hooks.h b/runtime_primitives/include/berberis/runtime_primitives/process_hooks.h
+new file mode 100644
+index 00000000..26d5f68e
+--- /dev/null
++++ b/runtime_primitives/include/berberis/runtime_primitives/process_hooks.h
+@@ -0,0 +1,63 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef BERBERIS_RUNTIME_PRIMITIVES_PROCESS_HOOKS_H_
++#define BERBERIS_RUNTIME_PRIMITIVES_PROCESS_HOOKS_H_
++
++#include <atomic>
++#include <cstddef>
++
++namespace berberis {
++
++// region digitalis
++// Process events that the code which sees them (kernel_api, guest_os_primitives) can't pass to
++// the code that needs them (the persistent translation cache in runtime/arm64, ANAL-381) by a
++// direct call. A few fixed slots, no allocation: the fork hooks run in a child that may have
++// inherited locked mutexes.
++inline constexpr size_t kMaxProcessHooks = 4;
++
++struct ProcessHookList {
++  std::atomic<void (*)()> hooks[kMaxProcessHooks];
++
++  void Add(void (*hook)()) {
++    for (auto& slot : hooks) {
++      void (*expected)() = nullptr;
++      if (slot.compare_exchange_strong(expected, hook) || expected == hook) {
++        return;
++      }
++    }
++  }
++
++  void Run() {
++    for (auto& slot : hooks) {
++      void (*hook)() = slot.load(std::memory_order_acquire);
++      if (hook != nullptr) {
++        hook();
++      }
++    }
++  }
++};
++
++// Run by the guest's exit_group, which ends the process without the host's atexit handlers.
++inline ProcessHookList g_guest_exit_hooks;
++// Run in the child of a guest fork (a raw clone without CLONE_VM), which skips pthread_atfork.
++// Hooks must not take locks the parent may have held.
++inline ProcessHookList g_guest_fork_child_hooks;
++// endregion
++
++}  // namespace berberis
++
++#endif  // BERBERIS_RUNTIME_PRIMITIVES_PROCESS_HOOKS_H_
+diff --git a/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h b/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
+index 91dab966..40ba5333 100644
+--- a/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
++++ b/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
+@@ -109,6 +109,30 @@ enum Counter : size_t {
+   kClearExecutableCalls,
+   kClearExecutablePages,
+   kClearExecutableNs,
++  // The persistent translation cache (ANAL-381, runtime/arm64/persistent_cache.h). Hits are
++  // regions installed from it, by tier; misses, regions it had no record for. A rejected
++  // file is one whose header doesn't match this translator and its settings; a rejected record
++  // failed its bounds or checksum, its mapping (not executable, or not the record's module)
++  // or its guest bytes. Not persistable: published regions that couldn't be recorded. In
++  // verify mode, every candidate is also compiled fresh: match, mismatch (two fresh compiles
++  // agree, the candidate differs), inconclusive (the fresh compiles differ) or fallback (no
++  // fresh compile to compare). Only a match installs the candidate's code.
++  kPcacheHitsLite,
++  kPcacheHitsHeavy,
++  kPcacheMisses,
++  kPcacheRejectsFile,
++  kPcacheRejectsRecord,
++  kPcacheRejectsMapping,
++  kPcacheRejectsBytes,
++  kPcacheLoadNs,  // accumulated elapsed time of loads, as kLiteNs
++  kPcacheNotPersistable,
++  kPcacheRecordsWritten,
++  kPcacheBytesWritten,
++  kPcacheWriteNs,
++  kPcacheVerifyMatch,
++  kPcacheVerifyMismatch,
++  kPcacheVerifyInconclusive,
++  kPcacheVerifyFallback,
+   kNumCounters,
+ };
+ 
+diff --git a/runtime_primitives/translator_stats.cc b/runtime_primitives/translator_stats.cc
+index 08b3bf4d..2c0caace 100644
+--- a/runtime_primitives/translator_stats.cc
++++ b/runtime_primitives/translator_stats.cc
+@@ -20,6 +20,7 @@
+ #include <unistd.h>
+ 
+ #include <cstddef>
++#include <cstdio>
+ #include <cstdlib>
+ #include <cstring>
+ 
+@@ -64,6 +65,22 @@ constexpr const char* kNames[] = {
+     "clear_executable_calls",
+     "clear_executable_pages",
+     "clear_executable_ns",
++    "pcache_hits_lite",
++    "pcache_hits_heavy",
++    "pcache_misses",
++    "pcache_rejects_file",
++    "pcache_rejects_record",
++    "pcache_rejects_mapping",
++    "pcache_rejects_bytes",
++    "pcache_load_ns",
++    "pcache_not_persistable",
++    "pcache_records_written",
++    "pcache_bytes_written",
++    "pcache_write_ns",
++    "pcache_verify_match",
++    "pcache_verify_mismatch",
++    "pcache_verify_inconclusive",
++    "pcache_verify_fallback",
+ };
+ static_assert(sizeof(kNames) / sizeof(kNames[0]) == kNumCounters);
+ 
+@@ -152,9 +169,18 @@ void LogFinalLine() {
+   if (g_final_line_pid.exchange(pid, std::memory_order_relaxed) == pid) {
+     return;
+   }
+-  char buf[1536];
++  // Every name (kNamesCapacity), each value's up to 20 digits with " =", and the prefix; within
++  // logd's 4068-byte message limit. The persistent-cache counters outgrew 1536 bytes.
++  char buf[3072];
++  static_assert(sizeof(buf) >= kNamesCapacity + kNumCounters * 22 + 64);
+   Format(buf, sizeof(buf));
++#if defined(__ANDROID__)
+   ALOGI("%s", buf);
++#else
++  // The host's liblog, which writes to stderr, cuts a message at 1024 bytes, and the line is
++  // longer. logd takes the whole line.
++  fprintf(stderr, "%s\n", buf);
++#endif
+ }
+ 
+ size_t Format(char* buf, size_t size) {
+-- 
+2.56.0
+
