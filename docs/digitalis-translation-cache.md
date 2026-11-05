@@ -1,7 +1,9 @@
 # Digitalis: a persistent translation cache
 
-A design, not built yet. Revision 2, 2026-11-05: revision 1 plus the corrections from its plan review (Proceed
-with follow-ups, ANAL-381). Implementation starts with step P1a.
+A design, partly built. Revision 3, 2026-11-05:
+- **Revision 2** carried the corrections from the plan review of revision 1 (Proceed with follow-ups, ANAL-381).
+- **Revision 3** records step P1a (Digitalis patch 10: relocatable lite output, section 8). It also takes in the
+  review's two clarifications for P2 (3.6 and 7), and corrects which libraries Lichess's regions come from (1 and 7).
 
 Digitalis translates every ARM region again in every process. Lichess's second cold start on the G14 compiled 99.8% of
 the same file-backed code as its first. This design keeps translated regions in the app's private storage and loads
@@ -21,7 +23,8 @@ Source references are to Digitalis at OpenBook patch 9 (`main` `5aab4a5b`), with
 | Lite regions installed | 188,751. 5.48 MB of guest code becomes 75.4 MB of host code (13.8×). A region averages 29 guest bytes (7 instructions) and 400 host bytes |
 | Heavy regions installed | 831: 143 KB guest, 1.11 MB host |
 | Accumulated elapsed compile time | lite 0.636 s (3.4 µs a region), heavy 0.375 s. Lite is 63% of the total |
-| Same `(library, file offset, size)` as the first launch | 183,980 of 184,404 file-backed regions (99.8%). Mostly `libflutter.so` (76 k), the app's Dart code `libapp.so` (67 k) and the WebView library (29 k) |
+| Same `(library, file offset, size)` as the first launch | 183,980 of 184,404 file-backed regions (99.8%) |
+| Where the regions are (183,699 unique starts) | All in the APK, 93%: `libflutter.so` (76 k), the app's Dart code `libapp.so` (39 k), Chromium's network stack `libcronet` (29 k) and `libonnxruntime.so` (27 k). Guest system libraries (`linker64`, `libc`, `libandroid_runtime`, `libGLESv2` and others) make up the other 7% (12 k) |
 | Invalidations | 0 |
 
 Sampled CPU inside `libberberis_arm64.so` for the same two launches, bucketed by symbol name:
@@ -211,12 +214,15 @@ the 32-bit displacements and recovery points.
   - a header (the settings fingerprint from 3.3, and the module identity);
   - an append-only log of records: guest bytes, code before relocation, relocation list, tier and counter flag, CRC32C;
   - a small index log (ELF address → record offset), so a reader builds its index without touching the code pages.
-- **Atomic writes:**
-  - a file is created by writing the header to a temporary name and renaming it;
-  - after that, only whole records are appended (`O_APPEND`);
-  - nothing is rewritten in place.
+- **Writes, two kinds:**
+  - **Publication is atomic.** A file is created by writing the header to a temporary name and renaming it into
+    place, so a reader sees no file or a whole header.
+  - **Appends aren't atomic.** After publication, records are appended (`O_APPEND`) and nothing is rewritten in
+    place. A torn tail is what the CRC check below handles.
 - **Corruption fails closed.** A reader stops at the first record whose length or CRC doesn't check out, and translates
-  everything past it. A header that doesn't match truncates the file and starts it over.
+  everything past it.
+- **A mismatch never makes a reader write.** Readers ignore a file whose header doesn't match. Only the module's
+  writer replaces a file, and it does so under the single-writer lock below.
 - **Writing:**
   - records collect in a per-process buffer;
   - the thread that translated flushes it when it reaches 1 MiB, or 2 s after the last flush;
@@ -224,6 +230,9 @@ the 32-bit displacements and recovery points.
     ANAL-383);
   - a tail lost to `SIGKILL` is translated again next time.
 - **Several processes of one app:** one writer per module, by `flock(LOCK_EX | LOCK_NB)`. The others only read.
+  - **The lock is on a stable lock file per module, not on the cache file.** A replacement is a new inode, and a lock
+    on the old one doesn't lock it.
+  - The writer holds the lock through creating, replacing or appending to the file.
 - **Size and eviction:**
   - a cap of 128 MiB per app, after which writing stops;
   - installd evicts `code_cache` when storage runs low;
@@ -325,7 +334,15 @@ the 32-bit displacements and recovery points.
     - `libberberis`, the code pool, the translation tables or the guest module;
     - the heap resources from 3.4.
 
-    The scan covers 4-byte immediates and displacements as well as 8-byte values. Recovery metadata is audited too.
+    The scan covers 4-byte values as well as 8-byte ones, for small ranges below 4 GiB. Recovery metadata is
+    audited too. What P1a found:
+    - **A window that touches a recorded operand is skipped.** Instruction fields don't overlap, and the opcode
+      bytes before a recorded guest address can read as an address.
+    - **The entry trampolines are left out of the 4-byte scan.** The code pool starts at a round address
+      (`0x41000000`), whose bytes are what any small 32-bit immediate followed by a REX.B prefix looks like.
+      Instead, the differential moves the entries between environments.
+    - **A large module below 4 GiB isn't scanned in 4-byte windows.** 80 MB at `0x70000000` matches ordinary
+      displacements by chance (`mov [rbp+0x70], r9`). The differential covers those copies.
   - **Differential across environments:**
     - the same guest bytes are translated in two environments that differ in **every** input: guest base (a
       page-multiple apart, both above 4 GiB), `libberberis` base, code pool, translation tables, counters and heap
@@ -351,8 +368,8 @@ the 32-bit displacements and recovery points.
 | Alternative | Why not now |
 |---|---|
 | **Whole-library translation at install** (Rosetta-style ahead-of-time) | Finding code statically in stripped ARM binaries is unreliable: indirect branches, data in text, jump tables. Lichess's libraries hold 80 MB, and 5.5 MB of guest code runs at start-up, so most of the translation and storage would be wasted. It also needs the privileged translator below. |
-| **A system-wide cache shared by all apps** | A writer whose output other apps run crosses app sandboxes, so it needs a privileged, confined writer and cache-poisoning defences. Most start-up code (Flutter, the app's Dart code) is per-app anyway. *Later extension, not rejected:* a read-only cache for guest **system** libraries (`linker64`, `libc`, the WebView library, 29 k of Lichess's regions), built into the signed image and covered by verified boot. |
-| **Moving compiles off the app's thread** | It moves CPU rather than removing it, so absolute CPU goes up. Lite has to stay synchronous, because the thread needs the code and the interpreter is far slower. Heavy compiles could move to a background thread, but app zygotes can't have one. Patch 9 already removed most wasted heavy work, so this stays a separate, possible later change for heavy only. |
+| **A system-wide cache shared by all apps** | A writer whose output other apps run crosses app sandboxes, so it needs a privileged, confined writer and cache-poisoning defences. Most start-up code (Flutter, the app's Dart code) is per-app anyway. *Later extension, not rejected:* a read-only cache for guest **system** libraries (`linker64`, `libc`, `libandroid_runtime` and the rest), built into the signed image and covered by verified boot. It would cover only 7% of Lichess's regions (12 k), since the rest are in the APK. |
+| **Moving compiles off the app's thread** | Background compilation doesn't remove compilation work, and its net effect on CPU and start-up is unmeasured. Lite has to stay synchronous, because the thread needs the code and the interpreter is far slower. Heavy compiles could move to a background thread, but app zygotes can't have one. Patch 9 cut 18–21% of heavy elapsed compile time on the host; its Lichess effect is still being measured (ANAL-387). This stays a separate, possible later change for heavy only. |
 | **Privileged, profile-guided writer** (ART's model) | Not rejected: it's the secure form of this design (section 4). Steps P1 to P3 are shared with it. P4 decides whether it's needed. |
 | **A content hash of each library as the key** | It costs 36–37 ms per Lichess launch on the build host, on the start-up path. The exact per-region compare is cheaper and checks exactly what a translation depends on (3.2). |
 
@@ -362,7 +379,7 @@ Each step is one pull request or one test image, and each decides something:
 
 | Step | What | Decides | Device |
 |---|---|---|---|
-| P1a | Relocatable lite and `code_gen_lib` output: records, typed emitters including heap resources, the pointer scan, the all-inputs differential and the fixtures. No change in behaviour | Is every lite region relocatable? What share of Lichess's isn't persistable, and why? | none |
+| P1a | Relocatable lite and `code_gen_lib` output: records, typed emitters including heap resources, the pointer scan, the all-inputs differential and the fixtures. No change in behaviour | **Done, Digitalis patch 10, on the host.** Every lite region of Lichess's set is relocatable: all 183,699 persistable, no unrecorded pointer, no re-link mismatch between a module above and below 4 GiB. Generated code is unchanged (73,942,150 host bytes before and after). Recording is opt-in: it costs a median 2.4% of lite translation time. Re-linking a region took 0.1 µs against 6–7 µs to translate it, but that isn't a load's whole cost | none |
 | P1b | The same for heavy: symbolic provenance on IR immediates and the fold rules | The same, for heavy | none |
 | P2 | The cache: format, writer, loader (3.3's eligibility and check order), counters, `berberis.pcache` off by default, `verify`, the replay harness, the invalidation-during-load test | Load against compile cost per region; write cost; host start-up change | none |
 | P3 | The next batched G14 test image | G14 start-up and absolute CPU before and after; correctness under `verify` | test image, one approval |
