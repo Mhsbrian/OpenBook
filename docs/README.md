@@ -62,6 +62,7 @@ The docs are grouped below by purpose. Their file names stay as they are, becaus
 | [`quire-design.md`](quire-design.md) | Quire's note: glass and ink, states and interaction. The source is [`quire-design/index.html`](quire-design/index.html). |
 | [`launcher-design.md`](launcher-design.md) | OpenBook Launcher's M2 design: the taskbar, the All Apps panel, menus, Overview for desks and one motion system, on Quire's glass. The source is [`launcher-design/index.html`](launcher-design/index.html). |
 | [`quire-pairing.md`](quire-pairing.md) | Quire: pairing a second computer (a design, not built yet) |
+| [`digitalis-translation-cache.md`](digitalis-translation-cache.md) | Digitalis: keeping translated ARM code across app starts (a design, not built yet) |
 | [`installer-design/index.html`](installer-design/index.html) | The installer's high-fidelity design. Open it in a browser. |
 
 Design renders, test results, logs and screenshots don't go in the repository. Renders go to the maintainers' design
