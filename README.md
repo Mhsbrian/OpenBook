@@ -300,7 +300,7 @@ A hardware feature only counts once it has been reproduced on the laptop itself.
 
 ## License and legal
 
-- **License:** OpenBook's own code does not have a project license yet. The owner chooses one before the public beta (M2); until then, no license is granted beyond the third-party terms below.
+- **License:** OpenBook's own code is licensed under the [Apache License 2.0](LICENSE). Files that state another license keep it.
 - **Third-party components** keep their own licenses: AOSP (Apache-2.0), the Linux kernel (GPL-2.0), NVIDIA's open kernel modules (MIT/GPL-2.0), Mesa (MIT), Digitalis (Apache-2.0), microG (Apache-2.0, an optional add-on) and linux-firmware (per-file licenses).
 - **Firmware:** the files from linux-firmware ship unmodified under their own licenses. NVIDIA's GSP firmware ships unmodified from NVIDIA's 615.78.08 driver package under that driver's licence, whose §1.1(d) allows redistributing it unmodified, for an OSI-licensed kernel, with the licence given to every recipient. Every release that includes it carries `LICENSE.nvidia-driver-615.78.08` next to the image, and the release tooling checks that each NVIDIA file is byte-for-byte NVIDIA's.
 - **No Google software:** OpenBook does not ship or redistribute Google Mobile Services or Googlebook OS images. It does not bypass Play Integrity, DRM or verified boot on devices you don't own.
