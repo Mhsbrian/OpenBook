@@ -1,0 +1,334 @@
+From 06ec068d7de3a3a93f369f6f37c326134e8c204a Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 19:00:00 +0000
+Subject: [PATCH] OPENBOOK: arm64: scope the translation cache to one app;
+ count queued records
+
+For step P3 of the persistent translation cache (ANAL-381), on patch 13: a
+G14 test turns the cache on for its test app without turning it on for
+any other app that starts meanwhile, and can tell how many records were
+still waiting when an app was stopped.
+
+- berberis.pcache also takes on:<package> and verify:<package>: the cache
+  is on only in processes of that package, by exact name
+  (GetAppPackageName, which native_bridge_initialize sets from the private
+  directory before InitBerberis). A process without a package name, any
+  other package, and a malformed value (an empty or invalid name, another
+  mode, extra fields) stay off. off, on and verify are unchanged. The scope
+  is decided once, at initialization.
+- New counters pcache_records_queued and pcache_records_dropped. A record is
+  queued when it's published and appended to the write queue; dropped when
+  its batch isn't written (the cap, a file that would pass 4 GiB, a failed
+  or no longer owned write, a fork child). Queued - written - dropped is
+  what's still waiting, read from the counter block. Drops at the cap and
+  at 4 GiB were counted as not persistable; they're dropped now.
+
+Tests: PersistentCacheConfig.ScopedValuesTurnTheCacheOnForTheirPackageOnly
+(exact match, prefix, case, no identity, twelve malformed values);
+PersistentCacheTest.QueuedWrittenAndDroppedAccountForEveryRecord; the cap
+and 4 GiB tests check the dropped count.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Co-authored-by: multica-agent <github@multica.ai>
+---
+ runtime/arm64/persistent_cache.cc             | 70 ++++++++++++++-----
+ runtime/arm64/persistent_cache.h              |  7 ++
+ runtime/arm64/persistent_cache_test.cc        | 54 +++++++++++++-
+ .../runtime_primitives/translator_stats.h     |  4 ++
+ runtime_primitives/translator_stats.cc        |  2 +
+ 5 files changed, 118 insertions(+), 19 deletions(-)
+
+diff --git a/runtime/arm64/persistent_cache.cc b/runtime/arm64/persistent_cache.cc
+index 2a79b050..b4a53035 100644
+--- a/runtime/arm64/persistent_cache.cc
++++ b/runtime/arm64/persistent_cache.cc
+@@ -28,6 +28,7 @@
+ 
+ #include <algorithm>
+ #include <atomic>
++#include <cctype>
+ #include <cerrno>
+ #include <cstdint>
+ #include <cstdio>
+@@ -286,7 +287,10 @@ constexpr translator_stats::Counter kStatsCounter[kNumCounters] = {
+     translator_stats::kPcacheVerifyMismatch,
+     translator_stats::kPcacheVerifyInconclusive,
+     translator_stats::kPcacheVerifyFallback,
++    translator_stats::kPcacheRecordsQueued,
++    translator_stats::kPcacheRecordsDropped,
+ };
++static_assert(sizeof(kStatsCounter) / sizeof(kStatsCounter[0]) == kNumCounters);
+ 
+ State* GetState() {
+   return g_state.load(std::memory_order_acquire);
+@@ -865,18 +869,21 @@ uint64_t DirectoryBytes(const std::string& dir);
+ // is the app's, not this process's.
+ void WriteBatch(State* state, Batch* batch, uint64_t* dir_bytes) {
+   Module* m = batch->module;
++  const size_t records = batch->index.size();
+   if (m->write_failed.load() || GetpidSyscall() != state->pid) {
++    Count(kRecordsDropped, records);
+     return;
+   }
+-  uint64_t bytes = batch->data.size() + batch->index.size() * sizeof(IndexEntry);
++  uint64_t bytes = batch->data.size() + records * sizeof(IndexEntry);
+   if (*dir_bytes + bytes > state->cap_bytes) {
+     state->cap_reached.store(true);
+-    Count(kNotPersistable, batch->index.size());
++    Count(kRecordsDropped, records);
+     return;
+   }
+   // The lock is held through an fd the guest could have closed or dup2'ed over.
+   if (!FdIdentityMatches(GetFdIdentityUnsafe(m->lock_fd), m->lock_identity)) {
+     m->write_failed.store(true);
++    Count(kRecordsDropped, records);
+     return;
+   }
+   translator_stats::ScopedTimer timer(translator_stats::kPcacheWriteNs);
+@@ -885,7 +892,7 @@ void WriteBatch(State* state, Batch* batch, uint64_t* dir_bytes) {
+   // past that isn't written, rather than narrowed; the module's file is full.
+   if (base > UINT32_MAX || batch->data.size() > UINT32_MAX - base) {
+     m->write_failed.store(true);
+-    Count(kNotPersistable, batch->index.size());
++    Count(kRecordsDropped, records);
+     return;
+   }
+   std::vector<IndexEntry> entries;
+@@ -902,13 +909,15 @@ void WriteBatch(State* state, Batch* batch, uint64_t* dir_bytes) {
+   }
+   if (!AppendToFile(m->data_path, m->data_ino, base, batch->data.data(), batch->data.size())) {
+     m->write_failed.store(true);
++    Count(kRecordsDropped, records);
+     return;
+   }
+   m->data_size_on_disk += batch->data.size();
+   size_t index_bytes = entries.size() * sizeof(IndexEntry);
+   if (!AppendToFile(m->index_path, m->index_ino, m->index_size_on_disk, entries.data(),
+                     index_bytes)) {
+-    m->write_failed.store(true);
++    m->write_failed.store(true);  // The records are in the data file, but unreachable.
++    Count(kRecordsDropped, records);
+     return;
+   }
+   m->index_size_on_disk += index_bytes;
+@@ -968,20 +977,21 @@ void OnForkChild() {
+   }
+ }
+ 
++bool IsPackageName(const char* s) {
++  if (*s == '\0') {
++    return false;
++  }
++  for (; *s != '\0'; s++) {
++    if (!isalnum(static_cast<unsigned char>(*s)) && *s != '.' && *s != '_') {
++      return false;
++    }
++  }
++  return true;
++}
++
+ Mode ParseMode() {
+   static ConfigStr config("BERBERIS_PCACHE", "berberis.pcache");
+-  const char* value = config.get();
+-  if (value == nullptr || *value == '\0' || strcmp(value, "off") == 0) {
+-    return Mode::kOff;
+-  }
+-  if (strcmp(value, "on") == 0) {
+-    return Mode::kOn;
+-  }
+-  if (strcmp(value, "verify") == 0) {
+-    return Mode::kVerify;
+-  }
+-  ALOGW("berberis.pcache: unknown value '%s', off", value);
+-  return Mode::kOff;
++  return ModeFromConfig(config.get(), GetAppPackageName());
+ }
+ 
+ uint64_t DirectoryBytes(const std::string& dir) {
+@@ -1049,6 +1059,33 @@ bool Start(Mode mode, const std::string& dir, const TranslatorSettings& settings
+ 
+ }  // namespace
+ 
++Mode ModeFromConfig(const char* value, const char* package) {
++  if (value == nullptr || *value == '\0' || strcmp(value, "off") == 0) {
++    return Mode::kOff;
++  }
++  Mode mode;
++  const char* scope = nullptr;
++  if (strncmp(value, "on", 2) == 0 && (value[2] == '\0' || value[2] == ':')) {
++    mode = Mode::kOn;
++    scope = value[2] == ':' ? value + 3 : nullptr;
++  } else if (strncmp(value, "verify", 6) == 0 && (value[6] == '\0' || value[6] == ':')) {
++    mode = Mode::kVerify;
++    scope = value[6] == ':' ? value + 7 : nullptr;
++  } else {
++    ALOGW("berberis.pcache: unknown value '%s', off", value);
++    return Mode::kOff;
++  }
++  if (scope == nullptr) {
++    return mode;
++  }
++  if (!IsPackageName(scope)) {
++    ALOGW("berberis.pcache: unknown value '%s', off", value);
++    return Mode::kOff;
++  }
++  // For one app: its processes only, by exact package name. A process without one stays off.
++  return package != nullptr && strcmp(scope, package) == 0 ? mode : Mode::kOff;
++}
++
+ void Count(Counter counter, uint64_t value) {
+   g_counters[counter].fetch_add(value, std::memory_order_relaxed);
+   translator_stats::Add(kStatsCounter[counter], value);
+@@ -1663,6 +1700,7 @@ void Capture::Commit() {
+     m->pending_index.push_back(e);
+     state->pending_bytes.fetch_add(record.size() + sizeof(IndexEntry));
+   }
++  Count(kRecordsQueued);
+   MaybeFlush();
+ }
+ 
+diff --git a/runtime/arm64/persistent_cache.h b/runtime/arm64/persistent_cache.h
+index 30317be0..4df4251a 100644
+--- a/runtime/arm64/persistent_cache.h
++++ b/runtime/arm64/persistent_cache.h
+@@ -65,6 +65,11 @@ struct TranslatorSettings {
+ // InitTranslatorArch, after the translation settings are final.
+ void Init(const TranslatorSettings& settings);
+ 
++// The mode a berberis.pcache value gives a process of `package` (null if it has none): off, on or
++// verify for every process, or on:<package> / verify:<package> for that package's processes only
++// (an exact match; anything else is off). Malformed values are off.
++[[nodiscard]] Mode ModeFromConfig(const char* value, const char* package);
++
+ // Whether this process uses the cache. False after a fork until reinitialized.
+ [[nodiscard]] bool Active();
+ [[nodiscard]] Mode GetMode();
+@@ -222,6 +227,8 @@ enum Counter {
+   kVerifyMismatch,
+   kVerifyInconclusive,
+   kVerifyFallback,
++  kRecordsQueued,   // Queued for writing; queued - written - dropped are still waiting.
++  kRecordsDropped,  // Dropped instead of written: the cap, a full file, a failed write.
+   kNumCounters,
+ };
+ void Count(Counter counter, uint64_t value = 1);
+diff --git a/runtime/arm64/persistent_cache_test.cc b/runtime/arm64/persistent_cache_test.cc
+index b4fcdd1c..60ad1832 100644
+--- a/runtime/arm64/persistent_cache_test.cc
++++ b/runtime/arm64/persistent_cache_test.cc
+@@ -1313,6 +1313,51 @@ TEST(PersistentCacheFormat, MalformedRecordsAreRefused) {
+   EXPECT_FALSE(ok);
+ }
+ 
++// ---- Package scope and the write queue (patch 14) ----
++
++TEST(PersistentCacheConfig, ScopedValuesTurnTheCacheOnForTheirPackageOnly) {
++  using pcache::ModeFromConfig;
++  const char* kPkg = "org.lichess.mobileV2";
++  EXPECT_EQ(ModeFromConfig(nullptr, kPkg), Mode::kOff);
++  EXPECT_EQ(ModeFromConfig("", kPkg), Mode::kOff);
++  EXPECT_EQ(ModeFromConfig("off", kPkg), Mode::kOff);
++  // For every process.
++  EXPECT_EQ(ModeFromConfig("on", kPkg), Mode::kOn);
++  EXPECT_EQ(ModeFromConfig("verify", kPkg), Mode::kVerify);
++  EXPECT_EQ(ModeFromConfig("on", nullptr), Mode::kOn);
++  // For one package: an exact match.
++  EXPECT_EQ(ModeFromConfig("on:org.lichess.mobileV2", kPkg), Mode::kOn);
++  EXPECT_EQ(ModeFromConfig("verify:org.lichess.mobileV2", kPkg), Mode::kVerify);
++  EXPECT_EQ(ModeFromConfig("on:org.lichess.mobileV2", "org.jitsi.meet"), Mode::kOff);
++  EXPECT_EQ(ModeFromConfig("on:org.lichess", kPkg), Mode::kOff) << "a prefix isn't a match";
++  EXPECT_EQ(ModeFromConfig("on:org.lichess.mobileV2x", kPkg), Mode::kOff);
++  EXPECT_EQ(ModeFromConfig("on:org.lichess.mobilev2", kPkg), Mode::kOff) << "case matters";
++  EXPECT_EQ(ModeFromConfig("on:org.lichess.mobileV2", nullptr), Mode::kOff) << "no identity";
++  // Malformed: off.
++  for (const char* bad : {"on:", "verify:", ":org.lichess.mobileV2", "ON", "on ", "onx",
++                          "on:org.lichess.mobileV2:x", "on:org/lichess", "on:org lichess",
++                          "off:org.lichess.mobileV2", "verify:*", "yes"}) {
++    EXPECT_EQ(ModeFromConfig(bad, kPkg), Mode::kOff) << bad;
++  }
++}
++
++// What's still queued is queued - written - dropped, from the counters alone.
++TEST_F(PersistentCacheTest, QueuedWrittenAndDroppedAccountForEveryRecord) {
++  StartProcess();
++  uint8_t* base = MapElf(elf_path_);
++  Counts c;
++  Translate(Pc(base, kRegionA));
++  Translate(Pc(base, kRegionC));
++  EXPECT_EQ(c.Delta(pcache::kRecordsQueued), 2u);
++  EXPECT_EQ(c.Delta(pcache::kRecordsWritten) + c.Delta(pcache::kRecordsDropped), 0u)
++      << "two records still waiting";
++  pcache::FlushAll();
++  EXPECT_EQ(c.Delta(pcache::kRecordsWritten), 2u);
++  EXPECT_EQ(c.Delta(pcache::kRecordsQueued) - c.Delta(pcache::kRecordsWritten) -
++                c.Delta(pcache::kRecordsDropped),
++            0u);
++}
++
+ // ---- verify reads guest memory under the mapping lock too ----
+ 
+ // A guest mapping call on another thread, started while `verify` is about to decode: it clears
+@@ -1422,7 +1467,8 @@ TEST_F(PersistentCacheTest, CapCountsWhatOtherProcessesWrote) {
+   Counts c;
+   pcache::FlushAll();
+   EXPECT_EQ(c.Delta(pcache::kRecordsWritten), 0u);
+-  EXPECT_EQ(c.Delta(pcache::kNotPersistable), 1u);
++  EXPECT_EQ(c.Delta(pcache::kRecordsDropped), 1u);
++  EXPECT_EQ(c.Delta(pcache::kNotPersistable), 0u);
+   EXPECT_EQ(IndexEntries(), 0u);
+ }
+ 
+@@ -1521,7 +1567,7 @@ TEST_F(PersistentCacheTest, OffsetsPast4GiBAreNotWritten) {
+   Translate(Pc(base, kRegionB));
+   pcache::FlushAll();
+   EXPECT_EQ(c3.Delta(pcache::kRecordsWritten), 0u);
+-  EXPECT_EQ(c3.Delta(pcache::kNotPersistable), 1u);
++  EXPECT_EQ(c3.Delta(pcache::kRecordsDropped), 1u);
+   EndProcess();
+   EXPECT_EQ(IndexEntries(), 2u);
+ }
+@@ -1755,10 +1801,12 @@ TEST_F(PersistentCacheBench, DISABLED_ReplayCorpus) {
+   pcache::FlushAll();
+   report("write-flush", NowNs() - flush_start);
+   EndProcess();
+-  printf("REPLAY write: %lu records, %lu bytes, %lu not persistable; data %zu bytes, index %zu\n",
++  printf("REPLAY write: %lu records, %lu bytes, %lu not persistable, %lu dropped; data %zu bytes, "
++         "index %zu\n",
+          (unsigned long)c_write.Delta(pcache::kRecordsWritten),
+          (unsigned long)c_write.Delta(pcache::kBytesWritten),
+          (unsigned long)c_write.Delta(pcache::kNotPersistable),
++         (unsigned long)c_write.Delta(pcache::kRecordsDropped),
+          ReadFileSize(cache_dir_, ".pcache"),
+          ReadFileSize(cache_dir_, ".pidx"));
+ 
+diff --git a/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h b/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
+index 40ba5333..3a2d476b 100644
+--- a/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
++++ b/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
+@@ -133,6 +133,10 @@ enum Counter : size_t {
+   kPcacheVerifyMismatch,
+   kPcacheVerifyInconclusive,
+   kPcacheVerifyFallback,
++  // Records queued for writing, and records dropped instead of written (the cap, a full file, a
++  // failed write). Queued - written - dropped is what's still waiting (ANAL-381).
++  kPcacheRecordsQueued,
++  kPcacheRecordsDropped,
+   kNumCounters,
+ };
+ 
+diff --git a/runtime_primitives/translator_stats.cc b/runtime_primitives/translator_stats.cc
+index 2c0caace..15a6abbb 100644
+--- a/runtime_primitives/translator_stats.cc
++++ b/runtime_primitives/translator_stats.cc
+@@ -81,6 +81,8 @@ constexpr const char* kNames[] = {
+     "pcache_verify_mismatch",
+     "pcache_verify_inconclusive",
+     "pcache_verify_fallback",
++    "pcache_records_queued",
++    "pcache_records_dropped",
+ };
+ static_assert(sizeof(kNames) / sizeof(kNames[0]) == kNumCounters);
+ 
+-- 
+2.56.0
+
