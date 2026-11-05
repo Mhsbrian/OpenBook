@@ -1,0 +1,1203 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 15:00:00 +0000
+Subject: [PATCH] OPENBOOK: arm64: record what heavy translations embed,
+ through the optimizer
+
+Step P1b of the persistent translation cache (ANAL-381), on patch 10.
+Heavy translations embed the same kinds of absolute operands as lite ones,
+but guest addresses pass through MachineIR and its folding passes before
+they reach the code. This keeps each address's provenance through the
+optimizer, or marks the region not persistable, without changing what is
+generated.
+
+- MachineInsnX86_64 carries what its immediate refers to: a kind and a
+  32-bit aux, in what was padding, so instructions don't grow. For an
+  address, aux is a pending left shift (0 for the address itself); for a
+  heap resource, it's (offset << 8) | id. Copies keep it.
+- The heavy frontend tags ADR/ADRP, literal addresses, the BL/BLR link
+  value (through the semantics player), its URECPE/URSQRTE tables and the
+  LD2-LD4/ST2-ST4 permutation masks (new resource ids 3-5,
+  GetHeavyHostResource).
+- FoldInsns keeps a record only when the folded value is still that address
+  plus a constant: a 64-bit add or subtract of a number, a mask clearing at
+  most the low 12 bits, and the TBI masking pair (shl 8, then shr 8, which
+  gives the address back). It looks each definition up once. Any other fold
+  of an address still happens, so code doesn't change, but marks the
+  MachineIR, and GenCode the MachineCode, not persistable. An address is
+  never narrowed into a 32-bit immediate operand; that only fits below
+  4 GiB.
+- Emission: a tagged MovqRegImm goes out through MovqPersistent (the same
+  bytes above 4 GiB); PseudoJump's exits and the recovery labels use
+  MovqGuestAddr.
+- SymbolizeTranslation refuses a not-persistable translation and resolves
+  resources from both tiers with an offset.
+
+Tests: the fixture list adds 15 heavy cases (every heavy operand kind,
+ADRP+ADD folded, EOR and a 32-bit add on an address that must be refused,
+LD3/ST3), run through the same scan, in-process and second-process
+differentials and omission checks; the region corpus test takes
+BERBERIS_RELOC_TIER=heavy. DigitalisBench.DISABLED_TranslateRegionCorpus
+gets a heavy tier and an interleaved determinism check.
+
+Co-authored-by: multica-agent <github@multica.ai>
+---
+ .../include/berberis/assembler/machine_code.h |   6 +
+ .../berberis/backend/x86_64/insn_folding.h    |  15 ++
+ .../berberis/backend/x86_64/machine_ir.h      |  34 +++
+ backend/x86_64/code_emit.cc                   |  19 +-
+ backend/x86_64/code_gen.cc                    |   3 +
+ backend/x86_64/insn_folding.cc                | 175 ++++++++++++++-
+ heavy_optimizer/arm64/frontend.cc             |  40 +++-
+ heavy_optimizer/arm64/frontend.h              |  17 ++
+ .../arm64/heavy_optimize_region.h             |  12 ++
+ runtime/arm64/Android.bp                      |   1 +
+ runtime/arm64/relocatable_code.cc             |  40 +++-
+ runtime/arm64/relocatable_code.h              |   3 +-
+ runtime/arm64/relocatable_code_test.cc        | 202 +++++++++++++++---
+ runtime/arm64/translate_corpus_bench_test.cc  |  75 +++++++
+ 14 files changed, 588 insertions(+), 54 deletions(-)
+
+diff --git a/assembler/include/berberis/assembler/machine_code.h b/assembler/include/berberis/assembler/machine_code.h
+index 7049eea2..3e17a197 100644
+--- a/assembler/include/berberis/assembler/machine_code.h
++++ b/assembler/include/berberis/assembler/machine_code.h
+@@ -152,6 +152,11 @@ class MachineCode {
+   }
+   [[nodiscard]] bool record_persistent_relocs() const { return record_persistent_relocs_; }
+ 
++  // Set by a translator whose optimizer combined an address with something a record can't
++  // describe (the heavy tier's folding, ANAL-381): the code is correct, but can't be re-linked.
++  void MarkNotPersistable() { not_persistable_ = true; }
++  [[nodiscard]] bool not_persistable() const { return not_persistable_; }
++
+   struct Relocation {
+     uint32_t dst;
+     RelocationType type;
+@@ -198,6 +203,7 @@ class MachineCode {
+   RelocationList relocations_;
+   ArenaVector<PersistentReloc> persistent_relocs_;  // digitalis
+   bool record_persistent_relocs_ = false;            // digitalis
++  bool not_persistable_ = false;                     // digitalis
+ 
+   DISALLOW_COPY_AND_ASSIGN(MachineCode);
+ };
+diff --git a/backend/include/berberis/backend/x86_64/insn_folding.h b/backend/include/berberis/backend/x86_64/insn_folding.h
+index 4e521fab..e6250171 100644
+--- a/backend/include/berberis/backend/x86_64/insn_folding.h
++++ b/backend/include/berberis/backend/x86_64/insn_folding.h
+@@ -168,6 +168,21 @@ class InsnFolding {
+   ContextAccessInfo& context_access_info_;
+   MachineIR* machine_ir_;
+   std::optional<uint64_t> GetImmValueIfPossible(MachineReg reg) const;
++  // region digitalis
++  // reg's definition when it's an immediate move, else nullptr; its value; what it refers to,
++  // when it's an address (machine_ir.h), else {kNumKinds, 0}.
++  const MachineInsnX86_64* GetImmDefIfPossible(MachineReg reg) const;
++  static std::optional<uint64_t> ImmValue(const MachineInsnX86_64* def);
++  static std::tuple<PersistentOperand, uint64_t> ImmProvenance(const MachineInsnX86_64* def);
++  // Gives `folded`, the immediate that op(imm0, imm1) became, the provenance it still has, or
++  // marks the region not persistable when the result can't be described.
++  void SetFoldedProvenance(MachineOpcode opcode,
++                           berberis::MachineInsn* folded,
++                           std::tuple<PersistentOperand, uint64_t> provenance0,
++                           std::tuple<PersistentOperand, uint64_t> provenance1,
++                           uint64_t imm0,
++                           uint64_t imm1);
++  // endregion
+   bool IsWritingSameFlagsValue(MachineInsnList::iterator insn_it) const;
+   template <bool kIsInput64Bit>
+   std::tuple<FoldingType, berberis::MachineInsn*> TryFoldImmediateInput(
+diff --git a/backend/include/berberis/backend/x86_64/machine_ir.h b/backend/include/berberis/backend/x86_64/machine_ir.h
+index e210f034..3a75f20e 100644
+--- a/backend/include/berberis/backend/x86_64/machine_ir.h
++++ b/backend/include/berberis/backend/x86_64/machine_ir.h
+@@ -184,6 +184,30 @@ class MachineInsnX86_64 : public MachineInsn {
+ 
+   uint64_t imm() const { return x86_64_insn_info_.imm_; }
+ 
++  // region digitalis
++  // What the immediate refers to, when it's an address (assembler/machine_code.h), kept in two
++  // fields that fill existing padding, so instructions don't grow:
++  //   kGuestAddr, kHostAddr: aux is a pending left shift, 0 for the address itself; the symbol
++  //     (the address) is imm >> aux. Only the heavy tier's TBI masking leaves a shift pending.
++  //   kHostResource: aux is (offset << 8) | resource id, the symbol.
++  //   kNumKinds: a plain number.
++  // Copies of the instruction keep it; folding keeps or drops it (insn_folding.cc); emission
++  // records it (code_emit.cc).
++  [[nodiscard]] PersistentOperand imm_kind() const { return x86_64_insn_info_.imm_kind_; }
++  [[nodiscard]] uint32_t imm_aux() const { return x86_64_insn_info_.imm_aux_; }
++  [[nodiscard]] bool has_persistent_imm() const {
++    return x86_64_insn_info_.imm_kind_ != PersistentOperand::kNumKinds;
++  }
++  [[nodiscard]] uint64_t imm_symbol() const {
++    return imm_kind() == PersistentOperand::kHostResource ? uint64_t{imm_aux()}
++                                                          : imm() >> imm_aux();
++  }
++  void set_imm_provenance(PersistentOperand kind, uint32_t aux) {
++    x86_64_insn_info_.imm_kind_ = kind;
++    x86_64_insn_info_.imm_aux_ = aux;
++  }
++  // endregion
++
+  protected:
+   explicit MachineInsnX86_64(const MachineInsnX86_64& other)
+       : MachineInsn(other, x86_64_insn_info_.regs_), x86_64_insn_info_(other.x86_64_insn_info_) {}
+@@ -214,7 +238,9 @@ class MachineInsnX86_64 : public MachineInsn {
+     Assembler::ScaleFactor scale_ = Assembler::kTimesOne;
+     Assembler::ScaleFactor scale2_ = Assembler::kTimesOne;
+     Assembler::Condition cond_;
++    PersistentOperand imm_kind_ = PersistentOperand::kNumKinds;  // digitalis: was padding
+     uint32_t disp2_;
++    uint32_t imm_aux_ = 0;  // digitalis: was padding
+     uint64_t imm_;
+   } x86_64_insn_info_;
+ };
+@@ -830,6 +856,13 @@ class MachineIR : public berberis::MachineIR {
+         bb_order_(BasicBlockOrder::kUnordered),
+         insn_folding_executed_(false) {}
+ 
++  // region digitalis
++  // An optimization combined an address with something a persistent record can't describe
++  // (insn_folding.cc). The code stays correct; GenCode marks the MachineCode not persistable.
++  void MarkNotPersistable() { not_persistable_ = true; }
++  [[nodiscard]] bool not_persistable() const { return not_persistable_; }
++  // endregion
++
+   void AddEdge(MachineBasicBlock* src, MachineBasicBlock* dst) {
+     MachineEdge* edge = NewInArena<MachineEdge>(arena(), arena(), src, dst);
+     src->out_edges().push_back(edge);
+@@ -957,6 +990,7 @@ class MachineIR : public berberis::MachineIR {
+ 
+  private:
+   BasicBlockOrder bb_order_;
++  bool not_persistable_ = false;  // digitalis
+   bool insn_folding_executed_;
+ };
+ 
+diff --git a/backend/x86_64/code_emit.cc b/backend/x86_64/code_emit.cc
+index 227e6835..780dfde4 100644
+--- a/backend/x86_64/code_emit.cc
++++ b/backend/x86_64/code_emit.cc
+@@ -141,7 +141,7 @@ void EmitRecoveryLabels(CodeEmitter* as, const RecoveryLabels& labels) {
+   for (auto pair : labels) {
+     as->Bind(pair.first);
+     // EmitExitGeneratedCode is more efficient if receives target in rax.
+-    as->Movq(as->rax, pair.second);
++    as->MovqGuestAddr(as->rax, pair.second);
+     // Exit uses Jmp to full 64-bit address and is 14 bytes long, which is expensive.
+     // Thus we generate local relative jump to the common exit label here.
+     // It's up to 5 bytes, but likely 2-bytes since distance is expected to be short.
+@@ -270,7 +270,7 @@ void PseudoJump::Emit(CodeEmitter* as) const {
+   EmitFreeStackFrame(as, as->frame_size());
+ 
+   if (as->exit_label_for_testing()) {
+-    as->Movq(as->rax, target_);
++    as->MovqGuestAddr(as->rax, target_);
+     as->Jmp(*as->exit_label_for_testing());
+     return;
+   }
+@@ -286,7 +286,7 @@ void PseudoJump::Emit(CodeEmitter* as) const {
+       EmitSyscall(as, target_);
+       break;
+     case Kind::kExitGeneratedCode:
+-      as->Movq(as->rax, target_);
++      as->MovqGuestAddr(as->rax, target_);
+       EmitExitGeneratedCode(as, as->rax);
+       break;
+   }
+@@ -357,6 +357,19 @@ void MachineIR::Emit(CodeEmitter* as) const {
+         as->SetRecoveryPoint(label);
+         recovery_labels.push_back(std::make_pair(label, insn->recovery_pc()));
+       }
++      // region digitalis
++      // A MovqRegImm whose immediate is an address goes out as the fixed-width movabs with its
++      // record (MovqRegImm::Emit is generated and would pick the shortest form). Above 4 GiB
++      // that's the same instruction.
++      const auto* x86_insn = x86_64::AsMachineInsnX86_64(insn);
++      if (insn->opcode() == kMachineOpMovqRegImm && x86_insn->has_persistent_imm()) {
++        as->MovqPersistent(x86_64::GetGReg(insn->RegAt(0)),
++                           bit_cast<int64_t>(x86_insn->imm()),
++                           x86_insn->imm_kind(),
++                           x86_insn->imm_symbol());
++        continue;
++      }
++      // endregion
+       insn->Emit(as);
+     }
+   }
+diff --git a/backend/x86_64/code_gen.cc b/backend/x86_64/code_gen.cc
+index e86dccfc..8132cf8d 100644
+--- a/backend/x86_64/code_gen.cc
++++ b/backend/x86_64/code_gen.cc
+@@ -132,6 +132,9 @@ void GenCode(MachineIR* machine_ir, MachineCode* machine_code, const GenCodePara
+         machine_code, machine_ir->FrameSize(), machine_ir->NumBasicBlocks(), machine_ir->arena());
+     machine_ir->Emit(&emitter);
+     emitter.Finalize();
++    if (machine_ir->not_persistable()) {  // digitalis
++      machine_code->MarkNotPersistable();
++    }
+   }
+ }
+ 
+diff --git a/backend/x86_64/insn_folding.cc b/backend/x86_64/insn_folding.cc
+index 0b3752e0..755cede3 100644
+--- a/backend/x86_64/insn_folding.cc
++++ b/backend/x86_64/insn_folding.cc
+@@ -18,6 +18,7 @@
+ 
+ #include <algorithm>
+ #include <cstdint>
++#include <optional>
+ #include <tuple>
+ 
+ #include "berberis/backend/x86_64/machine_ir.h"
+@@ -146,6 +147,124 @@ std::optional<uint64_t> InsnFolding::GetImmValueIfPossible(MachineReg reg) const
+   return std::nullopt;
+ }
+ 
++// region digitalis
++const MachineInsnX86_64* InsnFolding::GetImmDefIfPossible(MachineReg reg) const {
++  auto general_insn_it = std::get<0>(def_map_.FindNonPseudoCopyDef(reg));
++  if (!general_insn_it.has_value()) {
++    return nullptr;
++  }
++  const auto* insn = AsMachineInsnX86_64(*general_insn_it.value());
++  if (insn->opcode() != kMachineOpMovqRegImm && insn->opcode() != kMachineOpMovlRegImm) {
++    return nullptr;
++  }
++  return insn;
++}
++
++std::optional<uint64_t> InsnFolding::ImmValue(const MachineInsnX86_64* def) {
++  if (def == nullptr) {
++    return std::nullopt;
++  }
++  if (def->opcode() == kMachineOpMovqRegImm) {
++    return def->imm();
++  }
++  return static_cast<uint64_t>(static_cast<uint32_t>(def->imm()));
++}
++
++std::tuple<PersistentOperand, uint64_t> InsnFolding::ImmProvenance(const MachineInsnX86_64* def) {
++  if (def == nullptr || !def->has_persistent_imm()) {
++    return {PersistentOperand::kNumKinds, 0};
++  }
++  return {def->imm_kind(), def->imm_symbol()};
++}
++
++// A folded address keeps its record only when the result is still that address plus a
++// constant: a 64-bit add of one address and a number, a number subtracted from an address, or
++// an address rounded down to at most a 4 KiB boundary (guest modules and the translator image
++// are page-aligned, so the rounding moves with them).
++//
++// One more pattern keeps it: the heavy tier's TBI masking, shl 8 then shr 8, which on a constant
++// address folds back to that address. A left shift of an address by up to 8 bits that loses no
++// bits keeps the record as an intermediate: same kind, the address as symbol, the shifted value
++// as immediate. A right shift by the same amount that gives the address back is plain again.
++// Nothing else may start from an intermediate; if one reaches the code, its immediate doesn't
++// match its symbol and SymbolizeTranslation refuses the region.
++//
++// Anything else (a 32-bit result, or/xor, other shifts, two addresses, an offset into a heap
++// resource) is still folded, so the code doesn't change, but the region can't be re-linked.
++void InsnFolding::SetFoldedProvenance(MachineOpcode opcode,
++                                      berberis::MachineInsn* folded,
++                                      std::tuple<PersistentOperand, uint64_t> provenance0,
++                                      std::tuple<PersistentOperand, uint64_t> provenance1,
++                                      uint64_t imm0,
++                                      uint64_t imm1) {
++  constexpr auto kNone = PersistentOperand::kNumKinds;
++  auto [kind0, symbol0] = provenance0;
++  auto kind1 = std::get<0>(provenance1);
++  if (kind0 == kNone && kind1 == kNone) {
++    return;
++  }
++  auto is_address = [](PersistentOperand kind) {
++    return kind == PersistentOperand::kGuestAddr || kind == PersistentOperand::kHostAddr;
++  };
++  const bool plain0 = is_address(kind0) && imm0 == symbol0;
++  const bool plain1 = is_address(kind1) && imm1 == std::get<1>(provenance1);
++  auto* result = AsMachineInsnX86_64(folded);
++  std::optional<std::tuple<PersistentOperand, uint64_t>> kept;
++  if (result->opcode() == kMachineOpMovqRegImm) {
++    switch (opcode) {
++      case kMachineOpAddqRegReg:
++      case kMachineOpAddqRegImm:
++        if (plain0 && kind1 == kNone) {
++          kept = {kind0, result->imm()};
++        } else if (kind0 == kNone && plain1) {
++          kept = {kind1, result->imm()};
++        }
++        break;
++      case kMachineOpSubqRegReg:
++      case kMachineOpSubqRegImm:
++        if (plain0 && kind1 == kNone) {
++          kept = {kind0, result->imm()};
++        }
++        break;
++      case kMachineOpAndqRegReg:
++      case kMachineOpAndqRegImm:
++        // A mask that clears at most the low 12 bits: ~(2^k - 1) with k <= 12.
++        if (plain0 && kind1 == kNone && imm1 >= ~uint64_t{0xfff} && ((~imm1 + 1) & ~imm1) == 0) {
++          kept = {kind0, result->imm()};
++        }
++        break;
++      case kMachineOpShlqRegReg:
++      case kMachineOpShlqRegImm:
++        if (plain0 && kind1 == kNone && imm1 > 0 && imm1 <= 8 && ((imm0 << imm1) >> imm1) == imm0) {
++          kept = {kind0, symbol0};  // An intermediate: the immediate is the shifted address.
++        }
++        break;
++      case kMachineOpShrqRegReg:
++      case kMachineOpShrqRegImm:
++        if (is_address(kind0) && !plain0 && kind1 == kNone && imm1 > 0 && imm1 <= 8 &&
++            result->imm() == symbol0) {
++          kept = {kind0, symbol0};  // The intermediate shifted back: the address again.
++        }
++        break;
++      default:
++        break;
++    }
++  }
++  if (!kept.has_value()) {
++    machine_ir_->MarkNotPersistable();
++    return;
++  }
++  // The address itself (aux 0), or one shifted left: the shift is what's pending.
++  auto [kind, symbol] = kept.value();
++  uint32_t shift = 0;
++  while (shift < 8 && (symbol << shift) != result->imm()) {
++    shift++;
++  }
++  CHECK_EQ(symbol << shift, result->imm());
++  result->set_imm_provenance(kind, shift);
++}
++// endregion
++
+ berberis::MachineInsn* InsnFolding::NewImmInsnFromRegInsn(const berberis::MachineInsn* insn,
+                                                           int32_t imm32) {
+   berberis::MachineInsn* folded_insn;
+@@ -251,13 +370,21 @@ std::tuple<FoldingType, berberis::MachineInsn*> InsnFolding::TryFoldImmediateInp
+     MachineInsnList::iterator insn_it) {
+   const berberis::MachineInsn* insn = *insn_it;
+   auto src1 = insn->RegAt(1);
+-  std::optional<uint64_t> imm64_1 = GetImmValueIfPossible(src1);
++  // digitalis: the definition once, for both the value and its provenance.
++  const MachineInsnX86_64* def1 = GetImmDefIfPossible(src1);
++  std::optional<uint64_t> imm64_1 = ImmValue(def1);
+   if (!imm64_1.has_value()) {
+     return {FoldingType::kImpossible, nullptr};
+   }
+ 
++  // region digitalis
++  auto provenance1 = ImmProvenance(def1);
++  const bool src1_is_address = std::get<0>(provenance1) != PersistentOperand::kNumKinds;
++  // endregion
++
+   auto src0 = insn->RegAt(0);
+-  std::optional<uint64_t> imm64_0 = GetImmValueIfPossible(src0);
++  const MachineInsnX86_64* def0 = GetImmDefIfPossible(src0);  // digitalis
++  std::optional<uint64_t> imm64_0 = ImmValue(def0);
+   if (imm64_0.has_value()) {
+     // Both operands are immediates. This insn can be folded into one Movq.
+     if (insn->opcode() == kMachineOpAndqRegReg || insn->opcode() == kMachineOpAndlRegReg ||
+@@ -267,17 +394,40 @@ std::tuple<FoldingType, berberis::MachineInsn*> InsnFolding::TryFoldImmediateInp
+         insn->opcode() == kMachineOpSubqRegReg || insn->opcode() == kMachineOpSublRegReg ||
+         insn->opcode() == kMachineOpShlqRegReg || insn->opcode() == kMachineOpShllRegReg ||
+         insn->opcode() == kMachineOpShrqRegReg || insn->opcode() == kMachineOpShrlRegReg) {
+-      return {FoldingType::kInsertInsn,
+-              NewInsnFromTwoImmediatesOperation(insn, imm64_0.value(), imm64_1.value())};
++      auto* folded = NewInsnFromTwoImmediatesOperation(insn, imm64_0.value(), imm64_1.value());
++      SetFoldedProvenance(  // digitalis
++          insn->opcode(),
++          folded,
++          ImmProvenance(def0),
++          provenance1,
++          imm64_0.value(),
++          imm64_1.value());
++      return {FoldingType::kInsertInsn, folded};
+     }
+   }
+ 
+   // MovqRegReg is the only instruction that can encode full 64-bit immediate.
+   if (insn->opcode() == kMachineOpMovqRegReg) {
+-    return {FoldingType::kReplaceInsn,
+-            machine_ir_->NewInsn<MovqRegImm>(insn->RegAt(0), imm64_1.value())};
++    auto* mov = machine_ir_->NewInsn<MovqRegImm>(insn->RegAt(0), imm64_1.value());
++    if (src1_is_address) {  // digitalis: a copy of an address is still that address.
++      mov->set_imm_provenance(def1->imm_kind(), def1->imm_aux());
++    }
++    return {FoldingType::kReplaceInsn, mov};
+   }
+ 
++  // region digitalis
++  // An address is never narrowed into a 32-bit immediate operand: that only fits below 4 GiB,
++  // so the code would depend on where the module is. Above 4 GiB, where Android puts it, the
++  // fold couldn't happen anyway. A 32-bit operation on an address still folds (the code doesn't
++  // change), but the region can't be re-linked.
++  if (src1_is_address) {
++    if (kIsInput64Bit) {
++      return {FoldingType::kImpossible, nullptr};
++    }
++    machine_ir_->MarkNotPersistable();
++  }
++  // endregion
++
+   int64_t signed_imm = bit_cast<int64_t>(imm64_1.value());
+   int32_t signed_imm32 = static_cast<int32_t>(signed_imm);
+   if (!kIsInput64Bit) {
+@@ -359,7 +509,8 @@ std::tuple<FoldingType, berberis::MachineInsn*> InsnFolding::TryFoldTwoImmediate
+   const berberis::MachineInsn* insn = *insn_it;
+   CHECK_GE(insn->NumRegOperands(), 2);
+   MachineReg imm1_reg = insn->RegAt(0);
+-  std::optional<uint64_t> imm1 = GetImmValueIfPossible(imm1_reg);
++  const MachineInsnX86_64* def1 = GetImmDefIfPossible(imm1_reg);  // digitalis
++  std::optional<uint64_t> imm1 = ImmValue(def1);
+   if (!imm1.has_value()) {
+     return {FoldingType::kImpossible, nullptr};
+   }
+@@ -369,7 +520,15 @@ std::tuple<FoldingType, berberis::MachineInsn*> InsnFolding::TryFoldTwoImmediate
+   // Rest of IR may use the value of flags set by current insn. Therefore, we don't remove
+   // current insn, rather simply insert the folded insn. The dead code eliminator will
+   // remove the current insn if possible.
+-  return {FoldingType::kInsertInsn, NewInsnFromTwoImmediatesOperation(insn, imm1.value(), imm2)};
++  auto* folded = NewInsnFromTwoImmediatesOperation(insn, imm1.value(), imm2);
++  // digitalis: imm2 is the instruction's own 32-bit constant, never an address.
++  SetFoldedProvenance(insn->opcode(),
++                      folded,
++                      ImmProvenance(def1),
++                      {PersistentOperand::kNumKinds, 0},
++                      imm1.value(),
++                      imm2);
++  return {FoldingType::kInsertInsn, folded};
+ }
+ 
+ std::tuple<FoldingType, berberis::MachineInsn*> InsnFolding::TryFoldRedundantMovl(
+diff --git a/heavy_optimizer/arm64/frontend.cc b/heavy_optimizer/arm64/frontend.cc
+index 079364ff..ca70a59b 100644
+--- a/heavy_optimizer/arm64/frontend.cc
++++ b/heavy_optimizer/arm64/frontend.cc
+@@ -34,6 +34,7 @@
+ #include "berberis/base/tracing.h"
+ #include "berberis/guest_state/guest_addr.h"
+ #include "berberis/guest_state/guest_state.h"
++#include "berberis/heavy_optimizer/arm64/heavy_optimize_region.h"
+ 
+ namespace berberis {
+ 
+@@ -196,6 +197,24 @@ const StructPermuteMasks& GetStructPermuteMasks(bool is_store, int num_regs, int
+ 
+ }  // namespace
+ 
++// region digitalis
++std::tuple<const void*, size_t> GetHeavyHostResource(uint64_t id) {
++  switch (id) {
++    case kHostResourceHeavyUnsignedRecipEstimate:
++      return {HeavyUnsignedEstimateTable(false), 512 * sizeof(uint32_t)};
++    case kHostResourceHeavyUnsignedRSqrtEstimate:
++      return {HeavyUnsignedEstimateTable(true), 512 * sizeof(uint32_t)};
++    case kHostResourceStructPermuteMasks: {
++      // The first entry of the one contiguous table GetStructPermuteMasks indexes.
++      const StructPermuteMasks& first = GetStructPermuteMasks(false, 2, 0, false);
++      return {&first, 2 * 3 * 4 * 2 * sizeof(StructPermuteMasks)};
++    }
++    default:
++      return {nullptr, 0};
++  }
++}
++// endregion
++
+ using Register = HeavyOptimizerFrontend::Register;
+ 
+ int32_t HeavyOptimizerFrontend::GetThreadStateRegOffset(uint8_t reg) {
+@@ -3007,7 +3026,7 @@ Register HeavyOptimizerFrontend::PcRelAddr(bool is_adrp, int64_t offset) {
+   }
+   GuestAddr pc = GetInsnAddr();
+   GuestAddr target = is_adrp ? ((pc & ~static_cast<GuestAddr>(0xFFF)) + offset) : (pc + offset);
+-  return GetImm(static_cast<uint64_t>(target));
++  return GetGuestAddrImm(target);
+ }
+ 
+ // LDR/LDRSW (literal): load from [insn_addr + offset]. The address is constant
+@@ -3019,7 +3038,7 @@ Register HeavyOptimizerFrontend::LoadLiteral(Decoder::LoadStoreSize size, bool i
+     return AllocTempReg();
+   }
+   GuestAddr target = GetInsnAddr() + offset;
+-  Register addr = GetImm(target);
++  Register addr = GetGuestAddrImm(target);
+   bool is_64bit_target = (size == Decoder::LoadStoreSize::k64bit) || is_signed;
+   return Load(size, is_signed, is_64bit_target, addr, 0);
+ }
+@@ -11973,8 +11992,11 @@ void HeavyOptimizerFrontend::AdvSimdTwoRegMisc(const Decoder::AdvSimdTwoRegMiscA
+       FpRegister xn = AllocTempSimdReg();
+       builder_.GenGetSimd<16>(xn.machine_reg(), vn_off);
+       FpRegister xres = AllocZeroedSimdReg();
+-      Register tbl = std::get<0>(Gen<x86_64::MovqRegImm>(
+-          reinterpret_cast<int64_t>(HeavyUnsignedEstimateTable(is_rsqrt))));
++      Register tbl = GetPersistentImm(  // digitalis: a heap resource (heavy_optimize_region.h).
++          reinterpret_cast<uint64_t>(HeavyUnsignedEstimateTable(is_rsqrt)),
++          PersistentOperand::kHostResource,
++          is_rsqrt ? kHostResourceHeavyUnsignedRSqrtEstimate
++                   : kHostResourceHeavyUnsignedRecipEstimate);
+       const int lanes = args.q ? 4 : 2;
+       for (int i = 0; i < lanes; ++i) {
+         Register idx = std::get<0>(
+@@ -15705,7 +15727,15 @@ void HeavyOptimizerFrontend::AdvSimdMultiStruct(uint8_t rt,
+       }
+       FpRegister part = AllocTempSimdReg();
+       builder_.Gen<x86_64::MovdqaXRegXReg>(part.machine_reg(), src.machine_reg());
+-      Register mask_addr = GetImm(reinterpret_cast<uint64_t>(mask.bytes));
++      // digitalis: an offset into the masks' heap table (heavy_optimize_region.h).
++      const auto table = reinterpret_cast<uintptr_t>(
++          std::get<0>(GetHeavyHostResource(kHostResourceStructPermuteMasks)));
++      const uint64_t mask_offset = reinterpret_cast<uintptr_t>(mask.bytes) - table;
++      CHECK_LT(mask_offset, uint64_t{1} << 24);
++      Register mask_addr =
++          GetPersistentImm(reinterpret_cast<uint64_t>(mask.bytes),
++                           PersistentOperand::kHostResource,
++                           static_cast<uint32_t>((mask_offset << 8) | kHostResourceStructPermuteMasks));
+       FpRegister xmask{std::get<0>(Gen<x86_64::MovdqaXRegOp>({.base = mask_addr, .disp = 0}))};
+       builder_.Gen<x86_64::PshufbXRegXReg>(part.machine_reg(), xmask.machine_reg());
+       return part;
+diff --git a/heavy_optimizer/arm64/frontend.h b/heavy_optimizer/arm64/frontend.h
+index 081f26a5..6e42c58e 100644
+--- a/heavy_optimizer/arm64/frontend.h
++++ b/heavy_optimizer/arm64/frontend.h
+@@ -162,6 +162,23 @@ class HeavyOptimizerFrontend {
+     return std::get<0>(Gen<x86_64::MovqRegImm>(imm));
+   }
+ 
++  // region digitalis
++  // An immediate that's an address, recorded as such (machine_ir.h, assembler/machine_code.h).
++  // The same MovqRegImm as GetImm; folding keeps or drops the record (insn_folding.cc).
++  [[nodiscard]] Register GetPersistentImm(uint64_t imm, PersistentOperand kind, uint32_t aux) {
++    if (!success()) {
++      return AllocTempReg();
++    }
++    Register reg = AllocTempReg();
++    builder_.Gen<x86_64::MovqRegImm>(reg, bit_cast<int64_t>(imm))->set_imm_provenance(kind, aux);
++    return reg;
++  }
++
++  [[nodiscard]] Register GetGuestAddrImm(GuestAddr addr) {
++    return GetPersistentImm(addr, PersistentOperand::kGuestAddr, 0);
++  }
++  // endregion
++
+   [[nodiscard]] Register Copy(Register value) {
+     Register result = AllocTempReg();
+     if (success()) {
+diff --git a/heavy_optimizer/arm64/include/berberis/heavy_optimizer/arm64/heavy_optimize_region.h b/heavy_optimizer/arm64/include/berberis/heavy_optimizer/arm64/heavy_optimize_region.h
+index 075b5daa..60e28b54 100644
+--- a/heavy_optimizer/arm64/include/berberis/heavy_optimizer/arm64/heavy_optimize_region.h
++++ b/heavy_optimizer/arm64/include/berberis/heavy_optimizer/arm64/heavy_optimize_region.h
+@@ -59,6 +59,18 @@ std::tuple<GuestAddr, bool, size_t> HeavyOptimizeRegion(
+     const HeavyOptimizeParams& params = HeavyOptimizeParams(),
+     bool* out_has_in_region_backedge = nullptr);
+ 
++// region digitalis
++// Helper data built on the heap that heavy code refers to by address (ANAL-381). A
++// PersistentOperand::kHostResource record's value is (offset << 8) | id; the lite tier's ids are
++// 1 and 2 (lite_translate_region.h).
++constexpr uint64_t kHostResourceHeavyUnsignedRecipEstimate = 3;  // URECPE's 512-entry table.
++constexpr uint64_t kHostResourceHeavyUnsignedRSqrtEstimate = 4;  // URSQRTE's 512-entry table.
++constexpr uint64_t kHostResourceStructPermuteMasks = 5;  // LD2-LD4/ST2-ST4 PSHUFB masks.
++
++// The resource's address in this process and its size in bytes; {nullptr, 0} for an unknown id.
++std::tuple<const void*, size_t> GetHeavyHostResource(uint64_t id);
++// endregion
++
+ }  // namespace berberis
+ 
+ #endif  // BERBERIS_HEAVY_OPTIMIZER_ARM64_HEAVY_OPTIMIZE_REGION_H_
+diff --git a/runtime/arm64/Android.bp b/runtime/arm64/Android.bp
+index 9680f164..41884967 100644
+--- a/runtime/arm64/Android.bp
++++ b/runtime/arm64/Android.bp
+@@ -72,6 +72,7 @@ cc_test_library {
+             ],
+             header_libs: [
+                 "berberis_test_utils_headers",
++                "libberberis_heavy_optimizer_arm64_headers",
+                 "libberberis_interpreter_arm64_headers",
+                 "libberberis_lite_translator_headers",
+             ],
+diff --git a/runtime/arm64/relocatable_code.cc b/runtime/arm64/relocatable_code.cc
+index 002372ed..dd6ba370 100644
+--- a/runtime/arm64/relocatable_code.cc
++++ b/runtime/arm64/relocatable_code.cc
+@@ -24,6 +24,7 @@
+ #include <tuple>
+ #include <utility>
+ 
++#include "berberis/heavy_optimizer/arm64/heavy_optimize_region.h"
+ #include "berberis/lite_translator/lite_translate_region.h"
+ #include "berberis/runtime_primitives/host_code.h"
+ #include "berberis/runtime_primitives/runtime_library.h"
+@@ -66,7 +67,29 @@ constexpr unsigned kTableBits = 24;
+ constexpr uint64_t kTableMask = (uint64_t{1} << kTableBits) - 1;
+ 
+ constexpr uint64_t kResourceIds[] = {kHostResourceUnsignedRecipEstimate,
+-                                     kHostResourceUnsignedRSqrtEstimate};
++                                     kHostResourceUnsignedRSqrtEstimate,
++                                     kHostResourceHeavyUnsignedRecipEstimate,
++                                     kHostResourceHeavyUnsignedRSqrtEstimate,
++                                     kHostResourceStructPermuteMasks};
++
++// A resource by id: the lite tier's or the heavy tier's.
++std::tuple<const void*, size_t> HostResource(uint64_t id) {
++  auto lite = GetLiteHostResource(id);
++  if (std::get<0>(lite) != nullptr) {
++    return lite;
++  }
++  return GetHeavyHostResource(id);
++}
++
++// The address a resource operand names, (offset << 8) | id, or 0 if it's unknown or out of range.
++uintptr_t ResourceAddress(uint64_t symbol) {
++  auto [resource, size] = HostResource(symbol & 0xff);
++  uint64_t offset = symbol >> 8;
++  if (resource == nullptr || offset >= size) {
++    return 0;
++  }
++  return reinterpret_cast<uintptr_t>(resource) + offset;
++}
+ 
+ // The loaded image (libberberis, or a test binary) this code is part of.
+ struct ImageRange {
+@@ -159,6 +182,8 @@ const char* NotPersistableName(NotPersistable reason) {
+       return "overlapping operands";
+     case NotPersistable::kNoCounter:
+       return "counter operand without a counter";
++    case NotPersistable::kUnrepresentableFold:
++      return "address folded into something a record can't describe";
+   }
+   return "?";
+ }
+@@ -177,6 +202,9 @@ SymbolizedCode SymbolizeTranslation(const MachineCode& machine_code,
+     return out;
+   };
+   auto in_module = [&module](uint64_t addr) { return addr >= module.start && addr <= module.end; };
++  if (machine_code.not_persistable()) {
++    return fail(NotPersistable::kUnrepresentableFold);
++  }
+ 
+   for (const PersistentReloc& reloc : machine_code.persistent_relocs()) {
+     if (reloc.width != 8 || reloc.offset > size || size - reloc.offset < 8) {
+@@ -230,11 +258,11 @@ SymbolizedCode SymbolizeTranslation(const MachineCode& machine_code,
+         }
+         break;
+       case PersistentOperand::kHostResource: {
+-        auto [resource, resource_size] = GetLiteHostResource(reloc.value);
+-        if (resource == nullptr) {
++        uintptr_t resource = ResourceAddress(reloc.value);
++        if (resource == 0) {
+           return fail(NotPersistable::kUnknownResource);
+         }
+-        if (value != reinterpret_cast<uintptr_t>(resource)) {
++        if (value != resource) {
+           return fail(NotPersistable::kOperandMismatch);
+         }
+         op.kind = SymbolKind::kResource;
+@@ -296,7 +324,7 @@ uint64_t ResolveSymbol(SymbolKind kind, uint64_t arg, GuestAddr module_base, uin
+     case SymbolKind::kEntry:
+       return HostEntry(arg);
+     case SymbolKind::kResource:
+-      return reinterpret_cast<uintptr_t>(std::get<0>(GetLiteHostResource(arg)));
++      return ResourceAddress(arg);
+   }
+   return 0;
+ }
+@@ -354,7 +382,7 @@ std::vector<AddrRange> PersistenceSensitiveRanges(GuestModule module,
+                       "translation table"});
+   }
+   for (uint64_t id : kResourceIds) {
+-    auto [resource, resource_size] = GetLiteHostResource(id);
++    auto [resource, resource_size] = HostResource(id);
+     uintptr_t start = reinterpret_cast<uintptr_t>(resource);
+     ranges.push_back({start, start + resource_size, "helper resource"});
+   }
+diff --git a/runtime/arm64/relocatable_code.h b/runtime/arm64/relocatable_code.h
+index 452eaf52..d0345f93 100644
+--- a/runtime/arm64/relocatable_code.h
++++ b/runtime/arm64/relocatable_code.h
+@@ -40,7 +40,7 @@ enum class SymbolKind : uint8_t {
+   kCounter,      // The region's own hotness counter.
+   kImageOffset,  // This translator image's load bias + arg.
+   kEntry,        // Host entry trampoline number arg (kHostEntries order in the .cc).
+-  kResource,     // Heap-built helper data with resource id arg.
++  kResource,     // Heap-built helper data: arg is (offset << 8) | resource id.
+ };
+ 
+ struct SymbolicOperand {
+@@ -65,6 +65,7 @@ enum class NotPersistable : uint8_t {
+   kOperandMismatch,         // The installed bytes don't hold the recorded value.
+   kOverlappingOperands,
+   kNoCounter,               // A counter operand without a counter.
++  kUnrepresentableFold,     // The heavy optimizer folded an address into something else.
+ };
+ 
+ const char* NotPersistableName(NotPersistable reason);
+diff --git a/runtime/arm64/relocatable_code_test.cc b/runtime/arm64/relocatable_code_test.cc
+index a1f04278..bc576ef5 100644
+--- a/runtime/arm64/relocatable_code_test.cc
++++ b/runtime/arm64/relocatable_code_test.cc
+@@ -52,6 +52,7 @@
+ #include "berberis/assembler/machine_code.h"
+ #include "berberis/assembler/x86_64.h"
+ #include "berberis/guest_state/guest_addr.h"
++#include "berberis/heavy_optimizer/arm64/heavy_optimize_region.h"
+ #include "berberis/lite_translator/lite_translate_region.h"
+ #include "berberis/runtime_primitives/runtime_library.h"
+ #include "berberis/runtime_primitives/translation_cache.h"
+@@ -98,14 +99,24 @@ alignas(64) const uint32_t kModule[] = {
+     0x91000400, 0xf1000421, 0x54ffffc1, 0xd65f03c0,
+     // 0xc0 far: adr x0, <0x80000 past itself, outside the module> ; ret
+     0x10400000, 0xd65f03c0,
++    // Heavy-tier cases (patch 11).
++    // 0xc8 adrp + add: adrp x0, <its own page> ; add x0, x0, #0x123 ; ldr x1, [x0] ; ret
++    0x90000000, 0x91048c00, 0xf9400001, 0xd65f03c0,
++    // 0xd8 eor on an address: adr x0, 0x118 ; eor x0, x0, #0xff ; ret
++    0x10000200, 0xd2401c00, 0xd65f03c0,
++    // 0xe4 a 32-bit add on an address: adr x0, 0x124 ; add w1, w0, #1 ; ret
++    0x10000200, 0x11000401, 0xd65f03c0,
++    // 0xf0 ld3 / st3: ld3 {v0.16b-v2.16b}, [x0] ; st3 {v0.16b-v2.16b}, [x1] ; ret
++    0x4c404000, 0x4c004020, 0xd65f03c0,
+ };
+ 
+-enum class Variant { kDefault, kNoDispatch, kSelfProfiling, kInRegionLoops };
++enum class Variant { kDefault, kNoDispatch, kSelfProfiling, kInRegionLoops, kHeavy };
+ 
+ struct Fixture {
+   const char* name;
+   uint32_t offset;
+   Variant variant;
++  NotPersistable expected = NotPersistable::kNo;
+ };
+ 
+ const Fixture kFixtures[] = {
+@@ -122,13 +133,30 @@ const Fixture kFixtures[] = {
+     {"frecpe, frsqrte", 0x98, Variant::kDefault},
+     {"urecpe, ursqrte", 0xa4, Variant::kDefault},
+     {"in-region loop", 0xb0, Variant::kInRegionLoops},
+-    {"address outside the module", 0xc0, Variant::kDefault},
++    {"address outside the module", 0xc0, Variant::kDefault, NotPersistable::kGuestAddrOutsideModule},
++    // The heavy tier (HeavyOptimizeRegion, codegen for every region as the tests' default).
++    {"heavy: branch", 0x00, Variant::kHeavy},
++    {"heavy: cond, cbz, tbnz", 0x10, Variant::kHeavy},
++    {"heavy: bl", 0x28, Variant::kHeavy},
++    {"heavy: blr", 0x30, Variant::kHeavy},
++    {"heavy: adr, adrp", 0x38, Variant::kHeavy},
++    {"heavy: literal loads", 0x44, Variant::kHeavy},
++    {"heavy: svc", 0x80, Variant::kHeavy},
++    {"heavy: load, store", 0x8c, Variant::kHeavy},
++    {"heavy: urecpe, ursqrte", 0xa4, Variant::kHeavy},
++    {"heavy: loop", 0xb0, Variant::kHeavy},
++    {"heavy: adrp + add, folded", 0xc8, Variant::kHeavy},
++    {"heavy: eor on an address", 0xd8, Variant::kHeavy, NotPersistable::kUnrepresentableFold},
++    {"heavy: 32-bit add on an address", 0xe4, Variant::kHeavy,
++     NotPersistable::kUnrepresentableFold},
++    {"heavy: ld3, st3", 0xf0, Variant::kHeavy},
++    {"heavy: address outside the module", 0xc0, Variant::kHeavy,
++     NotPersistable::kGuestAddrOutsideModule},
+ };
+ constexpr size_t kNumFixtures = sizeof(kFixtures) / sizeof(kFixtures[0]);
+-constexpr uint32_t kFarFixture = 0xc0;
+ 
+ constexpr size_t kModuleSize = 64 * 1024;
+-constexpr size_t kCodeBufSize = 64 * 1024;
++constexpr size_t kCodeBufSize = 256 * 1024;
+ constexpr size_t kRegionSlot = 4096;  // Installed code per fixture, at most.
+ 
+ // Below 4 GiB, with top bytes that are rare in x86 code so the 4-byte scan has few chance hits.
+@@ -268,9 +296,21 @@ Translation Translate(const Env& env, size_t i) {
+     case Variant::kInRegionLoops:
+       params.allow_in_region_loops = true;
+       break;
++    case Variant::kHeavy:
++      break;
++  }
++  bool success;
++  if (fixture.variant == Variant::kHeavy) {
++    // A region the frontend bails on still gets code for the prefix it did translate, which the
++    // runtime may install (a captured loop), so the prefix counts here too.
++    GuestAddr pc = env.module + fixture.offset;
++    auto [stop_pc, heavy_success, insns] =
++        HeavyOptimizeRegion(pc, t.machine_code.get(), {.end_pc = env.module + kModuleSize});
++    success = (heavy_success || stop_pc > pc) && t.machine_code->install_size() > 0;
++  } else {
++    success = std::get<0>(TryLiteTranslateRegion(env.module + fixture.offset,
++                                                 t.machine_code.get(), params));
+   }
+-  auto [success, stop_pc] = TryLiteTranslateRegion(env.module + fixture.offset,
+-                                                   t.machine_code.get(), params);
+   t.success = success;
+   if (!success || t.machine_code->install_size() > kRegionSlot) {
+     t.success = false;
+@@ -550,7 +590,9 @@ TEST(RelocatableCode, DISABLED_ProduceInAnotherProcess) {
+     uint32_t uncovered = 0;
+     if (t.success) {
+       s = Symbolize(env, t);
+-      uncovered = Scan(env, t).size();
++      if (s.reason == NotPersistable::kNo) {  // Only what would be persisted.
++        uncovered = Scan(env, t).size();
++      }
+     }
+     Put(f, static_cast<uint8_t>(t.success));
+     Put(f, static_cast<uint8_t>(s.reason));
+@@ -572,27 +614,43 @@ TEST(RelocatableCode, DISABLED_ProduceInAnotherProcess) {
+ TEST_F(RelocatableCodeTest, EveryFixtureTranslatesAndNamesItsOperands) {
+   Env env;
+   ASSERT_TRUE(env.Init(0, kHighEnvCode));
+-  std::set<SymbolKind> kinds;
++  std::set<SymbolKind> lite_kinds;
++  std::set<SymbolKind> heavy_kinds;
++  std::set<uint64_t> heavy_resources;
+   for (size_t i = 0; i < kNumFixtures; i++) {
+     Translation t = Translate(env, i);
+     ASSERT_TRUE(t.success) << kFixtures[i].name;
+     SymbolizedCode s = Symbolize(env, t);
+-    if (kFixtures[i].offset == kFarFixture) {
+-      EXPECT_EQ(s.reason, NotPersistable::kGuestAddrOutsideModule) << NotPersistableName(s.reason);
++    if (kFixtures[i].expected != NotPersistable::kNo) {
++      EXPECT_EQ(s.reason, kFixtures[i].expected)
++          << kFixtures[i].name << ": " << NotPersistableName(s.reason);
+       continue;
+     }
+     EXPECT_EQ(s.reason, NotPersistable::kNo)
+         << kFixtures[i].name << ": " << NotPersistableName(s.reason);
++    const bool heavy = kFixtures[i].variant == Variant::kHeavy;
+     for (const auto& op : s.operands) {
+-      kinds.insert(op.kind);
++      (heavy ? heavy_kinds : lite_kinds).insert(op.kind);
++      if (heavy && op.kind == SymbolKind::kResource) {
++        heavy_resources.insert(op.arg & 0xff);
++      }
+     }
+   }
+-  // Between them the fixtures hit every kind of operand a lite translation has.
++  // Between them the fixtures hit every kind of operand each tier has. The heavy tier has no
++  // hotness counter.
+   for (SymbolKind kind : {SymbolKind::kGuestOffset, SymbolKind::kTableSlot, SymbolKind::kMainTable,
+                           SymbolKind::kCounter, SymbolKind::kImageOffset, SymbolKind::kEntry,
+                           SymbolKind::kResource}) {
+-    EXPECT_EQ(kinds.count(kind), 1u) << "no fixture has kind " << static_cast<int>(kind);
++    EXPECT_EQ(lite_kinds.count(kind), 1u) << "no lite fixture has kind " << static_cast<int>(kind);
++    if (kind != SymbolKind::kCounter) {
++      EXPECT_EQ(heavy_kinds.count(kind), 1u)
++          << "no heavy fixture has kind " << static_cast<int>(kind);
++    }
+   }
++  EXPECT_EQ(heavy_resources.count(kHostResourceStructPermuteMasks), 1u);
++  EXPECT_EQ(heavy_resources.count(kHostResourceHeavyUnsignedRecipEstimate) +
++                heavy_resources.count(kHostResourceHeavyUnsignedRSqrtEstimate),
++            2u);
+ }
+ 
+ TEST_F(RelocatableCodeTest, NoUnrecordedPointerAboveOrBelow4GiB) {
+@@ -602,6 +660,9 @@ TEST_F(RelocatableCodeTest, NoUnrecordedPointerAboveOrBelow4GiB) {
+   ASSERT_TRUE(low.Init(kLowModule, kLowCode));
+   for (const Env* env : {&high, &low}) {
+     for (size_t i = 0; i < kNumFixtures; i++) {
++      if (kFixtures[i].expected != NotPersistable::kNo) {
++        continue;  // Never persisted, so what it embeds doesn't matter.
++      }
+       Translation t = Translate(*env, i);
+       ASSERT_TRUE(t.success);
+       auto found = Scan(*env, t);
+@@ -617,7 +678,7 @@ TEST_F(RelocatableCodeTest, TwoBasesRelinkToIdenticalCode) {
+   ASSERT_TRUE(low.Init(kLowModule, kLowCode));
+   ASSERT_GT(high.module, uint64_t{1} << 32);
+   for (size_t i = 0; i < kNumFixtures; i++) {
+-    if (kFixtures[i].offset == kFarFixture) {
++    if (kFixtures[i].expected != NotPersistable::kNo) {
+       continue;
+     }
+     Translation a = Translate(high, i);
+@@ -651,7 +712,11 @@ TEST_F(RelocatableCodeTest, AnotherProcessRelinksToIdenticalCode) {
+   EXPECT_NE(dump.facts.install_buffer, mine.install_buffer);
+   EXPECT_NE(dump.facts.module, mine.module);
+   CrossProcessResult r = CheckAgainstChild(dump, env);
+-  EXPECT_EQ(r.compared, kNumFixtures - 1);
++  size_t persistable = 0;
++  for (const auto& fixture : kFixtures) {
++    persistable += fixture.expected == NotPersistable::kNo ? 1 : 0;
++  }
++  EXPECT_EQ(r.compared, persistable);
+   EXPECT_EQ(r.relink_mismatches, 0u) << r.first_mismatch;
+   EXPECT_EQ(r.recovery_mismatches, 0u);
+   EXPECT_EQ(r.child_uncovered, 0u);
+@@ -740,7 +805,8 @@ TEST_F(RelocatableCodeTest, UnnamedDisplacementsFailTheDifferential) {
+   EXPECT_GT(r.relink_mismatches, 0u);
+ }
+ 
+-// Coverage on real code, run by hand (it needs the corpus): every region start of an app's profile,
++// Coverage on real code, run by hand (it needs the corpus; BERBERIS_RELOC_TIER=heavy for the
++// heavy tier): every region start of an app's profile,
+ // as `<library index> <ELF vaddr hex>` lines in $BERBERIS_RELOC_CORPUS/regions.txt, with the arm64
+ // libraries named in libs.txt beside it. Each region is translated with its library loaded once
+ // above and once below 4 GiB. The first is named and scanned, then re-linked into the second.
+@@ -817,6 +883,9 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
+   if (dir == nullptr) {
+     GTEST_SKIP() << "set BERBERIS_RELOC_CORPUS";
+   }
++  // BERBERIS_RELOC_TIER=heavy: the heavy tier instead of lite.
++  const char* tier = getenv("BERBERIS_RELOC_TIER");
++  const bool heavy = tier != nullptr && strcmp(tier, "heavy") == 0;
+   std::vector<std::string> names;
+   {
+     FILE* f = fopen((std::string(dir) + "/libs.txt").c_str(), "r");
+@@ -861,7 +930,9 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
+   std::vector<PerLib> per(names.size());
+   uint64_t translate_ns = 0, symbolize_ns = 0, relink_ns = 0, scan_ns = 0;
+   size_t host_bytes = 0, operands = 0;
+-  std::vector<std::string> examples;
++  size_t nondeterministic = 0;
++  std::vector<std::string> uncovered_examples;
++  std::vector<std::string> mismatch_examples;
+ 
+   // One map for every install: the two slots are reused, so its entries are overwritten, not added.
+   RecoveryMap recovery_map;
+@@ -875,6 +946,15 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
+     p.regions++;
+     auto translate = [&](const CorpusLib& lib, size_t slot, Translation* t) {
+       t->machine_code = std::make_unique<MachineCode>();
++      if (heavy) {
++        // Every region through the optimizing tier, with codegen (no gear-up gating). A bailed
++        // region's prefix counts, as one the runtime would install for a captured loop.
++        GuestAddr pc = lib.bias + vaddr;
++        auto [stop_pc, success, insns] =
++            HeavyOptimizeRegion(pc, t->machine_code.get(), {.end_pc = lib.exec_end});
++        t->success = (success || stop_pc > pc) && t->machine_code->install_size() > 0;
++        return !t->success ? 0 : (success ? 1 : 2);
++      }
+       LiteTranslateParams params;
+       params.end_pc = lib.exec_end;
+       params.enable_self_profiling = true;  // As first-gear lite is, in two-gear mode.
+@@ -915,26 +995,33 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
+         SymbolizeTranslation(*a.machine_code, a.bytes.data(), a.install, high[li].module,
+                              a.counter);
+     symbolize_ns += NowNs() - t0;
++    if (sa.reason != NotPersistable::kNo) {
++      // Never persisted, so what it embeds doesn't matter.
++      p.not_persistable[NotPersistableName(sa.reason)]++;
++      continue;
++    }
+     t0 = NowNs();
+     auto found = FindUncoveredPointers(a.bytes.data(), a.bytes.size(),
+                                        RecordedIntervals(*a.machine_code), high_ranges[li]);
+     scan_ns += NowNs() - t0;
+     if (!found.empty()) {
+       p.uncovered++;
+-      if (examples.size() < 20) {
++      if (uncovered_examples.size() < 10) {
+         char buf[128];
+         snprintf(buf, sizeof(buf), "uncovered %s+0x%llx:", names[li].c_str(), vaddr);
+-        examples.push_back(buf + Describe(found, &a.bytes));
++        uncovered_examples.push_back(buf + Describe(found, &a.bytes));
+       }
+     }
+-    if (sa.reason != NotPersistable::kNo) {
+-      p.not_persistable[NotPersistableName(sa.reason)]++;
+-      continue;
+-    }
+     p.persistable++;
+     operands += sa.operands.size();
+     if (translate(low[li], 1, &b) != kind) {
+       p.mismatched++;
++      if (mismatch_examples.size() < 10) {
++        char buf[128];
++        snprintf(buf, sizeof(buf), "mismatch %s+0x%llx: translated differently below 4 GiB",
++                 names[li].c_str(), vaddr);
++        mismatch_examples.push_back(buf);
++      }
+       continue;
+     }
+     b.install = reinterpret_cast<uintptr_t>(code + kSlot);
+@@ -949,21 +1036,69 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
+                     RelinkTranslation(copy.data(), copy.size(), sa.operands, low[li].bias,
+                                       b.install, b.counter);
+     relink_ns += NowNs() - t0;
++    // A heavy translation isn't always a function of its input alone: it reads some uninitialized
++    // arena memory (zero-filling arena allocations makes it deterministic; ANAL-381), so a few
++    // regions come out different, and still correct, when translated again after other work.
++    // Such a mismatch says nothing about relocation, so it's counted apart: either copy
++    // translated again in its own place gives different bytes.
++    auto same_again = [&](const CorpusLib& lib, size_t slot, const Translation& first,
++                          uint8_t* at) {
++      Translation again;
++      translate(lib, slot, &again);
++      if (!again.success || again.machine_code->install_size() != first.bytes.size()) {
++        return false;
++      }
++      again.machine_code->InstallUnsafe(at, &recovery_map);
++      return memcmp(at, first.bytes.data(), first.bytes.size()) == 0;
++    };
++    if ((!relinked || copy != b.bytes) &&
++        (!same_again(high[li], 0, a, code) || !same_again(low[li], 1, b, code + kSlot))) {
++      nondeterministic++;
++      continue;
++    }
+     if (!relinked || copy != b.bytes) {
+       p.mismatched++;
+-      if (examples.size() < 20) {
+-        char buf[128];
+-        snprintf(buf, sizeof(buf), "mismatch %s+0x%llx (sizes %zu/%zu)", names[li].c_str(), vaddr,
+-                 a.bytes.size(), b.bytes.size());
+-        examples.push_back(buf);
++      // BERBERIS_RELOC_DUMP=<dir>: both copies of the first mismatches, for a disassembler.
++      if (const char* dump_dir = getenv("BERBERIS_RELOC_DUMP");
++          dump_dir != nullptr && mismatch_examples.size() < 10) {
++        for (const auto& [suffix, bytes] : {std::pair{"high", &a.bytes}, std::pair{"low", &b.bytes}}) {
++          std::string path = std::string(dump_dir) + "/" + names[li] + "+" +
++                             std::to_string(vaddr) + "." + suffix + ".bin";
++          if (FILE* out = fopen(path.c_str(), "wb")) {
++            fwrite(bytes->data(), 1, bytes->size(), out);
++            fclose(out);
++          }
++        }
++      }
++      if (mismatch_examples.size() < 10) {
++        size_t at = 0;
++        while (at < std::min(copy.size(), b.bytes.size()) && copy[at] == b.bytes[at]) {
++          at++;
++        }
++        std::string line = "mismatch " + names[li] + "+" + std::to_string(vaddr) + " sizes " +
++                           std::to_string(a.bytes.size()) + "/" + std::to_string(b.bytes.size()) +
++                           (relinked ? "" : " (relink failed)") + " at +" + std::to_string(at) +
++                           "\n      relinked:";
++        char hex[8];
++        for (size_t k = at >= 12 ? at - 12 : 0; k < std::min(copy.size(), at + 12); k++) {
++          snprintf(hex, sizeof(hex), k == at ? " |%02x" : " %02x", copy[k]);
++          line += hex;
++        }
++        line += "\n      own:     ";
++        for (size_t k = at >= 12 ? at - 12 : 0; k < std::min(b.bytes.size(), at + 12); k++) {
++          snprintf(hex, sizeof(hex), k == at ? " |%02x" : " %02x", b.bytes[k]);
++          line += hex;
++        }
++        mismatch_examples.push_back(line);
+       }
+     }
+   }
+   fclose(f);
+ 
+   PerLib total;
+-  printf("corpus: %s\n%-36s %8s %8s %8s %8s %8s %8s %8s  not persistable\n", dir, "library",
+-         "regions", "full", "partial", "interp", "persist", "uncov", "mismatch");
++  printf("corpus: %s, tier %s\n%-36s %8s %8s %8s %8s %8s %8s %8s  not persistable\n", dir,
++         heavy ? "heavy" : "lite", "library", "regions", "full", "partial", "interp", "persist",
++         "uncov", "mismatch");
+   for (size_t i = 0; i < names.size(); i++) {
+     const PerLib& p = per[i];
+     std::string why;
+@@ -998,7 +1133,12 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
+          translated ? double(symbolize_ns) / translated : 0.0,
+          translated ? double(scan_ns) / translated : 0.0,
+          total.persistable ? double(relink_ns) / total.persistable : 0.0);
+-  for (const auto& e : examples) {
++  printf("translated differently twice in the same place (not a relocation question): %zu\n",
++         nondeterministic);
++  for (const auto& e : uncovered_examples) {
++    printf("  %s\n", e.c_str());
++  }
++  for (const auto& e : mismatch_examples) {
+     printf("  %s\n", e.c_str());
+   }
+   EXPECT_EQ(total.uncovered, 0u);
+diff --git a/runtime/arm64/translate_corpus_bench_test.cc b/runtime/arm64/translate_corpus_bench_test.cc
+index ea106d36..2463230c 100644
+--- a/runtime/arm64/translate_corpus_bench_test.cc
++++ b/runtime/arm64/translate_corpus_bench_test.cc
+@@ -45,6 +45,7 @@
+ 
+ #include "berberis/assembler/machine_code.h"
+ #include "berberis/guest_state/guest_addr.h"
++#include "berberis/heavy_optimizer/arm64/heavy_optimize_region.h"
+ #include "berberis/lite_translator/lite_translate_region.h"
+ 
+ namespace berberis {
+@@ -157,9 +158,83 @@ TEST(DigitalisBench, DISABLED_TranslateRegionCorpus) {
+     ASSERT_NE(&g_record_persistent_relocs_by_default, nullptr) << "this translator can't record";
+     g_record_persistent_relocs_by_default = true;
+   }
++  // BERBERIS_TRANSLATE_CORPUS_TIER=heavy: the optimizing tier, codegen for every region.
++  const char* tier = getenv("BERBERIS_TRANSLATE_CORPUS_TIER");
++  const bool heavy = tier != nullptr && strcmp(tier, "heavy") == 0;
+   uint32_t counter = 0;
+   RecoveryMap recovery_map;
++  // Bytes of each region's first-pass translation (heavy only), installed at `slot`, to count the
++  // regions a later pass translates differently.
++  std::vector<std::vector<uint8_t>> first_pass(heavy ? regions.size() : 0);
++  // BERBERIS_TRANSLATE_CORPUS_INTERLEAVE=1 (heavy): each region translated, then another region,
++  // then the first again in the same place; prints how many come out different. A translation
++  // should be a function of its input alone.
++  if (heavy && getenv("BERBERIS_TRANSLATE_CORPUS_INTERLEAVE") != nullptr) {
++    auto translate_at_slot = [&](size_t r, std::vector<uint8_t>* out) {
++      const auto& [li, vaddr] = regions[r];
++      MachineCode machine_code;
++      GuestAddr pc = libs[li].bias + vaddr;
++      auto [stop_pc, success, insns] =
++          HeavyOptimizeRegion(pc, &machine_code, {.end_pc = libs[li].exec_end});
++      out->clear();
++      if ((success || stop_pc > pc) && machine_code.install_size() > 0 &&
++          machine_code.install_size() <= kSlot) {
++        machine_code.InstallUnsafe(static_cast<uint8_t*>(slot), &recovery_map);
++        const uint8_t* bytes = static_cast<uint8_t*>(slot);
++        out->assign(bytes, bytes + machine_code.install_size());
++      }
++    };
++    size_t differs = 0;
++    size_t sizes_differ = 0;
++    std::vector<uint8_t> first;
++    std::vector<uint8_t> other;
++    std::vector<uint8_t> again;
++    for (size_t r = 0; r < regions.size(); r++) {
++      translate_at_slot(r, &first);
++      translate_at_slot((r * 7919 + 17) % regions.size(), &other);
++      translate_at_slot(r, &again);
++      if (first != again) {
++        differs++;
++        sizes_differ += first.size() != again.size() ? 1 : 0;
++      }
++    }
++    printf("BENCH translate-corpus heavy interleaved: %zu regions, %zu differ (%zu in size)\n",
++           regions.size(), differs, sizes_differ);
++    munmap(slot, kSlot);
++    return;
++  }
+   for (int pass = 0; pass < 3; pass++) {
++    size_t differs = 0;
++    if (heavy) {
++      size_t translated = 0;
++      size_t host_bytes = 0;
++      uint64_t start = MonotonicNs();
++      for (size_t r = 0; r < regions.size(); r++) {
++        const auto& [li, vaddr] = regions[r];
++        MachineCode machine_code;
++        GuestAddr pc = libs[li].bias + vaddr;
++        auto [stop_pc, success, insns] =
++            HeavyOptimizeRegion(pc, &machine_code, {.end_pc = libs[li].exec_end});
++        if ((success || stop_pc > pc) && machine_code.install_size() > 0 &&
++            machine_code.install_size() <= kSlot) {
++          machine_code.InstallUnsafe(static_cast<uint8_t*>(slot), &recovery_map);
++          host_bytes += machine_code.install_size();
++          translated++;
++          const uint8_t* bytes = static_cast<uint8_t*>(slot);
++          if (pass == 0) {
++            first_pass[r].assign(bytes, bytes + machine_code.install_size());
++          } else if (first_pass[r].size() != machine_code.install_size() ||
++                     memcmp(first_pass[r].data(), bytes, first_pass[r].size()) != 0) {
++            differs++;
++          }
++        }
++      }
++      uint64_t ns = MonotonicNs() - start;
++      printf("BENCH translate-corpus heavy pass %d: %zu regions, %zu translated, %zu host bytes, "
++             "%.1f ns/region, %zu differ from pass 0\n",
++             pass, regions.size(), translated, host_bytes, double(ns) / regions.size(), differs);
++      continue;
++    }
+     size_t translated = 0;
+     size_t host_bytes = 0;
+     uint64_t start = MonotonicNs();

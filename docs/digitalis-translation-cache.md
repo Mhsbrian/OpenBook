@@ -1,9 +1,11 @@
 # Digitalis: a persistent translation cache
 
-A design, partly built. Revision 3, 2026-11-05:
+A design, partly built. Revision 4, 2026-11-05:
 - **Revision 2** carried the corrections from the plan review of revision 1 (Proceed with follow-ups, ANAL-381).
 - **Revision 3** records step P1a (Digitalis patch 10: relocatable lite output, section 8). It also takes in the
   review's two clarifications for P2 (3.6 and 7), and corrects which libraries Lichess's regions come from (1 and 7).
+- **Revision 4** records step P1b (Digitalis patch 11: relocatable heavy output, 3.4 and 8). It also adds what P1b
+  found about the heavy tier's determinism (6).
 
 Digitalis translates every ARM region again in every process. Lichess's second cold start on the G14 compiled 99.8% of
 the same file-backed code as its first. This design keeps translated regions in the app's private storage and loads
@@ -189,6 +191,13 @@ the 32-bit displacements and recovery points.
    - Optimization must preserve it. A fold is safe only when its result is still one base plus a constant addend.
    - Two address-valued operands aren't automatically safe.
    - Any fold that can't be represented marks the region not persistable.
+   - **As built (patch 11):**
+     - Provenance lives in what was padding in `MachineInsnX86_64`.
+     - The folds kept are a 64-bit add or subtract of a number, a mask of at most the low 12 bits, and one more: the
+       TBI pair (shift left 8, then right 8) that every heavy load and store applies to its address. On a constant
+       address that pair folds back to the address. The left shift keeps the record as an intermediate, which only
+       the matching right shift may use.
+     - Everything else marks the region not persistable: 0.4% of Lichess's regions.
 
 ### 3.5 When to load: lazily, on a region's first execution
 
@@ -362,6 +371,13 @@ the 32-bit displacements and recovery points.
   - a counter re-linked to the new entry;
   - an unwritable `private_dir`.
 - **Device:** the compat corpus and the JIT and self-modifying-code coverage, with `pcache=verify`.
+- **Heavy determinism (found in P1b).** A heavy translation isn't always a function of its input alone: it reads some
+  uninitialized arena memory. Translated again after other work, 3–9 of Lichess's 183,699 regions come out different,
+  and still correct. That happens on the base translator too, and zero-filling arena allocations removes it.
+  - **For the checks:** the corpus test counts such regions apart, and with zero-filled arenas it finds no mismatch
+    at all.
+  - **For `verify` (P2):** a recompile can differ from the cached code for this reason alone. The cause should be
+    fixed first, or `verify` should recompile twice before calling a mismatch. That fix is ANAL-389.
 
 ## 7. Rejected alternatives
 
@@ -380,7 +396,7 @@ Each step is one pull request or one test image, and each decides something:
 | Step | What | Decides | Device |
 |---|---|---|---|
 | P1a | Relocatable lite and `code_gen_lib` output: records, typed emitters including heap resources, the pointer scan, the all-inputs differential and the fixtures. No change in behaviour | **Done, Digitalis patch 10, on the host.** Every lite region of Lichess's set is relocatable: all 183,699 persistable, no unrecorded pointer, no re-link mismatch between a module above and below 4 GiB (in-process; the second-process differential runs on the fixtures). Above 4 GiB the typed emitters keep `Movq`'s exact encoding; below it they're longer. The corpus totals 73,942,150 host bytes before and after, an equal aggregate rather than a per-translation comparison. The scan's ranges cover every translation subtable a module spans (from the review). Recording is opt-in: it costs a median 2.4% of lite translation time. Re-linking a region took 0.1 µs against 6–7 µs to translate it, but that isn't a load's whole cost | none |
-| P1b | The same for heavy: symbolic provenance on IR immediates and the fold rules | The same, for heavy | none |
+| P1b | The same for heavy: symbolic provenance on IR immediates and the fold rules | **Done, Digitalis patch 11, on the host.** Heavy-translating all 183,699 Lichess region starts: 182,912 persistable (99.6%), with no unrecorded pointer and no re-link mismatch; 785 refused for an unrepresentable fold. Total host bytes are the same before and after. Heavy translation time with recording off: +2.8% in the default build, but none with aligned functions, and reverting either half also removes it, so it's code layout, not work | none |
 | P2 | The cache: format, writer, loader (3.3's eligibility and check order), counters, `berberis.pcache` off by default, `verify`, the replay harness, the invalidation-during-load test | Load against compile cost per region; write cost; host start-up change | none |
 | P3 | The next batched G14 test image | G14 start-up and absolute CPU before and after; correctness under `verify` | test image, one approval |
 | P4 | The default and the trust model (section 4), recorded before any production enablement | Accept the broader risk with the in-process writer, or build the privileged one; on or off | none |
