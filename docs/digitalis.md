@@ -266,6 +266,21 @@ The bridge is part of the normal product build (`scripts/aosp-build.sh`). Nothin
           fresh translation (bytes that re-linking overwrites anyway), and 122 were replaced by fresh code. The code
           installed was always the fresh translation's;
         - **CoreMark through the runner:** 1.0 MB written instead of 1.6 MB, and the same checks pass.
+  14. The cache can be turned on for one app, and its write queue can be read (ANAL-381, for step P3).
+      - **Why:** `berberis.pcache` is system-wide. Set for a G14 test, it would also turn the cache on for any of
+        the owner's ARM apps that started meanwhile.
+      - **`berberis.pcache=on:<package>`** (and `verify:<package>`) turns it on only in that package's processes, by
+        exact name: `native_bridge_initialize` sets the package from the app's private directory before
+        initialization.
+        - A process without a package name, another package or a malformed value stays off.
+        - Plain `off`, `on` and `verify` are unchanged.
+      - **New counters:**
+        - `pcache_records_queued`: published translations queued for writing;
+        - `pcache_records_dropped`: records whose batch wasn't written (the cap, a file that would pass 4 GiB, a
+          failed write).
+
+        Queued − written − dropped is what was still waiting when the counters were read, so a test can tell how
+        many records an app's force-stop lost. Drops at the cap were counted as not persistable before.
 - **ART patch** (`aosp/patches/art/`): `libnativebridge` sets `Build.CPU_ABI` and `CPU_ABI2` for bridged apps again (the Fennec fix).
 - **Device:** `device/anybook/common/native-bridge/`:
   - `native-bridge.mk` inherits Digitalis's `enable_arm64_to_x86_64.mk` and adds `openbook_bridge_check`;

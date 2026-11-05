@@ -1,6 +1,6 @@
 # Digitalis: a persistent translation cache
 
-A design, partly built. Revision 6, 2026-11-05:
+A design, partly built. Revision 7, 2026-11-05:
 - **Revision 2** carried the corrections from the plan review of revision 1 (Proceed with follow-ups, ANAL-381).
 - **Revision 3** records step P1a (Digitalis patch 10: relocatable lite output, section 8). It also takes in the
   review's two clarifications for P2 (3.6 and 7), and corrects which libraries Lichess's regions come from (1 and 7).
@@ -8,6 +8,8 @@ A design, partly built. Revision 6, 2026-11-05:
   found about the heavy tier's determinism (6).
 - **Revision 5** records step P2 (Digitalis patch 12: the cache itself, off by default; 3.6, 3.7, 8 and 9).
 - **Revision 6** records step P2b (Digitalis patch 13: a compact record format, 3.6, 8 and 9).
+- **Revision 7** records Digitalis patch 14 (3.7): the cache can be turned on for one package, and the write
+  queue has counters.
 
 Digitalis translates every ARM region again in every process. Lichess's second cold start on the G14 compiled 99.8% of
 the same file-backed code as its first. This design keeps translated regions in the app's private storage and loads
@@ -327,6 +329,10 @@ the 32-bit displacements and recovery points.
   - **`verify` holds the mapping lock** from the checks through both fresh translations to the publication of
     whichever code it chooses: the translations read guest memory, which an unmap or `mprotect` could otherwise take
     away under the decoder (the Checker's reproduction, PR #5);
+  - **For one app (patch 14):** `on:<package>` and `verify:<package>` turn the cache on only in that package's
+    processes, by exact name; anything else is off. `pcache_records_queued` and `pcache_records_dropped` count the
+    write queue: queued − written − dropped is what's still waiting when the counters are read. Drops at the cap
+    and at 4 GiB were counted as not persistable before patch 14;
   - **`verify`'s rule may have a blind spot:** heavy output that depends on what was translated before (ANAL-389)
     would look like a mismatch when the two fresh translations, made one after the other, agree. In Lichess's
     geared-up run, one region was a mismatch, and replayed alone it matched 3 times out of 3. That fits the
