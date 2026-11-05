@@ -47,16 +47,16 @@ Co-authored-by: multica-agent <github@multica.ai>
  .../berberis/backend/x86_64/machine_ir.h      |  34 +++
  backend/x86_64/code_emit.cc                   |  19 +-
  backend/x86_64/code_gen.cc                    |   3 +
- backend/x86_64/insn_folding.cc                | 175 ++++++++++++++-
+ backend/x86_64/insn_folding.cc                | 175 +++++++++++++-
  heavy_optimizer/arm64/frontend.cc             |  40 +++-
  heavy_optimizer/arm64/frontend.h              |  17 ++
- .../arm64/heavy_optimize_region.h             |  12 ++
+ .../arm64/heavy_optimize_region.h             |  12 +
  runtime/arm64/Android.bp                      |   1 +
  runtime/arm64/relocatable_code.cc             |  40 +++-
  runtime/arm64/relocatable_code.h              |   3 +-
- runtime/arm64/relocatable_code_test.cc        | 202 +++++++++++++++---
- runtime/arm64/translate_corpus_bench_test.cc  |  75 +++++++
- 14 files changed, 588 insertions(+), 54 deletions(-)
+ runtime/arm64/relocatable_code_test.cc        | 225 +++++++++++++++---
+ runtime/arm64/translate_corpus_bench_test.cc  |  75 ++++++
+ 14 files changed, 607 insertions(+), 58 deletions(-)
 
 diff --git a/assembler/include/berberis/assembler/machine_code.h b/assembler/include/berberis/assembler/machine_code.h
 index 7049eea2..3e17a197 100644
@@ -739,7 +739,7 @@ index 452eaf52..d0345f93 100644
  
  const char* NotPersistableName(NotPersistable reason);
 diff --git a/runtime/arm64/relocatable_code_test.cc b/runtime/arm64/relocatable_code_test.cc
-index a1f04278..bc576ef5 100644
+index a1f04278..49f1b71e 100644
 --- a/runtime/arm64/relocatable_code_test.cc
 +++ b/runtime/arm64/relocatable_code_test.cc
 @@ -52,6 +52,7 @@
@@ -776,12 +776,13 @@ index a1f04278..bc576ef5 100644
  };
  
  const Fixture kFixtures[] = {
-@@ -122,13 +133,30 @@ const Fixture kFixtures[] = {
+@@ -122,13 +133,31 @@ const Fixture kFixtures[] = {
      {"frecpe, frsqrte", 0x98, Variant::kDefault},
      {"urecpe, ursqrte", 0xa4, Variant::kDefault},
      {"in-region loop", 0xb0, Variant::kInRegionLoops},
 -    {"address outside the module", 0xc0, Variant::kDefault},
-+    {"address outside the module", 0xc0, Variant::kDefault, NotPersistable::kGuestAddrOutsideModule},
++    {"address outside the module", 0xc0, Variant::kDefault,
++     NotPersistable::kGuestAddrOutsideModule},
 +    // The heavy tier (HeavyOptimizeRegion, codegen for every region as the tests' default).
 +    {"heavy: branch", 0x00, Variant::kHeavy},
 +    {"heavy: cond, cbz, tbnz", 0x10, Variant::kHeavy},
@@ -810,7 +811,7 @@ index a1f04278..bc576ef5 100644
  constexpr size_t kRegionSlot = 4096;  // Installed code per fixture, at most.
  
  // Below 4 GiB, with top bytes that are rare in x86 code so the 4-byte scan has few chance hits.
-@@ -268,9 +296,21 @@ Translation Translate(const Env& env, size_t i) {
+@@ -268,9 +297,21 @@ Translation Translate(const Env& env, size_t i) {
      case Variant::kInRegionLoops:
        params.allow_in_region_loops = true;
        break;
@@ -834,7 +835,7 @@ index a1f04278..bc576ef5 100644
    t.success = success;
    if (!success || t.machine_code->install_size() > kRegionSlot) {
      t.success = false;
-@@ -550,7 +590,9 @@ TEST(RelocatableCode, DISABLED_ProduceInAnotherProcess) {
+@@ -550,7 +591,9 @@ TEST(RelocatableCode, DISABLED_ProduceInAnotherProcess) {
      uint32_t uncovered = 0;
      if (t.success) {
        s = Symbolize(env, t);
@@ -845,7 +846,7 @@ index a1f04278..bc576ef5 100644
      }
      Put(f, static_cast<uint8_t>(t.success));
      Put(f, static_cast<uint8_t>(s.reason));
-@@ -572,27 +614,43 @@ TEST(RelocatableCode, DISABLED_ProduceInAnotherProcess) {
+@@ -572,27 +615,43 @@ TEST(RelocatableCode, DISABLED_ProduceInAnotherProcess) {
  TEST_F(RelocatableCodeTest, EveryFixtureTranslatesAndNamesItsOperands) {
    Env env;
    ASSERT_TRUE(env.Init(0, kHighEnvCode));
@@ -895,7 +896,7 @@ index a1f04278..bc576ef5 100644
  }
  
  TEST_F(RelocatableCodeTest, NoUnrecordedPointerAboveOrBelow4GiB) {
-@@ -602,6 +660,9 @@ TEST_F(RelocatableCodeTest, NoUnrecordedPointerAboveOrBelow4GiB) {
+@@ -602,6 +661,9 @@ TEST_F(RelocatableCodeTest, NoUnrecordedPointerAboveOrBelow4GiB) {
    ASSERT_TRUE(low.Init(kLowModule, kLowCode));
    for (const Env* env : {&high, &low}) {
      for (size_t i = 0; i < kNumFixtures; i++) {
@@ -905,7 +906,7 @@ index a1f04278..bc576ef5 100644
        Translation t = Translate(*env, i);
        ASSERT_TRUE(t.success);
        auto found = Scan(*env, t);
-@@ -617,7 +678,7 @@ TEST_F(RelocatableCodeTest, TwoBasesRelinkToIdenticalCode) {
+@@ -617,7 +679,7 @@ TEST_F(RelocatableCodeTest, TwoBasesRelinkToIdenticalCode) {
    ASSERT_TRUE(low.Init(kLowModule, kLowCode));
    ASSERT_GT(high.module, uint64_t{1} << 32);
    for (size_t i = 0; i < kNumFixtures; i++) {
@@ -914,7 +915,7 @@ index a1f04278..bc576ef5 100644
        continue;
      }
      Translation a = Translate(high, i);
-@@ -651,7 +712,11 @@ TEST_F(RelocatableCodeTest, AnotherProcessRelinksToIdenticalCode) {
+@@ -651,7 +713,11 @@ TEST_F(RelocatableCodeTest, AnotherProcessRelinksToIdenticalCode) {
    EXPECT_NE(dump.facts.install_buffer, mine.install_buffer);
    EXPECT_NE(dump.facts.module, mine.module);
    CrossProcessResult r = CheckAgainstChild(dump, env);
@@ -927,7 +928,7 @@ index a1f04278..bc576ef5 100644
    EXPECT_EQ(r.relink_mismatches, 0u) << r.first_mismatch;
    EXPECT_EQ(r.recovery_mismatches, 0u);
    EXPECT_EQ(r.child_uncovered, 0u);
-@@ -740,7 +805,8 @@ TEST_F(RelocatableCodeTest, UnnamedDisplacementsFailTheDifferential) {
+@@ -740,7 +806,8 @@ TEST_F(RelocatableCodeTest, UnnamedDisplacementsFailTheDifferential) {
    EXPECT_GT(r.relink_mismatches, 0u);
  }
  
@@ -937,7 +938,7 @@ index a1f04278..bc576ef5 100644
  // as `<library index> <ELF vaddr hex>` lines in $BERBERIS_RELOC_CORPUS/regions.txt, with the arm64
  // libraries named in libs.txt beside it. Each region is translated with its library loaded once
  // above and once below 4 GiB. The first is named and scanned, then re-linked into the second.
-@@ -817,6 +883,9 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
+@@ -817,6 +884,9 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
    if (dir == nullptr) {
      GTEST_SKIP() << "set BERBERIS_RELOC_CORPUS";
    }
@@ -947,18 +948,19 @@ index a1f04278..bc576ef5 100644
    std::vector<std::string> names;
    {
      FILE* f = fopen((std::string(dir) + "/libs.txt").c_str(), "r");
-@@ -861,7 +930,9 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
+@@ -861,7 +931,10 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
    std::vector<PerLib> per(names.size());
    uint64_t translate_ns = 0, symbolize_ns = 0, relink_ns = 0, scan_ns = 0;
    size_t host_bytes = 0, operands = 0;
 -  std::vector<std::string> examples;
-+  size_t nondeterministic = 0;
++  size_t inconclusive = 0;
++  size_t relink_failures = 0;
 +  std::vector<std::string> uncovered_examples;
 +  std::vector<std::string> mismatch_examples;
  
    // One map for every install: the two slots are reused, so its entries are overwritten, not added.
    RecoveryMap recovery_map;
-@@ -875,6 +946,15 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
+@@ -875,6 +948,15 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
      p.regions++;
      auto translate = [&](const CorpusLib& lib, size_t slot, Translation* t) {
        t->machine_code = std::make_unique<MachineCode>();
@@ -974,7 +976,7 @@ index a1f04278..bc576ef5 100644
        LiteTranslateParams params;
        params.end_pc = lib.exec_end;
        params.enable_self_profiling = true;  // As first-gear lite is, in two-gear mode.
-@@ -915,26 +995,33 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
+@@ -915,26 +997,33 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
          SymbolizeTranslation(*a.machine_code, a.bytes.data(), a.install, high[li].module,
                               a.counter);
      symbolize_ns += NowNs() - t0;
@@ -1014,15 +1016,39 @@ index a1f04278..bc576ef5 100644
        continue;
      }
      b.install = reinterpret_cast<uintptr_t>(code + kSlot);
-@@ -949,21 +1036,69 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
-                     RelinkTranslation(copy.data(), copy.size(), sa.operands, low[li].bias,
-                                       b.install, b.counter);
+@@ -945,25 +1034,85 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
+     // checks it instead; an operand emitted narrower there would change its bytes or length.
+     std::vector<uint8_t> copy = a.bytes;
+     t0 = NowNs();
+-    bool relinked = copy.size() == b.bytes.size() &&
+-                    RelinkTranslation(copy.data(), copy.size(), sa.operands, low[li].bias,
+-                                      b.install, b.counter);
++    // Re-linking needs only the first copy and the operands, so it's tried whatever the second
++    // copy's size. A failure here is always a relocation failure.
++    const bool relinked =
++        RelinkTranslation(copy.data(), copy.size(), sa.operands, low[li].bias, b.install,
++                          b.counter);
      relink_ns += NowNs() - t0;
-+    // A heavy translation isn't always a function of its input alone: it reads some uninitialized
-+    // arena memory (zero-filling arena allocations makes it deterministic; ANAL-381), so a few
-+    // regions come out different, and still correct, when translated again after other work.
-+    // Such a mismatch says nothing about relocation, so it's counted apart: either copy
-+    // translated again in its own place gives different bytes.
+-    if (!relinked || copy != b.bytes) {
++    if (!relinked) {
+       p.mismatched++;
+-      if (examples.size() < 20) {
+-        char buf[128];
+-        snprintf(buf, sizeof(buf), "mismatch %s+0x%llx (sizes %zu/%zu)", names[li].c_str(), vaddr,
+-                 a.bytes.size(), b.bytes.size());
+-        examples.push_back(buf);
++      relink_failures++;
++      if (mismatch_examples.size() < 10) {
++        mismatch_examples.push_back("relink failed " + names[li] + "+" + std::to_string(vaddr));
++      }
++      continue;
++    }
++    // A heavy translation isn't always a function of its input alone. Zero-filling arena
++    // allocations makes it so, which points to an uninitialized read (suspected, not yet
++    // identified: ANAL-389). So a few regions come out different, with no miscompile observed, when
++    // translated again after other work. When the re-linked copy differs from the second one AND
++    // either copy translated again in its own place differs too, the comparison is inconclusive:
++    // counted apart, never as a pass.
 +    auto same_again = [&](const CorpusLib& lib, size_t slot, const Translation& first,
 +                          uint8_t* at) {
 +      Translation again;
@@ -1033,22 +1059,18 @@ index a1f04278..bc576ef5 100644
 +      again.machine_code->InstallUnsafe(at, &recovery_map);
 +      return memcmp(at, first.bytes.data(), first.bytes.size()) == 0;
 +    };
-+    if ((!relinked || copy != b.bytes) &&
++    if (copy != b.bytes &&
 +        (!same_again(high[li], 0, a, code) || !same_again(low[li], 1, b, code + kSlot))) {
-+      nondeterministic++;
++      inconclusive++;
 +      continue;
 +    }
-     if (!relinked || copy != b.bytes) {
-       p.mismatched++;
--      if (examples.size() < 20) {
--        char buf[128];
--        snprintf(buf, sizeof(buf), "mismatch %s+0x%llx (sizes %zu/%zu)", names[li].c_str(), vaddr,
--                 a.bytes.size(), b.bytes.size());
--        examples.push_back(buf);
++    if (copy != b.bytes) {
++      p.mismatched++;
 +      // BERBERIS_RELOC_DUMP=<dir>: both copies of the first mismatches, for a disassembler.
 +      if (const char* dump_dir = getenv("BERBERIS_RELOC_DUMP");
 +          dump_dir != nullptr && mismatch_examples.size() < 10) {
-+        for (const auto& [suffix, bytes] : {std::pair{"high", &a.bytes}, std::pair{"low", &b.bytes}}) {
++        for (const auto& [suffix, bytes] :
++             {std::pair{"high", &a.bytes}, std::pair{"low", &b.bytes}}) {
 +          std::string path = std::string(dump_dir) + "/" + names[li] + "+" +
 +                             std::to_string(vaddr) + "." + suffix + ".bin";
 +          if (FILE* out = fopen(path.c_str(), "wb")) {
@@ -1064,7 +1086,7 @@ index a1f04278..bc576ef5 100644
 +        }
 +        std::string line = "mismatch " + names[li] + "+" + std::to_string(vaddr) + " sizes " +
 +                           std::to_string(a.bytes.size()) + "/" + std::to_string(b.bytes.size()) +
-+                           (relinked ? "" : " (relink failed)") + " at +" + std::to_string(at) +
++                           " at +" + std::to_string(at) +
 +                           "\n      relinked:";
 +        char hex[8];
 +        for (size_t k = at >= 12 ? at - 12 : 0; k < std::min(copy.size(), at + 12); k++) {
@@ -1091,13 +1113,14 @@ index a1f04278..bc576ef5 100644
    for (size_t i = 0; i < names.size(); i++) {
      const PerLib& p = per[i];
      std::string why;
-@@ -998,7 +1133,12 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
+@@ -998,7 +1147,13 @@ TEST_F(RelocatableCodeTest, DISABLED_RegionCorpus) {
           translated ? double(symbolize_ns) / translated : 0.0,
           translated ? double(scan_ns) / translated : 0.0,
           total.persistable ? double(relink_ns) / total.persistable : 0.0);
 -  for (const auto& e : examples) {
-+  printf("translated differently twice in the same place (not a relocation question): %zu\n",
-+         nondeterministic);
++  printf("relink failures: %zu (counted as mismatches)\n", relink_failures);
++  printf("inconclusive (a copy translated differently again in the same place; ANAL-389): %zu\n",
++         inconclusive);
 +  for (const auto& e : uncovered_examples) {
 +    printf("  %s\n", e.c_str());
 +  }
