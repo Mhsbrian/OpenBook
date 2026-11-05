@@ -9,7 +9,8 @@ one process the addresses of another. Lite translations embed guest PCs
 (exits, the BL link value, ADR/ADRP, literal addresses), translation-table
 slots, the main table, the region's hotness counter, helper and callback
 addresses in this image, entry trampolines, and heap-built helper tables.
-This names every one of them, without changing what is generated.
+This names every one of them. Where Android puts guest code, the
+generated code is unchanged.
 
 - MachineCode can record a PersistentReloc (offset, width, kind, value)
   per absolute operand. Recording is off by default: it costs a median
@@ -17,17 +18,21 @@ This names every one of them, without changing what is generated.
 - x86_64::Assembler's Call, Jmp and Jcc with an inline 64-bit target
   record their target. MovqPersistent and MovqGuestAddr always emit the
   10-byte movabs and record the operand. code_gen_lib, the lite translator
-  and the arm64 semantics player (the BL/BLR link value) use them. Above
-  4 GiB, where Android puts guest code, Movq already picked that form, so
-  the generated code is unchanged: Lichess's 183,699 region starts give the
-  same 73,942,150 host bytes before and after.
+  and the arm64 semantics player (the BL/BLR link value) use them. For an
+  address above 4 GiB, where Android puts guest code, slots, tables and
+  counters, that is Movq's exact encoding (checked per register). Below
+  4 GiB a tagged operand is now always 10 bytes where Movq picked a shorter
+  form, recording or not. Lichess's 183,699 region starts give the same
+  total, 73,942,150 host bytes, before and after: an equal aggregate, not a
+  per-translation byte comparison.
 - The URECPE/URSQRTE tables, built with new, get resource ids
   (GetLiteHostResource).
 - runtime/arm64/relocatable_code: SymbolizeTranslation names each operand
   relative to the guest module, this image, the entry trampolines or a
   resource, and checks it against the installed bytes. RelinkTranslation
   gives a copy this process's addresses. FindUncoveredPointers looks for
-  unrecorded addresses. Nothing calls these outside tests yet.
+  unrecorded addresses, in ranges that include every 16 MiB translation
+  subtable the module spans. Nothing calls these outside tests yet.
 
 Tests (relocatable_code_test.cc), over fixtures that between them hit
 every operand kind:
@@ -38,7 +43,11 @@ every operand kind:
   4 GiB, re-linked into one below 4 GiB with moved entry trampolines,
   equals that environment's own translation byte for byte;
 - the same against a second process, where the image, heap resources,
-  main table, entries, module and install buffer all differ;
+  main table, entries, module and install buffer all differ (fixtures; the
+  region corpus below gets the in-process differential);
+- the encodings: Movq's exact bytes for high addresses, the 10-byte form
+  for low ones; and a pointer into a 48 MiB module's middle subtable is
+  found (both from the Checker's review);
 - leaving out each record kind fails both checks; leaving displacements
   unnamed fails the differential;
 - DISABLED_RegionCorpus runs this over an app's real region set;
@@ -47,25 +56,25 @@ every operand kind:
 
 Co-authored-by: multica-agent <github@multica.ai>
 ---
- assembler/include/berberis/assembler/common.h |   6 +
- .../include/berberis/assembler/machine_code.h |  79 +-
- assembler/include/berberis/assembler/x86_64.h |  17 +
- assembler/machine_code.cc                     |   5 +
- code_gen_lib/all_to_x86_64/code_gen_lib.cc    |  14 +-
- .../berberis/decoder/arm64/semantics_player.h |  18 +-
- .../arm64_to_x86_64/lite_translate_region.cc  |   3 +-
- .../arm64_to_x86_64/lite_translator.cc        |  28 +-
- .../arm64_to_x86_64/lite_translator.h         |   9 +
- .../lite_translator_integer_ctrl.inc          |   4 +-
- .../lite_translator_simd_fp_misc.inc          |   2 +-
- .../lite_translator_simd_two_reg_misc.inc     |   6 +-
- .../lite_translator/lite_translate_region.h   |  10 +
- runtime/arm64/Android.bp                      |   3 +
- runtime/arm64/relocatable_code.cc             | 429 ++++++++
- runtime/arm64/relocatable_code.h              | 151 +++
- runtime/arm64/relocatable_code_test.cc        | 947 ++++++++++++++++++
- runtime/arm64/translate_corpus_bench_test.cc  | 202 ++++
- 18 files changed, 1907 insertions(+), 26 deletions(-)
+ assembler/include/berberis/assembler/common.h |    6 +
+ .../include/berberis/assembler/machine_code.h |   79 +-
+ assembler/include/berberis/assembler/x86_64.h |   17 +
+ assembler/machine_code.cc                     |    5 +
+ code_gen_lib/all_to_x86_64/code_gen_lib.cc    |   14 +-
+ .../berberis/decoder/arm64/semantics_player.h |   18 +-
+ .../arm64_to_x86_64/lite_translate_region.cc  |    3 +-
+ .../arm64_to_x86_64/lite_translator.cc        |   28 +-
+ .../arm64_to_x86_64/lite_translator.h         |    9 +
+ .../lite_translator_integer_ctrl.inc          |    4 +-
+ .../lite_translator_simd_fp_misc.inc          |    2 +-
+ .../lite_translator_simd_two_reg_misc.inc     |    6 +-
+ .../lite_translator/lite_translate_region.h   |   10 +
+ runtime/arm64/Android.bp                      |    3 +
+ runtime/arm64/relocatable_code.cc             |  430 +++++++
+ runtime/arm64/relocatable_code.h              |  151 +++
+ runtime/arm64/relocatable_code_test.cc        | 1008 +++++++++++++++++
+ runtime/arm64/translate_corpus_bench_test.cc  |  202 ++++
+ 18 files changed, 1969 insertions(+), 26 deletions(-)
  create mode 100644 runtime/arm64/relocatable_code.cc
  create mode 100644 runtime/arm64/relocatable_code.h
  create mode 100644 runtime/arm64/relocatable_code_test.cc
@@ -550,10 +559,10 @@ index 293f0296..9680f164 100644
              ],
 diff --git a/runtime/arm64/relocatable_code.cc b/runtime/arm64/relocatable_code.cc
 new file mode 100644
-index 00000000..8029ee20
+index 00000000..002372ed
 --- /dev/null
 +++ b/runtime/arm64/relocatable_code.cc
-@@ -0,0 +1,429 @@
+@@ -0,0 +1,430 @@
 +/*
 + * Copyright (C) 2026 The OpenBook Authors
 + *
@@ -900,13 +909,14 @@ index 00000000..8029ee20
 +  }
 +  ranges.push_back({MainTable(), MainTable() + (uintptr_t{1} << kTableBits) * sizeof(void*),
 +                    "main table"});
-+  for (GuestAddr pc : {module.start, module.end}) {
++  // Every subtable the module's addresses fall in: each covers 16 MiB of guest addresses, so a
++  // larger module spans several, not just those of its first and last address.
++  for (uint64_t bucket = module.start >> kTableBits; bucket <= (module.end >> kTableBits);
++       bucket++) {
++    GuestAddr pc = std::max<GuestAddr>(module.start, bucket << kTableBits);
 +    uintptr_t table = TableSlot(pc) - (pc & kTableMask) * sizeof(HostCodeAddr);
-+    AddrRange range{table, table + (uintptr_t{1} << kTableBits) * sizeof(HostCodeAddr),
-+                    "translation table"};
-+    if (ranges.back().start != range.start) {
-+      ranges.push_back(range);
-+    }
++    ranges.push_back({table, table + (uintptr_t{1} << kTableBits) * sizeof(HostCodeAddr),
++                      "translation table"});
 +  }
 +  for (uint64_t id : kResourceIds) {
 +    auto [resource, resource_size] = GetLiteHostResource(id);
@@ -985,7 +995,7 @@ index 00000000..8029ee20
 +}  // namespace berberis
 diff --git a/runtime/arm64/relocatable_code.h b/runtime/arm64/relocatable_code.h
 new file mode 100644
-index 00000000..1a4744e1
+index 00000000..452eaf52
 --- /dev/null
 +++ b/runtime/arm64/relocatable_code.h
 @@ -0,0 +1,151 @@
@@ -1107,8 +1117,8 @@ index 00000000..1a4744e1
 +};
 +
 +// This process's ranges for a translation of `module`: the translator image, the entry
-+// trampolines, the translation tables covering the module, the helper resources, the module
-+// itself, plus the caller's installed-code and counter ranges.
++// trampolines, the main table and every translation subtable the module's addresses fall in, the
++// helper resources, the module itself, plus the caller's installed-code and counter ranges.
 +std::vector<AddrRange> PersistenceSensitiveRanges(GuestModule module,
 +                                                  AddrRange installed_code,
 +                                                  AddrRange counters);
@@ -1142,10 +1152,10 @@ index 00000000..1a4744e1
 +#endif  // BERBERIS_RUNTIME_ARM64_RELOCATABLE_CODE_H_
 diff --git a/runtime/arm64/relocatable_code_test.cc b/runtime/arm64/relocatable_code_test.cc
 new file mode 100644
-index 00000000..53fc299e
+index 00000000..a1f04278
 --- /dev/null
 +++ b/runtime/arm64/relocatable_code_test.cc
-@@ -0,0 +1,947 @@
+@@ -0,0 +1,1008 @@
 +/*
 + * Copyright (C) 2026 The OpenBook Authors
 + *
@@ -1198,6 +1208,7 @@ index 00000000..53fc299e
 +#include <vector>
 +
 +#include "berberis/assembler/machine_code.h"
++#include "berberis/assembler/x86_64.h"
 +#include "berberis/guest_state/guest_addr.h"
 +#include "berberis/lite_translator/lite_translate_region.h"
 +#include "berberis/runtime_primitives/runtime_library.h"
@@ -1802,6 +1813,66 @@ index 00000000..53fc299e
 +  EXPECT_EQ(r.relink_mismatches, 0u) << r.first_mismatch;
 +  EXPECT_EQ(r.recovery_mismatches, 0u);
 +  EXPECT_EQ(r.child_uncovered, 0u);
++}
++
++// From the Checker's review of patch 10 (ANAL-381). The typed emitters keep Movq's exact bytes for
++// addresses above 4 GiB, where Android puts guest code, slots, tables and counters, and use the
++// longer form below it, recording or not.
++const x86_64::Assembler::Register kAllRegs[] = {
++    x86_64::Assembler::rax, x86_64::Assembler::rcx, x86_64::Assembler::rdx, x86_64::Assembler::rbx,
++    x86_64::Assembler::rsp, x86_64::Assembler::rbp, x86_64::Assembler::rsi, x86_64::Assembler::rdi,
++    x86_64::Assembler::r8,  x86_64::Assembler::r9,  x86_64::Assembler::r10, x86_64::Assembler::r11,
++    x86_64::Assembler::r12, x86_64::Assembler::r13, x86_64::Assembler::r14, x86_64::Assembler::r15};
++
++TEST(RelocatableCode, HighAddressesKeepMovqsExactEncoding) {
++  for (auto reg : kAllRegs) {
++    for (uint64_t addr : {0x1'0000'0000ull, 0x12'3456'789aull, 0x7fff'ffff'f000ull}) {
++      MachineCode old_code;
++      MachineCode new_code;
++      x86_64::Assembler old_as(&old_code);
++      x86_64::Assembler new_as(&new_code);
++      old_as.Movq(reg, static_cast<int64_t>(addr));
++      new_as.MovqGuestAddr(reg, addr);
++      ASSERT_EQ(old_code.install_size(), 10u);
++      ASSERT_EQ(new_code.install_size(), 10u);
++      EXPECT_EQ(memcmp(old_code.AddrAs<uint8_t>(0), new_code.AddrAs<uint8_t>(0), 10), 0);
++      EXPECT_TRUE(new_code.persistent_relocs().empty());  // Recording is off by default.
++    }
++  }
++}
++
++TEST(RelocatableCode, LowAddressesGetTheLongerFormEvenWithoutRecording) {
++  for (auto reg : kAllRegs) {
++    for (uint64_t addr : {0x1'0000ull, 0x7fff'ffffull, 0xffff'ffffull}) {
++      MachineCode old_code;
++      MachineCode new_code;
++      x86_64::Assembler old_as(&old_code);
++      x86_64::Assembler new_as(&new_code);
++      old_as.Movq(reg, static_cast<int64_t>(addr));
++      new_as.MovqGuestAddr(reg, addr);
++      EXPECT_LT(old_code.install_size(), new_code.install_size());
++      EXPECT_EQ(new_code.install_size(), 10u);
++    }
++  }
++}
++
++// The Checker's negative case: a 48 MiB module spans three 16 MiB subtables, and an unrecorded
++// pointer to a slot in the middle one must be in range and found.
++TEST(RelocatableCode, ScanCoversEveryTranslationSubtableOfTheModule) {
++  GuestModule module{0x2'0000'0000ull, 0x2'0300'0000ull};
++  const GuestAddr middle = module.start + 0x0100'1000ull;
++  const uint64_t slot =
++      ResolveSymbol(SymbolKind::kTableSlot, middle - module.start, module.start, 0);
++  ASSERT_NE(slot, 0u);
++  auto ranges = PersistenceSensitiveRanges(module, {0, 0, "unused"}, {0, 0, "unused"});
++  bool listed = false;
++  for (const auto& range : ranges) {
++    listed = listed || (range.start <= slot && slot < range.end);
++  }
++  EXPECT_TRUE(listed);
++  uint8_t code[8];
++  memcpy(code, &slot, sizeof(slot));
++  EXPECT_FALSE(FindUncoveredPointers(code, sizeof(code), {}, ranges).empty());
 +}
 +
 +// Mutation: each record kind, left out where the code is made, must make both checks fail.
