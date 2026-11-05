@@ -836,24 +836,33 @@ class FakeDevice:
 
 def pcache_listing(pkg=PKG, data=("directory", 10123), code_cache=("directory", 10123), cache=("directory", 10123),
                    entries=(("regular file", 4096, "b0123abcd-0.pcache"), ("regular file", 280, "b0123abcd-0.pidx"),
-                            ("regular empty file", 0, "b0123abcd-0.lock")), end=True):
+                            ("regular empty file", 0, "b0123abcd-0.lock")), end=True, count=None, extra=()):
+    """pcache_listing_cmd's output for a cache as described; count overrides ls's count, extra adds lines."""
     d = f"/data/data/{pkg}"
     lines = []
     for path, st in ((d, data), (f"{d}/code_cache", code_cache), (f"{d}/code_cache/berberis", cache)):
         lines.append(f"@missing {path}" if st is None else f"@dir {st[0]}|{st[1]}|{path}")
+    n = 0
     if cache is not None and cache[0] == "directory":
-        lines += [f"@entry {k}|{n}|{d}/code_cache/berberis/{name}" for k, n, name in entries]
-    return "\n".join(lines + (["@end"] if end else [])) + "\n"
+        lines += [f"@entry {k}|{s}|{d}/code_cache/berberis/{name}" for k, s, name in entries]
+        n = len(entries)
+        lines.append(f"@count {n if count is None else count}")
+    lines += list(extra)
+    return "\n".join(lines + ([f"@end {n}"] if end else [])) + "\n"
 
 
 class PcacheDevice:
     """berberis.pcache, am force-stop, and an app's cache directory, for PcacheProp and pcache_clear. Every command is
     logged in order."""
 
-    def __init__(self, prop="", listing=None, getprop_fails=False, setprop_ignored=False, restore_fails=False):
+    def __init__(self, prop="", listing=None, getprop_fails=False, setprop_ignored=False, restore_fails=False,
+                 listing_rc=0, survivor=False, ps_fails=False):
         self.props = {"berberis.pcache": prop}
         self.listing = listing if listing is not None else pcache_listing()
         self.getprop_fails, self.setprop_ignored, self.restore_fails = getprop_fails, setprop_ignored, restore_fails
+        self.listing_rc = listing_rc
+        self.survivor = survivor  # a process of the app that force-stop doesn't end
+        self.ps_fails = ps_fails
         self.notes, self.log, self.rooted, self.busy, self.sets = {}, [], False, None, 0
 
     def root(self):
@@ -875,8 +884,12 @@ class PcacheDevice:
             return "", 0
         if cmd.startswith("am force-stop"):
             return "", 0
-        if cmd.startswith("for p in '/data/data/"):
-            return self.listing, 0
+        if cmd.startswith("l=$(ps -A -o PID,NAME)"):
+            if self.ps_fails:
+                return "@ps-failed 1\n", 1
+            return "@header\n" + ("@pid 4321\n" if self.survivor else "") + "@end\n", 0
+        if cmd.startswith("e=0; for p in '/data/data/"):
+            return self.listing, self.listing_rc
         if cmd.startswith("rm -f -- "):
             self.listing = pcache_listing(cache=None)
             return "", 0
@@ -909,6 +922,8 @@ class Pcache(unittest.TestCase):
         restore = max(i for i, c in enumerate(dev.log) if c.startswith("setprop"))
         self.assertLess(stop, restore)
         self.assertEqual(res["restore"], "restored to ''")
+        self.assertTrue(res["stopped"].startswith("confirmed"))
+        self.assertNotIn("pcache_stop_unconfirmed", dev.notes)
         self.assertEqual(res["cache_after"], {"exists": True, "files": 3, "bytes": 4376,
                                               "names": ["b0123abcd-0.lock", "b0123abcd-0.pcache", "b0123abcd-0.pidx"]})
         self.assertNotIn("pcache_restore_failed", dev.notes)
@@ -976,6 +991,48 @@ class Pcache(unittest.TestCase):
         self.assertEqual(dev.props["berberis.pcache"], "on")
         self.assertIn(f"setprop berberis.pcache 'verify:{PKG}'", dev.log)
 
+    def test_a_process_left_running_fails_the_run_and_the_property_still_goes_back(self):
+        for dev in (PcacheDevice(prop="", survivor=True), PcacheDevice(prop="", ps_fails=True)):
+            pc = P.PcacheProp(dev, PKG, "on")
+            pc.set()
+            with mock.patch.object(P.time, "sleep", lambda s: None):
+                res = pc.finish()
+            self.assertTrue(res["stopped"].startswith("NOT confirmed"))
+            self.assertTrue(dev.notes["pcache_stop_unconfirmed"])
+            self.assertEqual(dev.props["berberis.pcache"], "")
+            self.assertEqual(res["restore"], "restored to ''")
+
+    def test_an_unconfirmed_stop_through_cmd_start_fails_the_run(self):
+        dev = PcacheDevice(prop="", survivor=True)
+        dev.helper = lambda args, timeout=120, check=True: ("", 0)
+        launch = {"am": {"total_ms": 500, "launch_state": "COLD", "ok": True}, "epp_seen": [], "raw": ""}
+        with mock.patch.object(P, "Gate"), mock.patch.object(P, "component", lambda *a: f"{PKG}/.Main"), \
+                mock.patch.object(P, "app_facts", lambda *a: {}), mock.patch.object(P, "identity", lambda *a: {}), \
+                mock.patch.object(P, "launch_once", lambda *a: dict(launch)), \
+                mock.patch.object(P.time, "sleep", lambda s: None), tempfile.TemporaryDirectory() as t:
+            res = P.cmd_start(dev, self._start_args("on"), t, mock.Mock(restore=lambda: "nothing to restore"))
+        self.assertTrue(res["pcache"]["stopped"].startswith("NOT confirmed"))
+        self.assertTrue(dev.notes["pcache_stop_unconfirmed"])
+        self.assertEqual(dev.props["berberis.pcache"], "")
+
+    def test_main_fails_a_run_whose_stop_or_restore_wasnt_confirmed(self):
+        for flag, key in (("pcache_stop_unconfirmed", "pcache_stop"), ("pcache_restore_failed", "pcache_restore")):
+            dev = FakeDevice()
+
+            def fake_start(d, a, out, power, flag=flag):
+                d.notes[flag] = True
+                return {}
+            with journal_dir() as j, tempfile.TemporaryDirectory() as t, \
+                    mock.patch.object(P, "cmd_start", fake_start), mock.patch.object(P, "setup", lambda d: None), \
+                    mock.patch.object(P, "cleanup", lambda d: "ok"):
+                out = os.path.join(t, "run")
+                rc = run_main(["--serial", "fake", "--journal", os.path.join(j, "power.json"), "start", out, PKG,
+                               "--pcache", "on"], dev)
+                with open(os.path.join(out, "run.json")) as f:
+                    run = json.load(f)
+            self.assertEqual(rc, P.FAILED, flag)
+            self.assertIn("FAILED", run[key])
+
     def test_listing_accepts_only_the_apps_own_cache(self):
         self.assertEqual(P.parse_pcache_listing(pcache_listing(cache=None), PKG),
                          {"exists": False, "files": 0, "bytes": 0, "names": []})
@@ -993,10 +1050,24 @@ class Pcache(unittest.TestCase):
             "a directory inside": pcache_listing(entries=(("directory", 4096, "b0123abcd-0.pcache"),)),
             "another file": pcache_listing(entries=(("regular file", 10, "notes.txt"),)),
             "a hidden file": pcache_listing(entries=(("regular file", 10, ".b0123abcd-0.pcache"),)),
+            "an entry stat failed": pcache_listing(extra=(f"@error /data/data/{PKG}/code_cache/berberis/b1.pcache",)),
+            "a directory stat failed": pcache_listing(extra=(f"@error /data/data/{PKG}/code_cache",)),
+            "ls counted more": pcache_listing(count=4),
+            "a stray line": pcache_listing(extra=("b0123abcd-0.pcache",)),
+            "entries for a missing directory": pcache_listing(cache=None).replace("@end 0", "@entry regular file|1|"
+                                                                                   f"/data/data/{PKG}/code_cache/"
+                                                                                   "berberis/b1.pcache\n@end 1"),
         }
         for what, text in bad.items():
             with self.assertRaises(P.Fail, msg=what):
                 P.parse_pcache_listing(text, PKG)
+        with self.assertRaisesRegex(P.Fail, "exit 1"):
+            P.parse_pcache_listing(pcache_listing(), PKG, rc=1)
+        # A directory listed twice, or out of order.
+        twice = pcache_listing().replace(f"@dir directory|10123|/data/data/{PKG}/code_cache\n",
+                                         f"@dir directory|10123|/data/data/{PKG}\n")
+        with self.assertRaises(P.Fail):
+            P.parse_pcache_listing(twice, PKG)
 
     def test_clear_removes_exactly_the_listed_files(self):
         dev = PcacheDevice()
@@ -1007,6 +1078,47 @@ class Pcache(unittest.TestCase):
         c = f"/data/data/{PKG}/code_cache/berberis"
         self.assertEqual(rm, " && ".join([f"rm -f -- '{c}/{n}'" for n in res["before"]["names"]] +
                                          [f"rmdir -- '{c}'"]))
+
+    def test_clear_refuses_a_failed_listing_and_removes_nothing(self):
+        for dev in (PcacheDevice(listing_rc=1),
+                    PcacheDevice(listing=pcache_listing(extra=(f"@error /data/data/{PKG}/code_cache/berberis/x",)))):
+            with self.assertRaises(P.Fail):
+                P.pcache_clear(dev, PKG)
+            self.assertFalse(any(c.startswith("rm") for c in dev.log))
+
+    def test_listing_command_in_a_real_shell(self):
+        """The generated command, run by sh over a copy of the layout, with stat and ls failing on demand."""
+        with tempfile.TemporaryDirectory() as t:
+            root = os.path.join(t, "data")
+            c = os.path.join(root, PKG, "code_cache", "berberis")
+            os.makedirs(c)
+            for name, size in (("b0123abcd-0.pcache", 7), ("b0123abcd-0.pidx", 3), ("b0123abcd-0.lock", 0)):
+                with open(os.path.join(c, name), "wb") as f:
+                    f.write(b"x" * size)
+            fake = os.path.join(t, "bin")
+            os.makedirs(fake)
+            real_stat = subprocess.run(["sh", "-c", "command -v stat"], capture_output=True, text=True).stdout.strip()
+            with open(os.path.join(fake, "stat"), "w") as f:
+                f.write(f"#!/bin/sh\ncase \"$*\" in *\"$FAIL_STAT\"*) [ -n \"$FAIL_STAT\" ] && "
+                        f"{{ echo 'stat: I/O error' >&2; exit 1; }};; esac\nexec {real_stat} \"$@\"\n")
+            os.chmod(os.path.join(fake, "stat"), 0o755)
+            uid = os.getuid()
+            cmd = P.pcache_listing_cmd(PKG).replace("/data/data/", root + "/")
+
+            def listing(fail=""):
+                env = dict(os.environ, PATH=fake + ":" + os.environ["PATH"], FAIL_STAT=fail)
+                r = subprocess.run(["sh", "-c", cmd], capture_output=True, text=True, env=env)
+                return r.stdout.replace(root + "/", "/data/data/").replace(f"|{uid}|", "|10123|"), r.returncode
+            text, rc = listing()
+            self.assertEqual(rc, 0)
+            self.assertEqual(P.parse_pcache_listing(text, PKG, rc),
+                             {"exists": True, "files": 3, "bytes": 10,
+                              "names": ["b0123abcd-0.lock", "b0123abcd-0.pcache", "b0123abcd-0.pidx"]})
+            text, rc = listing("b0123abcd-0.pidx")  # one entry's stat fails
+            self.assertEqual(rc, 1)
+            self.assertIn("@error", text)
+            with self.assertRaises(P.Fail):
+                P.parse_pcache_listing(text, PKG, rc)
 
     def test_clear_refuses_an_unexpected_cache_and_removes_nothing(self):
         dev = PcacheDevice(listing=pcache_listing(entries=(("regular file", 10, "b0123abcd-0.pcache"),
@@ -1295,6 +1407,8 @@ class Recording(unittest.TestCase):
                         "keyguard_showing=false\naudio_started=0\n"), 0
             if "device.sh pids" in cmd:
                 return ("500 " + PKG + "\n" if state["launched"] else ""), 0
+            if cmd.startswith("l=$(ps -A -o PID,NAME)"):  # the gate's strict query
+                return "@header\n" + ("@pid 500\n" if state["launched"] else "") + "@end\n", 0
             if "resolve-activity" in cmd:
                 return f"{PKG}/.Main\n", 0
             if "device.sh launch" in cmd:

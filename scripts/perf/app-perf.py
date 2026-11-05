@@ -711,6 +711,38 @@ def running(dev, pkg):
     return dev.helper(f"pids {q(pkg)}", check=False)[0].strip()
 
 
+def app_pids_cmd(pkg):
+    """The shell command behind app_pids. The listing must prove itself: ps's own exit status is checked, its header
+    must be there and the filter must succeed, or the command fails, so a failed listing never reads as "none"."""
+    return ("l=$(ps -A -o PID,NAME) || { echo \"@ps-failed $?\"; exit 1; }; "
+            "printf '%s\\n' \"$l\" | awk -v p=" + q(pkg) + " 'NR == 1 && $1 == \"PID\" {print \"@header\"} "
+            "NR > 1 && ($2 == p || index($2, p \":\") == 1) {print \"@pid \" $1}' || exit 1; echo @end")
+
+
+def parse_app_pids(out, rc):
+    lines = out.splitlines() if rc is not None else []
+    if rc != 0 or "@end" not in lines or "@header" not in lines:
+        return None
+    return [l.split()[1] for l in lines if l.startswith("@pid ")]
+
+
+def app_pids(dev, pkg):
+    """Pids of PKG's processes (PKG and PKG:*), or None when that can't be established."""
+    return parse_app_pids(*try_sh(dev, app_pids_cmd(pkg)))
+
+
+def stop_app(dev, pkg, tries=5):
+    """Force-stop PKG and confirm that none of its processes is left: True when confirmed, False when it can't be
+    (adb failed, the query failed, or a process stays)."""
+    for i in range(tries):
+        try_sh(dev, f"am force-stop {q(pkg)}")
+        if app_pids(dev, pkg) == []:
+            return True
+        if i + 1 < tries:
+            time.sleep(1)
+    return False
+
+
 class Gate:
     """gpu-diag's idle gate and its activity token: the run starts only on an idle, awake, unlocked laptop with the app
     not running, and stops at the next check after any input."""
@@ -729,8 +761,12 @@ class Gate:
             reasons.append(f"keyguard showing={kv.get('keyguard_showing') or 'unknown'}")
         if kv.get("audio_started") != "0":
             reasons.append(f"audio playing ({kv.get('audio_started') or 'unknown'})")
-        if pkg and running(dev, pkg):
-            reasons.append(f"{pkg} is running (an owner's session is never touched)")
+        if pkg:
+            pids = app_pids(dev, pkg)
+            if pids is None:
+                reasons.append(f"can't tell whether {pkg} is running (the process query failed)")
+            elif pids:
+                reasons.append(f"{pkg} is running (an owner's session is never touched)")
         if reasons:
             raise Invalid("not idle: " + "; ".join(reasons))
         self.token, self.facts = kv.get("user_activity_uptime_ms"), kv
@@ -1350,24 +1386,39 @@ def pcache_paths(pkg):
 
 
 def pcache_listing_cmd(pkg):
-    """One shell command listing PKG's cache: each directory's type and owner (stat doesn't follow a symbolic link),
-    then every entry in the cache directory, then @end."""
+    """One shell command listing PKG's cache, with every failure reported: each directory's type and owner (stat
+    doesn't follow a symbolic link), @missing only where nothing exists; then, for a cache directory, each entry and
+    how many entries ls counts; then "@end N" with the number of entries stat was asked about. Exit 1 after any
+    failure."""
     d, cc, c = pcache_paths(pkg)
-    return (f"for p in {q(d)} {q(cc)} {q(c)}; do stat -c '@dir %F|%u|%n' \"$p\" 2>/dev/null || echo \"@missing $p\"; "
-            f"done; c={q(c)}; if [ -d \"$c\" ] && [ ! -L \"$c\" ]; then "
+    return (f"e=0; for p in {q(d)} {q(cc)} {q(c)}; do if [ -e \"$p\" ] || [ -L \"$p\" ]; then "
+            "stat -c '@dir %F|%u|%n' \"$p\" || { echo \"@error $p\"; e=1; }; else echo \"@missing $p\"; fi; done; "
+            f"c={q(c)}; n=0; if [ -d \"$c\" ] && [ ! -L \"$c\" ]; then "
+            "l=$(ls -A \"$c\") || { echo \"@error ls $c\"; e=1; }; m=$(printf '%s' \"$l\" | grep -c ''); "
             "for f in \"$c\"/* \"$c\"/.[!.]* \"$c\"/..?*; do [ -e \"$f\" ] || [ -L \"$f\" ] || continue; "
-            "stat -c '@entry %F|%s|%n' \"$f\"; done; fi; echo @end")
+            "n=$((n + 1)); stat -c '@entry %F|%s|%n' \"$f\" || { echo \"@error $f\"; e=1; }; done; "
+            "echo \"@count $m\"; fi; echo \"@end $n\"; exit $e")
 
 
-def parse_pcache_listing(text, pkg):
-    """pcache_listing_cmd's output -> {exists, files, bytes, names}. Fail unless the data directory and code_cache are
-    real directories of one app uid, and the cache directory, if there is one, is that app's real directory holding
-    only cache files. Nothing is ever removed on the strength of a listing this refuses."""
+def parse_pcache_listing(text, pkg, rc=0):
+    """pcache_listing_cmd's output and exit status -> {exists, files, bytes, names}. Fail unless the command ran to the
+    end without a failure, said something about each directory in turn, and listed as many entries as ls counted; and
+    unless the data directory and code_cache are real directories of one app uid, and the cache directory, if there
+    is one, is that app's real directory holding only cache files. Only a cache directory that doesn't exist reads as
+    no cache. Nothing is ever removed on the strength of a listing this refuses."""
     d, cc, c = pcache_paths(pkg)
-    lines = text.splitlines()
-    if "@end" not in lines:
-        raise Fail(f"listing {c}: no complete answer")
-    dirs, missing, entries = {}, set(), []
+    lines = [l for l in text.splitlines() if l.strip()]
+    if rc != 0 or not lines or not re.fullmatch(r"@end [0-9]+", lines[-1]):
+        raise Fail(f"listing {c}: no complete answer (exit {rc})")
+    errors = [l for l in lines if l.startswith("@error")]
+    if errors:
+        raise Fail(f"listing {c}: {'; '.join(errors[:3])}")
+    asked = int(lines[-1].split()[1])
+    status = [l for l in lines if l.startswith(("@dir ", "@missing "))]
+    paths = [l[9:] if l.startswith("@missing ") else l[5:].split("|", 2)[-1] for l in status]
+    if paths != [d, cc, c]:
+        raise Fail(f"listing {c}: the directories weren't each listed once, in order ({paths})")
+    dirs, missing, entries, counted = {}, set(), [], None
     for line in lines:
         if line.startswith("@dir "):
             kind, uid, path = line[5:].split("|", 2)
@@ -1376,13 +1427,21 @@ def parse_pcache_listing(text, pkg):
             missing.add(line[9:])
         elif line.startswith("@entry "):
             entries.append(line[7:].split("|", 2))
+        elif line.startswith("@count "):
+            counted = line[7:]
+        elif not line.startswith("@end "):
+            raise Fail(f"listing {c}: unexpected line {line[:80]!r}")
+    if c in dirs and (counted is None or not counted.isdigit() or int(counted) != asked or len(entries) != asked):
+        raise Fail(f"listing {c}: {len(entries)} entries listed, {asked} asked about, {counted} counted by ls")
+    if c in missing and (entries or asked or counted is not None):
+        raise Fail(f"listing {c}: entries listed for a directory that doesn't exist")
     for path in (d, cc):
         if dirs.get(path, ("missing", ""))[0] != "directory":
             raise Fail(f"{path} isn't a directory ({dirs.get(path, ('missing',))[0]})")
     uid = dirs[d][1]
     if not uid.isdigit() or int(uid) < 10000 or dirs[cc][1] != uid:
         raise Fail(f"{d} and {cc} aren't one app's (uids {uid}, {dirs[cc][1]})")
-    if c in missing and c not in dirs and not entries:
+    if c in missing:
         return {"exists": False, "files": 0, "bytes": 0, "names": []}
     if dirs.get(c) != ("directory", uid):
         raise Fail(f"{c} isn't the app's own directory ({dirs.get(c)})")
@@ -1401,7 +1460,7 @@ def pcache_facts(dev, pkg):
     out, rc = try_sh(dev, pcache_listing_cmd(pkg))
     if rc is None:
         raise Fail(f"no answer listing {pkg}'s translation cache")
-    return parse_pcache_listing(out, pkg)
+    return parse_pcache_listing(out, pkg, rc)
 
 
 def pcache_clear(dev, pkg):
@@ -1447,7 +1506,13 @@ class PcacheProp:
 
     def finish(self):
         res = {"mode": self.mode, "value": self.value}
-        try_sh(self.dev, f"am force-stop {q(self.pkg)}")
+        # A process of the app still running keeps the mode it read at start, and may still write. The property is
+        # put back either way, but an unconfirmed stop fails the run.
+        if stop_app(self.dev, self.pkg):
+            res["stopped"] = "confirmed: no process of the app is left"
+        else:
+            res["stopped"] = "NOT confirmed: a process of the app may still run with the run's cache mode"
+            self.dev.notes["pcache_stop_unconfirmed"] = True
         if self.old is None:
             res["restore"] = "nothing set"
         else:
@@ -1768,6 +1833,9 @@ def main():
             run["cleanup"] = f"failed: {e}"
         if dev.notes.get("pcache_restore_failed"):
             run["pcache_restore"] = "FAILED: berberis.pcache wasn't put back (volatile: a reboot clears it)"
+            status = FAILED if status == 0 else status
+        if dev.notes.get("pcache_stop_unconfirmed"):
+            run["pcache_stop"] = "FAILED: the app wasn't confirmed stopped after the run"
             status = FAILED if status == 0 else status
         if dev.notes:
             run["device"] = dev.notes

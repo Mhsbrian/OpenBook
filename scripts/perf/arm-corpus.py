@@ -693,9 +693,12 @@ def cmd_pcache_clear(dev, a, rows, journal):
     own, why = ownership(dev, pkg, journal, rows)
     if own is not True:
         raise Invalid(f"{pkg}: {why}: its files are never touched")
-    AP.Gate(dev, a.idle_min, pkg)  # also: the app isn't running
+    gate = AP.Gate(dev, a.idle_min, pkg)  # also: a process query that succeeded found none of the app's
     try:
-        dev.root()
+        dev.root()  # restarts adbd: the input token and the app's absence are checked again after it
+        gate.check("after adbd restarted as root")
+        if app_pids(dev, pkg) != []:
+            raise Fail(f"{pkg}: not confirmed stopped just before clearing its cache; nothing removed")
         return {"id": a.id, "package": pkg, **AP.pcache_clear(dev, pkg)}
     finally:
         dev.unroot()
@@ -871,19 +874,8 @@ def parse_bench(text, pid=None):
     return out
 
 
-def app_pids_cmd(pkg):
-    """The shell command behind app_pids. The listing must prove itself: ps's own exit status is checked, its header
-    must be there and the filter must succeed, or the command fails, so a failed listing never reads as "none"."""
-    return ("l=$(ps -A -o PID,NAME) || { echo \"@ps-failed $?\"; exit 1; }; "
-            "printf '%s\\n' \"$l\" | awk -v p=" + AP.q(pkg) + " 'NR == 1 && $1 == \"PID\" {print \"@header\"} "
-            "NR > 1 && ($2 == p || index($2, p \":\") == 1) {print \"@pid \" $1}' || exit 1; echo @end")
-
-
-def parse_app_pids(out, rc):
-    lines = out.splitlines() if rc is not None else []
-    if rc != 0 or "@end" not in lines or "@header" not in lines:
-        return None
-    return [l.split()[1] for l in lines if l.startswith("@pid ")]
+# The strict process query lives in app-perf, whose gate uses it too.
+app_pids_cmd, parse_app_pids = AP.app_pids_cmd, AP.parse_app_pids
 
 
 def app_pids(dev, pkg):
