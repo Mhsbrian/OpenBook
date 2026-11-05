@@ -235,8 +235,23 @@ def boot(vm, timeout=420, expect_fail=False):
                     "ip -4 addr | grep 'inet 10.0.2'", 150)
     if "10.0.2.15" not in out:
         raise RuntimeError(f"no network in the VM: {out[-300:]}")
+    authorize_adb(vm)
     log(f"boot: slot {slot} up ({out.split()[1] if out.split() else '?'})")
     return slot
+
+
+def authorize_adb(vm):
+    """Images since 0.1.0-preview.2 set ro.adb.secure=1: adbd lets in only the keys in /data/misc/adb/adb_keys. Add this
+    host's adb key from the console's root shell, once per /data (it persists across the updates under test)."""
+    pub = os.path.join(os.environ.get("ANDROID_USER_HOME", os.path.expanduser("~/.android")), "adbkey.pub")
+    if not os.path.exists(pub):
+        run(ADB, "start-server", env={"ANDROID_ADB_SERVER_PORT": ADB_PORT}, timeout=30)  # creates the key
+    key = open(pub).read().split()[0]  # the key alone, without its user@host comment
+    f = "/data/misc/adb/adb_keys"
+    out, rc = vm.sh(f"grep -q '{key}' {f} 2>/dev/null || {{ echo '{key} openbook-ota-qemu' >> {f}; "
+                    f"chown system:shell {f}; chmod 640 {f}; restorecon {f}; }}; grep -c . {f}", 60)
+    if rc != 0:
+        raise RuntimeError(f"adb key not authorized in the VM: {out[-300:]}")
 
 
 class Adb:
@@ -444,8 +459,9 @@ def prep(a):
         json.dump(st, open(f"{out}/state.json", "w"), indent=1)
         C("the base state recorded (marker, file, app, provisioned)", st.get("MARKER") == marker and len(st.get("FILE", "")) == 64
           and "anybook.probe" in st.get("APP", "") and st.get("PROVISIONED") == "1/1", st)
-        C("SELinux enforcing; the image's own boot HAL (AOSP default) runs", st.get("SELINUX") == "Enforcing" and
-          st.get("HAL", "").endswith("/running"), st)
+        # The boot HAL: AOSP's default on images before OpenBook's own (bootsync), OpenBook's since; one of them runs.
+        C("SELinux enforcing; the image's own boot HAL (OpenBook's, or AOSP's default before it) runs",
+          st.get("SELINUX") == "Enforcing" and "running" in st.get("HAL", "").split("/"), st)
         adb.sh("reboot -p")
         C("powers off", vm.wait_exit(120))
     finally:

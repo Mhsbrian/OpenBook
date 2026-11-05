@@ -1,0 +1,277 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 12:00:00 +0000
+Subject: [PATCH] OPENBOOK: translator stats: log the final line on exit() too
+
+Patch 6 logged the final "openbook-stats v1" line only at the guest's
+exit_group syscall, so only a guest _exit() logged one. A guest exit(),
+and a return from main (which calls it), logged none (ANAL-384's VM
+test). Cause: the native bridge's guest libc replaces exit() with one
+that runs the guest's __cxa_finalize and then calls the host's exit()
+(frameworks/libs/native_bridge_support/android_api/libc/exit.c,
+native_bridge_exit). The host's exit() ends the process with its own
+exit_group, which never goes through the guest syscall path.
+
+Init() now registers a host atexit handler when counting is on, so the
+host's exit() logs the line. LogIfEnabled() becomes LogFinalLine(),
+which remembers the last pid that logged: a second call in the same
+process logs nothing, so a process whose exit paths meet logs once, and
+a fork, vfork or raw-clone child still logs its own line. Not
+guaranteed: if a CLONE_VM child logs between two calls of its parent,
+the parent's second call logs again; the exit paths never call it and
+keep running. The line's pid comes from the getpid syscall: bionic's
+cached pid is the parent's in a child made by a guest's raw clone.
+
+Tests: exit() logs the line with the counts, a second call logs
+nothing, a child forked after its parent logged logs its own and the
+parent doesn't log again, and off logs nothing. Each runs in a fork
+child whose stderr (the host liblog's sink) is read back.
+
+Co-authored-by: multica-agent <github@multica.ai>
+---
+ kernel_api/arm64/syscall_emulation.cc         |   7 +-
+ runtime/arm64/translator_stats_test.cc        | 105 ++++++++++++++++++
+ .../runtime_primitives/translator_stats.h     |  19 +++-
+ runtime_primitives/translator_stats.cc        |  26 ++++-
+ 4 files changed, 147 insertions(+), 10 deletions(-)
+
+diff --git a/kernel_api/arm64/syscall_emulation.cc b/kernel_api/arm64/syscall_emulation.cc
+index af2d63ee..bc9d7bc4 100644
+--- a/kernel_api/arm64/syscall_emulation.cc
++++ b/kernel_api/arm64/syscall_emulation.cc
+@@ -189,10 +189,11 @@ void RunGuestSyscall(ThreadState* state) {
+     OnSyscall(state, guest_nr);
+   }
+ 
+-  // The guest's exit_group ends the process without the host's atexit
+-  // handlers, so the translator counters log their last line here.
++  // The guest's exit_group (_exit) ends the process without the host's atexit
++  // handlers, so the translator counters log their last line here. A guest
++  // exit() ends in the host's exit() instead, and logs from its atexit handler.
+   if (guest_nr == kGuestNrExitGroup) {
+-    translator_stats::LogIfEnabled();
++    translator_stats::LogFinalLine();
+   }
+ 
+   // vDSO fast path for the hottest time syscalls.
+diff --git a/runtime/arm64/translator_stats_test.cc b/runtime/arm64/translator_stats_test.cc
+index 569bc501..7dfde012 100644
+--- a/runtime/arm64/translator_stats_test.cc
++++ b/runtime/arm64/translator_stats_test.cc
+@@ -32,6 +32,7 @@
+ 
+ #include <cstdint>
+ #include <cstdio>
++#include <cstdlib>
+ #include <cstring>
+ #include <string>
+ #include <thread>
+@@ -429,6 +430,110 @@ TEST_F(TranslatorStats, RawForkChildKeepsTheParentAsOwner) {
+   EXPECT_EQ(WEXITSTATUS(status), 0) << "bit 0 owner, 1 baseline flag";
+ }
+ 
++// What a fork() child wrote to stderr, where the host's liblog writes. body
++// ends the child's process. Buffers are flushed first, so the child's exit()
++// doesn't write the parent's again.
++struct ChildRun {
++  pid_t pid = -1;
++  int status = -1;
++  std::string err;
++};
++
++ChildRun RunInChild(void (*body)()) {
++  ChildRun run;
++  fflush(stdout);
++  fflush(stderr);
++  int fds[2];
++  if (pipe(fds) != 0) {
++    return run;
++  }
++  run.pid = fork();
++  if (run.pid == 0) {
++    close(fds[0]);
++    dup2(fds[1], STDERR_FILENO);
++    int null_fd = open("/dev/null", O_WRONLY);
++    dup2(null_fd, STDOUT_FILENO);
++    body();
++    _exit(99);
++  }
++  close(fds[1]);
++  char buf[4096];
++  ssize_t n;
++  while ((n = read(fds[0], buf, sizeof(buf))) > 0) {
++    run.err.append(buf, static_cast<size_t>(n));
++  }
++  close(fds[0]);
++  waitpid(run.pid, &run.status, 0);
++  return run;
++}
++
++// The pid of each "openbook-stats v1" line in out, in order.
++std::vector<pid_t> FinalLinePids(const std::string& out) {
++  std::vector<pid_t> pids;
++  const std::string kPrefix = "openbook-stats v1 pid=";
++  for (size_t at = out.find(kPrefix); at != std::string::npos; at = out.find(kPrefix, at + 1)) {
++    pids.push_back(static_cast<pid_t>(atoi(out.c_str() + at + kPrefix.size())));
++  }
++  return pids;
++}
++
++// A guest exit() or a return from main ends in the host's exit() (the native
++// bridge's guest libc forwards it), never at the guest exit_group syscall: the
++// atexit handler logs the final line.
++TEST_F(TranslatorStats, ExitLogsTheFinalLine) {
++  ChildRun run = RunInChild([] {
++    ts::Add(ts::kInstalledLite, 7);
++    exit(0);
++  });
++  ASSERT_TRUE(WIFEXITED(run.status)) << run.err;
++  EXPECT_EQ(WEXITSTATUS(run.status), 0) << run.err;
++  ASSERT_EQ(FinalLinePids(run.err), std::vector<pid_t>{run.pid}) << run.err;
++  EXPECT_NE(run.err.find(" installed_lite=7 "), std::string::npos) << run.err;
++}
++
++// One line per process, whichever exit path comes first (exit_group, then the
++// host's exit() in another thread, say).
++TEST_F(TranslatorStats, FinalLineIsLoggedOnce) {
++  ChildRun run = RunInChild([] {
++    ts::LogFinalLine();
++    ts::LogFinalLine();
++    exit(0);
++  });
++  ASSERT_TRUE(WIFEXITED(run.status)) << run.err;
++  EXPECT_EQ(FinalLinePids(run.err), std::vector<pid_t>{run.pid}) << run.err;
++}
++
++// Kept by pid, not once per address space or lineage: a child forked after
++// its parent logged logs its own line, and the parent doesn't log again.
++TEST_F(TranslatorStats, EachProcessLogsItsOwnFinalLine) {
++  ChildRun run = RunInChild([] {
++    ts::LogFinalLine();
++    pid_t grandchild = fork();
++    if (grandchild == 0) {
++      exit(0);
++    }
++    int status = 0;
++    waitpid(grandchild, &status, 0);
++    exit(WIFEXITED(status) && WEXITSTATUS(status) == 0 ? 0 : 1);
++  });
++  ASSERT_TRUE(WIFEXITED(run.status)) << run.err;
++  EXPECT_EQ(WEXITSTATUS(run.status), 0) << run.err;
++  std::vector<pid_t> pids = FinalLinePids(run.err);
++  ASSERT_EQ(pids.size(), 2u) << run.err;
++  EXPECT_EQ(pids[0], run.pid) << run.err;
++  EXPECT_NE(pids[1], run.pid) << run.err;
++}
++
++// Off: exit() logs nothing.
++TEST_F(TranslatorStats, OffExitLogsNothing) {
++  ChildRun run = RunInChild([] {
++    ts::SetEnabledForTesting(false);
++    exit(0);
++  });
++  ASSERT_TRUE(WIFEXITED(run.status)) << run.err;
++  EXPECT_TRUE(FinalLinePids(run.err).empty()) << run.err;
++}
++
+ int g_opens = 0;
+ int g_inherited_fd = -1;
+ bool g_inherited_was_open_at_reopen = false;
+diff --git a/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h b/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
+index f969c464..31f5a216 100644
+--- a/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
++++ b/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
+@@ -28,9 +28,9 @@
+ // from /proc/<pid>/mem at any time, so a running app needs no extra thread.
+ // A thread is deliberately avoided: the native bridge also initializes in
+ // child zygotes (app zygotes), and ART refuses to fork a zygote that has more
+-// than one thread. A process that exits normally (a program run through the
+-// binfmt runner, through the guest's exit_group) also logs one
+-// "openbook-stats v1" line at exit.
++// than one thread. A process that ends with exit(), a return from main or
++// _exit() also logs a final "openbook-stats v1" line (LogFinalLine). A
++// process killed by a signal logs none: its block is the only record.
+ //
+ // Counters are relaxed atomics: every value is exact on its own, but one read
+ // of the block is not an atomic snapshot of all counters together. A forked
+@@ -177,8 +177,17 @@ class ScopedTimer {
+ // translator init.
+ void Init();
+ 
+-// Logs the Format() line when counting is on (the guest's exit_group).
+-void LogIfEnabled();
++// Logs the Format() line when counting is on. Called at the guest's
++// exit_group (_exit) and from an atexit handler Init() registers (a guest
++// exit() runs the host's exit()). It remembers only the last pid that logged,
++// in memory a CLONE_VM child shares:
++// - a second call in the same process logs nothing, so a process whose exit
++//   paths meet logs once;
++// - a fork, vfork or raw-clone child logs its own line;
++// - not guaranteed: if a CLONE_VM child logs between two calls of its parent,
++//   the parent's second call logs again. That takes a parent that calls this
++//   and keeps running, which the exit paths don't do.
++void LogFinalLine();
+ 
+ const char* GetName(Counter counter);
+ 
+diff --git a/runtime_primitives/translator_stats.cc b/runtime_primitives/translator_stats.cc
+index 0b1282d9..8f9addc3 100644
+--- a/runtime_primitives/translator_stats.cc
++++ b/runtime_primitives/translator_stats.cc
+@@ -66,6 +66,20 @@ static_assert(sizeof(kNames) / sizeof(kNames[0]) == kNumCounters);
+ 
+ std::atomic<uint64_t> g_init_ns{0};
+ 
++// The last pid that logged its final line. A pid, not a flag: a vfork child
++// shares this memory with its parent, and a fork child inherits it. Only the
++// last one is kept (see LogFinalLine in the header for what that guarantees).
++std::atomic<int> g_final_line_pid{0};
++
++// atexit handler. A guest exit() (and a return from main, which calls it) ends
++// in the host's exit(): the native bridge's guest libc replaces exit() with
++// one that runs the guest's __cxa_finalize and then calls the host's exit()
++// (frameworks/libs/native_bridge_support/android_api/libc/exit.c). That never
++// reaches the guest exit_group syscall, so the line is logged here.
++void LogFinalLineAtExit() {
++  LogFinalLine();
++}
++
+ // pthread_atfork child handler: the child owns the counts from here on, and
+ // what it inherited is its baseline.
+ void OnForkChild() {
+@@ -102,6 +116,10 @@ void Enable() {
+   if (!fork_handler_registered) {
+     ALOGE("berberis.stats: pthread_atfork failed; fork children keep their parent as owner");
+   }
++  static bool exit_handler_registered = atexit(LogFinalLineAtExit) == 0;
++  if (!exit_handler_registered) {
++    ALOGE("berberis.stats: atexit failed; a guest exit() logs no final line");
++  }
+   ALOGI("berberis.stats: on; block at 0x%lx (layout OBSTAT2, %lu counters, %lu bytes)",
+         static_cast<unsigned long>(reinterpret_cast<uintptr_t>(&g_block)),
+         static_cast<unsigned long>(kNumCounters),
+@@ -123,10 +141,14 @@ void Init() {
+   Enable();
+ }
+ 
+-void LogIfEnabled() {
++void LogFinalLine() {
+   if (!Enabled()) {
+     return;
+   }
++  int pid = static_cast<int>(GetpidSyscall());
++  if (g_final_line_pid.exchange(pid, std::memory_order_relaxed) == pid) {
++    return;
++  }
+   char buf[1536];
+   Format(buf, sizeof(buf));
+   ALOGI("%s", buf);
+@@ -141,7 +163,7 @@ size_t Format(char* buf, size_t size) {
+   size_t len = FormatBuffer(buf,
+                             size,
+                             "openbook-stats v1 pid=%d t_ms=%lu",
+-                            static_cast<int>(getpid()),
++                            static_cast<int>(GetpidSyscall()),
+                             static_cast<unsigned long>(t_ms));
+   for (size_t i = 0; i < kNumCounters && len + 1 < size; i++) {
+     len += FormatBuffer(buf + len,

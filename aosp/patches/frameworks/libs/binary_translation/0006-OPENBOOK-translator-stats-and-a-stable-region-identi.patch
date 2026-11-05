@@ -1,0 +1,1699 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Wed, 4 Nov 2026 12:00:00 +0000
+Subject: [PATCH] OPENBOOK: translator stats and a stable region identity
+
+berberis.stats=1 (or BERBERIS_STATS=1) turns on process-wide translator
+counters, relaxed atomics in one self-describing block (magic OBSTAT2:
+count, names, enabled, owner pid, baseline flag, counters, baseline,
+names). Init logs the block's address, and a root shell reads it from
+/proc/<pid>/mem whenever it wants, so a running app needs no extra
+thread. No thread on purpose: the native bridge also initializes in
+child zygotes, and ART won't fork a zygote with more than one thread. A
+guest exit_group (a program run through the binfmt runner) logs a last
+"openbook-stats v1" line. Off by default: each counting site then costs
+one load of a flag, and no clock is read.
+
+Counted: regions installed per tier (published in the translation cache
+only), results discarded because the region was invalidated while it
+was translated, accumulated elapsed compile time per tier (failed and
+discarded attempts included), guest and host bytes per tier, gear-up
+requests and how each heavy attempt ended (heavy code emitted, prefix
+with a loop, declined as too small, bailed, no code-pool memory),
+interpreter batches, invalidation requests (total, by IC IVAU, by
+executable mappings going away, bytes, time), translation-cache entries
+invalidated, in-flight translations thrown away, dispatcher flushes and
+the threads each flush asks to return. SetTranslatedAndUnlock now says
+whether it published.
+
+Inheritance: a pthread_atfork child handler makes a fork() child (an
+app zygote's) the owner of the counts and keeps what it inherited as its
+baseline. A raw clone child (a guest's fork) runs no handler and keeps
+the parent as owner, which a reader sees.
+
+The berberis.profiling perf map now names each region of a mapped file
+with its offset in the file too (_0x<addr>+<size>@0x<offset>), which
+identifies the same region across launches where the address does not.
+Anonymous and deleted mappings get no offset: they have no stable
+identity. MapsSnapshot keeps the offset. The map belongs to one process:
+its descriptor is kept with the pid it was opened for, and a fork or
+clone child closes the inherited one and opens perf-<child>.map once,
+lock-free, instead of writing into its parent's map. A failed open is
+remembered for that process only.
+
+Tests: runtime/arm64/translator_stats_test.cc drives the real entry
+points: a first-gear install, one gear-up per heavy outcome, a result
+invalidated before publication (lite, and heavy emitted but discarded),
+a non-executable pc, IC IVAU over a translated and an untranslated line,
+off counts nothing, exact totals from 8 threads, the block read back
+through /proc/self/mem, counts owned by a fork child with its baseline
+and kept by the parent for a raw fork child, the perf map reopened by a
+fork child with the inherited descriptor closed first, a failed open
+remembered per process, only file-backed regions named with an offset,
+and the file offset MapsSnapshot records.
+---
+ base/include/berberis/base/maps_snapshot.h    |   3 +
+ base/maps_snapshot.cc                         |  19 +-
+ guest_os_primitives/guest_map_shadow.cc       |   2 +
+ guest_os_primitives/guest_thread_manager.cc   |   2 +
+ interpreter/arm64/interpreter.h               |   2 +
+ kernel_api/arm64/syscall_emulation.cc         |   8 +
+ runtime/arm64/Android.bp                      |   1 +
+ runtime/arm64/translator_stats_test.cc        | 604 ++++++++++++++++++
+ runtime/arm64/translator_x86_64.cc            |  49 +-
+ runtime/translator.cc                         |   5 +
+ runtime_primitives/Android.bp                 |   1 +
+ .../runtime_primitives/profiler_interface.h   |  17 +
+ .../runtime_primitives/translation_cache.h    |   5 +-
+ .../runtime_primitives/translator_stats.h     | 198 ++++++
+ runtime_primitives/profiler_interface.cc      | 137 +++-
+ runtime_primitives/translation_cache.cc       |   9 +-
+ runtime_primitives/translator_stats.cc        | 178 ++++++
+ 17 files changed, 1204 insertions(+), 36 deletions(-)
+ create mode 100644 runtime/arm64/translator_stats_test.cc
+ create mode 100644 runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
+ create mode 100644 runtime_primitives/translator_stats.cc
+
+diff --git a/base/include/berberis/base/maps_snapshot.h b/base/include/berberis/base/maps_snapshot.h
+index 9b8400d7..fbe64086 100644
+--- a/base/include/berberis/base/maps_snapshot.h
++++ b/base/include/berberis/base/maps_snapshot.h
+@@ -46,6 +46,9 @@ class MapsSnapshot {
+   struct Record {
+     uintptr_t start;
+     uintptr_t end;
++    // File offset of `start` in the mapped object (0 for anonymous mappings).
++    // addr - start + offset is stable across launches, unlike addr itself.
++    uintptr_t offset;
+     ArenaString pathname;
+   };
+ 
+diff --git a/base/maps_snapshot.cc b/base/maps_snapshot.cc
+index b20e4b00..4a27bd9c 100644
+--- a/base/maps_snapshot.cc
++++ b/base/maps_snapshot.cc
+@@ -44,19 +44,24 @@ void MapsSnapshot::Update() {
+   maps_.clear();
+ 
+   char line[512], pathname[256];
+-  uintptr_t start, end;
++  uintptr_t start, end, offset;
+   while (fgets(line, sizeof(line), maps_file)) {
+     // Maximum string size 255 so that we have space for the terminating '\0'.
+-    int match_count = sscanf(
+-        line, "%" SCNxPTR "-%" SCNxPTR " %*s %*lx %*x:%*x %*lu%*[ ]%255s", &start, &end, pathname);
+-    if (match_count == 2 || match_count == 3) {
++    int match_count = sscanf(line,
++                             "%" SCNxPTR "-%" SCNxPTR " %*s %" SCNxPTR " %*x:%*x %*lu%*[ ]%255s",
++                             &start,
++                             &end,
++                             &offset,
++                             pathname);
++    if (match_count == 3 || match_count == 4) {
+       // If there is no pathname we still memorize the record, so that we can differentiate this
+       // case from missing mapping, e.g. when the snapshot is not up to date.
+-      const char* recorded_pathname = (match_count == 3) ? pathname : "";
++      const char* recorded_pathname = (match_count == 4) ? pathname : "";
+       // Addresses go in the increasing order in /proc/self/maps, so we hint to add new records
+       // to the end of the map.
+-      maps_.emplace_hint(
+-          maps_.end(), start, Record{start, end, ArenaString{recorded_pathname, &arena_}});
++      maps_.emplace_hint(maps_.end(),
++                         start,
++                         Record{start, end, offset, ArenaString{recorded_pathname, &arena_}});
+     }
+   }
+ 
+diff --git a/guest_os_primitives/guest_map_shadow.cc b/guest_os_primitives/guest_map_shadow.cc
+index 01a17307..8c971d7c 100644
+--- a/guest_os_primitives/guest_map_shadow.cc
++++ b/guest_os_primitives/guest_map_shadow.cc
+@@ -32,6 +32,7 @@
+ #include "berberis/base/tracing.h"
+ #include "berberis/guest_state/guest_addr.h"
+ #include "berberis/runtime_primitives/runtime_library.h"  // InvalidateGuestRange
++#include "berberis/runtime_primitives/translator_stats.h"
+ 
+ namespace berberis {
+ 
+@@ -213,6 +214,7 @@ void GuestMapShadow::ClearExecutable(GuestAddr start, size_t size) {
+     pc += kGuestPageSize;
+   }
+   if (changed) {
++    translator_stats::Add(translator_stats::kInvalidationsFromUnmap);
+     InvalidateGuestRange(start, end);
+   }
+ }
+diff --git a/guest_os_primitives/guest_thread_manager.cc b/guest_os_primitives/guest_thread_manager.cc
+index f0dddabf..701052e1 100644
+--- a/guest_os_primitives/guest_thread_manager.cc
++++ b/guest_os_primitives/guest_thread_manager.cc
+@@ -24,6 +24,7 @@
+ #include "berberis/guest_os_primitives/guest_thread_manager.h"
+ #include "berberis/instrument/guest_thread.h"
+ #include "berberis/runtime_primitives/code_pool.h"  // ResetAllExecRegions
++#include "berberis/runtime_primitives/translator_stats.h"
+ #include "guest_thread_manager_impl.h"
+ #include "guest_thread_map.h"
+ #include "scoped_signal_blocker.h"
+@@ -136,6 +137,7 @@ void FlushGuestCodeCache() {
+     // (syscall emulation or trampoline) will force re-read from translation
+     // cache before continuing to guest code.
+     if (tid != current_tid) {
++      translator_stats::Add(translator_stats::kDispatcherFlushThreads);
+       // Set thread's pending signals to present to force it to dispatcher.
+       // ATTENTION! this is the only place we access pending_signals_status
+       // from other thread!
+diff --git a/interpreter/arm64/interpreter.h b/interpreter/arm64/interpreter.h
+index 6fdbac0d..6a761d57 100644
+--- a/interpreter/arm64/interpreter.h
++++ b/interpreter/arm64/interpreter.h
+@@ -39,6 +39,7 @@
+ #include "berberis/kernel_api/run_guest_syscall.h"
+ #include "berberis/runtime_primitives/interpret_helpers.h"
+ #include "berberis/runtime_primitives/runtime_library.h"
++#include "berberis/runtime_primitives/translator_stats.h"
+ 
+ namespace berberis {
+ 
+@@ -3328,6 +3329,7 @@ class Interpreter {
+     constexpr uint64_t kCacheLine = 64;
+     GuestAddr addr = state_->cpu.x[rt];
+     GuestAddr line = addr & ~(kCacheLine - 1);
++    translator_stats::Add(translator_stats::kInvalidationsFromIcIvau);
+     InvalidateGuestRange(line, line + kCacheLine);
+   }
+ 
+diff --git a/kernel_api/arm64/syscall_emulation.cc b/kernel_api/arm64/syscall_emulation.cc
+index c6cc7b23..af2d63ee 100644
+--- a/kernel_api/arm64/syscall_emulation.cc
++++ b/kernel_api/arm64/syscall_emulation.cc
+@@ -41,6 +41,7 @@
+ 
+ #include "berberis/guest_os_primitives/scoped_pending_signals.h"
+ #include "berberis/runtime_primitives/runtime_library.h"
++#include "berberis/runtime_primitives/translator_stats.h"
+ 
+ #include "epoll_emulation.h"
+ #include "guest_types.h"
+@@ -54,6 +55,7 @@ namespace {
+ // differ — e.g. guest futex is 98 while host x86_64 __NR_futex is 202 — and must
+ // never be used to match guest_nr here. Named so the hot-syscall special-cases
+ // below read by name (mirrors kGuestO* in open_emulation.cc).
++constexpr long kGuestNrExitGroup = 94;       // asm-generic __NR_exit_group
+ constexpr long kGuestNrFutex = 98;           // asm-generic __NR_futex
+ constexpr long kGuestNrClockGettime = 113;   // asm-generic __NR_clock_gettime
+ constexpr long kGuestNrUname = 160;          // asm-generic __NR_uname
+@@ -187,6 +189,12 @@ void RunGuestSyscall(ThreadState* state) {
+     OnSyscall(state, guest_nr);
+   }
+ 
++  // The guest's exit_group ends the process without the host's atexit
++  // handlers, so the translator counters log their last line here.
++  if (guest_nr == kGuestNrExitGroup) {
++    translator_stats::LogIfEnabled();
++  }
++
+   // vDSO fast path for the hottest time syscalls.
+   // RunGuestSyscallImpl forwards via glibc syscall(), which always traps into
+   // the kernel; the libc clock_gettime()/gettimeofday() wrappers instead read
+diff --git a/runtime/arm64/Android.bp b/runtime/arm64/Android.bp
+index c577755b..293f0296 100644
+--- a/runtime/arm64/Android.bp
++++ b/runtime/arm64/Android.bp
+@@ -64,6 +64,7 @@ cc_test_library {
+         x86_64: {
+             srcs: [
+                 "ic_ivau_invalidation_test.cc",
++                "translator_stats_test.cc",
+                 "translator_x86_64_test.cc",
+             ],
+             header_libs: [
+diff --git a/runtime/arm64/translator_stats_test.cc b/runtime/arm64/translator_stats_test.cc
+new file mode 100644
+index 00000000..569bc501
+--- /dev/null
++++ b/runtime/arm64/translator_stats_test.cc
+@@ -0,0 +1,604 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++// berberis.stats counters: thread-safe, off by default, readable from outside
++// the process through /proc/<pid>/mem, and each counter counts what its name
++// says. Also the file offset MapsSnapshot keeps for the
++// perf map's stable region identity (here because the base unit tests only
++// run in the riscv64 host suite). The translator tests drive the real entry points
++// (berberis_HandleNotTranslated, berberis_HandleLiteCounterThresholdReached,
++// IC IVAU through the interpreter) rather than the counters themselves.
++
++#include "gtest/gtest.h"
++
++#include <fcntl.h>
++#include <sys/mman.h>
++#include <sys/syscall.h>
++#include <sys/wait.h>
++#include <unistd.h>
++
++#include <cstdint>
++#include <cstdio>
++#include <cstring>
++#include <string>
++#include <thread>
++#include <vector>
++
++#include "berberis/base/bit_util.h"
++#include "berberis/base/maps_snapshot.h"
++#include "berberis/guest_state/guest_addr.h"
++#include "berberis/guest_state/guest_state.h"
++#include "berberis/interpreter/arm64/interpreter.h"
++#include "berberis/runtime_primitives/host_code.h"
++#include "berberis/runtime_primitives/profiler_interface.h"
++#include "berberis/runtime_primitives/runtime_library.h"
++#include "berberis/runtime_primitives/translation_cache.h"
++#include "berberis/runtime_primitives/translator_stats.h"
++#include "berberis/test_utils/scoped_guest_exec_region.h"
++#include "berberis/test_utils/translation_test.h"
++
++// Hidden-visibility entry points in runtime/arm64/translator_x86_64.cc, linked
++// statically into the test.
++extern "C" void berberis_HandleNotTranslated(berberis::ThreadState* state);
++extern "C" void berberis_HandleLiteCounterThresholdReached(berberis::ThreadState* state);
++
++namespace berberis {
++
++// runtime/arm64/translator_x86_64.cc: called between translating and publishing.
++extern void (*g_before_publish_hook_for_testing)(GuestAddr pc);
++
++namespace {
++
++namespace ts = translator_stats;
++
++// add x3, x1, x2 ; b .+4. The lite tier translates it in full.
++alignas(64) const uint32_t kRegion[] = {0x8b020023, 0x14000001};
++// A second region in a different cache line, never translated.
++alignas(64) const uint32_t kOtherLine[] = {0x8b020023, 0x14000001};
++// Gear-up regions, one per heavy-attempt outcome. ret ends a region.
++// movz x0, #0x11 ; movz x1, #0x22 ; ret: heavy translates it in full, but 3
++// instructions is below the minimum region size.
++alignas(64) const uint32_t kSmall[] = {0xd2800220, 0xd2800441, 0xd65f03c0};
++// add x0, x0, #1 (x24) ; ret: heavy translates and installs it.
++alignas(64) const uint32_t kLarge[] = {
++    0x91000400, 0x91000400, 0x91000400, 0x91000400, 0x91000400, 0x91000400, 0x91000400,
++    0x91000400, 0x91000400, 0x91000400, 0x91000400, 0x91000400, 0x91000400, 0x91000400,
++    0x91000400, 0x91000400, 0x91000400, 0x91000400, 0x91000400, 0x91000400, 0x91000400,
++    0x91000400, 0x91000400, 0x91000400, 0xd65f03c0};
++// add x3, x1, x2 ; brk #0: heavy bails on brk with no loop in the prefix.
++alignas(64) const uint32_t kBails[] = {0x8b020023, 0xd4200000};
++
++constexpr uint32_t kIcIvauX5 = 0xD50B7525;  // ic ivau, x5
++
++class TranslatorStats : public TranslationTest {
++ protected:
++  void SetUp() override {
++    TranslationTest::SetUp();
++    DropAll();
++    ts::ResetForTesting();
++    ts::EnableForTesting();
++  }
++
++  void TearDown() override {
++    g_before_publish_hook_for_testing = nullptr;
++    ts::SetEnabledForTesting(false);
++    ts::ResetForTesting();
++    DropAll();
++    TranslationTest::TearDown();
++  }
++
++  static void DropAll() {
++    Drop(kRegion, sizeof(kRegion));
++    Drop(kOtherLine, sizeof(kOtherLine));
++    Drop(kSmall, sizeof(kSmall));
++    Drop(kLarge, sizeof(kLarge));
++    Drop(kBails, sizeof(kBails));
++  }
++
++  // Removes any entry left by an earlier test, without counting it.
++  static void Drop(const void* code, size_t size) {
++    bool was_enabled = ts::Enabled();
++    ts::SetEnabledForTesting(false);
++    TranslationCache::GetInstance()->InvalidateGuestRange(ToGuestAddr(code),
++                                                          ToGuestAddr(code) + size);
++    ts::SetEnabledForTesting(was_enabled);
++  }
++
++  static GuestCodeEntry::Kind KindAt(GuestAddr pc) {
++    GuestCodeEntry* entry = TranslationCache::GetInstance()->LookupGuestCodeEntryUnsafeForTesting(pc);
++    return entry ? entry->kind : GuestCodeEntry::Kind::kUnderProcessing;
++  }
++
++  static void HandleNotTranslated(GuestAddr pc) {
++    ThreadState state{};
++    state.cpu.insn_addr = pc;
++    berberis_HandleNotTranslated(&state);
++  }
++
++  // First-gear lite install, then the gear-up a hot region triggers.
++  static void InstallAndGearUp(GuestAddr pc) {
++    HandleNotTranslated(pc);
++    ASSERT_EQ(KindAt(pc), GuestCodeEntry::Kind::kLiteTranslated) << "test would be vacuous";
++    ASSERT_EQ(ts::Get(ts::kInstalledLite), 1u);
++    ThreadState state{};
++    state.cpu.insn_addr = pc;
++    berberis_HandleLiteCounterThresholdReached(&state);
++  }
++
++  static uint64_t HeavyAttempts() {
++    return ts::Get(ts::kGearUpHeavy) + ts::Get(ts::kGearUpHeavyPrefix) +
++           ts::Get(ts::kGearUpDeclinedSmall) + ts::Get(ts::kGearUpBailed) +
++           ts::Get(ts::kGearUpNoMem);
++  }
++
++  static void RunIcIvau(GuestAddr addr) {
++    ThreadState state{};
++    static uint32_t insn;
++    insn = kIcIvauX5;
++    state.cpu.x[5] = addr;
++    state.cpu.insn_addr = ToGuestAddr(&insn);
++    InterpretInsn(&state);
++  }
++
++  static uint64_t Sum() {
++    uint64_t sum = 0;
++    for (size_t i = 0; i < ts::kNumCounters; i++) {
++      sum += ts::Get(static_cast<ts::Counter>(i));
++    }
++    return sum;
++  }
++};
++
++TEST_F(TranslatorStats, OffCountsNothing) {
++  ts::SetEnabledForTesting(false);
++  GuestAddr pc = ToGuestAddr(kRegion);
++  ScopedGuestExecRegion exec_region(pc, sizeof(kRegion));
++
++  ts::Add(ts::kInstalledLite);
++  { ts::ScopedTimer timer(ts::kLiteNs); }
++  HandleNotTranslated(pc);
++  ASSERT_EQ(KindAt(pc), GuestCodeEntry::Kind::kLiteTranslated) << "test would be vacuous";
++  RunIcIvau(pc);
++
++  EXPECT_EQ(Sum(), 0u);
++}
++
++TEST_F(TranslatorStats, ConcurrentAddsAreExact) {
++  constexpr int kThreads = 8;
++  constexpr int kAdds = 100000;
++  std::vector<std::thread> threads;
++  for (int t = 0; t < kThreads; t++) {
++    threads.emplace_back([] {
++      for (int i = 0; i < kAdds; i++) {
++        ts::Add(ts::kInterpretBatches);
++        ts::Add(ts::kLiteGuestBytes, 3);
++      }
++    });
++  }
++  for (auto& thread : threads) {
++    thread.join();
++  }
++  EXPECT_EQ(ts::Get(ts::kInterpretBatches), uint64_t{kThreads} * kAdds);
++  EXPECT_EQ(ts::Get(ts::kLiteGuestBytes), uint64_t{kThreads} * kAdds * 3);
++}
++
++TEST_F(TranslatorStats, FormatNamesEveryCounter) {
++  ts::Add(ts::kDispatcherFlushes, 7);
++  char buf[1536];
++  size_t len = ts::Format(buf, sizeof(buf));
++  ASSERT_EQ(len, strlen(buf));
++  std::string line(buf);
++  EXPECT_EQ(line.rfind("openbook-stats v1 pid=", 0), 0u) << line;
++  for (size_t i = 0; i < ts::kNumCounters; i++) {
++    std::string name = std::string(" ") + ts::GetName(static_cast<ts::Counter>(i)) + "=";
++    EXPECT_NE(line.find(name), std::string::npos) << name << " missing from " << line;
++  }
++  EXPECT_NE(line.find(" dispatcher_flushes=7"), std::string::npos) << line;
++
++  // A short buffer truncates, still NUL-terminated.
++  char small[24];
++  memset(small, 'x', sizeof(small));
++  len = ts::Format(small, sizeof(small));
++  EXPECT_LT(len, sizeof(small));
++  EXPECT_EQ(small[len], '\0');
++}
++
++TEST_F(TranslatorStats, BlockIsSelfDescribing) {
++  const ts::Block& b = ts::g_block;
++  EXPECT_EQ(memcmp(b.magic, "OBSTAT2", 8), 0);
++  EXPECT_EQ(b.owner_pid.load(), static_cast<uint64_t>(getpid()));
++  EXPECT_EQ(b.baseline_valid.load(), 0u);
++  EXPECT_EQ(b.count, uint64_t{ts::kNumCounters});
++  EXPECT_EQ(b.enabled.load(), 1u);
++  ASSERT_EQ(b.names_size, strlen(b.names) + 1);
++  std::string expected;
++  for (size_t i = 0; i < ts::kNumCounters; i++) {
++    expected += (i ? " " : "") + std::string(ts::GetName(static_cast<ts::Counter>(i)));
++  }
++  EXPECT_EQ(std::string(b.names), expected);
++}
++
++// What app-perf does as root on the device: read the block by address from
++// /proc/<pid>/mem, check the header, and find each counter by its name.
++TEST_F(TranslatorStats, ReadableThroughProcMem) {
++  ts::Add(ts::kDispatcherFlushes, 5);
++  ts::Add(ts::kInstalledHeavy, 2);
++  int fd = open("/proc/self/mem", O_RDONLY | O_CLOEXEC);
++  ASSERT_NE(fd, -1);
++  auto addr = static_cast<off_t>(bit_cast<uintptr_t>(&ts::g_block));
++  uint64_t header[6];
++  ASSERT_EQ(pread(fd, header, sizeof(header), addr), static_cast<ssize_t>(sizeof(header)));
++  EXPECT_EQ(memcmp(&header[0], "OBSTAT2", 8), 0);
++  uint64_t count = header[1], names_size = header[2];
++  ASSERT_EQ(count, uint64_t{ts::kNumCounters});
++  EXPECT_EQ(header[3], 1u);  // enabled
++  EXPECT_EQ(header[4], static_cast<uint64_t>(getpid()));  // owner
++  EXPECT_EQ(header[5], 0u);                               // no baseline
++  std::vector<char> rest(2 * count * 8 + names_size);
++  ASSERT_EQ(pread(fd, rest.data(), rest.size(), addr + sizeof(header)),
++            static_cast<ssize_t>(rest.size()));
++  close(fd);
++  std::vector<uint64_t> values(count);
++  memcpy(values.data(), rest.data(), count * 8);
++  std::string names(rest.data() + 2 * count * 8);
++  std::vector<std::string> split;
++  for (size_t pos = 0, next; pos <= names.size(); pos = next + 1) {
++    next = names.find(' ', pos);
++    if (next == std::string::npos) next = names.size();
++    split.push_back(names.substr(pos, next - pos));
++  }
++  ASSERT_EQ(split.size(), count);
++  for (size_t i = 0; i < count; i++) {
++    if (split[i] == "dispatcher_flushes") EXPECT_EQ(values[i], 5u);
++    else if (split[i] == "installed_heavy") EXPECT_EQ(values[i], 2u);
++    else EXPECT_EQ(values[i], 0u) << split[i];
++  }
++}
++
++TEST_F(TranslatorStats, FirstGearCountsALiteInstall) {
++  GuestAddr pc = ToGuestAddr(kRegion);
++  ScopedGuestExecRegion exec_region(pc, sizeof(kRegion));
++
++  HandleNotTranslated(pc);
++
++  ASSERT_EQ(KindAt(pc), GuestCodeEntry::Kind::kLiteTranslated);
++  EXPECT_EQ(ts::Get(ts::kInstalledLite), 1u);
++  EXPECT_EQ(ts::Get(ts::kInstalledHeavy), 0u);
++  EXPECT_EQ(ts::Get(ts::kInstalledInterp), 0u);
++  EXPECT_EQ(ts::Get(ts::kLiteGuestBytes), sizeof(kRegion));
++  EXPECT_GT(ts::Get(ts::kLiteHostBytes), 0u);
++  EXPECT_GT(ts::Get(ts::kLiteNs), 0u);
++  EXPECT_EQ(ts::Get(ts::kHeavyNs), 0u);
++  EXPECT_EQ(ts::Get(ts::kGearUpRequests), 0u);
++}
++
++TEST_F(TranslatorStats, NonExecutablePcCountsNoExec) {
++  // kOtherLine is not registered as executable.
++  HandleNotTranslated(ToGuestAddr(kOtherLine));
++  EXPECT_EQ(ts::Get(ts::kInstalledNoExec), 1u);
++  EXPECT_EQ(ts::Get(ts::kInstalledLite), 0u);
++  EXPECT_EQ(ts::Get(ts::kLiteNs), 0u);
++  Drop(kOtherLine, sizeof(kOtherLine));
++}
++
++// A hot region too small for the heavy tier: one request, the heavy attempt is
++// timed and declined, and the region is lite-translated again.
++TEST_F(TranslatorStats, GearUpDeclinedForASmallRegion) {
++  GuestAddr pc = ToGuestAddr(kSmall);
++  ScopedGuestExecRegion exec_region(pc, sizeof(kSmall));
++  InstallAndGearUp(pc);
++
++  EXPECT_EQ(KindAt(pc), GuestCodeEntry::Kind::kLiteTranslated);
++  EXPECT_EQ(ts::Get(ts::kGearUpRequests), 1u);
++  EXPECT_EQ(ts::Get(ts::kGearUpDeclinedSmall), 1u);
++  EXPECT_EQ(HeavyAttempts(), 1u);
++  EXPECT_GT(ts::Get(ts::kHeavyNs), 0u);
++  EXPECT_EQ(ts::Get(ts::kInstalledLite), 2u);
++  EXPECT_EQ(ts::Get(ts::kInstalledHeavy), 0u);
++}
++
++TEST_F(TranslatorStats, GearUpInstallsALargeRegion) {
++  GuestAddr pc = ToGuestAddr(kLarge);
++  ScopedGuestExecRegion exec_region(pc, sizeof(kLarge));
++  InstallAndGearUp(pc);
++
++  EXPECT_EQ(KindAt(pc), GuestCodeEntry::Kind::kHeavyOptimized);
++  EXPECT_EQ(ts::Get(ts::kGearUpRequests), 1u);
++  EXPECT_EQ(ts::Get(ts::kGearUpHeavy), 1u);
++  EXPECT_EQ(HeavyAttempts(), 1u);
++  EXPECT_EQ(ts::Get(ts::kInstalledHeavy), 1u);
++  EXPECT_EQ(ts::Get(ts::kInstalledLite), 1u);
++  EXPECT_EQ(ts::Get(ts::kHeavyGuestBytes), sizeof(kLarge));
++  EXPECT_GT(ts::Get(ts::kHeavyHostBytes), 0u);
++  EXPECT_GT(ts::Get(ts::kHeavyNs), 0u);
++}
++
++TEST_F(TranslatorStats, GearUpBailsAndReLites) {
++  GuestAddr pc = ToGuestAddr(kBails);
++  ScopedGuestExecRegion exec_region(pc, sizeof(kBails));
++  InstallAndGearUp(pc);
++
++  EXPECT_EQ(KindAt(pc), GuestCodeEntry::Kind::kLiteTranslated);
++  EXPECT_EQ(ts::Get(ts::kGearUpRequests), 1u);
++  EXPECT_EQ(ts::Get(ts::kGearUpBailed), 1u);
++  EXPECT_EQ(HeavyAttempts(), 1u);
++  EXPECT_EQ(ts::Get(ts::kInstalledLite), 2u);
++  EXPECT_EQ(ts::Get(ts::kInstalledHeavy), 0u);
++}
++
++// Another thread invalidating the region while it's being translated: the
++// result is thrown away, so it's counted as discarded, never as installed.
++void InvalidateRegion(GuestAddr pc) {
++  InvalidateGuestRange(pc, pc + 8);
++}
++
++TEST_F(TranslatorStats, ResultInvalidatedBeforePublicationIsNotInstalled) {
++  GuestAddr pc = ToGuestAddr(kRegion);
++  ScopedGuestExecRegion exec_region(pc, sizeof(kRegion));
++  g_before_publish_hook_for_testing = InvalidateRegion;
++
++  HandleNotTranslated(pc);
++
++  EXPECT_EQ(TranslationCache::GetInstance()->LookupGuestCodeEntryUnsafeForTesting(pc), nullptr);
++  EXPECT_EQ(ts::Get(ts::kDiscardedAtPublication), 1u);
++  EXPECT_EQ(ts::Get(ts::kInFlightTranslationsInvalidated), 1u);
++  EXPECT_EQ(ts::Get(ts::kInstalledLite), 0u);
++  EXPECT_EQ(ts::Get(ts::kLiteGuestBytes), 0u);
++  EXPECT_EQ(ts::Get(ts::kLiteHostBytes), 0u);
++  EXPECT_GT(ts::Get(ts::kLiteNs), 0u);  // the compile time was spent all the same
++  EXPECT_EQ(ts::Get(ts::kInvalidationRequests), 1u);
++  EXPECT_EQ(ts::Get(ts::kEntriesInvalidated), 0u);  // nothing was published to drop
++  EXPECT_EQ(ts::Get(ts::kDispatcherFlushes), 0u);
++}
++
++// Heavy code emitted is not heavy code installed.
++TEST_F(TranslatorStats, HeavyEmittedButDiscardedIsNotInstalled) {
++  GuestAddr pc = ToGuestAddr(kLarge);
++  ScopedGuestExecRegion exec_region(pc, sizeof(kLarge));
++  HandleNotTranslated(pc);
++  ASSERT_EQ(KindAt(pc), GuestCodeEntry::Kind::kLiteTranslated);
++  g_before_publish_hook_for_testing = InvalidateRegion;
++  ThreadState state{};
++  state.cpu.insn_addr = pc;
++  berberis_HandleLiteCounterThresholdReached(&state);
++
++  EXPECT_EQ(TranslationCache::GetInstance()->LookupGuestCodeEntryUnsafeForTesting(pc), nullptr);
++  EXPECT_EQ(ts::Get(ts::kGearUpHeavy), 1u);  // emitted
++  EXPECT_EQ(ts::Get(ts::kInstalledHeavy), 0u);
++  EXPECT_EQ(ts::Get(ts::kHeavyGuestBytes), 0u);
++  EXPECT_EQ(ts::Get(ts::kDiscardedAtPublication), 1u);
++  EXPECT_EQ(ts::Get(ts::kInstalledLite), 1u);  // the first-gear install only
++}
++
++// A child made by fork() owns its counts from the fork on; what it inherited is
++// its baseline. The parent's ownership is untouched.
++TEST_F(TranslatorStats, ForkChildOwnsItsCounts) {
++  ts::Add(ts::kInstalledLite, 5);
++  pid_t parent = getpid();
++  pid_t child = fork();
++  ASSERT_NE(child, -1);
++  if (child == 0) {
++    const ts::Block& b = ts::g_block;
++    int bad = 0;
++    bad |= (b.owner_pid.load() != static_cast<uint64_t>(getpid())) << 0;
++    bad |= (b.baseline_valid.load() != 1) << 1;
++    bad |= (b.baseline[ts::kInstalledLite].load() != 5) << 2;
++    ts::Add(ts::kInstalledLite);
++    bad |= (b.counters[ts::kInstalledLite].load() - b.baseline[ts::kInstalledLite].load() != 1) << 3;
++    _exit(bad);
++  }
++  int status = 0;
++  ASSERT_EQ(waitpid(child, &status, 0), child);
++  ASSERT_TRUE(WIFEXITED(status));
++  EXPECT_EQ(WEXITSTATUS(status), 0) << "bit 0 owner, 1 baseline flag, 2 baseline, 3 own count";
++  EXPECT_EQ(ts::g_block.owner_pid.load(), static_cast<uint64_t>(parent));
++  EXPECT_EQ(ts::g_block.baseline_valid.load(), 0u);
++  EXPECT_EQ(ts::Get(ts::kInstalledLite), 5u);
++}
++
++// A raw fork syscall (how a guest forks) runs no pthread_atfork handler: the
++// child's counts stay owned by the parent, with no baseline, and a reader can
++// tell from owner_pid.
++TEST_F(TranslatorStats, RawForkChildKeepsTheParentAsOwner) {
++  pid_t parent = getpid();
++  long child = syscall(SYS_fork);
++  ASSERT_NE(child, -1);
++  if (child == 0) {
++    const ts::Block& b = ts::g_block;
++    int bad = 0;
++    bad |= (b.owner_pid.load() != static_cast<uint64_t>(parent)) << 0;
++    bad |= (b.baseline_valid.load() != 0) << 1;
++    syscall(SYS_exit_group, bad);
++  }
++  int status = 0;
++  ASSERT_EQ(waitpid(static_cast<pid_t>(child), &status, 0), child);
++  ASSERT_TRUE(WIFEXITED(status));
++  EXPECT_EQ(WEXITSTATUS(status), 0) << "bit 0 owner, 1 baseline flag";
++}
++
++int g_opens = 0;
++int g_inherited_fd = -1;
++bool g_inherited_was_open_at_reopen = false;
++
++int OpenDevNull() {
++  g_opens++;
++  if (g_inherited_fd != -1) {
++    g_inherited_was_open_at_reopen = fcntl(g_inherited_fd, F_GETFD) != -1;
++  }
++  return open("/dev/null", O_WRONLY | O_CLOEXEC);
++}
++
++int FailToOpen() {
++  g_opens++;
++  return -1;
++}
++
++// The perf map belongs to one process. A fork child never writes into the
++// parent's map: it closes the inherited descriptor and opens its own, once.
++TEST(TranslatorStatsPerfMap, ForkChildOpensItsOwnMap) {
++  ResetProfilerMapForTesting();
++  g_opens = 0;
++  g_inherited_fd = -1;
++  int fd = GetProfilerMapFdForTesting(OpenDevNull);
++  ASSERT_NE(fd, -1);
++  EXPECT_EQ(GetProfilerMapFdForTesting(OpenDevNull), fd);
++  EXPECT_EQ(g_opens, 1) << "opened again in the same process";
++
++  pid_t child = fork();
++  ASSERT_NE(child, -1);
++  if (child == 0) {
++    g_inherited_fd = fd;
++    int own = GetProfilerMapFdForTesting(OpenDevNull);
++    int bad = 0;
++    bad |= (g_opens != 2) << 0;                       // reopened, once
++    bad |= g_inherited_was_open_at_reopen << 1;       // the parent's map was closed first
++    bad |= (own == -1) << 2;
++    bad |= (GetProfilerMapFdForTesting(OpenDevNull) != own || g_opens != 2) << 3;
++    _exit(bad);
++  }
++  int status = 0;
++  ASSERT_EQ(waitpid(child, &status, 0), child);
++  ASSERT_TRUE(WIFEXITED(status));
++  EXPECT_EQ(WEXITSTATUS(status), 0) << "bit 0 reopen count, 1 inherited still open, 2 open failed, 3 not kept";
++  EXPECT_NE(fcntl(fd, F_GETFD), -1) << "the child's close reached the parent";
++  EXPECT_EQ(GetProfilerMapFdForTesting(OpenDevNull), fd);
++  EXPECT_EQ(g_opens, 1);
++  ResetProfilerMapForTesting();
++}
++
++// A failed open is remembered for this process only: no retry on every region,
++// but a fork child tries for its own map.
++TEST(TranslatorStatsPerfMap, FailedOpenIsPerProcess) {
++  ResetProfilerMapForTesting();
++  g_opens = 0;
++  EXPECT_EQ(GetProfilerMapFdForTesting(FailToOpen), -1);
++  EXPECT_EQ(GetProfilerMapFdForTesting(FailToOpen), -1);
++  EXPECT_EQ(g_opens, 1);
++  pid_t child = fork();
++  ASSERT_NE(child, -1);
++  if (child == 0) {
++    GetProfilerMapFdForTesting(FailToOpen);
++    _exit(g_opens == 2 ? 0 : 1);
++  }
++  int status = 0;
++  ASSERT_EQ(waitpid(child, &status, 0), child);
++  ASSERT_TRUE(WIFEXITED(status));
++  EXPECT_EQ(WEXITSTATUS(status), 0);
++  ResetProfilerMapForTesting();
++}
++
++// A region in a mapped file is named by its offset in the file; anonymous
++// memory (a guest JIT) has no stable identity and gets no offset, so two
++// anonymous regions can never share a name.
++TEST(TranslatorStatsPerfMap, OnlyFileBackedRegionsGetAnOffset) {
++  MapsSnapshot::GetInstance()->ClearForTesting();
++  int fd = open("/proc/self/exe", O_RDONLY | O_CLOEXEC);
++  ASSERT_NE(fd, -1);
++  constexpr size_t kPage = 4096;
++  void* file = mmap(nullptr, kPage, PROT_READ, MAP_PRIVATE, fd, 3 * kPage);
++  close(fd);
++  ASSERT_NE(file, MAP_FAILED);
++  void* anon = mmap(nullptr, 2 * kPage, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++  ASSERT_NE(anon, MAP_FAILED);
++  GuestAddr in_file = bit_cast<uintptr_t>(file) + 0x40;
++  GuestAddr anon_a = bit_cast<uintptr_t>(anon) + 0x10;
++  GuestAddr anon_b = bit_cast<uintptr_t>(anon) + kPage;
++
++  char buf[160];
++  FormatPerfMapLine(buf, sizeof(buf), anon, 0x20, in_file, 16, "lite");
++  std::string file_line(buf);
++  FormatPerfMapLine(buf, sizeof(buf), anon, 0x20, anon_a, 16, "lite");
++  std::string a_line(buf);
++  FormatPerfMapLine(buf, sizeof(buf), anon, 0x20, anon_b, 32, "heavy");
++  std::string b_line(buf);
++  munmap(file, kPage);
++  munmap(anon, 2 * kPage);
++
++  char want[64];
++  snprintf(want, sizeof(want), "lite_0x%lx+16@0x%zx\n", static_cast<unsigned long>(in_file), 3 * kPage + 0x40);
++  EXPECT_NE(file_line.find(want), std::string::npos) << file_line;
++  EXPECT_EQ(a_line.find('@'), std::string::npos) << a_line;
++  EXPECT_EQ(b_line.find('@'), std::string::npos) << b_line;
++  snprintf(want, sizeof(want), "_lite_0x%lx+16\n", static_cast<unsigned long>(anon_a));
++  EXPECT_NE(a_line.find(want), std::string::npos) << a_line;
++  snprintf(want, sizeof(want), "_heavy_0x%lx+32\n", static_cast<unsigned long>(anon_b));
++  EXPECT_NE(b_line.find(want), std::string::npos) << b_line;
++}
++
++// The three invalidation counts are distinct: a request over a translated
++// line drops one entry and flushes the dispatcher; a request over a line with
++// nothing translated is still a request, but drops nothing and does not flush.
++TEST_F(TranslatorStats, InvalidationRequestsEntriesAndFlushesAreSeparate) {
++  GuestAddr pc = ToGuestAddr(kRegion);
++  ScopedGuestExecRegion exec_region(pc, sizeof(kRegion));
++  HandleNotTranslated(pc);
++  ASSERT_EQ(KindAt(pc), GuestCodeEntry::Kind::kLiteTranslated);
++
++  RunIcIvau(pc + 4);
++
++  EXPECT_EQ(ts::Get(ts::kInvalidationRequests), 1u);
++  EXPECT_EQ(ts::Get(ts::kInvalidationsFromIcIvau), 1u);
++  EXPECT_EQ(ts::Get(ts::kInvalidationBytes), 64u);
++  EXPECT_EQ(ts::Get(ts::kEntriesInvalidated), 1u);
++  EXPECT_EQ(ts::Get(ts::kDispatcherFlushes), 1u);
++
++  RunIcIvau(ToGuestAddr(kOtherLine));
++
++  EXPECT_EQ(ts::Get(ts::kInvalidationRequests), 2u);
++  EXPECT_EQ(ts::Get(ts::kInvalidationsFromIcIvau), 2u);
++  EXPECT_EQ(ts::Get(ts::kEntriesInvalidated), 1u);
++  EXPECT_EQ(ts::Get(ts::kDispatcherFlushes), 1u);
++  EXPECT_EQ(ts::Get(ts::kInvalidationsFromUnmap), 0u);
++}
++
++// The record keeps the file offset, so addr - start + offset names a place in
++// the file that stays the same between launches.
++TEST(TranslatorStatsMapsSnapshot, FileOffset) {
++  auto* maps_snapshot = MapsSnapshot::GetInstance();
++
++  int fd = open("/proc/self/exe", O_RDONLY | O_CLOEXEC);
++  ASSERT_NE(fd, -1);
++  constexpr size_t kPage = 4096;
++  void* addr = mmap(nullptr, kPage, PROT_READ, MAP_PRIVATE, fd, 2 * kPage);
++  close(fd);
++  ASSERT_NE(addr, MAP_FAILED);
++  maps_snapshot->Update();
++  auto result = maps_snapshot->GetMappedObjectRecord(bit_cast<uintptr_t>(addr));
++  munmap(addr, kPage);
++
++  ASSERT_TRUE(result.has_value());
++  EXPECT_FALSE(result.value().pathname.empty());
++  EXPECT_EQ(result.value().start, bit_cast<uintptr_t>(addr));
++  EXPECT_EQ(result.value().offset, 2 * kPage);
++}
++
++TEST(TranslatorStatsMapsSnapshot, AnonymousMappingHasNoOffset) {
++  auto* maps_snapshot = MapsSnapshot::GetInstance();
++
++  void* addr = mmap(nullptr, 4096, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++  ASSERT_NE(addr, MAP_FAILED);
++  maps_snapshot->Update();
++  auto result = maps_snapshot->GetMappedObjectRecord(bit_cast<uintptr_t>(addr));
++  munmap(addr, 4096);
++
++  ASSERT_TRUE(result.has_value());
++  EXPECT_TRUE(result.value().pathname.empty());
++  EXPECT_EQ(result.value().offset, 0u);
++}
++
++}  // namespace
++
++}  // namespace berberis
+diff --git a/runtime/arm64/translator_x86_64.cc b/runtime/arm64/translator_x86_64.cc
+index b506f68f..bacba731 100644
+--- a/runtime/arm64/translator_x86_64.cc
++++ b/runtime/arm64/translator_x86_64.cc
+@@ -36,6 +36,7 @@
+ #include "berberis/runtime_primitives/host_code.h"
+ #include "berberis/runtime_primitives/runtime_library.h"
+ #include "berberis/runtime_primitives/translation_cache.h"
++#include "berberis/runtime_primitives/translator_stats.h"
+ 
+ namespace berberis {
+ 
+@@ -113,6 +114,7 @@ void InitTranslatorArch() {
+   // claimed for arm64 guest processes.
+   ClaimHostFaultSignals();
+   UpdateTranslationMode();
++  translator_stats::Init();
+ }
+ 
+ // Exported for testing only.
+@@ -233,11 +235,14 @@ std::tuple<bool, HostCodePiece, size_t, GuestCodeEntry::Kind> HeavyOptimizeAndIn
+       // region digitalis
+       HostCodePiece heavy_piece = InstallTranslated(&machine_code, pc, size, "heavy");
+       if (heavy_piece.code == kNullHostCodeAddr) {
++        translator_stats::Add(translator_stats::kGearUpNoMem);
+         return {false, {}, 0, {}};
+       }
++      translator_stats::Add(translator_stats::kGearUpHeavyPrefix);
+       return {true, heavy_piece, size, kHeavyOptimized};
+       // endregion
+     }
++    translator_stats::Add(translator_stats::kGearUpBailed);
+     return {false, {}, 0, {}};
+   }
+   // Decline gear-up for fully-translated regions too small for the heavy
+@@ -250,17 +255,24 @@ std::tuple<bool, HostCodePiece, size_t, GuestCodeEntry::Kind> HeavyOptimizeAndIn
+   // gear-up without self-profiling, so the region settles on the lite tier
+   // permanently instead of re-attempting gear-up every threshold.
+   if (number_of_instructions < GetGearUpMinInsns()) {
++    translator_stats::Add(translator_stats::kGearUpDeclinedSmall);
+     return {false, {}, 0, {}};
+   }
+   // region digitalis
+   HostCodePiece heavy_piece2 = InstallTranslated(&machine_code, pc, size, "heavy");
+   if (heavy_piece2.code == kNullHostCodeAddr) {
++    translator_stats::Add(translator_stats::kGearUpNoMem);
+     return {false, {}, 0, {}};
+   }
++  translator_stats::Add(translator_stats::kGearUpHeavy);
+   return {true, heavy_piece2, size, kHeavyOptimized};
+   // endregion
+ }
+ 
++// Called after translating and before publishing, so a test can invalidate the
++// region in between exactly as another thread can. Null outside tests.
++void (*g_before_publish_hook_for_testing)(GuestAddr pc) = nullptr;
++
+ template <TranslationGear kGear = TranslationGear::kFirst>
+ void TranslateRegion(GuestAddr pc) {
+   TranslationCache* cache = TranslationCache::GetInstance();
+@@ -279,7 +291,10 @@ void TranslateRegion(GuestAddr pc) {
+   GuestMapShadow* guest_map_shadow = GuestMapShadow::GetInstance();
+   auto [is_executable, first_insn_size] = IsPcExecutable(pc, guest_map_shadow);
+   if (!is_executable) {
+-    cache->SetTranslatedAndUnlock(pc, entry, first_insn_size, kSpecialHandler, {kEntryNoExec, 0});
++    bool published =
++        cache->SetTranslatedAndUnlock(pc, entry, first_insn_size, kSpecialHandler, {kEntryNoExec, 0});
++    translator_stats::Add(published ? translator_stats::kInstalledNoExec
++                                    : translator_stats::kDiscardedAtPublication);
+     return;
+   }
+ 
+@@ -298,12 +313,17 @@ void TranslateRegion(GuestAddr pc) {
+     // Hot region gearing up: try the optimizing tier; if the heavy frontend
+     // bails on an instruction it does not yet handle, re-lite so the hot region
+     // stays JIT-compiled; only then interpret.
+-    std::tie(success, host_code_piece, size, kind) = HeavyOptimizeAndInstallRegion(pc);
++    translator_stats::Add(translator_stats::kGearUpRequests);
++    {
++      translator_stats::ScopedTimer timer(translator_stats::kHeavyNs);
++      std::tie(success, host_code_piece, size, kind) = HeavyOptimizeAndInstallRegion(pc);
++    }
+     if (!success) {
+       // The region is hot and settles on the lite tier for good (no
+       // self-profiling), so let a loop back to its start run in-region.
+       LiteTranslateParams params;
+       params.allow_in_region_loops = true;
++      translator_stats::ScopedTimer timer(translator_stats::kLiteNs);
+       std::tie(success, host_code_piece, size, kind) =
+           TryLiteTranslateAndInstallRegion(pc, params);
+     }
+@@ -317,6 +337,7 @@ void TranslateRegion(GuestAddr pc) {
+       params.enable_self_profiling = true;
+       params.counter_location = &entry->invocation_counter;
+     }
++    translator_stats::ScopedTimer timer(translator_stats::kLiteNs);
+     std::tie(success, host_code_piece, size, kind) = TryLiteTranslateAndInstallRegion(pc, params);
+   }
+ 
+@@ -325,7 +346,28 @@ void TranslateRegion(GuestAddr pc) {
+     size = first_insn_size;
+     kind = kInterpreted;
+   }
+-  cache->SetTranslatedAndUnlock(pc, entry, size, kind, host_code_piece);
++  if (g_before_publish_hook_for_testing) {
++    g_before_publish_hook_for_testing(pc);
++  }
++  bool published = cache->SetTranslatedAndUnlock(pc, entry, size, kind, host_code_piece);
++
++  // Only a published result is installed. One invalidated while it was being
++  // translated is thrown away (and counted as such), its compile time spent.
++  if (translator_stats::Enabled() && !published) {
++    translator_stats::Add(translator_stats::kDiscardedAtPublication);
++  } else if (translator_stats::Enabled()) {
++    if (kind == kHeavyOptimized) {
++      translator_stats::Add(translator_stats::kInstalledHeavy);
++      translator_stats::Add(translator_stats::kHeavyGuestBytes, size);
++      translator_stats::Add(translator_stats::kHeavyHostBytes, host_code_piece.size);
++    } else if (kind == kLiteTranslated) {
++      translator_stats::Add(translator_stats::kInstalledLite);
++      translator_stats::Add(translator_stats::kLiteGuestBytes, size);
++      translator_stats::Add(translator_stats::kLiteHostBytes, host_code_piece.size);
++    } else {
++      translator_stats::Add(translator_stats::kInstalledInterp);
++    }
++  }
+ 
+   // profiling
+   if (success) {
+@@ -359,6 +401,7 @@ extern "C" __attribute__((used, __visibility__("hidden"))) void berberis_HandleN
+ 
+ extern "C" __attribute__((used, __visibility__("hidden"))) void berberis_HandleInterpret(
+     ThreadState* state) {
++  translator_stats::Add(translator_stats::kInterpretBatches);
+   // interpreter invocation counter with syscall diagnostics
+   g_translation_stats.interpret_invocations++;
+   bool should_log = g_translation_stats.interpret_invocations <= 25 ||
+diff --git a/runtime/translator.cc b/runtime/translator.cc
+index 628cd005..90248ab4 100644
+--- a/runtime/translator.cc
++++ b/runtime/translator.cc
+@@ -18,6 +18,7 @@
+ #include "berberis/guest_state/guest_addr.h"
+ #include "berberis/runtime_primitives/runtime_library.h"
+ #include "berberis/runtime_primitives/translation_cache.h"
++#include "berberis/runtime_primitives/translator_stats.h"
+ 
+ #include "berberis/base/checks.h"
+ 
+@@ -25,6 +26,9 @@ namespace berberis {
+ 
+ // Invalidate regions overlapping with the range. Could be pretty slow.
+ void InvalidateGuestRange(GuestAddr start, GuestAddr end) {
++  translator_stats::Add(translator_stats::kInvalidationRequests);
++  translator_stats::Add(translator_stats::kInvalidationBytes, end > start ? end - start : 0);
++  translator_stats::ScopedTimer timer(translator_stats::kInvalidationNs);
+   TranslationCache* cache = TranslationCache::GetInstance();
+   // Only flush the guest code cache if an already-translated region was
+   // actually invalidated. FlushGuestCodeCache forces EVERY guest thread to the
+@@ -36,6 +40,7 @@ void InvalidateGuestRange(GuestAddr start, GuestAddr end) {
+   // skipping the flush there is correct.
+   if (cache->InvalidateGuestRange(start, end)) {
+     // TODO(b/28081995): Specify region to avoid flushing too much.
++    translator_stats::Add(translator_stats::kDispatcherFlushes);
+     FlushGuestCodeCache();
+   }
+ }
+diff --git a/runtime_primitives/Android.bp b/runtime_primitives/Android.bp
+index d57440a2..5b75f42f 100644
+--- a/runtime_primitives/Android.bp
++++ b/runtime_primitives/Android.bp
+@@ -62,6 +62,7 @@ cc_library_static {
+         "recovery_code.cc",
+         "signal_queue.cc",
+         "translation_cache.cc",
++        "translator_stats.cc",
+         "virtual_guest_call_frame.cc",
+     ],
+     header_libs: [
+diff --git a/runtime_primitives/include/berberis/runtime_primitives/profiler_interface.h b/runtime_primitives/include/berberis/runtime_primitives/profiler_interface.h
+index 689c43a2..a72dd2d6 100644
+--- a/runtime_primitives/include/berberis/runtime_primitives/profiler_interface.h
++++ b/runtime_primitives/include/berberis/runtime_primitives/profiler_interface.h
+@@ -29,6 +29,23 @@ void ProfilerLogGeneratedCode(const void* start,
+                               size_t guest_size,
+                               const char* prefix);
+ 
++// One perf-map line for a region: "<host start> 0x<host size> <name>", where
++// the name ends in "_0x<guest>+<guest size>@0x<file offset>" for code in a
++// mapped file and in "_0x<guest>+<guest size>" for anything else. Returns the
++// length written.
++size_t FormatPerfMapLine(char* buf,
++                         size_t buf_size,
++                         const void* start,
++                         size_t size,
++                         GuestAddr guest_start,
++                         size_t guest_size,
++                         const char* jit_suffix);
++
++// The perf map's descriptor for the calling process, opened with open_map the
++// first time this process asks (after a fork too). For tests.
++int GetProfilerMapFdForTesting(int (*open_map)());
++void ResetProfilerMapForTesting();
++
+ }  // namespace berberis
+ 
+ #endif /* BERBERIS_RUNTIME_PRIMITIVES_PROFILER_INTERFACE_H_ */
+diff --git a/runtime_primitives/include/berberis/runtime_primitives/translation_cache.h b/runtime_primitives/include/berberis/runtime_primitives/translation_cache.h
+index 8d124080..8c9036ca 100644
+--- a/runtime_primitives/include/berberis/runtime_primitives/translation_cache.h
++++ b/runtime_primitives/include/berberis/runtime_primitives/translation_cache.h
+@@ -134,8 +134,9 @@ class TranslationCache {
+   [[nodiscard]] GuestCodeEntry* LockForGearUpTranslation(GuestAddr pc);
+ 
+   // Transitions the entry for the given guest address from Translating to Translated, making it
+-  // available to other threads.
+-  void SetTranslatedAndUnlock(GuestAddr pc,
++  // available to other threads. Returns false when the entry was invalidated while translating:
++  // the result is then discarded and nothing is published.
++  bool SetTranslatedAndUnlock(GuestAddr pc,
+                               GuestCodeEntry* entry,
+                               uint32_t guest_size,
+                               GuestCodeEntry::Kind kind,
+diff --git a/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h b/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
+new file mode 100644
+index 00000000..f969c464
+--- /dev/null
++++ b/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
+@@ -0,0 +1,198 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef BERBERIS_RUNTIME_PRIMITIVES_TRANSLATOR_STATS_H_
++#define BERBERIS_RUNTIME_PRIMITIVES_TRANSLATOR_STATS_H_
++
++// Process-wide translator counters, off by default.
++//
++// `setprop berberis.stats 1` (or BERBERIS_STATS=1) before the process starts
++// turns them on. When off, each counting site costs one load of a
++// process-wide flag; nothing is counted and no clock is read.
++//
++// Reading them: the counters live in one self-describing block (Block below),
++// whose address Init() logs to logcat (tag "berberis"). A root shell reads it
++// from /proc/<pid>/mem at any time, so a running app needs no extra thread.
++// A thread is deliberately avoided: the native bridge also initializes in
++// child zygotes (app zygotes), and ART refuses to fork a zygote that has more
++// than one thread. A process that exits normally (a program run through the
++// binfmt runner, through the guest's exit_group) also logs one
++// "openbook-stats v1" line at exit.
++//
++// Counters are relaxed atomics: every value is exact on its own, but one read
++// of the block is not an atomic snapshot of all counters together. A forked
++// process inherits its parent's counts; the block says whose they are (see
++// Block).
++//
++// The counters say how often the translator compiled, geared up, invalidated
++// and flushed, and how much elapsed time compiling took. They do not measure how long the
++// generated code runs or how much register traffic it has: that comes from
++// tier-labelled samples (the berberis.profiling perf map names each region's
++// tier and library offset) and from inspecting generated code.
++//
++// Header-only counting, so the interpreter and guest_os_primitives can count
++// without a link dependency; Init() and Format() live in translator_stats.cc.
++
++#include <atomic>
++#include <cstddef>
++#include <cstdint>
++#include <ctime>
++
++namespace berberis::translator_stats {
++
++// Keep in sync with kNames in translator_stats.cc.
++enum Counter : size_t {
++  // Regions installed, by tier: published in the translation cache. First-gear
++  // and gear-up installs both count.
++  kInstalledInterp,  // translation failed or interpret-only mode
++  kInstalledLite,
++  kInstalledHeavy,
++  kInstalledNoExec,  // pc not executable
++  // Results not published because the region was invalidated while it was
++  // being translated (see kInFlightTranslationsInvalidated).
++  kDiscardedAtPublication,
++  // Accumulated elapsed (CLOCK_MONOTONIC, not CPU) time inside the lite
++  // translator and the heavy optimizer, failed and discarded attempts included
++  // (a heavy attempt that bails is counted here, then its re-lite under lite).
++  kLiteNs,
++  kHeavyNs,
++  // Guest bytes covered and host code bytes emitted by installed regions.
++  kLiteGuestBytes,
++  kHeavyGuestBytes,
++  kLiteHostBytes,
++  kHeavyHostBytes,
++  // Gear-up: requests (hot lite region reached the threshold) and how the
++  // heavy attempt ended. heavy + heavy_prefix + declined_small + bailed +
++  // no_mem == heavy attempts. gearup_heavy and gearup_heavy_prefix count heavy
++  // code emitted, before publication; installed_heavy counts what was published.
++  kGearUpRequests,
++  kGearUpHeavy,          // fully translated and installed
++  kGearUpHeavyPrefix,    // bailed, but the prefix holds an in-region loop: installed
++  kGearUpDeclinedSmall,  // fully translated but below the minimum size: re-lite
++  kGearUpBailed,         // unsupported instruction, no loop in the prefix: re-lite
++  kGearUpNoMem,          // code pool could not take the region
++  // Interpreter batches (berberis_HandleInterpret calls).
++  kInterpretBatches,
++  // Invalidation. A request is one InvalidateGuestRange call, whatever caused
++  // it; requests from IC IVAU and from executable mappings going away are also
++  // counted by source. Entries invalidated are translation-cache entries
++  // dropped. A dispatcher flush (FlushGuestCodeCache) asks every other guest
++  // thread to return to the dispatcher; it does not discard translations.
++  kInvalidationRequests,
++  kInvalidationBytes,
++  kInvalidationNs,  // accumulated elapsed time, as kLiteNs
++  kInvalidationsFromIcIvau,
++  kInvalidationsFromUnmap,
++  kEntriesInvalidated,
++  // Translations in progress when a request came in, on any thread and at any
++  // address (the cache invalidates them all); their result is thrown away.
++  kInFlightTranslationsInvalidated,
++  kDispatcherFlushes,
++  kDispatcherFlushThreads,  // other threads asked to return, summed over flushes
++  kNumCounters,
++};
++
++// Layout "OBSTAT2", all fields little-endian 64-bit words except magic and
++// names: magic, number of counters, size of names, enabled (0 or 1), owner pid,
++// baseline valid (0 or 1), the counters in Counter order, the baseline in the
++// same order, then the counter names separated by spaces and NUL-terminated
++// (filled in by Init when counting is turned on).
++//
++// Origin: the owner is the process the counts are measured from. Init makes
++// the calling process the owner. A child made by fork() (a zygote's children)
++// becomes the owner in a pthread_atfork handler, which also copies the counts
++// it inherited into the baseline: counters - baseline is then the child's own.
++// A child made by a raw clone syscall (a guest's fork) runs no handler: the
++// owner stays the parent's pid, and its counters include the parent's counts
++// up to the fork, with no baseline.
++constexpr size_t kNamesCapacity = 1024;
++struct Block {
++  char magic[8];
++  uint64_t count;
++  uint64_t names_size;
++  std::atomic<uint64_t> enabled;
++  std::atomic<uint64_t> owner_pid;
++  std::atomic<uint64_t> baseline_valid;
++  std::atomic<uint64_t> counters[kNumCounters];
++  std::atomic<uint64_t> baseline[kNumCounters];
++  char names[kNamesCapacity];
++};
++inline Block g_block{
++    {'O', 'B', 'S', 'T', 'A', 'T', '2', '\0'}, kNumCounters, 0, {0}, {0}, {0}, {}, {}, {}};
++
++inline bool Enabled() {
++  return g_block.enabled.load(std::memory_order_relaxed) != 0;
++}
++
++inline void Add(Counter counter, uint64_t value = 1) {
++  if (Enabled()) {
++    g_block.counters[counter].fetch_add(value, std::memory_order_relaxed);
++  }
++}
++
++inline uint64_t Get(Counter counter) {
++  return g_block.counters[counter].load(std::memory_order_relaxed);
++}
++
++inline uint64_t NowNs() {
++  timespec ts;
++  clock_gettime(CLOCK_MONOTONIC, &ts);
++  return static_cast<uint64_t>(ts.tv_sec) * 1000000000u + static_cast<uint64_t>(ts.tv_nsec);
++}
++
++// Adds the time from construction to destruction to `counter`. Reads the clock
++// only when counting is on.
++class ScopedTimer {
++ public:
++  explicit ScopedTimer(Counter counter) : counter_(counter), start_(Enabled() ? NowNs() : 0) {}
++  ~ScopedTimer() {
++    if (start_ != 0) {
++      Add(counter_, NowNs() - start_);
++    }
++  }
++  ScopedTimer(const ScopedTimer&) = delete;
++  ScopedTimer& operator=(const ScopedTimer&) = delete;
++
++ private:
++  Counter counter_;
++  uint64_t start_;
++};
++
++// Reads berberis.stats / BERBERIS_STATS. When set (to anything but "" or "0"),
++// fills in the block's names, makes this process the owner, registers the fork
++// handler, turns counting on and logs the block's address. Call once at
++// translator init.
++void Init();
++
++// Logs the Format() line when counting is on (the guest's exit_group).
++void LogIfEnabled();
++
++const char* GetName(Counter counter);
++
++// Writes "openbook-stats v1 pid=<pid> t_ms=<ms since Init> name=value ..." to
++// buf (always NUL-terminated). Returns the length written.
++size_t Format(char* buf, size_t size);
++
++// Init()'s work after the config check: names, enabled, the log line.
++void EnableForTesting();
++// What the fork handler does in a child made by fork().
++void OnForkChildForTesting();
++void SetEnabledForTesting(bool enabled);
++void ResetForTesting();
++
++}  // namespace berberis::translator_stats
++
++#endif  // BERBERIS_RUNTIME_PRIMITIVES_TRANSLATOR_STATS_H_
+diff --git a/runtime_primitives/profiler_interface.cc b/runtime_primitives/profiler_interface.cc
+index d456234b..5d77b3af 100644
+--- a/runtime_primitives/profiler_interface.cc
++++ b/runtime_primitives/profiler_interface.cc
+@@ -17,9 +17,12 @@
+ #include "berberis/runtime_primitives/profiler_interface.h"
+ 
+ #include <fcntl.h>   // open
+-#include <unistd.h>  // write
++#include <sched.h>   // sched_yield
++#include <unistd.h>  // write, close
+ 
+ #include <array>
++#include <atomic>
++#include <cstdint>
+ #include <cstring>  // str*
+ 
+ #include "berberis/base/config_globals.h"
+@@ -86,10 +89,17 @@ constexpr size_t kMaxMappedNameLen = 16;
+ // Name c-string + terminating null + underscore.
+ using MappedNameBuffer = std::array<char, kMaxMappedNameLen + 2>;
+ 
+-// Malloc-free implementation.
+-MappedNameBuffer ConstructMappedNameBuffer(GuestAddr guest_addr) {
++// Malloc-free implementation. Sets *file_offset to guest_addr's offset in the
++// mapped file, which identifies the region across launches where the address
++// does not, and *file_backed to whether there is one: anonymous memory (a guest
++// JIT) and addresses not in the snapshot have no stable identity.
++MappedNameBuffer ConstructMappedNameBuffer(GuestAddr guest_addr,
++                                           uintptr_t* file_offset,
++                                           bool* file_backed) {
+   MappedNameBuffer buf;
+   auto* maps_snapshot = MapsSnapshot::GetInstance();
++  *file_offset = 0;
++  *file_backed = false;
+ 
+   auto mapped_object_record = maps_snapshot->GetMappedObjectRecordOrUpdateAndRetry(guest_addr);
+   if (!mapped_object_record.has_value()) {
+@@ -97,6 +107,15 @@ MappedNameBuffer ConstructMappedNameBuffer(GuestAddr guest_addr) {
+     buf[0] = '\0';
+     return buf;
+   }
++  const auto& path = mapped_object_record.value().pathname;
++  // Only a mapped file has a stable identity. "[anon:...]", "[stack]", memfds
++  // and deleted files are process-local.
++  if (!path.empty() && path.c_str()[0] == '/' && strncmp(path.c_str(), "/memfd:", 7) != 0 &&
++      !strstr(path.c_str(), " (deleted)")) {
++    *file_offset =
++        guest_addr - mapped_object_record.value().start + mapped_object_record.value().offset;
++    *file_backed = true;
++  }
+ 
+   // We can use more clever logic here and try to extract the basename, but the parent directory
+   // name may also be interesting (e.g. <guest_arch>/libc.so) so we just take the last
+@@ -122,36 +141,110 @@ MappedNameBuffer ConstructMappedNameBuffer(GuestAddr guest_addr) {
+ 
+ }  // namespace
+ 
+-void ProfilerLogGeneratedCode(const void* start,
+-                              size_t size,
+-                              GuestAddr guest_start,
+-                              size_t guest_size,
+-                              const char* jit_suffix) {
+-  static int fd = ProfilerOpenLogFile();
+-  if (fd == -1) {
+-    return;
+-  }
++namespace {
+ 
+-  MappedNameBuffer mapped_name_buf = ConstructMappedNameBuffer(guest_start);
++// The map belongs to one process: perf-<pid>.map. A child made by fork (an app
++// zygote's children) or by a guest's raw clone must not write into the
++// parent's map, so the descriptor is kept with the pid it was opened for and
++// reopened, once, by the first region a new process logs. The inherited
++// descriptor is closed in the child only. Lock-free, so a fork in the middle of
++// an open can't leave the child waiting for a lock no thread will release.
++// Regions the child inherited from its parent stay in the parent's map.
++std::atomic<uint64_t> g_map_state{0};  // (pid << 1) | ready
++std::atomic<int> g_map_fd{-1};
++
++int GetMapFd(int (*open_map)()) {
++  auto pid = static_cast<uint64_t>(GetpidSyscall());
++  const uint64_t ready = (pid << 1) | 1;
++  const uint64_t opening = pid << 1;
++  uint64_t state = g_map_state.load(std::memory_order_acquire);
++  if (state == ready) {
++    return g_map_fd.load(std::memory_order_relaxed);
++  }
++  if (state != opening && g_map_state.compare_exchange_strong(state, opening)) {
++    int inherited = g_map_fd.exchange(-1);
++    if (inherited != -1) {
++      close(inherited);  // the parent's map; the parent keeps its own descriptor
++    }
++    g_map_fd.store(open_map(), std::memory_order_relaxed);
++    g_map_state.store(ready, std::memory_order_release);
++    return g_map_fd.load(std::memory_order_relaxed);
++  }
++  while (g_map_state.load(std::memory_order_acquire) != ready) {
++    sched_yield();  // another thread of this process is opening it
++  }
++  return g_map_fd.load(std::memory_order_relaxed);
++}
++
++}  // namespace
++
++void ResetProfilerMapForTesting() {
++  int fd = g_map_fd.exchange(-1);
++  if (fd != -1) {
++    close(fd);
++  }
++  g_map_state.store(0);
++}
++
++int GetProfilerMapFdForTesting(int (*open_map)()) {
++  return GetMapFd(open_map);
++}
++
++size_t FormatPerfMapLine(char* buf,
++                         size_t buf_size,
++                         const void* start,
++                         size_t size,
++                         GuestAddr guest_start,
++                         size_t guest_size,
++                         const char* jit_suffix) {
++  uintptr_t file_offset;
++  bool file_backed;
++  MappedNameBuffer mapped_name_buf =
++      ConstructMappedNameBuffer(guest_start, &file_offset, &file_backed);
+ 
+   char guest_range_buf[64];
+ 
+   if (IsConfigFlagSet(kMergeProfilesForSameModeRegions)) {
+     guest_range_buf[0] = '\0';
++  } else if (file_backed) {
++    // "@0x<file offset>" names the region by its place in the library, so the
++    // same region can be matched between launches.
++    FormatBuffer(guest_range_buf,
++                 sizeof(guest_range_buf),
++                 "_0x%lx+%zu@0x%lx",
++                 guest_start,
++                 guest_size,
++                 static_cast<unsigned long>(file_offset));
+   } else {
++    // No file, no stable identity: the guest address is all there is.
+     FormatBuffer(guest_range_buf, sizeof(guest_range_buf), "_0x%lx+%zu", guest_start, guest_size);
+   }
+ 
+-  char buf[128];
+   // start size symbol-name
+-  size_t n = FormatBuffer(buf,
+-                          sizeof(buf),
+-                          "%p 0x%zx %s%s%s\n",
+-                          start,
+-                          size,
+-                          mapped_name_buf.data(),
+-                          jit_suffix,
+-                          guest_range_buf);
++  return FormatBuffer(buf,
++                      buf_size,
++                      "%p 0x%zx %s%s%s\n",
++                      start,
++                      size,
++                      mapped_name_buf.data(),
++                      jit_suffix,
++                      guest_range_buf);
++}
++
++void ProfilerLogGeneratedCode(const void* start,
++                              size_t size,
++                              GuestAddr guest_start,
++                              size_t guest_size,
++                              const char* jit_suffix) {
++  if (!GetProfilingConfig()) {
++    return;  // profiling off: no pid check, no syscall
++  }
++  int fd = GetMapFd(ProfilerOpenLogFile);
++  if (fd == -1) {
++    return;
++  }
++  char buf[160];
++  size_t n = FormatPerfMapLine(buf, sizeof(buf), start, size, guest_start, guest_size, jit_suffix);
+   UNUSED(write(fd, buf, n));
+ }
+ 
+diff --git a/runtime_primitives/translation_cache.cc b/runtime_primitives/translation_cache.cc
+index 790cb97e..c14d90af 100644
+--- a/runtime_primitives/translation_cache.cc
++++ b/runtime_primitives/translation_cache.cc
+@@ -27,6 +27,7 @@
+ #include "berberis/guest_state/guest_addr.h"
+ #include "berberis/runtime_primitives/host_code.h"
+ #include "berberis/runtime_primitives/runtime_library.h"
++#include "berberis/runtime_primitives/translator_stats.h"
+ 
+ namespace berberis {
+ 
+@@ -93,7 +94,7 @@ void TranslationCache::LockForTranslationUnsafe(GuestCodeEntry* entry) {
+   CHECK(inserted);
+ }
+ 
+-void TranslationCache::SetTranslatedAndUnlock(GuestAddr pc,
++bool TranslationCache::SetTranslatedAndUnlock(GuestAddr pc,
+                                               GuestCodeEntry* entry,
+                                               uint32_t guest_size,
+                                               GuestCodeEntry::Kind kind,
+@@ -112,7 +113,7 @@ void TranslationCache::SetTranslatedAndUnlock(GuestAddr pc,
+     // ATTENTION: all transitions from kEntryInvalidating are protected by mutex!
+     entry->host_code->store(kEntryNotTranslated);
+     guest_entries_.erase(pc);
+-    return;
++    return false;
+   }
+ 
+   // Must be translating
+@@ -133,6 +134,7 @@ void TranslationCache::SetTranslatedAndUnlock(GuestAddr pc,
+   if (max_guest_size_ < guest_size) {
+     max_guest_size_ = guest_size;
+   }
++  return true;
+ }
+ 
+ GuestCodeEntry* TranslationCache::AddAndLockForWrapping(GuestAddr pc) {
+@@ -247,6 +249,7 @@ GuestAddr TranslationCache::SlowLookupGuestCodeEntryPCByHostPC(HostCode pc) {
+ }
+ 
+ void TranslationCache::InvalidateEntriesBeingTranslatedUnsafe() {
++  translator_stats::Add(translator_stats::kInFlightTranslationsInvalidated, translating_.size());
+   for (GuestCodeEntry* entry : translating_) {
+     CHECK(entry->kind == GuestCodeEntry::Kind::kUnderProcessing);
+     CHECK_EQ(entry->host_code->load(), kEntryTranslating);
+@@ -303,11 +306,13 @@ bool TranslationCache::InvalidateGuestRange(GuestAddr start, GuestAddr end) {
+       // Wrapping entry range is known in advance, so we don't have it in translating_.
+       entry->host_code->store(kEntryInvalidating);
+       invalidated_executable = true;
++      translator_stats::Add(translator_stats::kEntriesInvalidated);
+       // Wrapping but invalidated entry is handled in SetWrappedAndUnlock.
+     } else {
+       entry->host_code->store(kEntryNotTranslated);
+       guest_entries_.erase(curr);
+       invalidated_executable = true;
++      translator_stats::Add(translator_stats::kEntriesInvalidated);
+     }
+   }
+   return invalidated_executable;
+diff --git a/runtime_primitives/translator_stats.cc b/runtime_primitives/translator_stats.cc
+new file mode 100644
+index 00000000..0b1282d9
+--- /dev/null
++++ b/runtime_primitives/translator_stats.cc
+@@ -0,0 +1,178 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "berberis/runtime_primitives/translator_stats.h"
++
++#include <pthread.h>
++#include <unistd.h>
++
++#include <cstddef>
++#include <cstdlib>
++#include <cstring>
++
++#include "berberis/base/checks.h"
++#include "berberis/base/config_globals.h"
++#include "berberis/base/format_buffer.h"
++#include "berberis/base/gettid.h"
++#include "berberis/base/logging.h"
++
++namespace berberis::translator_stats {
++
++namespace {
++
++constexpr const char* kNames[] = {
++    "installed_interp",
++    "installed_lite",
++    "installed_heavy",
++    "installed_noexec",
++    "discarded_at_publication",
++    "lite_ns",
++    "heavy_ns",
++    "lite_guest_bytes",
++    "heavy_guest_bytes",
++    "lite_host_bytes",
++    "heavy_host_bytes",
++    "gearup_requests",
++    "gearup_heavy",
++    "gearup_heavy_prefix",
++    "gearup_declined_small",
++    "gearup_bailed",
++    "gearup_no_mem",
++    "interpret_batches",
++    "invalidation_requests",
++    "invalidation_bytes",
++    "invalidation_ns",
++    "invalidations_from_ic_ivau",
++    "invalidations_from_unmap",
++    "entries_invalidated",
++    "inflight_translations_invalidated",
++    "dispatcher_flushes",
++    "dispatcher_flush_threads",
++};
++static_assert(sizeof(kNames) / sizeof(kNames[0]) == kNumCounters);
++
++std::atomic<uint64_t> g_init_ns{0};
++
++// pthread_atfork child handler: the child owns the counts from here on, and
++// what it inherited is its baseline.
++void OnForkChild() {
++  if (!Enabled()) {
++    return;
++  }
++  for (size_t i = 0; i < kNumCounters; i++) {
++    g_block.baseline[i].store(g_block.counters[i].load(std::memory_order_relaxed),
++                              std::memory_order_relaxed);
++  }
++  g_block.baseline_valid.store(1, std::memory_order_relaxed);
++  g_block.owner_pid.store(static_cast<uint64_t>(GetpidSyscall()), std::memory_order_release);
++}
++
++// Turns counting on: names first, so a reader that sees enabled=1 sees them.
++void Enable() {
++  size_t len = 0;
++  for (size_t i = 0; i < kNumCounters; i++) {
++    size_t n = strlen(kNames[i]);
++    CHECK_LT(len + n + 1, kNamesCapacity);
++    if (i) {
++      g_block.names[len++] = ' ';
++    }
++    memcpy(g_block.names + len, kNames[i], n);
++    len += n;
++  }
++  g_block.names[len] = '\0';
++  g_block.names_size = len + 1;
++  g_init_ns.store(NowNs(), std::memory_order_relaxed);
++  g_block.owner_pid.store(static_cast<uint64_t>(GetpidSyscall()), std::memory_order_relaxed);
++  g_block.baseline_valid.store(0, std::memory_order_relaxed);
++  g_block.enabled.store(1, std::memory_order_release);
++  static bool fork_handler_registered = pthread_atfork(nullptr, nullptr, OnForkChild) == 0;
++  if (!fork_handler_registered) {
++    ALOGE("berberis.stats: pthread_atfork failed; fork children keep their parent as owner");
++  }
++  ALOGI("berberis.stats: on; block at 0x%lx (layout OBSTAT2, %lu counters, %lu bytes)",
++        static_cast<unsigned long>(reinterpret_cast<uintptr_t>(&g_block)),
++        static_cast<unsigned long>(kNumCounters),
++        static_cast<unsigned long>(offsetof(Block, names) + g_block.names_size));
++}
++
++}  // namespace
++
++const char* GetName(Counter counter) {
++  return counter < kNumCounters ? kNames[counter] : "?";
++}
++
++void Init() {
++  static ConfigStr config("BERBERIS_STATS", "berberis.stats");
++  const char* value = config.get();
++  if (!value || !*value || strcmp(value, "0") == 0 || Enabled()) {
++    return;
++  }
++  Enable();
++}
++
++void LogIfEnabled() {
++  if (!Enabled()) {
++    return;
++  }
++  char buf[1536];
++  Format(buf, sizeof(buf));
++  ALOGI("%s", buf);
++}
++
++size_t Format(char* buf, size_t size) {
++  if (size == 0) {
++    return 0;
++  }
++  uint64_t init_ns = g_init_ns.load(std::memory_order_relaxed);
++  uint64_t t_ms = init_ns ? (NowNs() - init_ns) / 1000000u : 0;
++  size_t len = FormatBuffer(buf,
++                            size,
++                            "openbook-stats v1 pid=%d t_ms=%lu",
++                            static_cast<int>(getpid()),
++                            static_cast<unsigned long>(t_ms));
++  for (size_t i = 0; i < kNumCounters && len + 1 < size; i++) {
++    len += FormatBuffer(buf + len,
++                        size - len,
++                        " %s=%lu",
++                        kNames[i],
++                        static_cast<unsigned long>(Get(static_cast<Counter>(i))));
++  }
++  return len;
++}
++
++void EnableForTesting() {
++  Enable();
++}
++
++void OnForkChildForTesting() {
++  OnForkChild();
++}
++
++void SetEnabledForTesting(bool enabled) {
++  g_block.enabled.store(enabled ? 1 : 0, std::memory_order_relaxed);
++}
++
++void ResetForTesting() {
++  for (auto& counter : g_block.counters) {
++    counter.store(0, std::memory_order_relaxed);
++  }
++  for (auto& value : g_block.baseline) {
++    value.store(0, std::memory_order_relaxed);
++  }
++  g_block.baseline_valid.store(0, std::memory_order_relaxed);
++}
++
++}  // namespace berberis::translator_stats
+-- 
+2.56.0
+

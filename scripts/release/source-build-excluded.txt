@@ -15,3 +15,7 @@ device/anybook/common/pc/sepolicy	SELinux policy of the Android product (Apache-
 docs/g14-product.md	named in an error message; development documentation, not needed by SOURCES.md's steps
 # Test steps: they check what was built and make nothing that goes into the image
 scripts/kernel-g14-qemu.sh	kernel-g14-package.sh's QEMU boot check of the packaged kernel; it needs a separately built Cuttlefish product and makes nothing the image uses (kernel-g14-package.sh --only collect, or kernel-into-image.sh with the Kleaf dist, skips it)
+# OpenBook NVK (the NVIDIA driver for apps): MIT, like Mesa. Its one LGPL part, libelf_mesa.so, is byte-identical to the
+# vendor libelf_mesa.so that the Mesa/libelf section of this offer covers.
+mesa/nvk-rm-clean	OpenBook NVK's clean-room tree and RM backend (MIT): not under the GPL or LGPL; the NVK package's libelf_mesa.so is the vendor libelf this offer covers
+scripts/nvk-provenance-check.sh	NVK's provenance gate: it checks the clean-room tree and builds nothing that goes into the image

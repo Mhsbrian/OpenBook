@@ -15,6 +15,8 @@ TESTS=(
   "bash $R/tests/gpu-diag/choice-test.sh"
   "bash $R/tests/gpu-diag/sampler-test.sh"
   "python3 $R/tests/gpu-diag/pending-cleanup-test.py"
+  "python3 $R/tests/perf/app-perf-test.py"
+  "python3 $R/tests/perf/arm-corpus-test.py"
   "python3 $R/tests/g14-lock-test.py"
   "python3 $R/tests/release/identity-scan-test.py"
   "python3 $R/tests/release/source-closure-test.py"

@@ -16,6 +16,8 @@ The docs are grouped below by purpose. Their file names stay as they are, becaus
 | [`quire-howto.md`](quire-howto.md) | Using Quire, the agent layer, on your laptop |
 | [`adb-debug.md`](adb-debug.md) | Debugging an installed laptop over the network with adb, and A/B updates |
 | [`gpu-diagnostics.md`](gpu-diagnostics.md) | Per-app GPU diagnostics over adb: Radeon vs NVIDIA runs, frame pacing, stops, the summary table |
+| [`app-performance.md`](app-performance.md) | Per-app performance over adb: ARM translation, ART compilation, start-up times, CPU attribution, power settings |
+| [`arm-performance.md`](arm-performance.md) | ARM translation performance: the pinned corpus, translated-vs-native A/B method, simd-bench, ranking rule |
 | [`touchpad-behavior.md`](touchpad-behavior.md) | How the G14's touchpad behaves and how to check it |
 
 ## Build and release

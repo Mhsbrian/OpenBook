@@ -1,0 +1,353 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Thu, 5 Nov 2026 12:00:00 +0000
+Subject: [PATCH] OPENBOOK: guest map shadow: clear executable bits a word at a
+ time
+
+Every guest mmap, mprotect and munmap that isn't executable calls
+GuestMapShadow::ClearExecutable over its whole range, and it cleared the
+shadow bitmap one page at a time, writing every byte. A JIT engine maps,
+protects and unmaps huge never-executable ranges (V8 reserves gigabytes),
+so each call cost one step per 4 KiB of the range and dirtied the shadow
+with zeros, with nothing to invalidate. On the G14 that was about 10% of
+a browser engine's CPU (ContentShell, ANAL-379) with almost no
+invalidations.
+
+ClearExecPages now handles the partial bytes at the ends page by page,
+then whole shadow bytes eight at a time (64 pages, 256 KiB of guest
+space, per step), and reads before it writes, so shadow pages that were
+never written stay unpopulated. The bits it clears and the invalidation
+it requests are the same as before: InvalidateGuestRange only when a
+page in the range was executable. When start + size overflows, the
+range is rounded exactly as before.
+
+New translator stats: clear_executable_calls, clear_executable_pages and
+clear_executable_ns, so a profile shows the calls and their sizes.
+
+Tests: guest_map_shadow_test.cc now also runs in the arm64 suite (it
+only ran in the riscv64 one), with a 4000-operation differential test
+against a page-by-page model across byte and word boundaries, a 64 GiB
+never-executable range (neighbours kept, the shadow not dirtied), a
+wrapped range that rounds to nothing, and the counters with and without
+an invalidation.
+---
+ guest_os_primitives/Android.bp                |   5 +
+ guest_os_primitives/guest_map_shadow.cc       |  72 +++++++++++-
+ guest_os_primitives/guest_map_shadow_test.cc  | 111 ++++++++++++++++++
+ .../guest_os_primitives/guest_map_shadow.h    |   2 +
+ .../runtime_primitives/translator_stats.h     |   7 ++
+ runtime_primitives/translator_stats.cc        |   3 +
+ 6 files changed, 197 insertions(+), 3 deletions(-)
+
+diff --git a/guest_os_primitives/Android.bp b/guest_os_primitives/Android.bp
+index f8741471..a0c7fd49 100644
+--- a/guest_os_primitives/Android.bp
++++ b/guest_os_primitives/Android.bp
+@@ -252,6 +252,9 @@ cc_test_library {
+     srcs: [
+         "arm64/guest_signal_action_dual_abi_test.cc",
+         "arm64/ucontext_layout_test.cc",
++        // Shared with the riscv64 suite; the arm64 suite is the one OpenBook
++        // builds, and ClearExecutable's word scan needs these here.
++        "guest_map_shadow_test.cc",
+     ],
+     local_include_dirs: [
+         ".",
+@@ -271,6 +274,7 @@ cc_test_library {
+         "libberberis_guest_os_primitives_arm64_headers",
+         "libberberis_guest_state_headers",
+         "libberberis_guest_state_arm64_headers",
++        "libberberis_runtime_primitives_headers",
+     ],
+ }
+ // endregion
+@@ -292,6 +296,7 @@ cc_defaults {
+         "libberberis_guest_os_primitives_headers",
+         "libberberis_guest_state_headers",
+         "libberberis_runtime_headers",
++        "libberberis_runtime_primitives_headers",
+     ],
+ }
+ 
+diff --git a/guest_os_primitives/guest_map_shadow.cc b/guest_os_primitives/guest_map_shadow.cc
+index 8c971d7c..288f6074 100644
+--- a/guest_os_primitives/guest_map_shadow.cc
++++ b/guest_os_primitives/guest_map_shadow.cc
+@@ -20,6 +20,8 @@
+ #include <climits>  // CHAR_BIT
+ #include <cmath>
+ #include <cstddef>
++#include <cstdint>
++#include <cstring>  // memcpy, memset
+ #include <mutex>
+ #include <tuple>
+ 
+@@ -197,6 +199,60 @@ void GuestMapShadow::SetExecutable(GuestAddr start, size_t size) {
+   }
+ }
+ 
++// Clears the shadow bits of pages [first_page, end_page) and returns whether
++// any was set. Every guest mmap, mprotect and munmap that isn't executable
++// lands here, often over huge never-executable ranges: a JIT engine reserves
++// gigabytes of address space. Clearing page by page made that cost one step
++// per 4 KiB of the range. This takes whole shadow bytes eight at a time
++// (64 pages, 256 KiB of guest space, per step), and reads before it writes, so
++// shadow pages that were never written stay unpopulated rather than being
++// dirtied with zeros.
++bool GuestMapShadow::ClearExecPages(uintptr_t first_page, uintptr_t end_page) {
++  bool changed = false;
++  auto clear_page = [&](uintptr_t page) {
++    uint8_t mask = 1 << (page & 7);
++    uint8_t value = shadow_[page >> 3];
++    if (value & mask) {
++      shadow_[page >> 3] = value & ~mask;
++      changed = true;
++    }
++  };
++  auto clear_byte = [&](uintptr_t byte) {
++    if (shadow_[byte]) {
++      shadow_[byte] = 0;
++      changed = true;
++    }
++  };
++  uintptr_t page = first_page;
++  for (; page < end_page && (page & 7) != 0; page++) {
++    clear_page(page);
++  }
++  if (page >= end_page) {
++    return changed;
++  }
++  // page is byte-aligned here.
++  uintptr_t byte = page >> 3;
++  const uintptr_t end_byte = end_page >> 3;
++  for (; byte < end_byte && (byte & 7) != 0; byte++) {
++    clear_byte(byte);
++  }
++  for (; byte + 8 <= end_byte; byte += 8) {
++    uint64_t word;
++    memcpy(&word, shadow_ + byte, sizeof(word));
++    if (word) {
++      memset(shadow_ + byte, 0, sizeof(word));
++      changed = true;
++    }
++  }
++  for (; byte < end_byte; byte++) {
++    clear_byte(byte);
++  }
++  for (page = end_byte << 3; page < end_page; page++) {
++    clear_page(page);
++  }
++  return changed;
++}
++
+ void GuestMapShadow::ClearExecutable(GuestAddr start, size_t size) {
+   if (!IsConfigFlagSet(kDeterministicTracing)) {
+     TRACE("ClearExecutable: %zx..%zx", start, start + size);
+@@ -206,12 +262,22 @@ void GuestMapShadow::ClearExecutable(GuestAddr start, size_t size) {
+   ++g_clear_executable_count;
+ #endif
+   // endregion
++  translator_stats::ScopedTimer timer(translator_stats::kClearExecutableNs);
+   GuestAddr end = AlignUpGuestPageSize(start + size);
+   GuestAddr pc = AlignDownGuestPageSize(start);
++  // Addresses above kMaxGuestAddress have no shadow bits (SetExecAddr ignores
++  // them), so the range stops there. If start + size overflows, the range is
++  // rounded exactly as before.
++  GuestAddr shadow_end = end;
++  if (shadow_end > kMaxGuestAddress + 1) {
++    shadow_end = kMaxGuestAddress + 1;
++  }
+   bool changed = false;
+-  while (pc < end) {
+-    changed |= SetExecAddr(pc, 0);
+-    pc += kGuestPageSize;
++  if (pc < shadow_end) {
++    translator_stats::Add(translator_stats::kClearExecutableCalls);
++    translator_stats::Add(translator_stats::kClearExecutablePages,
++                          (shadow_end - pc) >> kGuestPageSizeLog2);
++    changed = ClearExecPages(pc >> kGuestPageSizeLog2, shadow_end >> kGuestPageSizeLog2);
+   }
+   if (changed) {
+     translator_stats::Add(translator_stats::kInvalidationsFromUnmap);
+diff --git a/guest_os_primitives/guest_map_shadow_test.cc b/guest_os_primitives/guest_map_shadow_test.cc
+index 322fcf17..2b96dd70 100644
+--- a/guest_os_primitives/guest_map_shadow_test.cc
++++ b/guest_os_primitives/guest_map_shadow_test.cc
+@@ -16,11 +16,16 @@
+ 
+ #include "gtest/gtest.h"
+ 
++#include <cstdio>
++#include <cstring>
+ #include <memory>
++#include <random>
++#include <vector>
+ 
+ #include "berberis/base/large_mmap.h"
+ #include "berberis/guest_os_primitives/guest_map_shadow.h"
+ #include "berberis/guest_state/guest_addr.h"
++#include "berberis/runtime_primitives/translator_stats.h"
+ 
+ namespace berberis {
+ 
+@@ -174,6 +179,112 @@ TEST_F(GuestMapShadowTest, GetExecutableRegionSize) {
+   ExpectExecRegionSize<true, kGuestRegionSize>(kGuestAddr, kGuestRegionSize * 2);
+ }
+ 
++// ClearExecutable clears whole shadow bytes and words at a time. Check it
++// against a page-by-page model, with ranges starting and ending inside a byte,
++// on byte boundaries and across the 8-byte words, mixed with SetExecutable.
++TEST_F(GuestMapShadowTest, ClearMatchesPageByPageModel) {
++  constexpr size_t kPage = 4096;
++  constexpr size_t kPages = 3 * 64 * 8 + 37;  // several words, odd tail
++  constexpr GuestAddr kBase{0x7f20'0000'0000};
++  std::vector<bool> model(kPages, false);
++  std::mt19937 rng(383);
++  for (int op = 0; op < 4000; op++) {
++    size_t first = rng() % kPages;
++    size_t count = 1 + rng() % (op % 3 == 0 ? kPages - first : std::min<size_t>(80, kPages - first));
++    // Unaligned starts and sizes: the shadow works on whole pages.
++    GuestAddr start = kBase + first * kPage + (rng() % 3 == 0 ? rng() % kPage : 0);
++    size_t size = (first + count) * kPage - (start - kBase) - (rng() % 2 ? rng() % (kPage - 1) : 0);
++    bool set = rng() % 3 == 0;
++    if (set) {
++      shadow_.SetExecutable(start, size);
++    } else {
++      shadow_.ClearExecutable(start, size);
++    }
++    size_t last = (start + size - 1 - kBase) / kPage;
++    for (size_t p = (start - kBase) / kPage; p <= last && p < kPages; p++) {
++      model[p] = set;
++    }
++    if (op % 97 == 0 || op == 3999) {
++      for (size_t p = 0; p < kPages; p++) {
++        ASSERT_EQ(shadow_.IsExecutable(kBase + p * kPage, 1), model[p])
++            << "page " << p << " after op " << op;
++      }
++    }
++  }
++  // Nothing outside the window was touched.
++  EXPECT_FALSE(shadow_.IsExecutable(kBase - kPage, kPage));
++  EXPECT_FALSE(shadow_.IsExecutable(kBase + kPages * kPage, kPage));
++}
++
++long RssAnonKib() {
++  FILE* f = fopen("/proc/self/status", "r");
++  if (!f) return -1;
++  char line[256];
++  long kib = -1;
++  while (fgets(line, sizeof(line), f)) {
++    if (sscanf(line, "RssAnon: %ld kB", &kib) == 1) break;
++  }
++  fclose(f);
++  return kib;
++}
++
++// The pattern behind ANAL-379: a JIT engine maps, protects and unmaps huge
++// ranges that were never executable. Clearing them must leave executable
++// neighbours alone, and must not dirty the shadow: page by page it wrote a
++// zero into every shadow byte (64 GiB of guest space is 2 MiB of shadow).
++TEST_F(GuestMapShadowTest, ClearHugeNeverExecutableRange) {
++  constexpr size_t kPage = 4096;
++  constexpr GuestAddr kStart{0x7e00'0000'0000};
++  constexpr size_t kSize = size_t{64} << 30;
++  shadow_.SetExecutable(kStart - kPage, kPage);
++  shadow_.SetExecutable(kStart + kSize, kPage);
++
++  long before = RssAnonKib();
++  shadow_.ClearExecutable(kStart, kSize);
++  long after = RssAnonKib();
++
++  EXPECT_TRUE(shadow_.IsExecutable(kStart - kPage, kPage));
++  EXPECT_TRUE(shadow_.IsExecutable(kStart + kSize, kPage));
++  EXPECT_FALSE(shadow_.IsExecutable(kStart, kPage));
++  EXPECT_FALSE(shadow_.IsExecutable(kStart + kSize - kPage, kPage));
++  ASSERT_GE(before, 0);
++  EXPECT_LT(after - before, 256) << "clearing a never-executable range dirtied the shadow";
++
++  // An executable page inside is still found and cleared, its neighbours kept.
++  shadow_.SetExecutable(kStart + (kSize / 2), kPage);
++  shadow_.ClearExecutable(kStart, kSize);
++  EXPECT_FALSE(shadow_.IsExecutable(kStart + (kSize / 2), kPage));
++  EXPECT_TRUE(shadow_.IsExecutable(kStart - kPage, kPage));
++  EXPECT_TRUE(shadow_.IsExecutable(kStart + kSize, kPage));
++}
++
++// A wrapped range that rounds to an empty one clears nothing, as before.
++TEST_F(GuestMapShadowTest, ClearWrappedRangeIsANoOp) {
++  constexpr GuestAddr kAddr{0x7f30'0000'0000};
++  shadow_.SetExecutable(kAddr, 4096);
++  shadow_.ClearExecutable(kAddr, ~size_t{0} - 100);
++  EXPECT_TRUE(shadow_.IsExecutable(kAddr, 4096));
++}
++
++// Only a range with an executable page requests an invalidation. The calls and
++// pages are counted either way.
++TEST_F(GuestMapShadowTest, ClearCountsCallsAndInvalidatesOnlyWhenExecutable) {
++  namespace ts = translator_stats;
++  ts::ResetForTesting();
++  ts::EnableForTesting();
++  constexpr GuestAddr kAddr{0x7f40'0000'0000};
++  shadow_.ClearExecutable(kAddr, 1024 * 4096);
++  EXPECT_EQ(ts::Get(ts::kClearExecutableCalls), 1u);
++  EXPECT_EQ(ts::Get(ts::kClearExecutablePages), 1024u);
++  EXPECT_EQ(ts::Get(ts::kInvalidationsFromUnmap), 0u);
++  shadow_.SetExecutable(kAddr + 700 * 4096, 4096);
++  shadow_.ClearExecutable(kAddr, 1024 * 4096);
++  EXPECT_EQ(ts::Get(ts::kClearExecutableCalls), 2u);
++  EXPECT_EQ(ts::Get(ts::kInvalidationsFromUnmap), 1u);
++  ts::SetEnabledForTesting(false);
++  ts::ResetForTesting();
++}
++
+ }  // namespace
+ 
+ }  // namespace berberis
+diff --git a/guest_os_primitives/include/berberis/guest_os_primitives/guest_map_shadow.h b/guest_os_primitives/include/berberis/guest_os_primitives/guest_map_shadow.h
+index 526c8f1e..4827e314 100644
+--- a/guest_os_primitives/include/berberis/guest_os_primitives/guest_map_shadow.h
++++ b/guest_os_primitives/include/berberis/guest_os_primitives/guest_map_shadow.h
+@@ -74,6 +74,8 @@ class GuestMapShadow {
+  private:
+   [[nodiscard]] bool IsExecAddr(GuestAddr addr) const;
+   bool SetExecAddr(GuestAddr addr, int set);
++  // Clears pages [first_page, end_page); true if any was executable.
++  bool ClearExecPages(uintptr_t first_page, uintptr_t end_page);
+   void CopyExecutable(GuestAddr from, size_t from_size, GuestAddr to, size_t to_size);
+ 
+   uint8_t* shadow_;
+diff --git a/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h b/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
+index 31f5a216..91dab966 100644
+--- a/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
++++ b/runtime_primitives/include/berberis/runtime_primitives/translator_stats.h
+@@ -102,6 +102,13 @@ enum Counter : size_t {
+   kInFlightTranslationsInvalidated,
+   kDispatcherFlushes,
+   kDispatcherFlushThreads,  // other threads asked to return, summed over flushes
++  // GuestMapShadow::ClearExecutable: called by every guest mmap, mprotect and
++  // munmap that isn't executable. Calls, guest pages covered (summed), and
++  // accumulated elapsed time. It only requests an invalidation when a page in
++  // the range was executable (kInvalidationsFromUnmap).
++  kClearExecutableCalls,
++  kClearExecutablePages,
++  kClearExecutableNs,
+   kNumCounters,
+ };
+ 
+diff --git a/runtime_primitives/translator_stats.cc b/runtime_primitives/translator_stats.cc
+index 8f9addc3..08b3bf4d 100644
+--- a/runtime_primitives/translator_stats.cc
++++ b/runtime_primitives/translator_stats.cc
+@@ -61,6 +61,9 @@ constexpr const char* kNames[] = {
+     "inflight_translations_invalidated",
+     "dispatcher_flushes",
+     "dispatcher_flush_threads",
++    "clear_executable_calls",
++    "clear_executable_pages",
++    "clear_executable_ns",
+ };
+ static_assert(sizeof(kNames) / sizeof(kNames[0]) == kNumCounters);
+ 
+-- 
+2.56.0
+

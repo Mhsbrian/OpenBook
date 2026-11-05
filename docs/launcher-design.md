@@ -125,8 +125,10 @@ There is no drag handle, no scrim and no blur or zoom of the desktop.
 
 ### 3.4 Open and close
 
-- **Open:** the panel rises from the pill: scale 0.96 → 1 from its bottom centre, 16 dp → 0 rise, opacity 0 → 1, on `spring.panel` (≈ 280 ms). The grid fades in over 120 ms after 40 ms.
+- **Open:** the panel rises from the pill: scale 0.96 → 1 from its bottom centre, 16 dp → 0 rise, opacity 0 → 1, on `spring.panel` (≈ 280 ms). Its apps arrive with the glass.
+- **Opened by the launcher's transition** (a two-finger swipe up on the desktop, typing on the desktop): the same rise, scale and fade on that transition's progress, so the panel follows the fingers, follows them back if they reverse, and settles with them. It starts invisible, so the overlay window's first frame can't show it open.
 - **Close:** 150 ms, emphasised accelerate: opacity → 0, scale → 0.98, 8 dp fall. Launching an app closes it the same way while the window opens.
+- **Why (C, ANAL-354):** before, a two-finger swipe opened the panel on its own clock, apart from the fingers: empty glass first, then the apps, and a second launcher transition on release (B Honey's "opens twice"). The G14 checks and their measurements are on ANAL-354.
 - **As built (C, #9):** geometry on `spring.panel`, opacity on `duration.fade` (§7's rule). The spring is 1 % from rest at about 270 ms and reaches AOSP's rest threshold (0.15 %) at about 360 ms. AOSP's sheet never ran its own durations: `AbstractSlideInView` starts its playback controller's player directly, which stays at `ValueAnimator`'s default 300 ms (AOSP's 100 ms close included), so the panel sets its player to 150 ms. In the VM the open's first frame takes 250–300 ms (virtio-vga without GL: the guest renders the blur on the CPU), so its smoothness is measured on the G14 (§8).
 
 ## 4. Menus (roadmap #11)
@@ -207,6 +209,20 @@ Our code is `OverviewDesks` in the fork, with one-line hooks; without `desktop_f
 - **Pre-existing, unchanged** (the base launcher does the same): after Clear all, Overview stays open on the empty desk; once Tab has focused a tile, Esc no longer leaves Overview.
 - **Not built:** `enable_recents_window_blur` for Overview on an external display (no two-display run).
 
+### 5.4 Four-finger desk switching (ANAL-354, 2026-11-04)
+
+**What it does.** With two or more desks, a four-finger swipe on the touchpad moves to the desk beside the current one, as spaces do on a Mac. Fingers to the left go to the desk on the right, in the desks' own order (the order they were made, as WM Shell's Ctrl+Meta+[ ] shortcuts use). At either end nothing moves. From Home (no desk active) a swipe either way brings back the last desk. Windows keep their place and state.
+
+**Why it's ours.** AOSP 17 treats a four-finger swipe as quick switch. It walks Recents in most-recent order, where desks and apps take turns, and goes through Home on the way: the desk is deactivated, then the next one activated. On the G14 a swipe back went to a third desk or nowhere, so windows looked minimized (C: WM Shell's state showed them still on the desk left).
+
+**As built (C, OpenBookLauncher #17).**
+- **Input:** `DeskSwipe.replaceOrKeep`, one line at the end of `InputConsumerUtils.newConsumer`. AOSP chooses first. The desk swipe replaces an ordinary app or launcher consumer, including the no-op AOSP leaves on Home, where the launcher's own window would otherwise run quick switch. It never does so on the lock screen (occluded or not), a system dialog, screen pinning or a gesture-blocked task, and not while Overview is on screen. The launcher can stay in its Overview state behind a desk opened from Overview, so Overview counts only when Home is in front or its live tile runs.
+- **Switch:** `SystemUiProxy.activateDesk(neighbour, RemoteTransition)`. `activateDesk` applies no task limit, so nothing is minimized.
+- **Motion (`DeskSlide`):** each desk moves as a whole screen. Its windows ride over its own copy of the desktop: the wallpaper at the platform's zoom (`config_wallpaperMaxScale`, 1.10) and the launcher's desktop drawn over it. The desks slide past each other while Home is held transparent. It follows the fingers (≈ 57 mm of travel for the whole way, committing after ≈ 4 mm), then settles on `spring.desk` with their speed, and ends as soon as it looks done. Arriving windows show from the first frame; the copies leave in the finish transaction.
+- **Checked on the G14** with a uhid touchpad that uses the G14's own descriptor: normal switching, the ends, Home, after Overview, a desk opened from Overview, and a pinned app. The runs and their measurements are on ANAL-354.
+- **Rejected:** a page turn ("subtly like a book"), which the owner didn't want; and windows sliding over a still wallpaper, which didn't read as changing spaces.
+- **Not yet:** taking a switch back by reversing mid-swipe; the stretch and spring-back at the ends; the same slide for the keyboard shortcuts. Chromium shows a blank light window for a few frames as its desk slides in. Hypothesis, not isolated: it is still redrawing after its desk was in the background.
+
 ## 6. Tokens
 
 ### 6.1 Type
@@ -279,6 +295,7 @@ Springs are stiffness and damping ratio, mass 1 (`SpringForce`; Compose `spring(
 |---|---|---|---|---|
 | `spring.panel` | 500, 0.90 | ≈ 280 ms, 0.3 % overshoot | All Apps open, Overview tiles, menu scale | new |
 | `spring.settle` | 700, 0.90 | ≈ 170 ms | Indicator width, Overview hover lift, search reflow | `quire.spring.settle` |
+| `spring.desk` | 300, 0.95 | ≈ 380 ms from rest; less, from where the fingers leave it | Desks sliding as a four-finger swipe switches them (§5.4) | new |
 | `spring.tick` | 1400, 0.70 | ≈ 150 ms | Press on icons and the pill | `quire.spring.tick` |
 | `duration.fade` | 120 ms, standard `(0.2, 0, 0, 1)` | | Colour changes, the grid's fade-in, the tooltip | `quire.duration.fade` |
 | `duration.hover` | in 100 ms, out 150 ms, standard | | State layers | new |
