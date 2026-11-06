@@ -52,6 +52,11 @@ object Connectors {
         val phase: String? = null,
         val bytes: Long = -1,
         val total: Long = -1,
+        /**
+         * The installed image's build_id (its first line), when the Terminal app says: `openbook_…` is OpenBook's, with
+         * quired; Google's (`ferrochrome/…`) has none (ANAL-394). Null when none is installed or the app predates it.
+         */
+        val image: String? = null,
     ) {
         fun describe(context: Context): String {
             val text = when (state) {
@@ -106,8 +111,13 @@ object Connectors {
             return parse(bundle)
         }
 
-        /** The agent bridge's answer (status and start both give one): its `state` and, for an error, `message`. */
-        private fun parse(bundle: Bundle?): Status {
+        /**
+         * The agent bridge's answer (status and start both give one): its `state`, for an error `message`, and the
+         * installed `image`.
+         */
+        private fun parse(bundle: Bundle?): Status = parseState(bundle).copy(image = bundle?.getString("image"))
+
+        private fun parseState(bundle: Bundle?): Status {
             val message = bundle?.getString("message")
             return when (bundle?.getString("state")) {
                 "running" -> Status(NAME, State.READY)

@@ -87,7 +87,8 @@ object SetupModelTest {
             Triple(Env.NO_IMAGE, Remedy.NO_IMAGE, listOf(Row.DONE, Row.FAILED, Row.WAIT, Row.WAIT, Row.WAIT)),
             Triple(Env.STARTING, Remedy.NONE, listOf(Row.DONE, Row.DONE, Row.DONE, Row.NOW, Row.WAIT)),
             Triple(Env.ERROR, Remedy.RETRY, listOf(Row.DONE, Row.DONE, Row.DONE, Row.DONE, Row.FAILED)),
-            Triple(Env.OLD_HELPER, Remedy.OLD_HELPER, listOf(Row.DONE, Row.DONE, Row.DONE, Row.DONE, Row.FAILED)),
+            Triple(Env.OLD_HELPER, Remedy.HELPER, listOf(Row.DONE, Row.DONE, Row.DONE, Row.DONE, Row.FAILED)),
+            Triple(Env.NO_HELPER, Remedy.HELPER, listOf(Row.DONE, Row.DONE, Row.DONE, Row.DONE, Row.FAILED)),
             Triple(Env.OFF, Remedy.START, listOf(Row.WAIT, Row.WAIT, Row.WAIT, Row.WAIT, Row.WAIT)),
         )
         for ((env, remedy, rows) in cases) SetupModel().apply {
@@ -115,6 +116,149 @@ object SetupModelTest {
             go(Page.LINUX)
             onEnv(Env.INSTALLING, phase = "download", bytes = 600_000_000, total = 788_000_000)
             c.eq("resumed rows", linuxRows(), listOf(Row.DONE, Row.NOW, Row.WAIT, Row.WAIT, Row.WAIT))
+        }
+
+        // ANAL-394: a Linux environment without Quire's helper. Google's image says so in its build_id.
+        val google = "ferrochrome/x86_64/hourly-12499-Mon Oct 05 01:03:50 UTC 2026"
+        val ours = "openbook_x86_64-26110612-Fri Nov 06 12:00:00 UTC 2026"
+        c.eq("google's image isn't openbook's", SetupModel.isOpenBookImage(google), false)
+        c.eq("openbook's image", SetupModel.isOpenBookImage(ours), true)
+        SetupModel().apply {
+            c.eq("no image reported: not foreign", foreignImage, false)
+            onEnv(Env.READY, image = google)
+            c.eq("google's image is foreign", foreignImage, true)
+            onEnv(Env.READY)
+            c.eq("no news keeps the image", image, google)
+            onEnv(Env.NOT_INSTALLED, image = "")
+            c.eq("reset: no image", image, "")
+            c.eq("reset: not foreign", foreignImage, false)
+            onEnv(Env.READY, image = ours)
+            c.eq("openbook's image is not foreign", foreignImage, false)
+        }
+        // The page stays while the bridge keeps calling the VM running; a stop or a reset replaces it.
+        SetupModel().apply {
+            open(false)
+            go(Page.LINUX)
+            onEnv(Env.READY, image = google)
+            onEnv(Env.NO_HELPER, "connection reset")
+            c.eq("no helper: remedy", remedy, Remedy.HELPER)
+            c.eq("no helper: missing", helperMissing, true)
+            onEnv(Env.READY, image = google)
+            c.eq("running again keeps the way out", env, Env.NO_HELPER)
+            c.eq("running again keeps the remedy", remedy, Remedy.HELPER)
+            onEnv(Env.NOT_INSTALLED, image = "")
+            c.eq("reset in Recovery ends it", env, Env.NOT_INSTALLED)
+            c.eq("reset: set up again", remedy, Remedy.START)
+        }
+        // Once the helper answers, the wizard carries on by itself from the Linux page.
+        SetupModel().apply {
+            open(false)
+            go(Page.LINUX)
+            onEnv(Env.READY, image = google)
+            onEnv(Env.NO_HELPER)
+            onEnv(Env.READY)
+            onCatalog("0.4.1", listOf(mk("claude")))
+            c.eq("helper answers: ready", env, Env.READY)
+            c.eq("helper answers: linux done", linuxDone, true)
+            c.eq("helper answers: on to agents", page, Page.AGENTS)
+        }
+        // Start clean: Recovery reset it, a new image is installed and started, and its quired answers.
+        SetupModel().apply {
+            open(false)
+            go(Page.LINUX)
+            onEnv(Env.READY, image = google)
+            onEnv(Env.NO_HELPER)
+            onEnv(Env.NOT_INSTALLED, image = "")
+            onEnv(Env.INSTALLING, phase = "unpack")
+            onEnv(Env.STARTING)
+            onEnv(Env.READY, image = ours)
+            c.eq("after a reset: the new image is ready", env, Env.READY)
+            onCatalog("0.4.0", listOf(mk("claude")))
+            c.eq("after a reset: on to agents", page, Page.AGENTS)
+            go(Page.LINUX)
+            onCatalog("0.4.1", listOf(mk("claude")))
+            c.eq("carried on once: a later catalog doesn't move the page", page, Page.LINUX)
+        }
+        SetupModel().apply {
+            open(false)
+            go(Page.LINUX)
+            onEnv(Env.OLD_HELPER)
+            c.eq("old helper: remedy", remedy, Remedy.HELPER)
+            onCatalog("0.4.1", listOf(free))
+            c.eq("updated helper with a free agent: on to try", page, Page.TRY)
+        }
+        SetupModel().apply {
+            open(true)
+            onEnv(Env.NO_HELPER)
+            onCatalog("0.4.1", listOf(free))
+            c.eq("on the agents page it stays there", page, Page.MANAGE)
+            c.eq("on the agents page: ready", env, Env.READY)
+        }
+        SetupModel().apply {
+            open(false)
+            go(Page.LINUX)
+            onEnv(Env.READY)
+            onCatalog("0.4.1", listOf(mk("claude")))
+            c.eq("a first answer doesn't skip the done page", page, Page.LINUX)
+        }
+        // The watch (the Checker's Hold on eda8fdc): Recovery stops the VM, then uninstalls it.
+        val grace = 60_000L
+        HelperWatch(grace).apply {
+            c.eq("watch: running, ask quired", step(Env.READY, 0), HelperWatch.Action.PROBE)
+            c.eq("watch: not installed at once, set up", step(Env.NOT_INSTALLED, 3_000), HelperWatch.Action.SET_UP)
+        }
+        HelperWatch(grace).apply {
+            c.eq("watch: Recovery's stop first, keep watching", step(Env.STOPPED, 0), HelperWatch.Action.WAIT)
+            c.eq("watch: still stopped, keep watching", step(Env.STOPPED, 3_000), HelperWatch.Action.WAIT)
+            c.eq("watch: then not installed, set up", step(Env.NOT_INSTALLED, 6_000), HelperWatch.Action.SET_UP)
+        }
+        HelperWatch(grace).apply {
+            c.eq("watch: installing after the stop, set up", step(Env.STOPPED, 0).let { step(Env.INSTALLING, 3_000) },
+                HelperWatch.Action.SET_UP)
+        }
+        HelperWatch(grace).apply {
+            step(Env.STOPPED, 0)
+            c.eq("watch: a stop within the grace, waiting", step(Env.STOPPED, grace), HelperWatch.Action.WAIT)
+            c.eq("watch: a stop that lasts was the person's, end without a start", step(Env.STOPPED, grace + 1),
+                HelperWatch.Action.END)
+        }
+        HelperWatch(grace).apply {
+            step(Env.STOPPED, 0)
+            c.eq("watch: started again, wait", step(Env.STARTING, 30_000), HelperWatch.Action.WAIT)
+            c.eq("watch: running again, ask quired", step(Env.READY, 33_000), HelperWatch.Action.PROBE)
+            c.eq("watch: a later stop starts its own grace", step(Env.STOPPED, 40_000), HelperWatch.Action.WAIT)
+            c.eq("watch: ...measured from that stop", step(Env.STOPPED, 40_000 + grace), HelperWatch.Action.WAIT)
+            c.eq("watch: ...and ends after it", step(Env.STOPPED, 40_001 + grace), HelperWatch.Action.END)
+        }
+        HelperWatch(grace).apply {
+            c.eq("watch: a brief error, wait", step(Env.ERROR, 0), HelperWatch.Action.WAIT)
+            c.eq("watch: running after it, ask quired", step(Env.READY, 3_000), HelperWatch.Action.PROBE)
+        }
+        for (env in listOf(Env.OFF, Env.NO_AVF, Env.NO_KVM, Env.NO_IMAGE)) HelperWatch(grace).apply {
+            c.eq("watch: $env, end", step(env, 0), HelperWatch.Action.END)
+        }
+
+        // The one command: the package in Downloads, copied out and checked before dpkg installs it.
+        val sha = "0123456789abcdef".repeat(4)
+        c.eq("package name", SetupModel.helperDebName("0.4.1"), "quired_0.4.1_amd64.deb")
+        SetupModel().apply {
+            c.eq("no package yet: no command", helperCommand, "")
+            onHelperDeb("quired_0.4.1_amd64.deb", sha)
+            c.eq("command", helperCommand, "cp /mnt/shared/Download/quired_0.4.1_amd64.deb /tmp/ && " +
+                "echo \"$sha  /tmp/quired_0.4.1_amd64.deb\" | sha256sum -c && sudo dpkg -i /tmp/quired_0.4.1_amd64.deb")
+            c.eq("command: no problem", helperDebProblem, "")
+            onHelperDeb("", "", "This build doesn't carry it")
+            c.eq("no package: no command", helperCommand, "")
+            c.eq("no package: why", helperDebProblem, "This build doesn't carry it")
+        }
+        for (bad in listOf("quired_0.4.1_amd64.deb; rm -rf ~", "../quired_0.4.1_amd64.deb", "quired_\$(id)_amd64.deb",
+            "quired_0.4.1_amd64.deb\nsudo true", "other_0.4.1_amd64.deb", "quired__amd64.deb")) SetupModel().apply {
+            onHelperDeb(bad, sha)
+            c.eq("unsafe name refused: $bad", helperCommand, "")
+        }
+        SetupModel().apply {
+            onHelperDeb("quired_0.4.1_amd64.deb", "\" ; true #")
+            c.eq("bad sha refused", helperCommand, "")
         }
 
         // Sign-in rows and the first method: code-based before a key; no account for free agents.

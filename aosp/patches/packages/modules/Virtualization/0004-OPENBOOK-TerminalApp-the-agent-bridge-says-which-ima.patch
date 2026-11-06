@@ -1,0 +1,89 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 20:30:00 +0000
+Subject: [PATCH] OPENBOOK: TerminalApp: the agent bridge says which image is
+ installed
+
+A Linux environment the Terminal app installed before OpenBook's pinned
+image (patch 0003) is Google's, which has no quired. The bridge called
+it running like any other, so Quire waited for a quired that would
+never answer and could not say why.
+
+call("status"), call("start") and call("stop") now also return image,
+the first line of the installed image's build_id, whenever one is
+installed: openbook_x86_64-... for OpenBook's, ferrochrome/x86_64/
+hourly-... for Google's. It is read on every call, since Recovery can
+replace the image while the app runs, and capped at 200 characters.
+
+OpenBook ANAL-394 (Quire setup: a Linux environment without Quire's
+helper).
+
+Change-Id: I3f2b6a0d94c1e7b85a2d6c0f4e9b1a7d3c5e8f20
+---
+ .../terminal/AgentBridgeProvider.kt           | 25 ++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
+index 7550dfa52..0b8be2402 100644
+--- a/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
++++ b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
+@@ -38,6 +38,7 @@ import java.io.FileDescriptor
+ import java.io.FileInputStream
+ import java.io.FileNotFoundException
+ import java.io.FileOutputStream
++import java.io.IOException
+ import java.util.concurrent.atomic.AtomicInteger
+ import kotlin.concurrent.thread
+ 
+@@ -58,7 +59,9 @@ import kotlin.concurrent.thread
+  * - `call("status")` returns `state` (not_installed, installing, stopped, starting, running, error, no_image) and,
+  *   for an error or no_image, `message`. While installing it also returns `phase` (download, verify, unpack),
+  *   `bytes` and `total` (0 when unknown). no_image: this OpenBook build has no image to install (its manifest names
+- *   none, or is invalid or missing), and nothing is downloaded instead.
++ *   none, or is invalid or missing), and nothing is downloaded instead. When an image is installed, `image` is the
++ *   first line of its build_id, which says whose it is: `openbook_x86_64-…` for OpenBook's, with quired, and
++ *   `ferrochrome/x86_64/hourly-…` for Google's, without (OpenBook ANAL-394).
+  * - `call("start")` starts the Linux environment for the caller and returns the same: it installs it first when it
+  *   isn't (from the image a debuggable build finds in /sdcard/linux, else the download), then starts the VM, so the
+  *   person never has to open this app for Quire's agents. Both run in [VmService], a foreground service: the caller
+@@ -75,6 +78,8 @@ class AgentBridgeProvider : ContentProvider() {
+         /** Nothing listens here; [probe] only asks whether the guest answers at all. */
+         private const val PROBE_PORT = 7699
+         private val nextId = AtomicInteger()
++        /** The longest build_id line passed on; AOSP's are about 60 characters. */
++        private const val IMAGE_MAX = 200
+         /** How long a start that had to install first keeps waiting for the install, before it gives up. */
+         private const val INSTALL_TIMEOUT_MS = 30 * 60_000L
+     }
+@@ -146,6 +151,7 @@ class AgentBridgeProvider : ContentProvider() {
+         return Bundle().apply {
+             putString("state", state)
+             message?.let { putString("message", it) }
++            installedImage()?.let { putString("image", it) }
+             if (state == "installing") {
+                 // What the installer is doing now; the new UI's own progress when it set none (a streamed install).
+                 val phase = InstallProgress.phase
+@@ -161,6 +167,23 @@ class AgentBridgeProvider : ContentProvider() {
+         }
+     }
+ 
++    /**
++     * The installed image's build_id, its first line, or null when none is installed or it has none. Read on every
++     * call: Recovery can replace the image while this process lives.
++     */
++    private fun installedImage(): String? {
++        val image = InstalledImage.getDefault(context!!)
++        if (!image.isInstalled()) return null
++        return try {
++            image.installDir.resolve("build_id").toFile().bufferedReader().use { it.readLine() }
++                ?.trim()
++                ?.take(IMAGE_MAX)
++                ?.ifEmpty { null }
++        } catch (e: IOException) {
++            null
++        }
++    }
++
+     /** Stops the VM when it runs; an install in progress carries on. */
+     private fun stop(): Pair<String, String?> {
+         val vm = VmController.virtualMachine
