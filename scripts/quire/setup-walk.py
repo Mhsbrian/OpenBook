@@ -204,8 +204,10 @@ def carried_on(d, tag, timeout):
 
 
 def terminal_ready(d):
-    """The Terminal app in front with its shell: its first-run permission questions (notifications, local network,
-    microphone) answered Don't allow, as a person who only wants the shell would, then the terminal focused."""
+    """The Terminal app in front with its shell, as on a laptop where the person already uses it: Nearby devices
+    (local network), which the Terminal app requires, granted; its optional questions (notifications, microphone)
+    answered Don't allow; then the terminal focused."""
+    d.sh(f"pm grant {TERMINAL} android.permission.ACCESS_LOCAL_NETWORK 2>/dev/null")
     for _ in range(6):
         n = find(d, starts="Allow Terminal", timeout=6)
         if n is None:
@@ -215,10 +217,13 @@ def terminal_ready(d):
             break
         time.sleep(1)
     time.sleep(3)
+    # The tab is named after the shell's prompt; the keyboard goes to the terminal itself, a WebView, once tapped.
     prompt = find(d, starts="droid@", timeout=30)
-    if prompt is not None:
-        d.tap_node(prompt)
-    return prompt is not None
+    view = next((n for n in nodes(d.ui()) if n.get("class") == "android.webkit.WebView"
+                 and n.get("package") == TERMINAL), None)
+    if view is not None:
+        d.tap_node(view)
+    return prompt is not None and view is not None
 
 
 def nohelper(d, image, reset_image):
@@ -270,6 +275,8 @@ def nohelper(d, image, reset_image):
     clip = d.sh("cmd clipboard get-primary-clip 2>/dev/null")  # where the platform has it; informational
     if command and command in clip:
         d.result("the clipboard holds the command", True, "")
+    # The Terminal app requires Nearby devices; a laptop whose person uses Terminal has granted it.
+    d.sh(f"pm grant {TERMINAL} android.permission.ACCESS_LOCAL_NETWORK 2>/dev/null")
     d.result("Open Terminal tapped", tap(d, text="Open Terminal", timeout=5), "")
     d.result("Terminal shows its shell", terminal_ready(d), "")
     d.screencap("22-terminal.png")
