@@ -70,6 +70,7 @@ person who already has the Linux environment starts at Agents.
 | 0 | **Welcome** (first time only) | Get started, or Not now | Checks in the background: AVF in the image, KVM, network, free space. "Downloads about 800 MB, once." | `welcome` |
 | 1 | **Linux** | Nothing, or closes the window | Turns on the Terminal app, then downloads, checks, unpacks and starts the guest, and waits for `quired` to answer. Five rows tick in turn under a ring: this laptop can run it, downloading (MB done, time left), unpacking, starting Linux, connecting Quire. Closing the window doesn't stop it; a notification says when it's ready. | `linux` |
 | 1′ | **Linux can't run** | Follows the steps, then Check again | No KVM: what to change in the firmware (SVM Mode or Intel VT). No network: Open Wi-Fi settings. Not enough space: how much to free. Failed: Try again, with the reason behind Details. Each is the reason `Connectors` already reports, worded for people. | `linux-nokvm` |
+| 1‴ | **No helper** (§4.4) | Copies one command and runs it in Terminal, or resets in Recovery | The Linux environment runs but has no usable `quired`: Google's image, a `quired` that doesn't answer, or one older than setup. Says which, then two ways out. **Keep your files:** the command, with Copy, and Open Terminal. **Start clean:** Terminal › Settings › Recovery, which deletes the files in the Linux environment. It carries on by itself once `quired` answers. | (app only) |
 | 2 | **Agents** | Selects cards, then Install. **What will run**, beside the count, lists each selected agent's source and exact commands before anything runs | Lists `quired`'s catalog. Each card shows the maker and what the agent needs ("Free models, no account", "A GitHub account with Copilot"). Installed agents show their version. Agents Quire can't run yet (Codex today) are named under the grid, not offered. opencode is marked "Good first pick": it needs no account. | `agents` |
 | 2′ | **Installing** | Waits, or keeps working | Installs one agent at a time. Each card shows its own progress and the current step in words ("Downloading GitHub's installer"). Show details lists the exact commands and their output. A failure stays on its card with Try again; the others carry on. | `installing` |
 | 3 | **Sign in** | Sign in on each row, or Later | One row per installed agent: Ready (no account needed), Signed in, or Sign in. | `signin` |
@@ -227,9 +228,9 @@ service could be killed half-way. Both move to a separate, narrow worker:
   - `job {id}` reads such a result.
 - **Why not `sudo` from `quired`:** that would mean dropping `NoNewPrivileges`, which would give every agent a way to
   root. The worker keeps the agents unprivileged, and only accepts fixed operations from Android.
-- **Old guests:** the G14's guest has `quired` 0.3.0, which has neither the worker nor the new methods, and can't be
-  updated from Quire. The wizard says so. It offers a reinstall of the Linux environment, and says plainly that this
-  replaces the guest's files. A developer can use `scripts/quire/linux-env-adb.sh` instead.
+- **Old guests:** a guest with `quired` 0.3.0 has neither the worker nor the new methods, and can't be updated from
+  Quire. A guest from Google's image has no `quired` at all. The wizard offers the person's own command for both
+  (§4.4, "No helper").
 
 ### 4.4 Quire core
 
@@ -243,6 +244,24 @@ service could be killed half-way. Both move to a separate, narrow worker:
   to choose and install an agent". The terminal-only sign-in path opens the wizard's sheet.
 - **A notification** "The Linux environment is ready" (or the reason it stopped), when the window was closed during
   step 1.
+- **No helper (ANAL-394):** a Linux environment installed before patch 0003 is Google's, with no `quired`. Patch 0004
+  makes the bridge return `image`, the first line of the installed `build_id` (`openbook_x86_64-…` is OpenBook's,
+  `ferrochrome/x86_64/hourly-…` is Google's).
+  - **When:** the VM runs and `quired` doesn't answer: within 8 s on an image that isn't OpenBook's, within 60 s on
+    one that is or that the bridge doesn't name. A `quired` without the setup methods (older than 0.4.0) gets the
+    same page, titled "needs updating". While the bridge calls the VM running, the page stays.
+  - **Keep your files:** Quire core copies the package it carries (`/system_ext/etc/quire/quired.deb`) into the
+    person's Downloads as `quired_<version>_amd64.deb`: written beside it, checked, then renamed. The command copies
+    it out of shared storage, checks that copy's SHA-256 and installs it:
+    `cp /mnt/shared/Download/quired_<v>_amd64.deb /tmp/ && echo "<sha256>  /tmp/quired_<v>_amd64.deb" | sha256sum -c
+    && sudo dpkg -i /tmp/quired_<v>_amd64.deb`. Other apps that manage all files can change Downloads, so the hash is
+    checked on the copy that dpkg reads. The name is checked against Debian's version characters before it is put in a
+    command.
+  - **Start clean:** Terminal › Settings › Recovery. The page says plainly that this deletes the files in the Linux
+    environment.
+  - **Carrying on:** every 3 s for up to 30 minutes, Quire asks whether `quired` answers. When it does, the catalog
+    moves the wizard from the Linux page to the next step. When the Linux environment was reset, Quire sets it up again.
+  - **The agents page** shows "Running, without Quire's helper" with Fix instead of Stop.
 - **OpenBook setup:** the Extras page gets the Quire card (§2.1). A flag in Quire's preferences opens the wizard once
   on the first desktop.
 
@@ -415,7 +434,8 @@ debuggable-only lab alias.
 |---|---|---|
 | `go test -race ./...` in `quire/quired` | Recipes run step by step, with the test binary standing in for `npm`, `curl` and the makers' scripts. Cancel, deadline, failure output, PATH. The pseudo-terminal. URL and code detection on recorded login transcripts. Redaction of echoed input and of key-like values. Key files: mode, owner, symlinked folder or file refused, passed only to their agent, deleted on sign-out. The worker: names off the list refused, a peer other than CID 2 refused, a wrong hash, name, architecture or an older version refused | Host, CI |
 | `linux-env/tests/image-archive-test.sh` (new) | The patch's install classes on the JVM, with `debuggable=false`: `/sdcard` is ignored; a missing, invalid or URL-less manifest gives `no_image` and never Google's image; a wrong hash extracts nothing and leaves an existing guest untouched; `../`, absolute, symlink, hard link, device and unknown-name entries are refused with nothing written outside the staging folder; resume after a simulated restart, with servers answering `206`, `200` and a changed file; too little space | Host, CI |
-| `device/anybook/common/quire/tools/unit-test.sh` | `SetupModel`: every page transition, skip rules, the restart in the middle of a download, the copy for each `Connectors` state, no secret in saved state | Host, CI |
+| `device/anybook/common/quire/tools/unit-test.sh` | `SetupModel`: every page transition, skip rules, the restart in the middle of a download, the copy for each `Connectors` state, no secret in saved state. No helper: Google's image told apart, the page kept while the VM runs, the wizard carrying on once `quired` answers, the command, and unsafe package names or hashes refused | Host, CI |
+| `scripts/quire/linux-env-qemu.sh --no-helper` | Google's image in QEMU: nothing answers on 7690; the wizard's exact command, run in the guest, installs `quired`; then `quired` and the worker answer from the host, and the person's files are still there | Host QEMU |
 | `scripts/quire/linux-env-qemu.sh --setup` (real services) | The guest's real systemd units, no mocks. The worker installs `git` from Debian and refuses a name off its list and a request from inside the guest (CID 1). It updates `quired` from the previous version to this one while `postinst` restarts `quired.service`; the job finishes and its result is read on the next connection. Then opencode is installed by its recipe and answers one prompt | Host QEMU |
 | `scripts/quire/setup-walk.py` (new) | The wizard in Cuttlefish: every page in light and dark, the keyboard path, the labels, Remove animations, the no-KVM page (with `initcall_blacklist=svm_init`), the Terminal app killed half-way through the download and resuming, opencode installed and answering | Cuttlefish (`userdebug`) |
 | The same, on a `user` build | `ro.debuggable=0`: an image in `/sdcard/linux` is ignored, the manifest with no URL shows "no image yet", a manifest pointing at a host server installs, a tampered file on that server is refused, and an existing guest survives the refusal. One `anybook_cf_x86_64_pc-cp2a-user` build serves it, and M2 needs that build anyway | Cuttlefish (`user`) |
