@@ -43,7 +43,8 @@ OpenBook ANAL-393 (Quire setup).
 
 Change-Id: I7144c884b2f5cf4c2f25b9ad511f6fc0cdd42e65
 ---
- .../terminal/AgentBridgeProvider.kt           |  47 ++-
+ .../terminal/AgentBridgeProvider.kt           |  57 +++-
+ .../virtualization/terminal/Application.kt    |   8 +
  .../virtualization/terminal/ImageArchive.kt   | 146 ++++++++-
  .../terminal/InstallerService.kt              |   4 +-
  .../terminal/new2/core/Installer.kt           |   2 +
@@ -51,14 +52,14 @@ Change-Id: I7144c884b2f5cf4c2f25b9ad511f6fc0cdd42e65
  .../terminal/openbook/OpenBookInstall.kt      |  71 +++++
  .../terminal/openbook/SafeExtractor.kt        | 198 ++++++++++++
  .../terminal/openbook/StagedDownload.kt       | 249 +++++++++++++++
- 8 files changed, 1001 insertions(+), 17 deletions(-)
+ 9 files changed, 1019 insertions(+), 17 deletions(-)
  create mode 100644 android/TerminalApp/java/com/android/virtualization/terminal/openbook/OpenBookImage.kt
  create mode 100644 android/TerminalApp/java/com/android/virtualization/terminal/openbook/OpenBookInstall.kt
  create mode 100644 android/TerminalApp/java/com/android/virtualization/terminal/openbook/SafeExtractor.kt
  create mode 100644 android/TerminalApp/java/com/android/virtualization/terminal/openbook/StagedDownload.kt
 
 diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
-index 0787d9082..6c3729eeb 100644
+index 0787d9082..7550dfa52 100644
 --- a/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
 +++ b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
 @@ -33,6 +33,7 @@ import com.android.virtualization.terminal.new2.core.InstallState
@@ -81,7 +82,7 @@ index 0787d9082..6c3729eeb 100644
   *
   * Only a VM's owner can have a vsock to it, so this process connects to the guest, as
   * [AndroidToVmBridge] does for ttyd, and relays the connection to one end of a socket pair; the
-@@ -52,20 +54,23 @@ import kotlin.concurrent.thread
+@@ -52,20 +54,24 @@ import kotlin.concurrent.thread
   * [PERMISSION] (signature|privileged), and only the ports in [PORTS] are offered: ttyd and the guest
   * agent stay private to this app.
   *
@@ -101,6 +102,7 @@ index 0787d9082..6c3729eeb 100644
   */
  class AgentBridgeProvider : ContentProvider() {
      companion object {
++        private const val INIT_WAIT_S = 20L
          private const val TAG = "AgentBridge"
          const val AUTHORITY = "com.android.virtualization.terminal.agentbridge"
          const val PERMISSION = "com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE"
@@ -109,7 +111,7 @@ index 0787d9082..6c3729eeb 100644
          /** Nothing listens here; [probe] only asks whether the guest answers at all. */
          private const val PROBE_PORT = 7699
          private val nextId = AtomicInteger()
-@@ -82,7 +87,10 @@ class AgentBridgeProvider : ContentProvider() {
+@@ -82,7 +88,10 @@ class AgentBridgeProvider : ContentProvider() {
      private fun state(): Pair<String, String?> {
          if (!Flags.terminalNewuiJetpack()) return "error" to "the agent bridge needs the new Terminal UI"
          if (Installer.isInstalling) return "installing" to null
@@ -121,7 +123,20 @@ index 0787d9082..6c3729eeb 100644
          return when (val s = VmController.vmState.value) {
              // VmController calls the VM running as soon as crosvm is started, and AVF keeps listing it while its
              // vhost-user helpers live, even after crosvm exited (at once without KVM: "no enabled hypervisor").
-@@ -122,20 +130,43 @@ class AgentBridgeProvider : ContentProvider() {
+@@ -118,24 +127,56 @@ class AgentBridgeProvider : ContentProvider() {
+ 
+     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
+         enforce()
++        // A call can arrive while the app is still starting (the provider is published first): the Installer and
++        // VmController it uses aren't set up until Application.onCreate ends (C, Cuttlefish 2026-11-06: an install
++        // started then failed with "NetworkMonitor not initialized").
++        if (!Application.initialized.await(INIT_WAIT_S, java.util.concurrent.TimeUnit.SECONDS)) {
++            return Bundle().apply {
++                putString("state", "error")
++                putString("message", "the Terminal app is still starting")
++            }
++        }
+         val (state, message) =
              when (method) {
                  "status" -> state()
                  "start" -> start()
@@ -166,6 +181,32 @@ index 0787d9082..6c3729eeb 100644
                  "not_installed" -> {
                      Log.i(TAG, "start: installing the Linux environment for ${callingPackage ?: "?"}")
                      Installer.install()
+diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/Application.kt b/android/TerminalApp/java/com/android/virtualization/terminal/Application.kt
+index b33c0b0db..5fcd80cfe 100644
+--- a/android/TerminalApp/java/com/android/virtualization/terminal/Application.kt
++++ b/android/TerminalApp/java/com/android/virtualization/terminal/Application.kt
+@@ -31,6 +31,7 @@ public class Application : AndroidApplication() {
+             VmController.initialize(this)
+         }
+         setupNotificationChannels()
++        initialized.countDown()
+     }
+ 
+     private fun setupNotificationChannels() {
+@@ -57,6 +58,13 @@ public class Application : AndroidApplication() {
+         const val CHANNEL_LONG_RUNNING_ID = "long_running"
+         const val CHANNEL_SYSTEM_EVENTS_ID = "system_events"
+ 
++        /**
++         * Opened once onCreate has set up the Installer and VmController. Content providers are published before
++         * Application.onCreate runs, so a provider call (the agent bridge's) can arrive on a binder thread before them;
++         * it waits on this.
++         */
++        @JvmField val initialized = java.util.concurrent.CountDownLatch(1)
++
+         fun getInstance(c: Context): Application = c.getApplicationContext() as Application
+     }
+ }
 diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/ImageArchive.kt b/android/TerminalApp/java/com/android/virtualization/terminal/ImageArchive.kt
 index 08009f98d..58ef3010d 100644
 --- a/android/TerminalApp/java/com/android/virtualization/terminal/ImageArchive.kt
