@@ -58,9 +58,6 @@ class SetupController(private val app: QuireApplication) {
     /** The installed image the bridge last reported (Connectors.Status.image); "" when none or not said. */
     @Volatile private var lastImage = ""
 
-    /** Mirrors [SetupModel.helperMissing] for the worker threads; the model itself changes only on the main thread. */
-    @Volatile private var helperMissing = false
-
     /** The window is on screen; when it isn't, a finished step 1 posts a notification instead. */
     @Volatile var visible = false
 
@@ -112,7 +109,6 @@ class SetupController(private val app: QuireApplication) {
             else -> s.image
         }
         if (image != null) lastImage = image
-        if (env != SetupModel.Env.READY) helperMissing = false
         ui { onEnv(env, s.detail.orEmpty(), s.phase.orEmpty(), s.bytes, s.total, image) }
     }
 
@@ -238,7 +234,6 @@ class SetupController(private val app: QuireApplication) {
                     val version = res.optString("quired", h.quiredVersion)
                     Log.i(TAG, "setup: catalog quired=$version agents=${agents.size} installed=" +
                         agents.filter { it.installed }.joinToString(",") { it.id })
-                    helperMissing = false
                     ui { onEnv(SetupModel.Env.READY); onCatalog(version, agents) }
                     checkSignIns(agents.filter { it.installed && it.supported && !it.needsNoAccount }.map { it.id })
                     keepQuiredCurrent(h)
@@ -275,7 +270,6 @@ class SetupController(private val app: QuireApplication) {
     private fun noHelper(old: Boolean, detail: String) {
         Log.i(TAG, "setup: no usable quired in the Linux environment (${if (old) "older than 0.4.0" else "none answers"}), " +
             "image \"${lastImage.ifEmpty { "?" }}\"")
-        helperMissing = true
         ui { onEnv(if (old) SetupModel.Env.OLD_HELPER else SetupModel.Env.NO_HELPER, detail) }
         offerHelperDeb()
         watchHelper()
@@ -324,22 +318,27 @@ class SetupController(private val app: QuireApplication) {
     /**
      * While the Linux environment has no usable quired, checks every [WATCH_POLL_MS] whether one answers now (the
      * person ran the command) or the Linux environment was reset in Recovery, and carries on either way: the catalog
-     * moves the wizard on, and a reset image is set up again. Stops when the state is anything else, or after
-     * [WATCH_MS].
+     * moves the wizard on, and a reset image is set up again. [HelperWatch] decides each step, so a stop on the way to
+     * a reset doesn't end the watch, and a stop that lasts is left as it is. Ends after [WATCH_MS] at most.
      */
     private fun watchHelper() {
         if (watching) return
         watching = true
         work("helper-watch") {
             try {
+                val watch = HelperWatch(STOP_GRACE_MS)
                 val until = SystemClock.elapsedRealtime() + WATCH_MS
-                while (helperMissing && SystemClock.elapsedRealtime() < until) {
+                var last: Connectors.State? = null
+                while (SystemClock.elapsedRealtime() < until) {
                     SystemClock.sleep(WATCH_POLL_MS)
-                    if (!helperMissing) break
                     if (linuxRunning || catalogRunning) continue
                     val s = Connectors.LinuxEnvironment.status(app)
-                    when (s.state) {
-                        Connectors.State.READY -> {
+                    val action = watch.step(envOf(s), SystemClock.elapsedRealtime())
+                    if (s.state != last) Log.i(TAG, "setup: helper watch: ${s.state} -> $action")
+                    last = s.state
+                    when (action) {
+                        HelperWatch.Action.WAIT -> {}
+                        HelperWatch.Action.PROBE -> {
                             publish(s)
                             if (helperAnswers()) {
                                 Log.i(TAG, "setup: quired answers now; carrying on")
@@ -348,15 +347,14 @@ class SetupController(private val app: QuireApplication) {
                             }
                         }
                         // Reset in Recovery: set up OpenBook's image, as the page said Quire would.
-                        Connectors.State.NOT_INSTALLED, Connectors.State.INSTALLING, Connectors.State.STARTING -> {
+                        HelperWatch.Action.SET_UP -> {
                             Log.i(TAG, "setup: the Linux environment is ${s.state} now; setting it up")
-                            helperMissing = false
                             publish(s)
                             startLinux(showPage = false)
                             break
                         }
-                        else -> {
-                            helperMissing = false
+                        HelperWatch.Action.END -> {
+                            Log.i(TAG, "setup: the Linux environment is ${s.state}; no longer waiting for its helper")
                             publish(s)
                             break
                         }
@@ -810,6 +808,9 @@ class SetupController(private val app: QuireApplication) {
         private const val WATCH_POLL_MS = 3_000L
         private const val WATCH_MS = 30 * 60_000L
         private const val PROBE_MS = 5_000L
+
+        /** How long a stop is watched through: Recovery uninstalls right after it stops the VM. */
+        private const val STOP_GRACE_MS = 60_000L
 
         /** The quired package this image carries, and its version (device/anybook/common/quire/Android.bp). */
         const val QUIRED_DEB = "/system_ext/etc/quire/quired.deb"

@@ -435,3 +435,46 @@ class SetupModel {
         }
     }
 }
+
+/**
+ * What Quire's watch does with each state the bridge reports while a Linux environment has no usable helper (ANAL-394,
+ * SetupController.watchHelper). No Android types, so the host tests drive it.
+ *
+ * Recovery's reset stops the VM and only then uninstalls it (the Terminal app's SettingsViewModel.resetTerminal calls
+ * VmController.stop, then Installer.uninstall), so a check can land between the two and see "stopped". A stop is
+ * watched through for [stopGraceMs]: if "not installed" follows, it was a reset, and the Linux environment is set up
+ * again. A stop that lasts was the person's: the watch ends and nothing is started.
+ */
+class HelperWatch(private val stopGraceMs: Long) {
+    enum class Action {
+        /** Keep watching; the page stays as it is. */
+        WAIT,
+        /** The VM runs: ask quired whether it answers now. */
+        PROBE,
+        /** Reset in Recovery (not installed, or installing): set the Linux environment up again, as the page said. */
+        SET_UP,
+        /** Stop watching and show the state as it is: a stop that lasted, or a state this page can't help with. */
+        END,
+    }
+
+    private var stoppedSince = -1L
+
+    fun step(env: SetupModel.Env, now: Long): Action = when (env) {
+        SetupModel.Env.READY -> {
+            stoppedSince = -1L
+            Action.PROBE
+        }
+        SetupModel.Env.NOT_INSTALLED, SetupModel.Env.INSTALLING -> Action.SET_UP
+        // Started again, by the person or the Terminal app: watch on until it runs.
+        SetupModel.Env.STARTING -> {
+            stoppedSince = -1L
+            Action.WAIT
+        }
+        // Stopped, or a brief error while it stops or starts: only for so long.
+        SetupModel.Env.STOPPED, SetupModel.Env.ERROR -> {
+            if (stoppedSince < 0) stoppedSince = now
+            if (now - stoppedSince <= stopGraceMs) Action.WAIT else Action.END
+        }
+        else -> Action.END
+    }
+}

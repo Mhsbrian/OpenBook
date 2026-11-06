@@ -201,6 +201,43 @@ object SetupModelTest {
             onCatalog("0.4.1", listOf(mk("claude")))
             c.eq("a first answer doesn't skip the done page", page, Page.LINUX)
         }
+        // The watch (the Checker's Hold on eda8fdc): Recovery stops the VM, then uninstalls it.
+        val grace = 60_000L
+        HelperWatch(grace).apply {
+            c.eq("watch: running, ask quired", step(Env.READY, 0), HelperWatch.Action.PROBE)
+            c.eq("watch: not installed at once, set up", step(Env.NOT_INSTALLED, 3_000), HelperWatch.Action.SET_UP)
+        }
+        HelperWatch(grace).apply {
+            c.eq("watch: Recovery's stop first, keep watching", step(Env.STOPPED, 0), HelperWatch.Action.WAIT)
+            c.eq("watch: still stopped, keep watching", step(Env.STOPPED, 3_000), HelperWatch.Action.WAIT)
+            c.eq("watch: then not installed, set up", step(Env.NOT_INSTALLED, 6_000), HelperWatch.Action.SET_UP)
+        }
+        HelperWatch(grace).apply {
+            c.eq("watch: installing after the stop, set up", step(Env.STOPPED, 0).let { step(Env.INSTALLING, 3_000) },
+                HelperWatch.Action.SET_UP)
+        }
+        HelperWatch(grace).apply {
+            step(Env.STOPPED, 0)
+            c.eq("watch: a stop within the grace, waiting", step(Env.STOPPED, grace), HelperWatch.Action.WAIT)
+            c.eq("watch: a stop that lasts was the person's, end without a start", step(Env.STOPPED, grace + 1),
+                HelperWatch.Action.END)
+        }
+        HelperWatch(grace).apply {
+            step(Env.STOPPED, 0)
+            c.eq("watch: started again, wait", step(Env.STARTING, 30_000), HelperWatch.Action.WAIT)
+            c.eq("watch: running again, ask quired", step(Env.READY, 33_000), HelperWatch.Action.PROBE)
+            c.eq("watch: a later stop starts its own grace", step(Env.STOPPED, 40_000), HelperWatch.Action.WAIT)
+            c.eq("watch: ...measured from that stop", step(Env.STOPPED, 40_000 + grace), HelperWatch.Action.WAIT)
+            c.eq("watch: ...and ends after it", step(Env.STOPPED, 40_001 + grace), HelperWatch.Action.END)
+        }
+        HelperWatch(grace).apply {
+            c.eq("watch: a brief error, wait", step(Env.ERROR, 0), HelperWatch.Action.WAIT)
+            c.eq("watch: running after it, ask quired", step(Env.READY, 3_000), HelperWatch.Action.PROBE)
+        }
+        for (env in listOf(Env.OFF, Env.NO_AVF, Env.NO_KVM, Env.NO_IMAGE)) HelperWatch(grace).apply {
+            c.eq("watch: $env, end", step(env, 0), HelperWatch.Action.END)
+        }
+
         // The one command: the package in Downloads, copied out and checked before dpkg installs it.
         val sha = "0123456789abcdef".repeat(4)
         c.eq("package name", SetupModel.helperDebName("0.4.1"), "quired_0.4.1_amd64.deb")
