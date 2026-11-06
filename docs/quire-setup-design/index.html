@@ -329,6 +329,19 @@ const AGENTS = [
   { id: 'omp',      name: 'Oh My Pi',        by: 'Open source',    needs: 'A model provider you choose', ini: 'Pi', c: '#65597A', mb: 60, signin: 'key' },
 ];
 const SOON = ['Codex CLI'];
+/* What will run, per agent (docs/quire-setup.md §5): shown before Install, and in Details while it runs. */
+const RECIPE = {
+  claude:   { from: 'claude.ai', cmd: ['curl -fsSL https://claude.ai/install.sh | bash'] },
+  opencode: { from: 'opencode.ai', cmd: ['curl -fsSL https://opencode.ai/v2/install | bash -s -- --no-modify-path'] },
+  copilot:  { from: 'github.com', cmd: ['# GitHub’s release binary, version pinned, checksum checked', 'copilot 1.0.106 for linux-x64 → ~/.local/bin/copilot'] },
+  agy:      { from: 'antigravity.google', cmd: ['curl -fsSL https://antigravity.google/cli/install.sh | bash'] },
+  gemini:   { from: 'Debian, npmjs.com', deb: ['nodejs', 'npm'], cmd: ['npm install -g --prefix ~/.local @google/gemini-cli'] },
+  cursor:   { from: 'cursor.com', cmd: ['curl https://cursor.com/install -fsS | bash'] },
+  kimi:     { from: 'kimi.com', cmd: ['KIMI_NO_MODIFY_PATH=1 bash -c "$(curl -fsSL https://code.kimi.com/kimi-code/install.sh)"'] },
+  grok:     { from: 'x.ai', cmd: ['curl -fsSL https://x.ai/cli/install.sh | bash'] },
+  hermes:   { from: 'Debian, nousresearch.com', deb: ['git', 'curl', 'tar', 'libatomic1'], cmd: ['curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash'] },
+  omp:      { from: 'omp.sh', cmd: ['curl -fsSL https://omp.sh/install | sh'] },
+};
 const A = Object.fromEntries(AGENTS.map(a => [a.id, a]));
 
 /* ---- small pieces ---- */
@@ -466,20 +479,28 @@ S.agents = (p = { sel: { claude: 1, copilot: 1 }, installed: { opencode: 'v2.2.5
       <p class="lead">Pick one or more. Quire installs each with its maker’s own installer.</p>
       <div class="grid">${AGENTS.map(a => agentCard(a, { sel: p.sel[a.id], installed: !!p.installed[a.id], version: p.installed[a.id] })).join('')}</div>
       <div class="soon">Coming to Quire: ${SOON.map(s => `<span class="chip muted">${s}</span>`).join('')}<span>· Any agent that speaks the Agent Client Protocol works too.</span></div>`,
-    hint: sel.length ? `${sel.length} selected · about ${mb} MB` : 'Select the agents you want',
-    actions: `<button class="btn text" data-act="toSignin">Skip</button><button class="btn filled" data-act="install" ${sel.length ? '' : 'disabled'}>${sel.length ? `Install ${sel.length === 1 ? A[sel[0]].name : sel.length + ' agents'}` : 'Install'}</button>`,
+    hint: sel.length ? `${sel.length} selected · about ${mb} MB · <button class="btn text sm" data-act="whatruns" style="padding:0 6px">What will run</button>` : 'Select the agents you want',
+    actions: `<button class="btn text" data-act="toSignin">Skip</button><button class="btn filled" data-act="install" ${sel.length ? '' : 'disabled'}>${installLabel(sel)}</button>`,
+    sheet: p.sheet === 'whatruns' ? whatRuns(sel) : '',
   });
 };
+const installLabel = (sel) => sel.length ? `Install ${sel.length === 1 ? A[sel[0]].name : sel.length + ' agents'}` : 'Install';
+function whatRuns(sel) {
+  const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const lines = sel.map(k => { const r = RECIPE[k];
+    return `<span class="c"># ${A[k].name}, from ${r.from}</span>\n` + (r.deb ? `<span class="c"># From Debian’s archive, installed by Quire:</span> ${r.deb.join(' ')}\n` : '') + r.cmd.map(esc).join('\n'); }).join('\n\n');
+  return `<h2 style="margin-top:0">What will run</h2>
+    <p class="lead">Each agent comes from its maker. Its commands run in the Linux environment as your user, without admin rights. Debian packages come from Debian’s archive.</p>
+    <div class="details" style="max-height:none;white-space:pre-wrap">${lines}</div>
+    <div class="acts"><span class="fine" style="margin:0">The same list stays under Show details while it runs.</span><span class="spacer"></span>
+      <button class="btn text" data-act="closeSheet">Back</button><button class="btn filled" data-act="install">${installLabel(sel)}</button></div>`;
+}
 
 S.installing = (p = { jobs: { claude: { progress: 1, version: 'v2.1.318' }, copilot: { progress: .46, line: 'Downloading Copilot CLI 1.0.106 · 31 of 68 MB' } }, installed: { opencode: 'v2.2.5' }, details: false }) => {
   const order = Object.keys(p.jobs);
   const doneN = order.filter(k => p.jobs[k].progress >= 1).length;
   const all = doneN === order.length;
-  const details = p.details ? `<div class="details"><span class="c"># Claude Code: the maker's native installer (docs/quire-setup.md §5)</span>
-curl -fsSL https://claude.ai/install.sh | bash
-<span class="c"># GitHub Copilot CLI: GitHub's installer, into ~/.local</span>
-curl -fsSL https://gh.io/copilot-install | bash
-Downloading copilot 1.0.106 for linux-x64…</div>` : '';
+  const details = p.details ? `<div class="details">${order.map(k => `<span class="c"># ${A[k].name}, from ${RECIPE[k].from}</span>\n${RECIPE[k].cmd.join('\n')}`).join('\n')}</div>` : '';
   return frame({
     step: 1, working: !all,
     body: `<h1>${all ? 'Installed' : 'Installing your agents'}</h1>
@@ -601,6 +622,7 @@ const GALLERY = [
   ['linux', 'Linux environment', 'one click: turned on, downloaded and checked, started; real progress from the Terminal app’s bridge'],
   ['linux-nokvm', 'No virtualization', 'the one dead end, with the way out'],
   ['agents', 'Choose agents', 'quired’s catalog; installed ones are marked; unsupported ones are named, not offered'],
+  ['agents-details', 'What will run', 'before Install: each selected agent’s source and exact commands'],
   ['installing', 'Installing', 'each card shows its own progress; Show details lists the exact commands'],
   ['signin', 'Sign in', 'one row per agent; agents with no account are ready'],
   ['signin-device', 'Sign in: device code', 'GitHub-style flows: the code, the page, and the wait'],
@@ -612,6 +634,7 @@ const SCREEN_ARGS = {
   'signin-device': () => S.signin({ rows: { claude: 'out', copilot: 'out', opencode: 'none' }, sheet: 'device' }),
   'signin-paste': () => S.signin({ rows: { claude: 'out', copilot: 'in', opencode: 'none' }, sheet: 'paste', pasted: true }),
   'try': () => S.try({ words: 14, agent: 'claude' }),
+  'agents-details': () => S.agents({ sel: { claude: 1, gemini: 1 }, installed: { opencode: 'v2.2.5' }, sheet: 'whatruns' }),
 };
 const render = (id) => (SCREEN_ARGS[id] || S[id])();
 
@@ -709,7 +732,8 @@ function play() {
     switch (act) {
       case 'start': runLinux(); break;
       case 'toAgents': st.screen = 'agents'; show(); break;
-      case 'install': runInstall(); break;
+      case 'whatruns': st.sheet = 'whatruns'; show(); break;
+      case 'install': st.sheet = null; runInstall(); break;
       case 'details': st.details = !st.details; show(); break;
       case 'toSignin': toSignin(); break;
       case 'signin': st.signing = t.dataset.agent; st.sheet = { device: 'device', key: 'key', link: 'link' }[A[st.signing].signin] || 'paste'; st.pasted = false; show();
