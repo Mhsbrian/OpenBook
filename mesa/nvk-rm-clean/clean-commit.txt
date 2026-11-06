@@ -1,6 +1,6 @@
 # The clean-room commit this OpenBook code is taken from (ANAL-324 path A), and where each of its files is here.
-# commit ea217004c40fac92b6e3d17af01ad9e0024a003f: ~/anybook/cleanroom/nvk-rm-clean on the build host: ANAL-330's clean-side tree plus ANAL-349's patch 0027 and ANAL-351's patch 0028 (clean side),
-# tested on the RTX 4090 by ANAL-326 (stage 2b) and, with 0027 and 0028, on the G14 by ANAL-349 and ANAL-351. scripts/nvk-provenance-check.sh checks every row:
+# commit 77608ebf9b1519140756494dc5b4d71f04761a29: ~/anybook/cleanroom/nvk-rm-clean on the build host: ANAL-330's clean-side tree plus ANAL-349's patch 0027, ANAL-351's patch 0028 and ANAL-353's patch 0029 (clean side),
+# tested on the RTX 4090 by ANAL-326 (stage 2b) and, with 0027, 0028 and 0029, on the G14 by ANAL-349, ANAL-351 and ANAL-353. scripts/nvk-provenance-check.sh checks every row:
 #   exact         the OpenBook file's git blob is the commit's blob, byte for byte;
 #   prefix:N      the OpenBook file's first N bytes are the commit's whole file (PROVENANCE.md, which then
 #                 adds OpenBook's own entries);
@@ -9,7 +9,7 @@
 #                 own series, the same blobs.
 # blob	clean-commit path	OpenBook path	check
 2f7896d1d1365eafb0da03d9fe456fac81408487	.gitignore	-	not-imported
-4b90f8aaca8b2aa3ad4ea049787eaddc0b76c74b	PROVENANCE.md	mesa/nvk-rm-clean/PROVENANCE.md	prefix:20319
+f5bf3c54b66518cf901ae3cc5145040fe5627bd0	PROVENANCE.md	mesa/nvk-rm-clean/PROVENANCE.md	prefix:21965
 c60a771d1f8b665834b2f78356f2109ae69e8679	README.md	-	not-imported
 1160cd019d5cb674f1039d7e0b205b1292118d13	SPEC.md	mesa/nvk-rm-clean/SPEC.md	exact
 2418f9cba3f4a4b594388f3d4488a36f9c9c5f3c	backend/Cargo.lock	mesa/nvk-rm-clean/backend/Cargo.lock	exact
@@ -73,6 +73,7 @@ f41b7ba5165f3480765fcd8ae53f6868b70b9354	mesa/patches/nvk-rm-clean/0023-nvk-opti
 9c8b18eb3e5c5d8343c85a730002e0e07c684fda	mesa/patches/nvk-rm-clean/0026-nvk-keep-the-program-prefetch-inside-the-program-s-o.patch	mesa/patches/nvk-rm-clean/0026-nvk-keep-the-program-prefetch-inside-the-program-s-o.patch	exact
 6a953abd249f5ff60434393b6c15e11159bb8f3d	mesa/patches/nvk-rm-clean/0027-nvk-android-ask-for-linear-window-buffers-on-the-leg.patch	mesa/patches/nvk-rm-clean/0027-nvk-android-ask-for-linear-window-buffers-on-the-leg.patch	exact
 02a1eb7eda3ac5a6a871e3b7a5e36ca84888f1ad	mesa/patches/nvk-rm-clean/0028-nvk-android-copy-VRAM-swapchain-images-to-the-window.patch	mesa/patches/nvk-rm-clean/0028-nvk-android-copy-VRAM-swapchain-images-to-the-window.patch	exact
+36885a332dec546c8c7e9dff47fc6cdba42f76a2	mesa/patches/nvk-rm-clean/0029-nvk-android-log-the-one-time-swapchain-lines-once-ac.patch	mesa/patches/nvk-rm-clean/0029-nvk-android-log-the-one-time-swapchain-lines-once-ac.patch	exact
 ff29c1a4303cc6cceec5996882c1a61773340dca	mesa/patches/nvk/0001-nvk-link-with-the-common-Vulkan-ICD-version-script.patch	mesa/patches/nvk/0001-nvk-link-with-the-common-Vulkan-ICD-version-script.patch	exact
 97c2b7e3b894ee217435150fd7b3ac877c33f87a	mesa/patches/nvk/0002-nvk-advertise-two-queues-in-the-graphics-queue-famil.patch	mesa/patches/nvk/0002-nvk-advertise-two-queues-in-the-graphics-queue-famil.patch	exact
 df3927058dbad79b254ccf18f4971186dc34fcc8	mesa/patches/nvk/0003-nvk-split-the-image-layout-out-of-nvk_image_init.patch	mesa/patches/nvk/0003-nvk-split-the-image-layout-out-of-nvk_image_init.patch	exact

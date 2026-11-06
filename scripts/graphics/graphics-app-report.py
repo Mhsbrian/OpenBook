@@ -50,8 +50,8 @@ def main(boot, out, apk_sha=""):
     check("org.openbook.nvk in /vendor/app", "package:/vendor/app/OpenBookNvk/OpenBookNvk.apk" in pkg)
     check("org.openbook.nvk: a system package", re.search(r"(pkgFlags|flags)=\[[^\]]*\bSYSTEM\b", pkg))
     check("org.openbook.nvk: x86_64 libraries", "primaryCpuAbi=x86_64" in pkg)
-    check("org.openbook.nvk: version 26.2.5-openbook.3 (3)",
-          "versionName=26.2.5-openbook.3" in pkg and re.search(r"versionCode=3\b", pkg))
+    check("org.openbook.nvk: version 26.2.5-openbook.4 (4)",
+          "versionName=26.2.5-openbook.4" in pkg and re.search(r"versionCode=4\b", pkg))
     check("OpenBookNvk.apk labelled vendor_app_file", re.search(r"u:object_r:vendor_app_file:s0\s.*\sOpenBookNvk\.apk$", pkg, re.M))
     on_dev = re.search(r"^([0-9a-f]{64})\s+/vendor/app/OpenBookNvk/OpenBookNvk\.apk", pkg, re.M)
     check("OpenBookNvk.apk is the image's", on_dev and (not apk_sha or on_dev.group(1) == apk_sha),

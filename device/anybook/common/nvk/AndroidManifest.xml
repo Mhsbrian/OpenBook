@@ -13,8 +13,8 @@
   forceQueryable: every app's process looks the package up with its own PackageManager (GraphicsEnvironment), so the
   package must be visible to every app. A system package is only if it is platform-signed or forceQueryable
   (AppsFilterImpl), as AOSP's own ANGLE APK is. Without it, apps saw "package not installed" (QEMU, 2026-11-02).
-  build_time is "L" and the Unix time of the clean-room commit these libraries are built from (ea217004,
-  2026-11-02T21:15:00Z); scripts/nvk-stage.sh checks it against device/anybook/common/nvk/tested-bytes.txt.
+  build_time is "L" and the Unix time of the clean-room commit these libraries are built from (77608ebf,
+  2026-11-06T12:35:00Z); scripts/nvk-stage.sh checks it against device/anybook/common/nvk/tested-bytes.txt.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.openbook.nvk">
@@ -25,6 +25,6 @@
         android:forceQueryable="true">
         <meta-data
             android:name="com.android.graphics.driver.build_time"
-            android:value="L1793654100" />
+            android:value="L1793968500" />
     </application>
 </manifest>

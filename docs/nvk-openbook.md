@@ -59,7 +59,7 @@ flowchart LR
 
 | In `lib/x86_64` | What | SHA-256 |
 |---|---|---|
-| `vulkan.radv.so` | NVK, Mesa 26.2.5 + 40 patches (`vulkan.nouveau.so` of the `nvk-rm-clean` build) | `3419a57c…` |
+| `vulkan.radv.so` | NVK, Mesa 26.2.5 + 41 patches (`vulkan.nouveau.so` of the `nvk-rm-clean` build) | `7bb60cfe…` |
 | `libnv_bionic_native.so` | NVK's backend for NVIDIA's open kernel driver | `0f6c604b…` |
 | `libdrm.so`, `libelf_mesa.so` | the build's own libdrm 2.4.133 and elfutils libelf (NVK needs both) | `ccf9766c…`, `5f491b5d…` |
 | `libEGL_angle.so`, `libGLESv1_CM_angle.so`, `libGLESv2_angle.so` | ANGLE's own APK build (`external/angle`), with OpenBook's NVK patch (§4); used only for an app whose ANGLE choice is "native" (§2) | per build |
@@ -103,9 +103,9 @@ work: that issue is on the clean room's exclusion list.
 
 ## 5. Provenance
 
-- **The driver** is ANAL-324's clean-room tree at commit `ea217004`, unchanged: ANAL-330's clean-side tree, which ANAL-326
-  tested on the RTX 4090 (§6), plus one Android fix from ANAL-349's clean-side run (patch `0027`) and one performance fix
-  from ANAL-351's (patch `0028`). ANAL-330's run wrote
+- **The driver** is ANAL-324's clean-room tree at commit `77608ebf`, unchanged: ANAL-330's clean-side tree, which ANAL-326
+  tested on the RTX 4090 (§6), plus one Android fix from ANAL-349's clean-side run (patch `0027`), one performance fix
+  from ANAL-351's (patch `0028`) and thread-safe once-guards for two log lines from ANAL-353's (patch `0029`). ANAL-330's run wrote
   the parts that had no public source. `mesa/nvk-rm-clean/README.md` and its
   `PROVENANCE.md` give every file's origin.
 - **The gate:** `scripts/nvk-provenance-check.sh` runs the clean room's scanner on every path of NVIDIA app support

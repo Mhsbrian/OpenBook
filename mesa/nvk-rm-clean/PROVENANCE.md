@@ -19,6 +19,7 @@ SPEC item.
 | `mesa/patches/nvk-rm-clean/0026` | AnyBook, ANAL-330 (clean side), MIT like Mesa | New, item H2; see the clean-side entries below |
 | `mesa/patches/nvk-rm-clean/0027` | AnyBook, ANAL-349 (clean side), MIT like Mesa | New: a fix for a failure found on the G14; see "Clean-side work (ANAL-349)" |
 | `mesa/patches/nvk-rm-clean/0028` | AnyBook, ANAL-351 (clean side), MIT like Mesa | New: a performance fix for a cost measured on the G14; see "Clean-side work (ANAL-351)" |
+| `mesa/patches/nvk-rm-clean/0029` | AnyBook, ANAL-353 (clean side), MIT like Mesa | New: thread-safe once-guards for the log lines of `0021` and `0027`; see "Clean-side work (ANAL-353)" |
 | `scripts/mesa-android-build.sh` | AnyBook (GoodBook `main` `1601a3a2`) | Clean-room header. The host-test layer is optional at install |
 | `scripts/scan.py`, `scripts/build-clean.sh`, `scripts/test-backend.sh`, `README.md`, `SPEC.md`, this file | AnyBook, new for ANAL-324 | — |
 
@@ -131,14 +132,34 @@ while doing this work, apart from the two incidents above, which showed file nam
 **Author's statement** (ANAL-351, clean-side author, 2026-11-02): "I read nothing on the excluded list in README.md
 while doing this work, apart from the directory listings above, which showed names and no file content."
 
+## Clean-side work (ANAL-353)
+
+- **Who:** the ANAL-353 run of 2026-11-06, the Checker's nonblocking follow-up on ANAL-349: the one-time log lines of
+  `0021` and `0027` were guarded by a plain `static bool`, which two threads creating swapchains at once can both see
+  clear.
+- **What it read:** this tree (`README.md`, this file, `scripts/build-clean.sh`, patches `0021`, `0027` and `0028`);
+  upstream Mesa `mesa-26.2.5` with this tree's patches applied (`src/nouveau/vulkan/nvk_android.c`,
+  `src/vulkan/runtime/vk_android.c`, `src/util/u_atomic.h`, `src/util/u_call_once.h`); OpenBook `main` (the NVK
+  package, its provenance files and build scripts, `docs/nvk-openbook.md`); the ANAL-353 and ANAL-338 threads and the
+  ANAL-345 issue text.
+- **Seen, not opened:** `ls ~/anybook/cleanroom` printed the name `work-dirty`. Nothing on the excluded list was
+  otherwise opened, searched or used.
+- **The change:** patch `0029`, from Mesa's `u_atomic.h`: each flag is tested and set in one `p_atomic_xchg()`, so
+  exactly one caller logs. No other behaviour changes.
+- **Hardware:** the G14's RTX 5070 Ti Laptop through OpenBook's per-app choice, a Vulkan 1.0 app and an ANGLE app, as
+  for ANAL-349 (ANAL-353's thread has the logs).
+
+**Author's statement** (ANAL-353, clean-side author, 2026-11-06): "I read nothing on the excluded list in README.md
+while doing this work, apart from the directory listing above, which showed a name and no file content."
+
 ## In OpenBook (ANAL-327)
 
-OpenBook carries this tree's commit `ea217004c40fac92b6e3d17af01ad9e0024a003f`: ANAL-330's clean-side tree as ANAL-326
-tested it (stage 2b, commit `5f5c3d64`), plus ANAL-349's patch `0027` and ANAL-351's patch `0028`, each tested on the G14
-by its run. The backend and
+OpenBook carries this tree's commit `77608ebf9b1519140756494dc5b4d71f04761a29`: ANAL-330's clean-side tree as ANAL-326
+tested it (stage 2b, commit `5f5c3d64`), plus ANAL-349's patch `0027`, ANAL-351's patch `0028` and ANAL-353's patch
+`0029`, each tested on the G14 by its run. The backend and
 these documents are in `mesa/nvk-rm-clean/`, the patches in `mesa/patches/`. The clean-room build scripts are replaced
 by the `nvk-rm-clean` tree of `scripts/mesa-android-build.sh`. Its bytes are in `device/anybook/common/nvk/tested-bytes.txt`
-(`vulkan.nouveau.so` `3419a57c…`; `libnv_bionic_native.so` `0f6c604b…`, `libdrm.so` `ccf9766c…` and `libelf_mesa.so`
+(`vulkan.nouveau.so` `7bb60cfe…`; `libnv_bionic_native.so` `0f6c604b…`, `libdrm.so` `ccf9766c…` and `libelf_mesa.so`
 `5f491b5d…` are unchanged). Everything above this section is the commit's `PROVENANCE.md`, unchanged.
 
 ### Every file from the commit
@@ -148,7 +169,7 @@ the commit's file, then this section).
 
 | OpenBook path | Blob | Origin |
 |---|---|---|
-| `mesa/nvk-rm-clean/PROVENANCE.md` | `4b90f8aaca8b` (prefix:20319) | AnyBook, ANAL-324 (the clean-room tree's own) |
+| `mesa/nvk-rm-clean/PROVENANCE.md` | `f5bf3c54b665` (prefix:21965) | AnyBook, ANAL-324 (the clean-room tree's own) |
 | `mesa/nvk-rm-clean/SPEC.md` | `1160cd019d5c` (exact) | AnyBook, ANAL-324 (the clean-room tree's own) |
 | `mesa/nvk-rm-clean/backend/Cargo.lock` | `2418f9cba3f4` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
 | `mesa/nvk-rm-clean/backend/Cargo.toml` | `f19b89037563` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); library only |
@@ -211,6 +232,7 @@ the commit's file, then this section).
 | `mesa/patches/nvk-rm-clean/0026-nvk-keep-the-program-prefetch-inside-the-program-s-o.patch` | `9c8b18eb3e5c` (exact) | ANAL-330 clean side, item H2 |
 | `mesa/patches/nvk-rm-clean/0027-nvk-android-ask-for-linear-window-buffers-on-the-leg.patch` | `6a953abd249f` (exact) | ANAL-349 clean side, a fix found on the G14 |
 | `mesa/patches/nvk-rm-clean/0028-nvk-android-copy-VRAM-swapchain-images-to-the-window.patch` | `02a1eb7eda3a` (exact) | ANAL-351 clean side, a performance fix measured on the G14 |
+| `mesa/patches/nvk-rm-clean/0029-nvk-android-log-the-one-time-swapchain-lines-once-ac.patch` | `36885a332dec` (exact) | ANAL-353 clean side, thread-safe once-guards for two log lines |
 | `mesa/patches/nvk/0001-nvk-link-with-the-common-Vulkan-ICD-version-script.patch` | `ff29c1a4303c` (exact) | AnyBook, ANAL-240 (NVK on Android, for nouveau), MIT |
 | `mesa/patches/nvk/0002-nvk-advertise-two-queues-in-the-graphics-queue-famil.patch` | `97c2b7e3b894` (exact) | AnyBook, ANAL-240 (NVK on Android, for nouveau), MIT |
 | `mesa/patches/nvk/0003-nvk-split-the-image-layout-out-of-nvk_image_init.patch` | `df3927058dba` (exact) | AnyBook, ANAL-240 (NVK on Android, for nouveau), MIT |

@@ -5,9 +5,10 @@ run on NVIDIA's open kernel driver (open-gpu-kernel-modules 615.78.08): its RM b
 OpenBook ships both as the NVIDIA driver for apps, the OpenBook NVK package (`docs/nvk-openbook.md`).
 
 Everything here comes from the clean-room tree of ANAL-324 (path A), at commit
-`ea217004c40fac92b6e3d17af01ad9e0024a003f`. The clean-side run of ANAL-330 wrote the parts that had no public source,
+`77608ebf9b1519140756494dc5b4d71f04761a29`. The clean-side run of ANAL-330 wrote the parts that had no public source,
 and ANAL-326 tested the result on an RTX 4090. ANAL-349's clean-side run added patch `0027` (an Android fix) and
-ANAL-351's patch `0028` (the present copy on the copy engine); each ran on the G14. `clean-commit.txt` lists every file of that commit with its git blob, and
+ANAL-351's patch `0028` (the present copy on the copy engine), and ANAL-353's patch `0029` (thread-safe once-guards for
+two log lines); each ran on the G14. `clean-commit.txt` lists every file of that commit with its git blob, and
 `scripts/nvk-provenance-check.sh` checks that the files here are those blobs, byte for byte.
 
 | Path | What it is |
