@@ -149,7 +149,8 @@ on early-init                                    # init.openbook.rc, in this ord
   only with `offer ultimate` as well**, which the release builder writes only once both slots and the stick carry
   this switcher (the interlock, §5.4).
 - **Firmware writes stay off** until the image sets `ro.vendor.openbook.gfx.fw_writes=1`. Until then the service
-  logs what it would write. That property is set only in a release the owner approved for this purpose.
+  logs what it would write. That property is set only in a release the owner approved for this purpose. The G14
+  product sets it from 0.1.0-preview.4 (ANAL-322).
 
 **Order of writes**, chosen so that the kernel never has to refuse one:
 
