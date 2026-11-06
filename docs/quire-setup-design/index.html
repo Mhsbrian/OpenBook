@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<!--
+  Quire setup: the agents wizard (ANAL-393). The spec is docs/quire-setup.md.
+
+  This file is the clickable prototype. Every value on screen is sample data.
+
+  View:     open in a browser: a gallery of every screen, light and dark.
+  One:      index.html?screen=<id>[&theme=dark][&wall=bloom|folio|strata|tide][&glass=0]
+  Play:     index.html?play=1[&theme=dark]   (click through; downloads and installs are simulated)
+
+  Tokens are the note's (docs/quire-design/index.html, docs/quire-design.md §7): the Material 3 TonalSpot roles from
+  the Folio wallpapers, glass at 80 % over the system blur, paper sheets, ink, the brand gradient only on the leaf,
+  the ring and the rim. Fonts fall back to the system's when fonts/ is absent (render-design.sh fetches them).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>Quire setup: the agents wizard</title>
+<style>
+@font-face { font-family: "OB Sans"; src: url("../quire-design/fonts/GoogleSans.ttf") format("truetype"); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: "OB Code"; src: url("../quire-design/fonts/GoogleSansCode.ttf") format("truetype"); font-weight: 300 800; font-display: swap; }
+@property --holo-angle { syntax: "<angle>"; inherits: false; initial-value: 200deg; }
+
+:root {
+  --glass-blur: 34px; --glass-saturate: 1.4; --glass-a: .80;
+  --r-win: 28px; --r-card: 16px; --r-pill: 999px;
+  --e-standard: cubic-bezier(.2, 0, 0, 1); --e-emph-decel: cubic-bezier(.05, .7, .1, 1);
+  --q-grad: linear-gradient(135deg, #7E8CFF 0%, #4355B9 100%);
+  --q-holo: conic-gradient(from var(--holo-angle), #7E8CFF 0deg, #C58BFF 70deg, #FF7A9C 140deg, #FFB38A 200deg, #8FD6FF 270deg, #7E8CFF 360deg);
+  --q-holo-dark: conic-gradient(from var(--holo-angle), #A9B6FF 0deg, #DDBDFF 70deg, #FFB0C4 140deg, #FFD3B3 200deg, #B8E8FF 270deg, #A9B6FF 360deg);
+}
+:root, [data-theme="light"] {
+  --primary: #565B8C; --on-primary: #FBF8FF; --primary-container: #C0C5FD; --on-primary-container: #393E6D;
+  --secondary-container: #E0E0F9; --on-secondary-container: #4F5065;
+  --error: #A8364B; --error-container: #F97386; --on-error-container: #6E0523;
+  --surface: #FBF8FE; --on-surface: #31323B; --on-surface-variant: #5E5E68; --outline: #7A7A84; --outline-variant: #B2B1BC;
+  --success: #2F6B45; --success-container: #BDEBCB; --on-success-container: #0B3B20;
+  --ink: var(--on-surface); --ink-soft: #4F5058;
+  --tint: 251, 248, 254;
+  --win-bg: rgba(var(--tint), var(--glass-a)); --win-bg-solid: rgba(var(--tint), .96);
+  --win-outline: rgba(255, 255, 255, .55); --specular: rgba(255, 255, 255, .75); --bloom: rgba(255, 255, 255, .34);
+  --holo-a: .70;
+  --win-shadow: 0 24px 48px rgba(27, 27, 33, .22), 0 2px 6px rgba(27, 27, 33, .08), 0 0 0 .5px rgba(27, 27, 33, .06);
+  --paper: rgba(255, 255, 255, .72); --paper-line: rgba(255, 255, 255, .9); --paper-outline: rgba(178, 177, 188, .40);
+  --paper-hover: rgba(255, 255, 255, .88);
+  --field: rgba(255, 255, 255, .80);
+  --wall: url("../../assets/wallpapers/1920x1080/openbook-folio-light.jpg") center / cover;
+  --scrim: rgba(14, 14, 18, .18);
+  --code-bg: #0E0E12; --code-fg: #E9E3EF;
+}
+[data-theme="dark"] {
+  --primary: #CBC0ED; --on-primary: #423B5F; --primary-container: #554D73; --on-primary-container: #E7DFFF;
+  --secondary-container: #3D394D; --on-secondary-container: #C3BCD4;
+  --error: #F97386; --error-container: #871C34; --on-error-container: #FF97A3;
+  --surface: #0F0E12; --on-surface: #E9E3EF; --on-surface-variant: #AEA9B5; --outline: #77747E; --outline-variant: #494650;
+  --success: #9BD5A8; --success-container: #1E4A2F; --on-success-container: #BDEBCB;
+  --ink: var(--on-surface); --ink-soft: #CAC5D0;
+  --tint: 26, 25, 31;
+  --win-outline: rgba(255, 255, 255, .14); --specular: rgba(255, 255, 255, .18); --bloom: rgba(255, 255, 255, .07);
+  --holo-a: .80;
+  --win-shadow: 0 24px 48px rgba(0, 0, 0, .55), 0 2px 6px rgba(0, 0, 0, .3);
+  --paper: rgba(32, 31, 38, .80); --paper-line: rgba(255, 255, 255, .10); --paper-outline: rgba(73, 70, 80, .6);
+  --paper-hover: rgba(44, 42, 52, .92);
+  --field: rgba(39, 37, 45, .85);
+  --wall: url("../../assets/wallpapers/1920x1080/openbook-folio-dark.jpg") center / cover;
+  --scrim: rgba(0, 0, 0, .30);
+  --code-bg: rgba(0, 0, 0, .55); --code-fg: #E9E3EF;
+}
+[data-wall="bloom"][data-theme="light"] { --wall: url("../../assets/wallpapers/1920x1080/openbook-bloom-light.jpg") center / cover; }
+[data-wall="bloom"][data-theme="dark"] { --wall: url("../../assets/wallpapers/1920x1080/openbook-bloom-dark.jpg") center / cover; }
+[data-wall="strata"][data-theme="light"] { --wall: url("../../assets/wallpapers/1920x1080/openbook-strata-light.jpg") center / cover; }
+[data-wall="strata"][data-theme="dark"] { --wall: url("../../assets/wallpapers/1920x1080/openbook-strata-dark.jpg") center / cover; }
+[data-wall="tide"][data-theme="light"] { --wall: url("../../assets/wallpapers/1920x1080/openbook-tide-light.jpg") center / cover; }
+[data-wall="tide"][data-theme="dark"] { --wall: url("../../assets/wallpapers/1920x1080/openbook-tide-dark.jpg") center / cover; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: "OB Sans", "Google Sans", "Google Sans Text", "Roboto Flex", system-ui, sans-serif; background: #E9EAF2; color: #1B1B21;
+       -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+
+/* ---- the desktop behind the window: wallpaper, a dim taskbar ---- */
+.stage { position: relative; width: 1440px; height: 900px; overflow: hidden; background: var(--wall); color: var(--ink); }
+.stage::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 48px; background: rgba(var(--tint), .5);
+                backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
+.stage .scrim { position: absolute; inset: 0; background: var(--scrim); }
+
+/* ---- the window: one pane of glass, the note's material (quire-design.md §4) ---- */
+.win { position: absolute; left: 50%; top: 47%; width: 960px; height: 700px; transform: translate(-50%, -50%);
+       border-radius: var(--r-win); background: var(--win-bg); box-shadow: var(--win-shadow);
+       backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+       -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+       display: flex; flex-direction: column; overflow: hidden; isolation: isolate; }
+.win::before { /* the holographic rim, 1.5 dp */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; background: var(--q-holo); opacity: var(--holo-a);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  pointer-events: none; z-index: 3; }
+[data-theme="dark"] .win::before { background: var(--q-holo-dark); }
+.win::after { /* the bloom from the top-left and the specular top edge */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  background: radial-gradient(120% 70% at 0% 0%, var(--bloom), transparent 60%);
+  box-shadow: inset 0 1px 0 var(--specular), inset 0 0 0 1px var(--win-outline); }
+.win.working::before { animation: rim 12s linear infinite; }
+@keyframes rim { to { --holo-angle: 560deg; } }
+[data-glass="0"] .win { background: var(--win-bg-solid); backdrop-filter: none; -webkit-backdrop-filter: none; }
+[data-glass="0"] .win::before { opacity: calc(var(--holo-a) * .6); animation: none; }
+
+/* header: the leaf, the steps, close */
+.hd { height: 64px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 20px 0 28px; }
+.hd .name { font-size: 15px; font-weight: 500; letter-spacing: .1px; }
+.hd .spacer { flex: 1; }
+.steps { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-soft); }
+.steps .st { display: flex; align-items: center; gap: 6px; padding: 5px 10px 5px 6px; border-radius: var(--r-pill); }
+.steps .st .dot { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 600;
+                  box-shadow: inset 0 0 0 1.5px var(--outline-variant); }
+.steps .st.now { color: var(--ink); background: var(--paper); box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 1px var(--paper-outline); }
+.steps .st.now .dot { background: var(--primary); color: var(--on-primary); box-shadow: none; }
+.steps .st.done .dot { background: var(--success-container); color: var(--on-success-container); box-shadow: none; }
+.steps .sep { width: 14px; height: 1.5px; border-radius: 1px; background: var(--outline-variant); opacity: .8; }
+.ibtn { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; border: 0; background: transparent; cursor: pointer; color: var(--ink-soft); }
+.ibtn:hover { background: var(--paper); }
+
+/* body */
+.bd { flex: 1; min-height: 0; padding: 18px 56px 0; display: flex; flex-direction: column; }
+h1 { font-size: 30px; line-height: 38px; font-weight: 400; margin: 0; letter-spacing: -.2px; }
+.lead { font-size: 15px; line-height: 22px; color: var(--ink-soft); margin: 8px 0 0; max-width: 620px; }
+
+/* footer */
+.ft { height: 84px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 28px 0 56px; }
+.ft .hint { flex: 1; font-size: 13px; line-height: 18px; color: var(--ink-soft); display: flex; align-items: center; gap: 8px; }
+.btn { height: 44px; padding: 0 24px; border-radius: var(--r-pill); border: 0; font-size: 14.5px; font-weight: 500; cursor: pointer;
+       display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; transition: transform 120ms var(--e-standard), background 120ms; }
+.btn:active { transform: scale(.97); }
+.btn.filled { background: var(--primary); color: var(--on-primary); }
+.btn.filled:disabled { background: rgba(127, 127, 140, .18); color: var(--ink-soft); cursor: default; }
+.btn.tonal { background: var(--paper); color: var(--ink); box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 1px var(--paper-outline); }
+.btn.text { background: transparent; color: var(--primary); padding: 0 16px; }
+.btn.text:hover, .btn.tonal:hover { background: var(--paper-hover); }
+.btn.sm { height: 36px; padding: 0 16px; font-size: 13.5px; }
+.btn:focus-visible, .card:focus-visible, .ibtn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* paper sheets */
+.paper { background: var(--paper); border-radius: var(--r-card); box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 1px var(--paper-outline); }
+
+/* the leaf and the ring */
+.leaf { display: block; }
+.ring { position: relative; flex: none; }
+.ring > svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.ring .track { stroke: var(--outline-variant); opacity: .45; fill: none; }
+.ring .val { fill: none; stroke: url(#ringGrad); stroke-linecap: round; transition: stroke-dashoffset 400ms var(--e-standard); }
+.ring .mid { position: absolute; inset: 0; display: grid; place-items: center; }
+.ring.spin > svg { animation: spin 1.4s linear infinite; }
+@keyframes spin { to { transform: rotate(270deg); } }
+
+/* ---- welcome ---- */
+.welcome { flex: 1; display: grid; grid-template-columns: 300px 1fr; align-items: center; gap: 40px; padding-bottom: 8px; }
+.hero { position: relative; width: 260px; height: 260px; display: grid; place-items: center; }
+.hero .halo { position: absolute; inset: 22px; border-radius: 50%; padding: 3px; background: conic-gradient(from 210deg, #7E8CFF, #D08BFF, #FF7A9C, #FFB38A, #7E8CFF);
+              -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+              animation: breathe 4.8s var(--e-standard) infinite; }
+.hero .halo.b { inset: 0; opacity: .35; padding: 1.5px; animation-delay: -2.4s; }
+.hero .disc { width: 156px; height: 156px; border-radius: 50%; display: grid; place-items: center; background: var(--paper);
+              box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 1px var(--paper-outline), 0 18px 40px rgba(67, 85, 185, .18); }
+@keyframes breathe { 0%, 100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.04); opacity: .55; } }
+.points { display: grid; gap: 18px; margin-top: 28px; }
+.point { display: grid; grid-template-columns: 40px 1fr; gap: 14px; align-items: start; }
+.point .ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--secondary-container); color: var(--on-secondary-container); }
+.point b { display: block; font-weight: 500; font-size: 15px; line-height: 22px; }
+.point span { font-size: 13.5px; line-height: 20px; color: var(--ink-soft); }
+
+/* ---- the Linux environment ---- */
+.linux { flex: 1; display: grid; grid-template-columns: 260px 1fr; gap: 48px; align-items: center; padding-bottom: 12px; }
+.linux .pct { font-size: 13px; color: var(--ink-soft); margin-top: 6px; text-align: center; font-variant-numeric: tabular-nums; }
+.checks { display: grid; gap: 4px; }
+.check { display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: center; min-height: 52px; padding: 6px 16px 6px 12px; border-radius: 14px; }
+.check.now { background: var(--paper); box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 1px var(--paper-outline); }
+.check b { display: block; font-weight: 500; font-size: 14.5px; line-height: 20px; }
+.check.wait b { color: var(--ink-soft); font-weight: 400; }
+.check span { font-size: 12.5px; line-height: 18px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.mark { width: 22px; height: 22px; display: grid; place-items: center; }
+.mark .inkdot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); animation: inkdot 1.2s var(--e-standard) infinite; }
+@keyframes inkdot { 50% { transform: scale(.6); opacity: .5; } }
+.mark .hollow { width: 8px; height: 8px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--outline-variant); }
+.tick path { stroke: var(--success); stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 20; stroke-dashoffset: 0; }
+.tick.draw path { animation: drawtick 260ms var(--e-emph-decel) both; }
+@keyframes drawtick { from { stroke-dashoffset: 20; } }
+.cross path { stroke: var(--error); stroke-width: 2.2; fill: none; stroke-linecap: round; }
+
+/* the problem card (no virtualization, offline, no space) */
+.problem { margin-top: 26px; display: grid; grid-template-columns: 48px 1fr; gap: 18px; padding: 22px 24px; max-width: 700px; }
+.problem .ic { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: var(--secondary-container); color: var(--on-secondary-container); }
+.problem ol { margin: 4px 0 0; padding-left: 20px; font-size: 14px; line-height: 22px; }
+.problem ol li { margin: 4px 0; }
+.problem .why { font-size: 13px; color: var(--ink-soft); margin-top: 10px; line-height: 19px; }
+
+/* ---- agents ---- */
+.grid { margin-top: 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.card { position: relative; display: grid; grid-template-columns: 40px 1fr auto; gap: 14px; align-items: center; min-height: 64px; padding: 12px 14px 12px 14px;
+        border-radius: var(--r-card); background: var(--paper); box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 1px var(--paper-outline);
+        cursor: pointer; text-align: left; border: 0; transition: box-shadow 160ms var(--e-standard), background 160ms; }
+.card:hover { background: var(--paper-hover); }
+.card.sel { box-shadow: inset 0 1px 0 var(--paper-line), 0 0 0 2px var(--primary); }
+.card.installed { cursor: default; }
+.av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 13.5px; font-weight: 600; letter-spacing: .2px; flex: none; }
+.card b { display: block; font-weight: 500; font-size: 14.5px; line-height: 20px; }
+.card .sub { font-size: 12.5px; line-height: 17px; color: var(--ink-soft); }
+.card .badge { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: var(--r-pill); font-size: 11px; line-height: 17px; font-weight: 500;
+               background: var(--primary-container); color: var(--on-primary-container); vertical-align: 1px; }
+.sel-dot { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px var(--outline); }
+.card.sel .sel-dot { background: var(--primary); box-shadow: none; }
+.card.sel .sel-dot svg path { stroke: var(--on-primary); }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: var(--r-pill); font-size: 12px; font-weight: 500; white-space: nowrap; }
+.chip.ok { background: var(--success-container); color: var(--on-success-container); }
+.chip.muted { background: rgba(127, 127, 140, .14); color: var(--ink-soft); font-weight: 400; }
+.chip.warn { background: var(--secondary-container); color: var(--on-secondary-container); }
+.soon { margin-top: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-soft); }
+.progress-line { font-size: 12.5px; line-height: 17px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px; font-variant-numeric: tabular-nums; }
+.bar { height: 3px; border-radius: 2px; background: rgba(127, 127, 140, .18); margin-top: 6px; overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 2px; background: linear-gradient(90deg, #7E8CFF, #C58BFF 60%, #FF7A9C); transition: width 400ms var(--e-standard); }
+
+/* details drawer: the exact commands, in code */
+.details { margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: var(--code-bg); color: var(--code-fg);
+           font-family: "OB Code", "Google Sans Code", ui-monospace, monospace; font-size: 12px; line-height: 18px; white-space: pre; overflow: hidden; max-height: 108px; }
+.details .c { opacity: .55; }
+
+/* ---- sign in ---- */
+.rows { margin-top: 22px; display: grid; gap: 10px; max-width: 760px; }
+.row { display: grid; grid-template-columns: 40px 1fr auto; gap: 14px; align-items: center; min-height: 68px; padding: 12px 14px 12px 14px; }
+.row b { display: block; font-weight: 500; font-size: 14.5px; line-height: 20px; }
+.row .sub { font-size: 12.5px; line-height: 17px; color: var(--ink-soft); }
+.sheet-wrap { position: absolute; inset: 0; background: var(--scrim); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: grid; place-items: center; z-index: 2; border-radius: inherit; }
+.sheet { width: 560px; padding: 28px 30px 22px; border-radius: 24px; background: rgba(var(--tint), .94);
+         box-shadow: 0 18px 40px rgba(0, 0, 0, .22), inset 0 1px 0 var(--specular), 0 0 0 1px var(--paper-outline); }
+.sheet h2 { margin: 12px 0 4px; font-size: 22px; line-height: 28px; font-weight: 400; }
+.sheet .lead { font-size: 14px; line-height: 20px; margin-top: 4px; }
+.num { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; margin-top: 18px; }
+.num .n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 600; background: var(--secondary-container); color: var(--on-secondary-container); }
+.num b { display: block; font-weight: 500; font-size: 14.5px; line-height: 26px; }
+.code { margin-top: 10px; display: flex; align-items: center; gap: 12px; }
+.code .digits { font-family: "OB Code", "Google Sans Code", ui-monospace, monospace; font-size: 30px; letter-spacing: 4px; font-weight: 500; padding: 10px 18px; border-radius: 14px; }
+.field { margin-top: 10px; display: flex; align-items: center; gap: 10px; }
+.field .in { flex: 1; height: 44px; border-radius: 22px; background: var(--field); box-shadow: inset 0 0 0 1px var(--paper-outline); padding: 0 18px;
+             display: flex; align-items: center; font-size: 14px; color: var(--ink-soft); }
+.field .in.focus { box-shadow: inset 0 0 0 2px var(--primary); color: var(--ink); }
+.waiting { margin-top: 20px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-soft); }
+.sheet .acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; align-items: center; }
+.sheet .acts .spacer { flex: 1; }
+.fine { font-size: 12px; line-height: 17px; color: var(--ink-soft); margin-top: 14px; }
+
+/* ---- try it ---- */
+.try { display: grid; grid-template-columns: 1fr 300px; gap: 24px; margin-top: 24px; align-items: start; }
+.mini { padding: 18px 20px 14px; border-radius: 22px; display: flex; flex-direction: column; min-height: 320px; }
+.mini .prompt { font-size: 15px; line-height: 22px; font-weight: 500; }
+.mini .rule { height: 1.5px; margin: 8px 0 12px; background: linear-gradient(90deg, var(--primary), transparent); border-radius: 1px; }
+.mini .ans { font-size: 14.5px; line-height: 22px; flex: 1; }
+.mini .ans .new { animation: ink 160ms var(--e-standard) both; }
+@keyframes ink { from { opacity: 0; filter: blur(1px); } }
+.mini .quiet { margin-top: 12px; font-size: 12px; color: var(--ink-soft); display: flex; align-items: center; gap: 8px; }
+.mini .quiet .agent { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: var(--r-pill); background: var(--paper);
+                      box-shadow: 0 0 0 1px var(--paper-outline); color: var(--ink); cursor: pointer; }
+.mini .quiet .av { width: 20px; height: 20px; font-size: 9.5px; }
+.callout { padding: 20px; border-radius: 22px; display: grid; gap: 14px; align-content: start; }
+.callout b { font-weight: 500; font-size: 15px; }
+.callout .demo { height: 172px; border-radius: 14px; position: relative; overflow: hidden; background: radial-gradient(80% 90% at 30% 20%, rgba(126, 140, 255, .16), transparent 70%), rgba(127, 127, 140, .08); }
+.callout .ptr { position: absolute; left: 50%; top: 46%; width: 24px; height: 24px; margin: -4px 0 0 -3px; animation: shake 3.2s var(--e-standard) infinite; }
+.callout .demo-halo { position: absolute; left: 50%; top: 46%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; padding: 2px;
+                      background: conic-gradient(from 210deg, #7E8CFF, #D08BFF, #FF7A9C, #FFB38A, #7E8CFF);
+                      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+                      opacity: 0; animation: halo 3.2s var(--e-standard) infinite; }
+@keyframes shake { 0%, 8% { transform: translateX(0); } 12% { transform: translateX(-26px); } 17% { transform: translateX(26px); } 22% { transform: translateX(-22px); }
+                   27% { transform: translateX(22px); } 32%, 100% { transform: translateX(0); } }
+@keyframes halo { 0%, 34% { opacity: 0; transform: scale(.4); } 40% { opacity: 1; transform: scale(1); } 80% { opacity: 1; transform: scale(1); } 90%, 100% { opacity: 0; transform: scale(1.1); } }
+.or { display: grid; gap: 10px; font-size: 13px; line-height: 18px; color: var(--ink-soft); }
+.or .keys { display: flex; align-items: center; gap: 6px; }
+kbd { font: 500 12px/1 inherit; font-family: inherit; padding: 6px 9px; border-radius: 8px; background: var(--paper); color: var(--ink);
+      box-shadow: inset 0 -1.5px 0 var(--paper-outline), 0 0 0 1px var(--paper-outline); }
+
+/* ---- manage ---- */
+.manage { margin-top: 18px; display: grid; gap: 22px; overflow: hidden; }
+.sect h3 { margin: 0 0 8px 4px; font-size: 12.5px; font-weight: 500; letter-spacing: .4px; text-transform: uppercase; color: var(--ink-soft); }
+.list { border-radius: var(--r-card); overflow: hidden; }
+.list .li { display: grid; grid-template-columns: 40px 1fr auto auto; gap: 14px; align-items: center; min-height: 60px; padding: 10px 10px 10px 14px; }
+.list .li + .li { border-top: 1px solid var(--paper-outline); }
+.list .li b { display: block; font-weight: 500; font-size: 14.5px; line-height: 20px; }
+.list .li .sub { font-size: 12.5px; line-height: 17px; color: var(--ink-soft); }
+.star { color: var(--primary); }
+.envic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--secondary-container); color: var(--on-secondary-container); }
+
+/* ---- gallery ---- */
+.gallery { padding: 32px; display: grid; gap: 28px; }
+.gallery .item h4 { margin: 0 0 10px; font: 500 14px/1.4 system-ui, sans-serif; color: #31323B; }
+.gallery .item h4 span { color: #77747E; font-weight: 400; margin-left: 8px; }
+.gallery .pair { display: flex; gap: 20px; }
+.gallery .frame { width: 720px; height: 450px; overflow: hidden; border-radius: 12px; box-shadow: 0 2px 10px rgba(0, 0, 0, .12); cursor: zoom-in; }
+.gallery .frame .stage { transform: scale(.5); transform-origin: 0 0; }
+.gallery header { font: 400 14px/1.5 system-ui, sans-serif; color: #31323B; max-width: 1460px; }
+.gallery header h1 { font-size: 24px; line-height: 32px; margin-bottom: 4px; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+.reduce *, .reduce *::before, .reduce *::after { animation: none !important; transition: none !important; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="leafA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7E8CFF"/><stop offset="1" stop-color="#4355B9"/></linearGradient>
+    <linearGradient id="leafB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB38A"/><stop offset="1" stop-color="#FF7A9C"/></linearGradient>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7E8CFF"/><stop offset=".55" stop-color="#C58BFF"/><stop offset="1" stop-color="#FF7A9C"/></linearGradient>
+  </defs>
+</svg>
+<div id="root"></div>
+<script>
+'use strict';
+/* ============================================================================================
+   Sample data. The agents are quired's catalog (quire/quired/internal/agents/catalog.go); what each needs and how it
+   signs in are docs/quire-setup.md §5. Avatars are the note's (note/Agents.kt KNOWN), initials only: no makers' logos.
+   ============================================================================================ */
+const AGENTS = [
+  { id: 'claude',   name: 'Claude Code',     by: 'Anthropic',      needs: 'A Claude plan or an API key', ini: 'CC', c: '#5B5D72', mb: 70, signin: 'paste' },
+  { id: 'opencode', name: 'opencode',        by: 'Open source',    needs: 'Free models, no account', ini: 'oc', c: '#72557B', mb: 60, signin: 'none', pick: true },
+  { id: 'copilot',  name: 'GitHub Copilot',  by: 'GitHub',         needs: 'A GitHub account with Copilot', ini: 'Cp', c: '#4F5065', mb: 110, signin: 'device' },
+  { id: 'agy',      name: 'Antigravity',     by: 'Google',         needs: 'A Google account', ini: 'Ag', c: '#5A6190', mb: 90, signin: 'paste' },
+  { id: 'gemini',   name: 'Gemini CLI',      by: 'Google',         needs: 'A Gemini API key', ini: 'G', c: '#565B8C', mb: 90, signin: 'key' },
+  { id: 'cursor',   name: 'Cursor Agent',    by: 'Cursor',         needs: 'A Cursor account', ini: 'Cu', c: '#5E5E68', mb: 120, signin: 'link' },
+  { id: 'kimi',     name: 'Kimi Code',       by: 'Moonshot AI',    needs: 'A Kimi account or an API key', ini: 'Ki', c: '#6A5E7E', mb: 80, signin: 'device' },
+  { id: 'grok',     name: 'Grok CLI',        by: 'xAI',            needs: 'An xAI account or an API key', ini: 'Gk', c: '#54586A', mb: 90, signin: 'device' },
+  { id: 'hermes',   name: 'Hermes Agent',    by: 'Nous Research',  needs: 'A model provider you choose', ini: 'He', c: '#5A6378', mb: 150, signin: 'key' },
+  { id: 'omp',      name: 'Oh My Pi',        by: 'Open source',    needs: 'A model provider you choose', ini: 'Pi', c: '#65597A', mb: 60, signin: 'key' },
+];
+const SOON = ['Codex CLI'];
+const A = Object.fromEntries(AGENTS.map(a => [a.id, a]));
+
+/* ---- small pieces ---- */
+const LEAF = (s = 24) => `<svg class="leaf" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 3H14l6 6v8.5A3.5 3.5 0 0 1 16.5 21h-9A3.5 3.5 0 0 1 4 17.5v-11A3.5 3.5 0 0 1 7.5 3Z" fill="url(#leafA)"/><path d="M14 3v4.5A1.5 1.5 0 0 0 15.5 9H20Z" fill="url(#leafB)"/></svg>`;
+const TICK = (draw) => `<svg class="tick ${draw ? 'draw' : ''}" width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M5.5 11.5l3.6 3.6L16.8 7.4"/></svg>`;
+const CROSS = `<svg class="cross" width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M7 7l8 8M15 7l-8 8"/></svg>`;
+const SELTICK = `<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 7.3l2.6 2.6L11 4.5" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const ICON = {
+  close: '<path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>',
+  chip: '<rect x="6" y="6" width="12" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+  spark: '<path d="M12 3c.6 4.4 2.6 6.4 7 7-4.4.6-6.4 2.6-7 7-.6-4.4-2.6-6.4-7-7 4.4-.6 6.4-2.6 7-7Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M18.5 16.5c.2 1.4.8 2 2.2 2.2-1.4.2-2 .8-2.2 2.2-.2-1.4-.8-2-2.2-2.2 1.4-.2 2-.8 2.2-2.2Z" fill="currentColor"/>',
+  shield: '<path d="M12 3l7 3v5.5c0 4.4-3 8.1-7 9.5-4-1.4-7-5.1-7-9.5V6l7-3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8.8 12.2l2.2 2.2 4.4-4.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+  terminal: '<rect x="3" y="4.5" width="18" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M7 9.5l3 2.5-3 2.5M12.5 15H17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+  open: '<path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+  copy: '<rect x="8" y="8" width="12" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="1.7"/>',
+  key: '<circle cx="8" cy="14" r="4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M11 11l8-8M16 6l2.5 2.5M14 8l2 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/>',
+  more: '<circle cx="12" cy="5.5" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="18.5" r="1.6" fill="currentColor"/>',
+  star: '<path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.6l-5.1 2.7 1-5.7-4.1-4 5.7-.8L12 3.6Z" fill="currentColor"/>',
+  starO: '<path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.6l-5.1 2.7 1-5.7-4.1-4 5.7-.8L12 3.6Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>',
+  fw: '<rect x="3.5" y="5" width="17" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 9h4M7 12h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  plus: '<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  ptr: '<path d="M4 2.5l12 6.2-5.2 1.5-2.3 5.1L4 2.5Z" fill="#1B1B21" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/>',
+};
+const ic = (n, s = 20) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true">${ICON[n]}</svg>`;
+const av = (a, s) => `<span class="av" style="background:${a.c}${s ? `;width:${s}px;height:${s}px` : ''}">${a.ini}</span>`;
+function ring(size, stroke, frac, inner, spin) {
+  const r = (size - stroke) / 2, C = 2 * Math.PI * r, off = frac == null ? C * .72 : C * (1 - frac);
+  return `<div class="ring ${spin ? 'spin' : ''}" style="width:${size}px;height:${size}px"><svg width="${size}" height="${size}">
+    <circle class="track" cx="${size / 2}" cy="${size / 2}" r="${r}" stroke-width="${stroke}"/>
+    <circle class="val" cx="${size / 2}" cy="${size / 2}" r="${r}" stroke-width="${stroke}" stroke-dasharray="${C}" stroke-dashoffset="${off}"/></svg>
+    <div class="mid">${inner || ''}</div></div>`;
+}
+const mark = (s) => `<span class="mark">${s === 'done' ? TICK(false) : s === 'draw' ? TICK(true) : s === 'now' ? '<i class="inkdot"></i>' : s === 'fail' ? CROSS : '<i class="hollow"></i>'}</span>`;
+
+/* ---- the frame: desktop, window, header with the steps, footer ---- */
+const STEPS = ['Linux', 'Agents', 'Sign in', 'Try it'];
+function frame(o) {
+  const steps = o.step == null ? '' : `<nav class="steps" aria-label="Setup steps">${STEPS.map((s, i) =>
+    `${i ? '<i class="sep"></i>' : ''}<span class="st ${i < o.step ? 'done' : i === o.step ? 'now' : ''}" ${i === o.step ? 'aria-current="step"' : ''}>
+      <span class="dot">${i < o.step ? SELTICK.replace('<path', '<path stroke="currentColor"') : i + 1}</span>${s}</span>`).join('')}</nav>`;
+  return `<div class="stage"><div class="scrim"></div>
+    <section class="win ${o.working ? 'working' : ''}" role="dialog" aria-label="Quire setup">
+      <div class="hd">${LEAF(22)}<span class="name">${o.title || 'Set up Quire'}</span><span class="spacer"></span>${steps}
+        <button class="ibtn" aria-label="Close" data-act="close">${ic('close', 18)}</button></div>
+      <div class="bd">${o.body}</div>
+      <div class="ft"><div class="hint">${o.hint || ''}</div>${o.actions || ''}</div>
+      ${o.sheet ? `<div class="sheet-wrap"><div class="sheet" role="dialog" aria-modal="true">${o.sheet}</div></div>` : ''}
+    </section></div>`;
+}
+
+/* ============================================================================================
+   Screens. Each takes the play state (or none, for the gallery) and returns the frame.
+   ============================================================================================ */
+const S = {};
+
+S.welcome = () => frame({
+  title: 'Quire',
+  body: `<div class="welcome">
+    <div class="hero"><i class="halo b"></i><i class="halo"></i><div class="disc">${LEAF(76)}</div></div>
+    <div>
+      <h1>Bring your AI agents to OpenBook</h1>
+      <p class="lead">Quire works with the agents you already use. Set them up once, then call Quire from anywhere on the laptop.</p>
+      <div class="points">
+        <div class="point"><span class="ic">${ic('chip')}</span><div><b>They run on this laptop</b><span>In a private Linux environment that Quire sets up for you. No Terminal needed.</span></div></div>
+        <div class="point"><span class="ic">${ic('spark')}</span><div><b>Pick the ones you like</b><span>Claude Code, GitHub Copilot, Gemini CLI, opencode, Cursor and more.</span></div></div>
+        <div class="point"><span class="ic">${ic('shield')}</span><div><b>You stay in charge</b><span>Quire asks before anything destructive, and every change it makes can be undone.</span></div></div>
+      </div>
+    </div></div>`,
+  hint: 'Downloads about 800 MB, once. Takes a few minutes.',
+  actions: `<button class="btn text" data-act="close">Not now</button><button class="btn filled" data-act="start" autofocus>Get started</button>`,
+});
+
+const LINUX_PHASES = [
+  ['This laptop can run it', 'Hardware virtualization is on'],
+  ['Downloading the Linux environment', ''],
+  ['Unpacking', 'Debian 13 with Quire’s helper'],
+  ['Starting Linux', ''],
+  ['Connecting Quire', ''],
+];
+S.linux = (p = { phase: 1, got: 412, total: 788 }) => {
+  const frac = p.phase >= 5 ? 1 : p.phase === 1 ? .1 + .5 * (p.got / p.total) : [.05, .1, .7, .85, .95][p.phase];
+  const rows = LINUX_PHASES.map(([t, s], i) => {
+    const st = i < p.phase ? 'done' : i === p.phase ? 'now' : 'wait';
+    let sub = s;
+    if (i === 1 && st === 'now') sub = `${p.got} of ${p.total} MB · about ${Math.max(1, Math.round((p.total - p.got) / 9 / 60))} min left`;
+    if (i === 1 && st === 'done') sub = `${p.total} MB · checked`;
+    if (i === 3 && st === 'done') sub = 'Started in 9 s';
+    if (i === 4 && st === 'done') sub = 'Quire’s helper answered';
+    return `<div class="check ${st}">${mark(st === 'wait' ? '' : st)}<div><b>${t}</b>${sub ? `<span>${sub}</span>` : ''}</div><span></span></div>`;
+  }).join('');
+  const done = p.phase >= 5;
+  return frame({
+    step: 0, working: !done,
+    body: `<h1>${done ? 'The Linux environment is ready' : 'Setting up the Linux environment'}</h1>
+      <p class="lead">${done ? 'Your agents will run here, on this laptop.' : 'Your agents run here, on this laptop. This happens once.'}</p>
+      <div class="linux"><div style="display:grid;justify-items:center">${ring(196, 6, frac, `<div style="display:grid;justify-items:center;gap:4px">${LEAF(56)}</div>`)}
+        <div class="pct">${done ? 'Done' : Math.round(frac * 100) + ' %'}</div></div>
+        <div class="checks" role="list" aria-live="polite">${rows}</div></div>`,
+    hint: done ? '' : 'You can close this window. Quire carries on and tells you when it’s ready.',
+    actions: `<button class="btn filled" data-act="toAgents" ${done ? 'autofocus' : 'disabled'}>Next</button>`,
+  });
+};
+
+S['linux-nokvm'] = () => frame({
+  step: 0,
+  body: `<h1>Turn on virtualization first</h1>
+    <p class="lead">The Linux environment needs your processor’s virtualization, and it is switched off in this laptop’s firmware.</p>
+    <div class="problem paper"><span class="ic">${ic('fw', 24)}</span><div>
+      <b style="font-weight:500;font-size:15px">In the firmware settings</b>
+      <ol><li>Restart the laptop and open its firmware settings. Many laptops use F2 or Delete while the logo shows.</li>
+        <li>Turn on <b style="font-weight:500">SVM Mode</b> (AMD) or <b style="font-weight:500">Intel Virtualization Technology</b>.</li>
+        <li>Save, restart, and open Quire again.</li></ol>
+      <div class="why">Nothing else on OpenBook changes. Until then, Quire can’t run agents on this laptop.</div></div></div>`,
+  hint: '',
+  actions: `<button class="btn text" data-act="close">Close</button><button class="btn filled" data-act="recheck" autofocus>Check again</button>`,
+});
+
+function agentCard(a, st) {
+  // st: {sel, installed, version, progress, line, failed}
+  const right = st.installed ? `<span class="chip ok">${TICK(false).replace('width="22" height="22"', 'width="16" height="16"')}Installed</span>`
+    : st.failed ? `<span class="chip warn">Didn’t install</span>`
+    : st.progress != null ? ring(26, 3, st.progress)
+    : `<span class="sel-dot" aria-hidden="true">${st.sel ? SELTICK : ''}</span>`;
+  const sub = st.installed ? `${a.by} · ${st.version}` : st.progress != null ? `<div class="progress-line">${st.line}</div><div class="bar"><i style="width:${Math.round(st.progress * 100)}%"></i></div>`
+    : st.failed ? 'No internet connection. Try again.' : `${a.by} · ${a.needs}`;
+  return `<button class="card ${st.sel ? 'sel' : ''} ${st.installed ? 'installed' : ''}" data-agent="${a.id}" role="checkbox" aria-checked="${!!st.sel}"
+    aria-label="${a.name}, ${a.by}. ${a.needs}">${av(a)}<div><b>${a.name}${a.pick && !st.installed && st.progress == null ? '<span class="badge">Good first pick</span>' : ''}</b><div class="sub">${sub}</div></div>${right}</button>`;
+}
+S.agents = (p = { sel: { claude: 1, copilot: 1 }, installed: { opencode: 'v2.2.5' } }) => {
+  const sel = Object.keys(p.sel).filter(k => p.sel[k]);
+  const mb = sel.reduce((n, k) => n + A[k].mb, 0);
+  return frame({
+    step: 1,
+    body: `<h1>Choose your agents</h1>
+      <p class="lead">Pick one or more. Quire installs each with its maker’s own installer.</p>
+      <div class="grid">${AGENTS.map(a => agentCard(a, { sel: p.sel[a.id], installed: !!p.installed[a.id], version: p.installed[a.id] })).join('')}</div>
+      <div class="soon">Coming to Quire: ${SOON.map(s => `<span class="chip muted">${s}</span>`).join('')}<span>· Any agent that speaks the Agent Client Protocol works too.</span></div>`,
+    hint: sel.length ? `${sel.length} selected · about ${mb} MB` : 'Select the agents you want',
+    actions: `<button class="btn text" data-act="toSignin">Skip</button><button class="btn filled" data-act="install" ${sel.length ? '' : 'disabled'}>${sel.length ? `Install ${sel.length === 1 ? A[sel[0]].name : sel.length + ' agents'}` : 'Install'}</button>`,
+  });
+};
+
+S.installing = (p = { jobs: { claude: { progress: 1, version: 'v2.1.318' }, copilot: { progress: .46, line: 'Downloading Copilot CLI 1.0.106 · 31 of 68 MB' } }, installed: { opencode: 'v2.2.5' }, details: false }) => {
+  const order = Object.keys(p.jobs);
+  const doneN = order.filter(k => p.jobs[k].progress >= 1).length;
+  const all = doneN === order.length;
+  const details = p.details ? `<div class="details"><span class="c"># Claude Code: the maker's native installer (docs/quire-setup.md §5)</span>
+curl -fsSL https://claude.ai/install.sh | bash
+<span class="c"># GitHub Copilot CLI: GitHub's installer, into ~/.local</span>
+curl -fsSL https://gh.io/copilot-install | bash
+Downloading copilot 1.0.106 for linux-x64…</div>` : '';
+  return frame({
+    step: 1, working: !all,
+    body: `<h1>${all ? 'Installed' : 'Installing your agents'}</h1>
+      <p class="lead">${all ? 'Next, sign in to the ones that need an account.' : 'Each one comes from its maker. You can keep working meanwhile.'}</p>
+      <div class="grid">${AGENTS.map(a => {
+        const j = p.jobs[a.id];
+        if (j) return agentCard(a, j.progress >= 1 ? { installed: true, version: j.version } : j.failed ? { failed: true } : { progress: j.progress, line: j.line });
+        return agentCard(a, { installed: !!p.installed[a.id], version: p.installed[a.id] });
+      }).join('')}</div>${details}`,
+    hint: all ? '' : `Installing ${Math.min(doneN + 1, order.length)} of ${order.length} · <button class="btn text sm" data-act="details" style="padding:0 6px">${p.details ? 'Hide details' : 'Show details'}</button>`,
+    actions: `<button class="btn filled" data-act="toSignin" ${all ? 'autofocus' : 'disabled'}>Next</button>`,
+  });
+};
+
+function signRow(a, st) {
+  const right = st === 'in' ? `<span class="chip ok">${TICK(false).replace('width="22" height="22"', 'width="16" height="16"')}Signed in</span>`
+    : st === 'none' ? `<span class="chip ok">${TICK(false).replace('width="22" height="22"', 'width="16" height="16"')}Ready</span>`
+    : `<button class="btn tonal sm" data-act="signin" data-agent="${a.id}">Sign in</button>`;
+  const sub = st === 'in' ? (a.id === 'copilot' ? 'Signed in on GitHub' : 'Signed in with your account') : st === 'none' ? 'No account needed' : a.needs;
+  return `<div class="row paper">${av(a)}<div><b>${a.name}</b><div class="sub">${sub}</div></div>${right}</div>`;
+}
+S.signin = (p = { rows: { claude: 'out', copilot: 'in', opencode: 'none' } }) => {
+  const pending = Object.values(p.rows).filter(v => v === 'out').length;
+  return frame({
+    step: 2,
+    body: `<h1>Sign in</h1>
+      <p class="lead">Each agent signs in with its maker, in your browser. Quire never sees your password.</p>
+      <div class="rows">${Object.entries(p.rows).map(([k, v]) => signRow(A[k], v)).join('')}</div>`,
+    hint: pending ? `${pending} still to sign in. You can do it later from Quire.` : 'All set.',
+    actions: `${pending ? '<button class="btn text" data-act="toTry">Later</button>' : ''}<button class="btn filled" data-act="toTry" ${pending ? '' : 'autofocus'}>Next</button>`,
+    sheet: p.sheet ? SHEET[p.sheet](p) : '',
+  });
+};
+const SHEET = {
+  device: (p) => { const a = A[p.signing || 'copilot']; const m = MAKER[a.id] || MAKER.copilot; return `${av(a, 36)}<h2>Sign in to ${a.name}</h2>
+    <p class="lead">${m.who} asks you to confirm this laptop with a one-time code.</p>
+    <div class="num"><span class="n">1</span><div><b>Copy this code</b>
+      <div class="code"><span class="digits paper">8F3A-21KD</span><button class="btn tonal sm" data-act="copy">${ic('copy', 16)}Copy</button></div></div></div>
+    <div class="num"><span class="n">2</span><div><b>Enter it on ${m.who}’s page</b>
+      <div style="margin-top:8px"><button class="btn filled sm" data-act="opendevice">${ic('open', 16)}Open ${m.site}</button></div></div></div>
+    <div class="waiting"><i class="inkdot" style="width:8px;height:8px;border-radius:50%;background:var(--primary);animation:inkdot 1.2s infinite"></i>Waiting for you to finish in the browser…</div>
+    <div class="acts"><span class="fine" style="margin:0">The code is ${m.who}’s. It works once, for a few minutes.</span><span class="spacer"></span><button class="btn text" data-act="closeSheet">Cancel</button></div>`; },
+  link: (p) => { const a = A[p.signing]; return `${av(a, 36)}<h2>Sign in to ${a.name}</h2>
+    <p class="lead">Sign in on Cursor’s page. This window finishes by itself.</p>
+    <div class="num"><span class="n">1</span><div><b>Open Cursor’s sign-in page</b>
+      <div style="margin-top:8px"><button class="btn filled sm" data-act="opendevice">${ic('open', 16)}Open cursor.com</button></div></div></div>
+    <div class="waiting"><i class="inkdot" style="width:8px;height:8px;border-radius:50%;background:var(--primary);animation:inkdot 1.2s infinite"></i>Waiting for you to finish in the browser…</div>
+    <div class="acts"><span class="spacer"></span><button class="btn text" data-act="closeSheet">Cancel</button></div>`; },
+  paste: (p) => { const a = A[p.signing || 'claude']; const m = MAKER[a.id] || MAKER.claude; return `${av(a, 36)}<h2>Sign in to ${a.name}</h2>
+    <p class="lead">${m.who}’s page signs you in and shows a code. Paste it here to finish.</p>
+    <div class="num"><span class="n">1</span><div><b>Open ${m.who}’s sign-in page</b>
+      <div style="margin-top:8px"><button class="btn filled sm" data-act="openpaste">${ic('open', 16)}Open ${m.site}</button></div></div></div>
+    <div class="num"><span class="n">2</span><div><b>Paste the code it shows you</b>
+      <div class="field"><div class="in ${p.pasted ? 'focus' : ''}">${p.pasted ? '••••••••••••••••••••••••••••' : 'Code from the sign-in page'}</div>
+      <button class="btn filled sm" data-act="finishpaste" ${p.pasted ? '' : 'disabled'}>Sign in</button></div></div></div>
+    <div class="acts"><button class="btn text" data-act="apikey">${ic('key', 16)}Use an API key instead</button><span class="spacer"></span><button class="btn text" data-act="closeSheet">Cancel</button></div>
+    <div class="fine">The code goes straight to ${a.name} in the Linux environment. Quire doesn’t keep it.</div>`; },
+  key: (p) => { const a = A[p.signing]; return `${av(a, 36)}<h2>Set up ${a.name}</h2>
+    <p class="lead">${a.name} uses the model provider you choose. Paste that provider’s API key.</p>
+    <div class="num"><span class="n">1</span><div><b>Provider</b>
+      <div class="field"><div class="in">OpenRouter</div></div></div></div>
+    <div class="num"><span class="n">2</span><div><b>API key</b>
+      <div class="field"><div class="in ${p.pasted ? 'focus' : ''}">${p.pasted ? '••••••••••••••••••••••••••••' : 'Paste the key'}</div>
+      <button class="btn filled sm" data-act="finishpaste" ${p.pasted ? '' : 'disabled'}>Save</button></div></div></div>
+    <div class="acts"><span class="spacer"></span><button class="btn text" data-act="closeSheet">Cancel</button></div>
+    <div class="fine">The key is kept only in the Linux environment, in a file only ${a.name} reads. Quire doesn’t show it again.</div>`; },
+};
+const MAKER = { claude: { who: 'Anthropic', site: 'claude.ai' }, agy: { who: 'Google', site: 'accounts.google.com' },
+  copilot: { who: 'GitHub', site: 'github.com/login/device' }, kimi: { who: 'Kimi', site: 'kimi.com' }, grok: { who: 'xAI', site: 'accounts.x.ai' } };
+
+const answer = (a) => `Hi, I’m Quire, running ${a.name} here on your laptop. Ask me to change a setting, find a file, or get something done in an app, and I’ll show you each step as I go.`;
+S.try = (p = { words: 999, agent: 'claude' }) => {
+  const a = A[p.agent];
+  const words = answer(a).split(' ');
+  const shown = words.slice(0, p.words);
+  const running = p.words < words.length;
+  return frame({
+    step: 3, working: running,
+    body: `<h1>Say hello</h1>
+      <p class="lead">A first request, to check that everything works.</p>
+      <div class="try">
+        <div class="mini paper">
+          <div class="prompt">Introduce yourself in one sentence.</div><div class="rule"></div>
+          <div class="ans" aria-live="polite">${shown.map((w, i) => i >= shown.length - 3 && running ? `<span class="new">${w} </span>` : w + ' ').join('')}${running ? '' : ''}</div>
+          <div class="quiet"><span class="agent" data-act="pickagent" title="Choose the default agent">${av(a)}${a.name}</span>${running ? 'Answering…' : 'Your default agent · change it anytime'}</div>
+        </div>
+        <div class="callout paper"><b>Call Quire anytime</b>
+          <div class="demo"><i class="demo-halo"></i><svg class="ptr" viewBox="0 0 18 18">${ICON.ptr}</svg></div>
+          <div class="or"><span>Shake the pointer quickly from side to side,</span><span class="keys">or press <kbd>Meta</kbd><kbd>Space</kbd></span></div></div>
+      </div>`,
+    hint: running ? '' : `${TICK(false)}Quire is set up.`,
+    actions: `<button class="btn filled" data-act="finish" ${running ? 'disabled' : 'autofocus'}>Done</button>`,
+  });
+};
+
+S.manage = () => {
+  const row = (a, v, st, star, upd) => `<div class="li">${av(a)}<div><b>${a.name}${upd ? ' <span class="chip warn" style="height:20px;margin-left:6px">Update</span>' : ''}</b>
+    <div class="sub">${v} · ${st}</div></div><span class="star" title="${star ? 'Default agent' : 'Make default'}">${ic(star ? 'star' : 'starO', 20)}</span>
+    <button class="ibtn" aria-label="More for ${a.name}">${ic('more', 20)}</button></div>`;
+  return frame({
+    title: 'Quire',
+    body: `<h1>Your agents</h1>
+      <p class="lead">Call Quire with a shake of the pointer or <kbd>Meta</kbd> <kbd>Space</kbd>. Your default agent answers first.</p>
+      <div class="manage">
+        <div class="sect"><h3>Linux environment</h3><div class="list paper">
+          <div class="li"><span class="envic">${ic('terminal')}</span><div><b>Running</b><div class="sub">Debian 13 · Quire helper 0.4.0 · 3.4 GB used</div></div><span></span>
+            <button class="btn tonal sm">Stop</button></div></div></div>
+        <div class="sect"><h3>Agents</h3><div class="list paper">
+          ${row(A.claude, 'v2.1.318', 'Signed in', true)}${row(A.copilot, 'v1.0.106', 'Signed in', false, true)}${row(A.opencode, 'v2.2.5', 'No account needed', false)}
+        </div></div>
+      </div>`,
+    hint: `<button class="btn text sm" style="padding:0 6px">${ic('terminal', 16)}Open Terminal</button>`,
+    actions: `<button class="btn tonal" data-act="addAgents">${ic('plus', 18)}Add agents</button>`,
+  });
+};
+
+const GALLERY = [
+  ['welcome', 'Welcome', 'the first screen, from the note’s “Set up Quire”, the Quire app, or Settings › Quire'],
+  ['linux', 'Linux environment', 'one click: turned on, downloaded and checked, started; real progress from the Terminal app’s bridge'],
+  ['linux-nokvm', 'No virtualization', 'the one dead end, with the way out'],
+  ['agents', 'Choose agents', 'quired’s catalog; installed ones are marked; unsupported ones are named, not offered'],
+  ['installing', 'Installing', 'each card shows its own progress; Show details lists the exact commands'],
+  ['signin', 'Sign in', 'one row per agent; agents with no account are ready'],
+  ['signin-device', 'Sign in: device code', 'GitHub-style flows: the code, the page, and the wait'],
+  ['signin-paste', 'Sign in: paste back', 'Anthropic-style flows: open the page, paste the code'],
+  ['try', 'Say hello', 'a real first request with the default agent, and how to call Quire'],
+  ['manage', 'Quire app, after setup', 'the Quire entry in All Apps and Settings: environment, agents, default, add more'],
+];
+const SCREEN_ARGS = {
+  'signin-device': () => S.signin({ rows: { claude: 'out', copilot: 'out', opencode: 'none' }, sheet: 'device' }),
+  'signin-paste': () => S.signin({ rows: { claude: 'out', copilot: 'in', opencode: 'none' }, sheet: 'paste', pasted: true }),
+  'try': () => S.try({ words: 14, agent: 'claude' }),
+};
+const render = (id) => (SCREEN_ARGS[id] || S[id])();
+
+/* ============================================================================================
+   Modes: gallery (default), one screen, play.
+   ============================================================================================ */
+const q = new URLSearchParams(location.search);
+const root = document.getElementById('root');
+document.documentElement.dataset.theme = q.get('theme') || 'light';
+if (q.get('wall')) document.documentElement.dataset.wall = q.get('wall');
+if (q.get('glass') === '0') document.documentElement.dataset.glass = '0';
+
+if (q.get('play')) play();
+else if (q.get('screen')) root.innerHTML = render(q.get('screen'));
+else gallery();
+
+function gallery() {
+  root.innerHTML = `<div class="gallery"><header><h1>Quire setup: the agents wizard</h1>
+    Every screen, light and dark. Click a screen to open it alone; <a href="?play=1">play</a> clicks through the whole flow
+    (downloads and installs are simulated). The spec is <code>docs/quire-setup.md</code>.</header>
+    ${GALLERY.map(([id, t, d]) => `<div class="item"><h4>${t}<span>${d}</span></h4><div class="pair">
+      ${['light', 'dark'].map(th => `<a class="frame" data-theme="${th}" href="?screen=${id}&theme=${th}">${render(id)}</a>`).join('')}</div></div>`).join('')}</div>`;
+}
+
+function play() {
+  const st = { screen: 'welcome', phase: 0, got: 0, total: 788, sel: {}, installed: { opencode: 'v2.2.5' }, jobs: {}, rows: {}, sheet: null, pasted: false, words: 0, agent: 'claude', details: false };
+  const timers = [];
+  const later = (ms, f) => timers.push(setTimeout(f, ms));
+  const show = () => {
+    let html;
+    switch (st.screen) {
+      case 'welcome': html = S.welcome(); break;
+      case 'linux': html = S.linux(st); break;
+      case 'agents': html = S.agents(st); break;
+      case 'installing': html = S.installing(st); break;
+      case 'signin': html = S.signin(st); break;
+      case 'try': html = S.try(st); break;
+      case 'manage': html = S.manage(); break;
+      case 'nokvm': html = S['linux-nokvm'](); break;
+    }
+    root.innerHTML = html;
+    root.querySelector('[autofocus]')?.focus();
+  };
+  function runLinux() {
+    st.screen = 'linux'; st.phase = 0; show();
+    later(700, () => { st.phase = 1; show(); tick(); });
+    function tick() {
+      if (st.got >= st.total) { st.got = st.total; st.phase = 2; show(); later(1400, () => { st.phase = 3; show(); later(1300, () => { st.phase = 4; show(); later(800, () => { st.phase = 5; show(); }); }); }); return; }
+      st.got = Math.min(st.total, st.got + 37); show(); later(110, tick);
+    }
+  }
+  function runInstall() {
+    const ids = Object.keys(st.sel).filter(k => st.sel[k]);
+    st.jobs = Object.fromEntries(ids.map(k => [k, { progress: 0, line: 'Waiting…' }]));
+    st.screen = 'installing'; show();
+    const LINES = { claude: ['Downloading Claude Code’s installer', 'Installing Claude Code 2.1.318'], copilot: ['Downloading GitHub’s installer', 'Installing Copilot CLI 1.0.106'],
+      agy: ['Downloading Google’s installer', 'Installing Antigravity CLI 1.5.2'], grok: ['Downloading xAI’s installer', 'Installing Grok CLI 1.0.77'],
+      gemini: ['Installing Node.js 20 from Debian', 'Downloading @google/gemini-cli'], cursor: ['Downloading Cursor Agent', 'Installing Cursor Agent'],
+      kimi: ['Downloading Kimi’s installer', 'Installing Kimi Code'], hermes: ['Downloading Hermes Agent', 'Installing Hermes Agent'], omp: ['Downloading Oh My Pi', 'Installing Oh My Pi'],
+      opencode: ['Downloading opencode', 'Installing opencode'] };
+    const VERS = { agy: 'v1.5.2', grok: 'v1.0.77', claude: 'v2.1.318', copilot: 'v1.0.106', gemini: 'v0.21.0', cursor: '2026.11.05', kimi: 'v2.4.1', hermes: 'v0.20.5', omp: 'v18.11.2', opencode: 'v2.2.5' };
+    let i = 0;
+    const next = () => {
+      if (i >= ids.length) { show(); return; }
+      const k = ids[i], j = st.jobs[k];
+      const step = () => {
+        j.progress = Math.min(1, j.progress + .06);
+        j.line = LINES[k][j.progress < .45 ? 0 : 1] + ` · ${Math.round(j.progress * 100)} %`;
+        if (j.progress >= 1) { j.version = VERS[k]; st.installed[k] = VERS[k]; i++; show(); later(300, next); return; }
+        show(); later(140, step);
+      };
+      step();
+    };
+    next();
+  }
+  function toSignin() {
+    st.rows = {};
+    Object.keys(st.installed).forEach(k => st.rows[k] = A[k].signin === 'none' ? 'none' : 'out');
+    st.screen = 'signin'; st.sheet = null; show();
+  }
+  function stream() {
+    st.screen = 'try'; st.words = 0; show();
+    const n = answer(A[st.agent]).split(' ').length;
+    const step = () => { st.words++; show(); if (st.words < n) later(70 + Math.random() * 60, step); };
+    later(900, step);
+  }
+  root.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-act],[data-agent]');
+    if (!t) return;
+    const act = t.dataset.act;
+    if (!act && t.dataset.agent && st.screen === 'agents') {
+      const k = t.dataset.agent; if (st.installed[k]) return;
+      st.sel[k] = !st.sel[k]; show(); return;
+    }
+    switch (act) {
+      case 'start': runLinux(); break;
+      case 'toAgents': st.screen = 'agents'; show(); break;
+      case 'install': runInstall(); break;
+      case 'details': st.details = !st.details; show(); break;
+      case 'toSignin': toSignin(); break;
+      case 'signin': st.signing = t.dataset.agent; st.sheet = { device: 'device', key: 'key', link: 'link' }[A[st.signing].signin] || 'paste'; st.pasted = false; show();
+        if (st.sheet === 'key') later(1200, () => { if (st.sheet === 'key') { st.pasted = true; show(); } });
+        if (st.sheet === 'device' || st.sheet === 'link') { const which = st.sheet; later(3800, () => { if (st.sheet === which) { st.rows[st.signing] = 'in'; st.sheet = null; show(); } }); }
+        break;
+      case 'openpaste': later(900, () => { st.pasted = true; show(); }); break;
+      case 'finishpaste': st.rows[st.signing] = 'in'; st.sheet = null; show(); break;
+      case 'closeSheet': st.sheet = null; show(); break;
+      case 'toTry': { const ok = Object.keys(st.rows).find(k => st.rows[k] !== 'out'); st.agent = ok || 'opencode'; stream(); break; }
+      case 'finish': st.screen = 'manage'; show(); break;
+      case 'addAgents': st.screen = 'agents'; st.sel = {}; show(); break;
+      case 'close': st.screen = 'welcome'; timers.forEach(clearTimeout); show(); break;
+    }
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && st.sheet) { st.sheet = null; show(); } });
+  show();
+}
+</script>
+</body>
+</html>
