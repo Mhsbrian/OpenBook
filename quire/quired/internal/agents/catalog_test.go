@@ -115,6 +115,11 @@ func TestSetupRecipesAreComplete(t *testing.T) {
 			if m.Kind == KindKey && len(st.Keys) == 0 {
 				t.Errorf("%s: a key sign-in needs key variables", s.ID)
 			}
+			if c := m.Code; c != nil {
+				if _, err := regexp.Compile(c.Pattern); err != nil || m.Kind != KindPaste || c.Hint == "" {
+					t.Errorf("%s: sign-in %s: a code shape is a paste-back's, with a pattern that compiles and a hint (%v)", s.ID, m.ID, err)
+				}
+			}
 		}
 		for _, k := range st.Keys {
 			if !env.MatchString(k.Name) || k.Label == "" {
@@ -183,6 +188,20 @@ func TestEveryLoginHasAWayToSignOut(t *testing.T) {
 			if filepath.IsAbs(p) || strings.HasPrefix(filepath.Clean(p), "..") {
 				t.Errorf("%s: login path %q must be inside $HOME", s.ID, p)
 			}
+		}
+	}
+}
+
+// Claude Code's own check (2.1.319, `auth login`): the line split on #, its first two parts not
+// empty.
+func TestClaudesCodeShapeIsClaudesOwnCheck(t *testing.T) {
+	re := regexp.MustCompile(claudeCode.Pattern)
+	for text, want := range map[string]bool{
+		"abc#def": true, "abc#def#ghi": true, "a#b": true,
+		"abcdef": false, "#def": false, "abc#": false, "abc##def": false, "": false,
+	} {
+		if got := re.MatchString(text); got != want {
+			t.Errorf("%q: %v, want %v", text, got, want)
 		}
 	}
 }

@@ -15,14 +15,16 @@
 //	_quire/update      {"agent", "job"}                 → {"version", "path"}     (+ _quire/progress)
 //	_quire/remove      {"agent", "job", "settings"}     → {"removed": [...]}      (+ _quire/progress)
 //	_quire/login       {"agent", "method", "job"}       → {"signedIn"}            (+ _quire/login/prompt)
-//	_quire/login/input {"job", "text"}                  → {}
+//	_quire/login/input {"job", "text"}                  → {"answer": [...]}
 //	_quire/key         {"agent", "name", "value"}       → {}
 //	_quire/signout     {"agent"}                        → {"ran", "removed"}
 //	_quire/signin      {"agent"}                        → {"signedIn", "detail"}
 //	_quire/cancel      {"job"}                          → {}
 //
 // A failed job is a JSON-RPC error whose data is {"step", "output"} (the last lines, redacted);
-// a cancelled one has code CodeCancelled.
+// a cancelled one has code CodeCancelled. _quire/login/input refuses a code that isn't the shape
+// the agent's prompt accepts (its message says what to paste), and answers with the lines the
+// agent printed after it, redacted: its own word on the code while the login runs on.
 package setup
 
 import (
@@ -94,11 +96,13 @@ type Deadlines struct {
 	Remove time.Duration
 	Login  time.Duration
 	Status time.Duration
+	Answer time.Duration // how long _quire/login/input waits for the agent's answer
 }
 
 // DefaultDeadlines are generous: a maker's installer on a slow connection, a person finding
 // their password.
-var DefaultDeadlines = Deadlines{Step: 15 * time.Minute, Remove: 5 * time.Minute, Login: 10 * time.Minute, Status: 30 * time.Second}
+var DefaultDeadlines = Deadlines{Step: 15 * time.Minute, Remove: 5 * time.Minute, Login: 10 * time.Minute, Status: 30 * time.Second,
+	Answer: 3 * time.Second}
 
 // Service answers the setup methods.
 type Service struct {
@@ -137,6 +141,9 @@ func (s *Service) deadlines() Deadlines {
 	}
 	if d.Login == 0 {
 		d.Login = DefaultDeadlines.Login
+	}
+	if d.Answer == 0 {
+		d.Answer = DefaultDeadlines.Answer
 	}
 	if d.Status == 0 {
 		d.Status = DefaultDeadlines.Status
@@ -203,7 +210,8 @@ func (s *Service) Handle(ctx context.Context, method string, params json.RawMess
 		if err := decode(params, &p); err != nil {
 			return nil, err, true
 		}
-		return struct{}{}, s.input(p.Job, p.Text), true
+		res, err := s.input(p.Job, p.Text)
+		return res, err, true
 	case MethodKey:
 		var p struct {
 			Agent string `json:"agent"`
@@ -408,21 +416,46 @@ func (s *Service) cancelJob(id string) error {
 	return nil
 }
 
-func (s *Service) input(id, text string) error {
+// inputResult is what the agent printed after a login's input: an error, or the next thing to
+// do, which the wizard shows under the field.
+type inputResult struct {
+	Answer []string `json:"answer"`
+}
+
+// maxAnswer is how many of the agent's lines the wizard gets back: enough for an error and the
+// prompt after it.
+const maxAnswer = 4
+
+func (s *Service) input(id, text string) (any, error) {
 	if len(text) == 0 || len(text) > 4096 || strings.ContainsAny(text, "\x00\r\n") {
-		return acp.Errorf(acp.CodeInvalidParams, "the input must be one line of at most 4096 characters")
+		return nil, acp.Errorf(acp.CodeInvalidParams, "the input must be one line of at most 4096 characters")
 	}
 	s.mu.Lock()
 	j := s.jobs[id]
 	s.mu.Unlock()
 	if j == nil || j.kind != "login" {
-		return acp.Errorf(acp.CodeInvalidParams, "no login %s is running", id)
+		return nil, acp.Errorf(acp.CodeInvalidParams, "no login %s is running", id)
 	}
-	if err := j.write(text); err != nil {
-		return acp.Errorf(acp.CodeInvalidRequest, "%v", err)
+	j.mu.Lock()
+	code, hint := j.code, j.hint
+	j.mu.Unlock()
+	if code != nil && !code.MatchString(strings.TrimSpace(text)) {
+		j.log.printf("(input refused: not the code's shape, %d characters)", len(text))
+		s.logf("setup: login %s: input refused, not the code's shape", j.agent)
+		return nil, acp.Errorf(acp.CodeInvalidParams, "%s", hint)
+	}
+	from, err := j.write(text)
+	if err != nil {
+		return nil, acp.Errorf(acp.CodeInvalidRequest, "%v", err)
 	}
 	j.log.printf("(input written, %d characters)", len(text))
-	return nil
+	answer := j.answer(from, s.deadlines().Answer, 300*time.Millisecond)
+	if len(answer) > maxAnswer {
+		answer = answer[len(answer)-maxAnswer:]
+	}
+	// The journal says whether the agent answered, never what: that is in the job's own log.
+	s.logf("setup: login %s: input written, %d lines back", j.agent, len(answer))
+	return inputResult{Answer: answer}, nil
 }
 
 // failed is a job's error for the client: what failed, and the last lines of its output.
@@ -636,11 +669,22 @@ func (s *Service) login(ctx context.Context, p jobParams, notify Notifier) (any,
 	if !ok && m.Run.NeedsBin() {
 		return nil, acp.Errorf(acp.CodeInvalidRequest, "%s isn't installed", spec.Name)
 	}
+	var code *regexp.Regexp
+	if m.Code != nil {
+		if code, err = regexp.Compile(m.Code.Pattern); err != nil {
+			return nil, fmt.Errorf("%s's code shape: %w", spec.Name, err)
+		}
+	}
 	j, jctx, err := s.start(ctx, p.Job, spec.ID, "login")
 	if err != nil {
 		return nil, err
 	}
 	defer s.finish(j)
+	if code != nil {
+		j.mu.Lock()
+		j.code, j.hint = code, m.Code.Hint
+		j.mu.Unlock()
+	}
 	s.logf("setup: login %s %s (job %s)", spec.ID, m.ID, j.id)
 	var (
 		mu  sync.Mutex
