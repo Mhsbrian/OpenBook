@@ -100,6 +100,15 @@ class SetupModel {
     val jobs = LinkedHashMap<String, Job>()
     val signIns = LinkedHashMap<String, SignState>()
     var prompt: Prompt? = null
+
+    /**
+     * What a sign-out did, when it couldn't sign the account itself out (docs/quire-setup.md §6): Quire's own key is
+     * gone, but the maker's login stays until the person does what [manual] says, in the files [cleanup] names.
+     */
+    data class SignOutNote(val agent: String, val ran: String, val removed: List<String>, val manual: List<String>,
+        val cleanup: List<String>)
+
+    var signOutNote: SignOutNote? = null
     var showWhatRuns = false
     var showDetails = false
     var defaultAgent: String? = null
@@ -163,6 +172,7 @@ class SetupModel {
         page = to
         if (to != Page.AGENTS) showWhatRuns = false
         if (to != Page.SIGNIN) prompt = null
+        signOutNote = null
     }
 
     /** Get started, and Next on each page: the first step that isn't done yet (§2: done steps are skipped). */
@@ -280,6 +290,23 @@ class SetupModel {
 
     val pendingSignIns: Int
         get() = signInRows().count { it.second == SignState.OUT || it.second == SignState.UNKNOWN }
+
+    /**
+     * The sign-in state after `_quire/signout` (quired's answer): signed out only when the maker's own logout ran, or
+     * the agent's only sign-in was a key Quire kept. Removing Quire's key file alone never counts as signing the
+     * account out.
+     */
+    fun afterSignOut(agent: String, accountSignedOut: Boolean?, ran: String, removed: List<String>,
+        manual: List<String>, cleanup: List<String>): SignState {
+        if (accountSignedOut == true) {
+            signIns[agent] = SignState.OUT
+            signOutNote = null
+            return SignState.OUT
+        }
+        // The maker's login is still there, so the account is as signed in as it was; the note says what is left.
+        signOutNote = SignOutNote(agent, ran, removed, manual, cleanup)
+        return signIns[agent] ?: SignState.UNKNOWN
+    }
 
     companion object {
         private const val MB = 1_000_000L

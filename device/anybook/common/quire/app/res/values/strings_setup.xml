@@ -141,6 +141,11 @@
     <string name="setup_key_fine">The key is kept only in the Linux environment, in a file only you can read. Other agents in it run as you too, so they could read it.</string>
     <string name="setup_signin_failed">The sign-in didn’t finish. Try again.</string>
     <string name="setup_signin_terminal">This agent couldn’t sign in from here. Open Terminal, start it, and sign in the way it asks.</string>
+    <string name="setup_signout_title">%1$s is still signed in</string>
+    <string name="setup_signout_key_removed">Quire removed the key it kept for %1$s. The account itself stays signed in until you finish below.</string>
+    <string name="setup_signout_nothing">%1$s has no sign-out command Quire can run. Finish it yourself:</string>
+    <string name="setup_signout_files">Where %1$s keeps its sign-in</string>
+    <string name="setup_signout_failed">The sign-out didn’t finish: %1$s</string>
     <string name="setup_key_failed">Quire couldn’t save the key. Try again.</string>
 
     <!-- Try it -->

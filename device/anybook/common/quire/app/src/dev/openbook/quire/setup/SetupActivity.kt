@@ -140,6 +140,7 @@ class SetupActivity : Activity() {
     private fun closeSheet() {
         if (model.prompt != null) setup.cancelSignIn()
         model.showWhatRuns = false
+        model.signOutNote = null
         pasteField.text.clear()
         keyField.text.clear()
         render()
@@ -806,6 +807,7 @@ class SetupActivity : Activity() {
         val content: View? = when {
             m.page == Page.AGENTS && m.showWhatRuns && m.selected.isNotEmpty() -> whatRunsSheet()
             prompt != null -> signInSheet(prompt)
+            m.signOutNote != null -> signOutSheet(m.signOutNote!!)
             else -> null
         }
         // A code or a key is typed in these sheets: keep the window out of screenshots and the recents thumbnail
@@ -837,6 +839,25 @@ class SetupActivity : Activity() {
         addView(sheetActions(hintText(getString(R.string.setup_what_runs_fine)),
             button(getString(R.string.setup_back), QButton.Style.TEXT, "back") { model.showWhatRuns = false; render() },
             button(installLabel(), QButton.Style.FILLED, DEFAULT_FOCUS) { setup.install() }))
+    }
+
+    /** A sign-out that couldn't sign the account out: what Quire removed, and what is left for the person to do. */
+    private fun signOutSheet(n: SetupModel.SignOutNote) = sheet().apply {
+        val a = model.agent(n.agent)
+        val name = a?.name ?: n.agent
+        if (a != null) addView(avatar(a, 36f), LinearLayout.LayoutParams(dpi(36f), dpi(36f)))
+        addView(sheetTitle(getString(R.string.setup_signout_title, name)))
+        addView(sheetLead(getString(if (n.removed.isNotEmpty()) R.string.setup_signout_key_removed
+            else R.string.setup_signout_nothing, name)))
+        n.manual.forEachIndexed { i, step -> addView(numbered(i + 1, step, View(context).apply { visibility = View.GONE })) }
+        if (n.cleanup.isNotEmpty()) {
+            addView(text(TextRole.META_MEDIUM, p.onSurfaceVariant, getString(R.string.setup_signout_files, name)),
+                LinearLayout.LayoutParams(-1, -2).apply { topMargin = dpi(16f) })
+            addView(code(n.cleanup.joinToString("\n")), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dpi(6f) })
+        }
+        addView(sheetActions(null,
+            button(getString(R.string.setup_open_terminal), QButton.Style.TEXT, "terminal", glyph = Icons.TERMINAL) { setup.openTerminal() },
+            button(getString(R.string.setup_done), QButton.Style.FILLED, DEFAULT_FOCUS) { closeSheet() }))
     }
 
     private fun signInSheet(pr: SetupModel.Prompt): View {

@@ -131,6 +131,21 @@ object SetupModelTest {
             c.eq("default prefers a ready agent", defaultAgent, "opencode")
         }
 
+        // Sign-out (the Checker's Hold 2): only the maker's own logout, or a key-only agent, counts as signed out.
+        SetupModel().apply {
+            onCatalog("0.4.0", listOf(mk("copilot", installed = true)))
+            onSignIn("copilot", SignState.IN)
+            val st = afterSignOut("copilot", null, "", listOf("~/.config/quire/keys/copilot.env"),
+                listOf("Run copilot, then /logout"), listOf("~/.copilot"))
+            c.eq("no logout command: still signed in", st, SignState.IN)
+            c.eq("no logout command: the note says what is left", signOutNote?.cleanup, listOf("~/.copilot"))
+            afterSignOut("copilot", false, "", emptyList(), listOf("x"), emptyList())
+            c.eq("account not signed out: state kept", signIns["copilot"], SignState.IN)
+            c.eq("maker's logout ran: signed out", afterSignOut("copilot", true, "copilot logout", emptyList(),
+                emptyList(), emptyList()), SignState.OUT)
+            c.eq("maker's logout ran: no note", signOutNote, null)
+        }
+
         // Only https addresses an agent printed are opened.
         c.eq("https ok", SetupModel.safeUrl("https://github.com/login/device"), true)
         c.eq("http refused", SetupModel.safeUrl("http://github.com/login/device"), false)

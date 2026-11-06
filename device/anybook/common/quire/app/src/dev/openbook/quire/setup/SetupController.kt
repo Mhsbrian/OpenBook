@@ -498,10 +498,26 @@ class SetupController(private val app: QuireApplication) {
         if (job != null) work("cancel") { host().call("_quire/cancel", JSONObject().put("job", job), CALL_MS) }
     }
 
+    /**
+     * Sign out (docs/quire-setup.md §6): the maker's logout where it has one, and Quire's key for the agent. When the
+     * account itself is still signed in afterwards, the agents page says what is left to do and where; the agent is
+     * not shown as signed out.
+     */
     fun signOut(id: String) = work("signout") {
-        val r = host().call("_quire/signout", JSONObject().put("agent", id), LOGIN_MS)
-        Log.i(TAG, "setup: signed out $id: ran=${r.optString("ran")}")
-        ui { onSignIn(id, SetupModel.SignState.OUT) }
+        fun list(r: JSONObject, k: String) = r.optJSONArray(k)?.let { a -> (0 until a.length()).map { a.getString(it) } }.orEmpty()
+        try {
+            val r = host().call("_quire/signout", JSONObject().put("agent", id), LOGIN_MS)
+            val account = if (r.isNull("accountSignedOut")) null else r.optBoolean("accountSignedOut")
+            val ran = if (r.isNull("ran")) "" else r.optString("ran")
+            Log.i(TAG, "setup: sign-out $id: ran=${ran.ifEmpty { "-" }} account=$account verified=${r.optBoolean("verified")} " +
+                "removed=${list(r, "removed").size}")
+            ui { afterSignOut(id, account, ran, list(r, "removed"), list(r, "manual"), list(r, "cleanup")) }
+            if (account != true) checkSignIns(listOf(id))
+        } catch (e: Exception) {
+            Log.w(TAG, "setup: sign-out $id failed: ${e.message}")
+            ui { signOutNote = SetupModel.SignOutNote(id, "", emptyList(), listOf(app.getString(R.string.setup_signout_failed,
+                e.message.orEmpty())), emptyList()) }
+        }
     }
 
     // ----------------------------------------------------------------------------------------- try it
