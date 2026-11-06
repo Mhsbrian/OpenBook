@@ -559,7 +559,8 @@ class SetupController(private val app: QuireApplication) {
         if (loginJob != null) cancelSignIn()
         val job = "login-${jobIds.incrementAndGet()}"
         loginJob = job
-        model.prompt = SetupModel.Prompt(id, method)
+        val pr = SetupModel.Prompt(id, method)
+        model.prompt = pr
         listeners.forEach { it() }
         if (method.kind == SetupModel.Kind.KEY) return
         if (method.kind == SetupModel.Kind.ACP) return signInAcp(id, job)
@@ -598,6 +599,7 @@ class SetupController(private val app: QuireApplication) {
             } finally {
                 extensionHandlers.remove(job)
                 if (loginJob == job) loginJob = null
+                ui { if (prompt === pr) pr.ended = true }
             }
         }
     }
@@ -624,10 +626,37 @@ class SetupController(private val app: QuireApplication) {
         }
     }
 
-    /** The code the person pasted, written once to the login's terminal. Not kept here or logged. */
+    /**
+     * The code the person pasted, written once to the login's terminal. Not kept here or logged. quired refuses a code
+     * that isn't the shape the agent takes, saying what to paste, and otherwise answers with what the agent printed
+     * after it; either shows under the field, as does a code pasted after the login ended. Before, all three were
+     * dropped and the field just emptied (ANAL-395).
+     */
     fun paste(text: String) {
-        val job = loginJob ?: return
-        work("paste") { host().call("_quire/login/input", JSONObject().put("job", job).put("text", text.trim()), CALL_MS) }
+        val pr = model.prompt ?: return
+        val job = loginJob
+        if (job == null || pr.ended) {
+            pr.failed = app.getString(R.string.setup_paste_ended)
+            listeners.forEach { it() }
+            return
+        }
+        pr.failed = ""
+        pr.answer = ""
+        listeners.forEach { it() }
+        work("paste") {
+            try {
+                val r = host().call("_quire/login/input", JSONObject().put("job", job).put("text", text.trim()), CALL_MS)
+                val said = r.optJSONArray("answer")?.let { a -> (0 until a.length()).map { a.optString(it) } }.orEmpty()
+                Log.i(TAG, "setup: code sent, ${said.size} lines back")
+                ui { if (prompt === pr) pr.answer = said.joinToString("\n") }
+            } catch (e: AcpError) {
+                Log.w(TAG, "setup: code refused: ${e.message}")
+                ui { if (prompt === pr) pr.failed = e.message.orEmpty() }
+            } catch (e: Exception) {
+                Log.w(TAG, "setup: code not sent: ${e.message}")
+                ui { if (prompt === pr) pr.failed = app.getString(R.string.setup_signin_failed) }
+            }
+        }
     }
 
     /** A key for one agent, stored only in the guest (docs/quire-setup.md §6). Not kept here or logged. */

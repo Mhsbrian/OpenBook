@@ -13,7 +13,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
+	"time"
 
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/acp"
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/admin"
@@ -175,8 +177,8 @@ func callPrint(ctx context.Context, rwc io.ReadWriteCloser, method, params strin
 }
 
 // cmdSetup is a client of quired serve's setup methods, for checks: it initializes as Quire core
-// would, sends one request, and prints the notifications and the result. With --input, each line
-// of stdin is sent to the running login as _quire/login/input.
+// would, sends one request, and prints the notifications and the result. For _quire/login, each
+// line of stdin is sent to the running login as _quire/login/input, and its answer printed.
 func cmdSetup(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("setup", flag.ContinueOnError)
 	connect := fs.String("connect", "", "vsock:CID:PORT or unix:PATH of a quired serve")
@@ -191,10 +193,12 @@ func cmdSetup(ctx context.Context, args []string) error {
 		return err
 	}
 	defer rwc.Close()
-	out := json.NewEncoder(os.Stdout)
+	enc := json.NewEncoder(os.Stdout)
+	var outMu sync.Mutex
+	emit := func(v any) error { outMu.Lock(); defer outMu.Unlock(); return enc.Encode(v) }
 	var conn *acp.Conn
 	conn = acp.NewConn(rwc, rwc, acp.Handlers{Notification: func(m string, p json.RawMessage) {
-		_ = out.Encode(map[string]any{"method": m, "params": p})
+		_ = emit(map[string]any{"method": m, "params": p})
 	}}, nil)
 	init := acp.InitializeRequest{ProtocolVersion: acp.ProtocolVersion, ClientInfo: &clientInfo}
 	var info acp.InitializeResponse
@@ -209,28 +213,55 @@ func cmdSetup(ctx context.Context, args []string) error {
 	if !json.Valid([]byte(params)) {
 		return fmt.Errorf("params are not JSON: %s", params)
 	}
+	var inputs sync.WaitGroup
 	if method == "_quire/login" {
 		var p struct {
 			Job string `json:"job"`
 		}
 		_ = json.Unmarshal([]byte(params), &p)
+		// Each line of stdin is one input; its answer (or refusal) is printed as {"quired": "input", ...},
+		// before the login's result if the code ends the login.
 		go func() {
 			sc := bufio.NewScanner(os.Stdin)
 			for sc.Scan() {
-				_ = conn.Call(ctx, "_quire/login/input", map[string]string{"job": p.Job, "text": sc.Text()}, nil)
+				inputs.Add(1)
+				var res json.RawMessage
+				err := conn.Call(ctx, "_quire/login/input", map[string]string{"job": p.Job, "text": sc.Text()}, &res)
+				var re *acp.RPCError
+				switch {
+				case err == nil:
+					_ = emit(map[string]any{"quired": "input", "result": res})
+				case errors.As(err, &re):
+					_ = emit(map[string]any{"quired": "input", "error": re})
+				default:
+					_ = emit(map[string]any{"quired": "input", "error": map[string]string{"message": err.Error()}})
+				}
+				inputs.Done()
 			}
 		}()
 	}
 	var res json.RawMessage
-	if err := conn.Call(ctx, method, json.RawMessage(params), &res); err != nil {
+	err = conn.Call(ctx, method, json.RawMessage(params), &res)
+	waitInputs(&inputs, 10*time.Second)
+	if err != nil {
 		var re *acp.RPCError
 		if errors.As(err, &re) {
-			_ = out.Encode(map[string]any{"quired": "result", "error": re})
+			_ = emit(map[string]any{"quired": "result", "error": re})
 			return fmt.Errorf("%s: %s", method, re.Message)
 		}
 		return err
 	}
-	return out.Encode(map[string]any{"quired": "result", "result": res})
+	return emit(map[string]any{"quired": "result", "result": res})
+}
+
+// waitInputs waits up to d for inputs still being answered.
+func waitInputs(wg *sync.WaitGroup, d time.Duration) {
+	done := make(chan struct{})
+	go func() { wg.Wait(); close(done) }()
+	select {
+	case <-done:
+	case <-time.After(d):
+	}
 }
 
 // readParams returns JSON params: the argument itself, "{}" if empty, or a file's contents for

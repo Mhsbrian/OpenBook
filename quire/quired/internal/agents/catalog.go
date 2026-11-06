@@ -57,6 +57,12 @@ const recipesChecked = "2026-11-06"
 // CA certificates come from the admin worker first (setup.go, DebianAllowlist).
 var scriptDeps = []string{"ca-certificates", "curl"}
 
+// claudeCode is the code Claude Code's `auth login` reads (2.1.319): two parts joined by #, the
+// first two of which must not be empty (it splits the line on # and checks both). Anything else
+// gets "Invalid code. Please make sure the full code was copied." and the prompt waits on.
+var claudeCode = &CodeShape{Pattern: `^[^#]+#[^#]`,
+	Hint: "That isn't the whole code. Claude's code has two parts joined by #. Copy it with the button on the sign-in page, then paste it here."}
+
 // Catalog lists the agents quired knows, in display order.
 var Catalog = []Spec{
 	{ID: "claude", Name: "Claude Code", Maker: "Anthropic", Needs: "A Claude plan or an API key",
@@ -70,8 +76,8 @@ var Catalog = []Spec{
 			Update: []Step{{Title: "Update Claude Code", Run: Command{Argv: []string{BinToken, "update"}}}},
 			Remove: Removal{Paths: []string{".local/bin/claude", ".local/share/claude"}, Settings: []string{".claude", ".claude.json"}},
 			SignIn: []SignIn{
-				{ID: "claude-ai", Kind: KindPaste, Label: "Claude account", Run: Command{Argv: []string{BinToken, "auth", "login", "--claudeai"}}},
-				{ID: "console", Kind: KindPaste, Label: "Anthropic Console", Run: Command{Argv: []string{BinToken, "auth", "login", "--console"}}},
+				{ID: "claude-ai", Kind: KindPaste, Label: "Claude account", Run: Command{Argv: []string{BinToken, "auth", "login", "--claudeai"}}, Code: claudeCode},
+				{ID: "console", Kind: KindPaste, Label: "Anthropic Console", Run: Command{Argv: []string{BinToken, "auth", "login", "--console"}}, Code: claudeCode},
 				{ID: "key", Kind: KindKey, Label: "Anthropic API key"},
 			},
 			Keys:   []Key{{Name: "ANTHROPIC_API_KEY", Label: "Anthropic API key"}},

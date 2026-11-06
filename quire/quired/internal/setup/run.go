@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"syscall"
@@ -31,7 +32,11 @@ type job struct {
 	log    *jobLog
 
 	mu    sync.Mutex
-	tail  []string // the last lines, redacted, for an error's data
+	code  *regexp.Regexp // a paste-back login's code shape, or nil
+	hint  string         // what to say when the input isn't that shape
+	tail  []string       // the last lines, redacted, for an error's data
+	lines int            // how many lines the job has printed
+	ended bool           // its command has exited
 	input io.Writer
 	quiet time.Time // don't flush a partial line before this (an echo may still be arriving)
 }
@@ -41,10 +46,48 @@ const tailLines = 40
 func (j *job) keep(line string) {
 	j.mu.Lock()
 	j.tail = append(j.tail, line)
+	j.lines++
 	if len(j.tail) > tailLines {
 		j.tail = j.tail[len(j.tail)-tailLines:]
 	}
 	j.mu.Unlock()
+}
+
+// answer returns what the job printed after its first `from` lines: once it has printed
+// something, the lines that came before it went quiet for settle, or before wait ran out or its
+// command exited. Echoes of the input (lines holding the mask) aren't an answer.
+func (j *job) answer(from int, wait, settle time.Duration) []string {
+	deadline := time.Now().Add(wait)
+	last, lastAt := from, time.Now()
+	for {
+		j.mu.Lock()
+		n, ended := j.lines, j.ended
+		j.mu.Unlock()
+		if n != last {
+			last, lastAt = n, time.Now()
+		}
+		now := time.Now()
+		if ended || now.After(deadline) || (last > from && now.Sub(lastAt) >= settle && len(j.since(from)) > 0) {
+			return j.since(from)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+func (j *job) since(from int) []string {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	k := j.lines - from
+	if k > len(j.tail) {
+		k = len(j.tail)
+	}
+	var out []string
+	for _, l := range j.tail[len(j.tail)-k:] {
+		if !strings.Contains(l, mask) {
+			out = append(out, l)
+		}
+	}
+	return out
 }
 
 func (j *job) output() string {
@@ -53,18 +96,19 @@ func (j *job) output() string {
 	return strings.Join(j.tail, "\n")
 }
 
-// write sends text to a login's terminal. The text becomes a secret first, so its echo is cut.
-func (j *job) write(text string) error {
+// write sends text to a login's terminal, with Enter, and returns how many lines the job had
+// printed before it. The text becomes a secret first, so its echo is cut.
+func (j *job) write(text string) (int, error) {
 	j.mu.Lock()
-	w := j.input
+	w, n := j.input, j.lines
 	j.quiet = time.Now().Add(1500 * time.Millisecond)
 	j.mu.Unlock()
 	if w == nil {
-		return errors.New("this job takes no input")
+		return n, errors.New("this job takes no input")
 	}
 	j.red.add(text)
 	_, err := io.WriteString(w, text+"\r")
-	return err
+	return n, err
 }
 
 // env is the environment of every command quired runs for setup: its own, with HOME and a PATH
@@ -265,6 +309,9 @@ func (s *Service) run(ctx context.Context, j *job, c agents.Command, bin string,
 		master.Close()
 	}
 	lw.close()
+	j.mu.Lock()
+	j.ended = true
+	j.mu.Unlock()
 	if ctx.Err() != nil {
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			return errors.New("it took too long and was stopped")

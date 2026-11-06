@@ -282,8 +282,10 @@ if [ -n "$setup" ]; then
 	debs=$work/debs
 	rm -rf "$debs"
 	mkdir -p "$debs"
+	# The newer build is the source's version plus a suffix, so it sorts after an image built from the same tree.
+	newer=$(sed -n 's/^var version = "\(.*\)"/\1/p' "$repo/quire/quired/main.go")+setupcheck
 	QUIRED_VERSION=0.3.9 "$repo/quire/linux-env/build-deb.sh" "$debs/old" amd64 > /dev/null
-	QUIRED_VERSION=0.4.1~setupcheck "$repo/quire/linux-env/build-deb.sh" "$debs/new" amd64 > /dev/null
+	QUIRED_VERSION=$newer "$repo/quire/linux-env/build-deb.sh" "$debs/new" amd64 > /dev/null
 	params() { python3 -c 'import base64, hashlib, json, sys; b = open(sys.argv[1], "rb").read(); print(json.dumps({"deb": base64.b64encode(b).decode(), "sha256": hashlib.sha256(b).hexdigest()}))' "$1"; }
 	params "$debs/old/"quired_*.deb > "$debs/old.json"
 	params "$debs/new/"quired_*.deb > "$debs/new.json"
@@ -313,7 +315,7 @@ for l in open(sys.argv[1]):
 		if serve _quire/catalog > "$out/setup-catalog.ndjson" 2>&1; then ready2=1; break; fi
 		sleep 1
 	done
-	check "quired serves again after the update, as 0.4.1~setupcheck" result_has "$out/setup-catalog.ndjson" '"quired":"0.4.1~setupcheck"'
+	check "quired serves again after the update, as $newer" result_has "$out/setup-catalog.ndjson" "\"quired\":\"$newer\""
 	python3 "$repo/scripts/quire/serial-shell.py" 127.0.0.1 "$serial_port" droid droid \
 		'systemctl show -p ActiveEnterTimestampMonotonic -p MainPID quired.service' \
 		'dpkg-query -W quired' \

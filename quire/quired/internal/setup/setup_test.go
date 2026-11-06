@@ -63,6 +63,27 @@ func TestMain(m *testing.M) {
 			os.Exit(1)
 		}
 		fmt.Println("Login successful.")
+	case "claude":
+		// Claude Code 2.1.319's `auth login`, as its code reads: the line split on #, both parts
+		// needed; without them it says so on stderr and waits for another line (ANAL-395).
+		fmt.Println("Opening browser to sign in…")
+		fmt.Println("If the browser didn't open, visit: https://claude.com/cai/oauth/authorize?code=true&client_id=x&state=s1")
+		fmt.Print("Paste code here if prompted > ")
+		sc := bufio.NewScanner(os.Stdin)
+		for sc.Scan() {
+			parts := strings.Split(strings.TrimSpace(sc.Text()), "#")
+			if parts[0] == "" || len(parts) < 2 || parts[1] == "" {
+				fmt.Fprintln(os.Stderr, "Invalid code. Please make sure the full code was copied.")
+				continue
+			}
+			if parts[0] != "good" || parts[1] != "s1" {
+				fmt.Fprintln(os.Stderr, "Login failed: That code wasn't accepted.")
+				os.Exit(1)
+			}
+			fmt.Println("Login successful.")
+			os.Exit(0)
+		}
+		os.Exit(130)
 	case "logout-ok":
 		fmt.Println("Logged out.")
 	case "logout-fail":
@@ -460,6 +481,100 @@ func TestLoginPasteBackWritesTheCodeAndCutsItEverywhere(t *testing.T) {
 		if !strings.Contains(where, "received "+mask) || !strings.Contains(where, "ANTHROPIC_API_KEY="+mask) {
 			t.Errorf("redaction marks missing:\n%s", where)
 		}
+	}
+}
+
+// claudeLogin starts the fake Claude Code login (shape: its code shape, or nil) and returns once
+// it shows its paste prompt; the login's result arrives on done.
+func claudeLogin(t *testing.T, shape *agents.CodeShape) (fx *fixture, done chan json.RawMessage) {
+	t.Helper()
+	fx = newFixture(t, agents.Setup{SignIn: []agents.SignIn{{ID: "claude-ai", Kind: agents.KindPaste, Label: "Claude account",
+		Run: fake("claude"), Code: shape}}})
+	installFake(t, fx)
+	done = make(chan json.RawMessage, 1)
+	go func() {
+		raw, err := fx.call(ctxT(t), MethodLogin, map[string]string{"agent": "fake", "method": "claude-ai", "job": "l1"})
+		if err != nil {
+			raw = json.RawMessage(fmt.Sprintf("%q", err.Error()))
+		}
+		done <- raw
+	}()
+	for i := 0; ; i++ {
+		ps := prompts(fx)
+		if len(ps) > 0 && ps[len(ps)-1].Paste {
+			return fx, done
+		}
+		if i > 500 {
+			t.Fatalf("no paste prompt: %+v", ps)
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+}
+
+func input(fx *fixture, text string) (inputResult, error) {
+	raw, err := fx.call(ctxT(fx.t), MethodLoginInput, map[string]string{"job": "l1", "text": text})
+	var res inputResult
+	if err == nil {
+		err = json.Unmarshal(raw, &res)
+	}
+	return res, err
+}
+
+func stillRunning(t *testing.T, done chan json.RawMessage) {
+	t.Helper()
+	select {
+	case raw := <-done:
+		t.Fatalf("the login ended: %s", raw)
+	case <-time.After(200 * time.Millisecond):
+	}
+}
+
+// ANAL-395, on the G14: a code without its "#…" part went to Claude Code's prompt, which printed
+// an error the wizard never showed and waited; the person saw nothing happen, every time. The
+// catalog's code shape refuses it before the prompt sees it, and says what to paste.
+func TestPasteBackRefusesACodeTheAgentWouldIgnore(t *testing.T) {
+	fx, done := claudeLogin(t, &agents.CodeShape{Pattern: `^[^#]+#[^#]`, Hint: "That isn't the whole code."})
+	for _, text := range []string{"good", "good#", "#s1"} {
+		_, err := input(fx, text)
+		if re := rpcErr(t, err); re.Code != acp.CodeInvalidParams || re.Message != "That isn't the whole code." {
+			t.Fatalf("%q: %+v", text, re)
+		}
+	}
+	stillRunning(t, done)
+	if l := strings.Join(fx.lines(NotifyLoginPrompt), "\n"); strings.Contains(l, "Invalid code") {
+		t.Fatalf("a refused code reached the prompt:\n%s", l)
+	}
+	if _, err := input(fx, "good#s1"); err != nil {
+		t.Fatal(err)
+	}
+	if raw := <-done; string(raw) != `{"signedIn":true,"detail":"the login finished"}` {
+		t.Fatalf("result = %s", raw)
+	}
+}
+
+// Whatever the agent says about a code comes back to the wizard, so it never looks like nothing
+// happened: here the agent's own error, for an agent quired knows no code shape for.
+func TestPasteBackAnswersWithWhatTheAgentSaid(t *testing.T) {
+	fx, done := claudeLogin(t, nil)
+	res, err := input(fx, "good")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.Answer) != 1 || res.Answer[0] != "Invalid code. Please make sure the full code was copied." {
+		t.Fatalf("answer = %q", res.Answer)
+	}
+	stillRunning(t, done)
+	res, err = input(fx, "good#s1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, l := range res.Answer {
+		if strings.Contains(l, "good") {
+			t.Fatalf("the code came back: %q", res.Answer)
+		}
+	}
+	if raw := <-done; string(raw) != `{"signedIn":true,"detail":"the login finished"}` {
+		t.Fatalf("result = %s", raw)
 	}
 }
 

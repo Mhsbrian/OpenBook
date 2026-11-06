@@ -143,11 +143,22 @@ const (
 )
 
 // SignIn is one way to sign an agent in. Run is set for the kinds that run a login command.
+// Code, for a paste-back login, is the shape of the code its prompt accepts.
 type SignIn struct {
 	ID    string
 	Kind  string
 	Label string
 	Run   Command
+	Code  *CodeShape
+}
+
+// CodeShape is what a paste-back prompt accepts: Pattern, a regular expression the pasted text
+// (trimmed) must match. Other text is refused with Hint, which says what to paste instead,
+// before it reaches the prompt: Claude Code's prompt only prints an error for it and keeps
+// waiting (ANAL-395).
+type CodeShape struct {
+	Pattern string
+	Hint    string
 }
 
 // Key is an environment variable an agent reads a key or token from.
