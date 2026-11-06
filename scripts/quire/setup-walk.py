@@ -25,8 +25,9 @@ With --no-helper (ANAL-394) the walk is welcome, nohelper, health instead. nohel
 without quired (Google's), the way an OpenBook laptop got it before patch 0003. The wizard must say the Linux
 environment has no Quire helper, put the package in Downloads, and show the command and the two ways out. Then the
 person's way: Copy, Open Terminal, paste, Enter, and the wizard carries on to Agents by itself. With --reset-image it
-then starts over from Google's image and resets the Linux environment with OPENBOOK_IMAGE staged (`pm clear` of the
-Terminal app stands in for Recovery's reset), and the wizard must set the new image up and carry on by itself.
+then starts over from Google's image, stages OPENBOOK_IMAGE, and resets the Linux environment the way the page says:
+Open Terminal, then Settings › Recovery › Reset to initial version › Reset. The wizard must set the new image up and
+carry on by itself; Quire's log shows each state its watch saw on the way.
 
 Writes OUTDIR/results.tsv, OUTDIR/checks.log and a screenshot per page. Reuses q2-cf-check.py's device helpers.
 """
@@ -226,6 +227,31 @@ def terminal_ready(d):
     return prompt is not None and view is not None
 
 
+def recovery_reset(d):
+    """Terminal › Settings › Recovery › Reset to initial version › Reset, from the page's Open Terminal."""
+    if not tap(d, text="Open Terminal", timeout=10):
+        return "Open Terminal not found"
+    if not terminal_ready(d):
+        return "Terminal didn't show its shell"
+    d.screencap("27-terminal-before-reset.png")
+    for label, kw in (("Settings", dict(desc="Settings")), ("Recovery", dict(text="Recovery")),
+                      ("Reset to initial version", dict(text="Reset to initial version"))):
+        ok = tap(d, timeout=10, **kw)
+        if not ok:
+            d.sh("input swipe 960 800 960 300 300")  # the settings list may scroll
+            time.sleep(1)
+            ok = tap(d, timeout=5, **kw)
+        if not ok:
+            d.screencap("27b-recovery-missing.png")
+            d.write("27b-recovery-missing.xml", d.ui())
+            return f"{label} not found"
+        time.sleep(2)
+    if find(d, text="Reset Terminal?", timeout=10) is None:
+        return "no confirmation dialog"
+    d.screencap("28-recovery-confirm.png")
+    return "" if tap(d, text="Reset", timeout=5) else "Reset not found"
+
+
 def nohelper(d, image, reset_image):
     d.log("== nohelper")
     d.sh("cmd wifi set-wifi-enabled enabled; sleep 3; cmd wifi connect-network VirtWifi open")
@@ -319,10 +345,15 @@ def nohelper(d, image, reset_image):
     stage(d, reset_image, "OpenBook's image, for the reset")
     tag = d.mark("reset")
     t0 = time.time()
-    d.sh(f"pm clear {TERMINAL} >/dev/null 2>&1; pm enable {TERMINAL} >/dev/null 2>&1")
-    seen = d.wait_log(r"setup: the Linux environment is (\w+) now; setting it up", 60, since=tag)
+    why = recovery_reset(d)
+    d.result("reset in Terminal › Settings › Recovery", why == "", why or f"{time.time() - t0:.0f} s")
+    seen = d.wait_log(r"setup: the Linux environment is (\w+) now; setting it up", 120, since=tag)
+    text = d.quire_log()
+    steps = re.findall(r"setup: helper watch: (\w+) -> (\w+)", text[text.rfind(tag):] if tag in text else "")
+    d.write("29-watch-steps.txt", "\n".join(f"{a} -> {b}" for a, b in steps) + "\n")
+    d.result("the watch's steps after Recovery's reset", None, ", ".join(f"{a}->{b}" for a, b in steps))
     d.result("the reset is noticed and the Linux environment set up again", seen is not None,
-             seen.group(0) if seen else "no log line in 60 s")
+             seen.group(0) if seen else "no log line in 120 s")
     got, on = carried_on(d, tag, 900)
     d.screencap("26-reset-carried-on.png")
     state, raw = bridge(d)
