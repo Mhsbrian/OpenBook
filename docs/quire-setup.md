@@ -183,7 +183,7 @@ sit next to `_quire/agents` and `_quire/describe`, on the same connection over v
 | `_quire/update {agent}`, `_quire/remove {agent}` | The same, with the maker's update or uninstall method |
 | `_quire/login {agent, method}` | Runs the agent's own login command on a pseudo-terminal. `quired` reads its output and sends `_quire/login/prompt` with what it found: a URL to open, a device code, or "paste a code". The redacted output is in Details. It ends when the command exits, then checks the sign-in state |
 | `_quire/login/input {text}` | Writes the pasted code to the login's terminal (§6) |
-| `_quire/key {agent, name, value}`, `_quire/signout {agent}` | Stores or removes an API key for one agent (§6). Sign-out also runs the maker's logout command where there is one |
+| `_quire/key {agent, name, value}`, `_quire/signout {agent}` | Stores or removes an API key for one agent (§6). Sign-out also runs the maker's logout command where there is one, and says whether the account is really signed out and, if not, what is left to do (§6). Both stop the agent's running processes on every connection (`_quire/agent/stopped`), as a finished `_quire/login` does |
 | `_quire/signin {agent}` | Whether the agent is signed in, by its own status command where it has one, else by a no-prompt `session/new` |
 | `_quire/cancel {job}` | Cancels a running install or login: SIGTERM to its process group, then SIGKILL 3 s later, as for agents (`quire.md` §6) |
 
@@ -324,14 +324,23 @@ ACP's own `authenticate` (kind `acp` in the catalog).
       redirect it.
     - A folder or file that isn't `droid`'s, has the wrong mode, or is a symlink is refused, not repaired.
   - **Who gets it:** `quired` passes it only in the environment of the agent it belongs to, when it starts that agent.
-    Other agents and logins don't get it.
+    Other agents and logins don't get it. An agent reads its environment once, at its start. So when a key is saved,
+    a login finishes or the agent signs out, `quired` stops that agent's running processes on every connection and
+    ends their sessions, and tells each client (`_quire/agent/stopped`). The next session starts it with the new key,
+    or none.
   - **What 0600 doesn't do:** it isn't isolation between agents. Every agent runs as `droid`, so any of them can read
     another's key file. The wizard says so where it asks for a key.
   - **On Android:** the key is never in Android's saved state. The field doesn't save its state and isn't offered to
     autofill, `SetupModel` holds no key, and the screen is cleared when the sheet closes.
-  - **Sign-out** deletes that agent's key file and runs the maker's logout command where there is one (§5). Where the
-    maker has none, the agents page says which of the maker's files hold the login, and offers "Remove the agent and
-    its settings".
+  - **Sign-out** deletes that agent's key file and runs the maker's logout command where there is one (§5). A logout
+    that fails is an error, with its output.
+    - It reports the account signed out (`accountSignedOut`) only when the maker's logout exited 0, or when a key
+      Quire stored was the agent's only sign-in. Where the agent has a status command, `quired` checks it afterwards
+      (`verified`).
+    - Deleting Quire's key file never counts as signing out an agent that also has a login of its own. Copilot CLI,
+      Kimi Code, Antigravity CLI and Oh My Pi have no logout command (their `--help`, 2026-11-06). For those,
+      `quired` says what the person still has to do (`manual`) and where the maker keeps its login (`cleanup`).
+    - The agents page shows that, and offers "Remove the agent and its settings".
 - **Logs and Details:** everything a job prints is redacted before it reaches a log or the screen.
   - The bytes written to a login's terminal are cut from its echo.
   - Values that look like a key or token of a known maker are masked, as are the values of `*_API_KEY` and `*_TOKEN`.
@@ -359,15 +368,28 @@ ttyd's MIT licence requires its notice
 ([LICENSE](https://github.com/tsl0922/ttyd/blob/1.7.7/LICENSE)), and Debian requires each component's own licence to be
 honoured ([FAQ](https://www.debian.org/doc/manuals/debian-faq/redistributing.en.html)), both accessed 2026-11-06.
 
-**Packaging step:** `scripts/quire/linux-env-sources.sh` builds one source bundle per image, from the image's own
+**Packaging step:** `scripts/quire/linux-env-sources.py` builds one source bundle per image, from the image's own
 records, next to the image:
 
 | Part | What it holds |
 |---|---|
-| `debian/` | The exact source packages (`.dsc`, original and Debian tarballs) of every package installed in the image, **the kernel included** (`linux`, for `linux-image-*-cloud-amd64`). The versions come from the image's dpkg status and are fetched from `snapshot.debian.org`, along with the list |
-| `components/` | ttyd and each library above at its exact version, with AOSP's patch and `cross-build.sh`. The musl toolchain's source and version. The guest agent's AOSP source revision and its crates' licences |
-| `build/` | AOSP's builder at the pinned revision, `quire/linux-env/image/build-debian.patch`, `scripts/quire/linux-env-image.sh` and `quire/linux-env/` (`quired`'s package and units), so the image can be rebuilt |
-| `LICENSES/`, `NOTICE` | Every `/usr/share/doc/*/copyright` in the image, plus each component's licence and notice |
+| `IMAGE.json` | The image the bundle belongs to: `images.tar.gz`'s sha256 and size, its `build_id` |
+| `debian/` | The exact source packages (`.dsc`, original and Debian tarballs) of every Debian package installed in the image, **the kernel included**. The versions come from the image's dpkg status; the files come from `snapshot.debian.org`, checked against the archive's SHA-1. `quired`, the image's one OpenBook package, is listed as OpenBook's and is not fetched |
+| `components/` | ttyd, zlib, json-c, mbedtls, libuv and libwebsockets at the builder's versions, and musl's source at the commit the builder's toolchain was made from (`1.2.2-git-50-gb76f37fd`, read from the toolchain's own `libc.so`). Each is pinned by sha256 in the script; a changed upstream file stops the fetch. AOSP's ttyd patch and `cross-build.sh` |
+| `build/` | AOSP's builder and guest agent at the pinned revision, and `quire/` with `build-debian.patch`, `linux-env-image.sh` and `quired`'s source |
+| `LICENSES/`, `NOTICE` | Every `/usr/share/doc/*/copyright` in the image (`INDEX.tsv`), each component's licence, and GCC's Runtime Library Exception for the libgcc linked into ttyd |
+| `MANIFEST.tsv` | The sha256 of every file in the bundle |
+
+`--check` names every problem and fails on any of these:
+- the image's hash doesn't match `IMAGE.json`, or the package list doesn't match the image;
+- a Debian source has no `.dsc` for its source and version, or a file the `.dsc` lists is missing or doesn't match;
+- `quired`'s source isn't the installed version;
+- a component doesn't match its pin or has no licence;
+- a copyright file of the image is missing;
+- a build input lacks what it should hold;
+- `MANIFEST.tsv` disagrees with the files.
+
+`tests/quire/linux-env-sources-test.py` (in `tests/run.sh`) checks each of these on a synthetic image.
 
 - **The image carries no agent.** The release image is built without `--test-agent`; only test images carry
   opencode.

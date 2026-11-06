@@ -11,6 +11,7 @@ TESTS=(
   "bash $R/tests/aosp-patches-import-test.sh"
   "bash $R/tests/dgpu-power-check-test.sh bash"
   "bash $R/tests/quire/unmount-build-loops-test.sh"
+  "python3 $R/tests/quire/linux-env-sources-test.py"
   "python3 $R/tests/gpu-diag-summary-test.py"
   "bash $R/tests/gpu-diag/choice-test.sh"
   "bash $R/tests/gpu-diag/sampler-test.sh"
