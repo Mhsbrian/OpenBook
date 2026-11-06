@@ -47,6 +47,9 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         /** The note's Set up: turns the Linux environment on, installs and starts it. */
         fun setUpLinux() {}
 
+        /** Opens Quire setup (ANAL-393, docs/quire-setup.md) and closes this note. */
+        fun openSetup() {}
+
         /** Q6: Quire's OS tools broker, for this task's agent calls. */
         val broker: Broker?
             get() = null
@@ -880,8 +883,9 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         phase = Phase.NO_AGENT
         val found = host.agents.entries
         val linux = host.linuxState
-        val setUp = found.isEmpty() &&
-            (linux == Connectors.State.TERMINAL_OFF || linux == Connectors.State.NOT_INSTALLED)
+        // ANAL-393: with no agent found, the one step is Quire setup, whatever the Linux environment's state; the
+        // wizard explains a laptop without virtualization or a build without an image.
+        val setUp = found.isEmpty() && linux != Connectors.State.INSTALLING && linux != Connectors.State.STARTING
         val message = when {
             found.isNotEmpty() -> R.string.q_noagent_msg
             linux == Connectors.State.INSTALLING -> R.string.q_noagent_installing
@@ -903,7 +907,7 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
                 }
             },
             if (setUp) Action(context.getString(R.string.q_setup_linux), null, QButton.Style.FILLED) {
-                host.setUpLinux()
+                host.openSetup()
             } else null,
         ), end = true)
     }

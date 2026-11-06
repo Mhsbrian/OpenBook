@@ -38,6 +38,8 @@ android_app {
     },
     required: [
         "default-permissions_dev.openbook.quire",
+        "quire_quired_deb",
+        "quire_quired_version",
         "privapp_whitelist_com.android.launcher3.contextual_search",
         "privapp_whitelist_dev.openbook.quire",
         "quire_computercontrol_automatable_app_allowlist",
@@ -126,4 +128,23 @@ android_test_helper_app {
     srcs: ["tests/secureprobe/src/**/*.kt"],
     manifest: "tests/secureprobe/AndroidManifest.xml",
     sdk_version: "current",
+}
+
+// The quired package Quire core sends the guest's admin worker when the guest's quired is older (ANAL-393,
+// docs/quire-setup.md §4.3, §4.4). scripts/aosp-build.sh builds prebuilt/ from quire/ before Soong runs; it is never
+// committed.
+prebuilt_etc {
+    name: "quire_quired_deb",
+    src: "prebuilt/quired.deb",
+    filename: "quired.deb",
+    sub_dir: "quire",
+    system_ext_specific: true,
+}
+
+prebuilt_etc {
+    name: "quire_quired_version",
+    src: "prebuilt/quired.version",
+    filename: "quired.version",
+    sub_dir: "quire",
+    system_ext_specific: true,
 }

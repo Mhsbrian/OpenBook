@@ -133,6 +133,13 @@ class QuireSurface(private val app: QuireApplication) : Task.Host, NoteWindow.Ca
         }
     }
 
+    /** The note's Set up Quire (ANAL-393): the wizard does the Linux environment, the agents and their sign-in. */
+    override fun openSetup() {
+        close()
+        app.startActivity(android.content.Intent(app, dev.openbook.quire.setup.SetupActivity::class.java)
+            .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
+
     /** The note's Set up: turns the Linux environment on, installs and starts it, then lists its agents. */
     override fun setUpLinux() {
         if (settingUp) return

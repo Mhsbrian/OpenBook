@@ -40,6 +40,17 @@ if [ -d /repo/device/anybook ]; then
   rsync -rlpD --checksum --copy-unsafe-links --delete /repo/device/anybook/ "$T/device/anybook/"
   stamp "synced device/anybook from /repo (AnyBook ${ANYBOOK_REV:-unknown})"
 fi
+if [ -f /repo/quire/linux-env/build-deb.sh ] && [ -d "$T/device/anybook/common/quire" ]; then
+  # The quired package Quire core carries, to keep the guest's quired current (ANAL-393, docs/quire-setup.md §4.4).
+  # Built here, after the sync above (which deletes what /repo doesn't have), with the tree's own Go.
+  QP=$T/device/anybook/common/quire/prebuilt; rm -rf "$QP"; mkdir -p "$QP/out"
+  PATH="$T/prebuilts/go/linux-x86/bin:$PATH" GOCACHE=/tmp/quired-gocache GOTOOLCHAIN=local \
+    /repo/quire/linux-env/build-deb.sh "$QP/out" amd64 >/dev/null
+  mv "$QP"/out/quired_*_amd64.deb "$QP/quired.deb"; rmdir "$QP/out"
+  dpkg-deb -f "$QP/quired.deb" Version > "$QP/quired.version"
+  [ -s "$QP/quired.version" ] || { echo "aosp-build.sh: no version in the quired package" >&2; exit 1; }
+  stamp "quired $(cat "$QP/quired.version") for Quire core: $(sha256sum "$QP/quired.deb" | cut -c1-16)"
+fi
 # AnyBook's patches to AOSP projects (aosp/patches/<project>), on top of each project's pin.
 if [ -d /repo/aosp/patches ]; then
   AOSP_SRC=$T /repo/scripts/aosp-patches.sh

@@ -45,12 +45,24 @@ class AgentHost private constructor(private val pfd: ParcelFileDescriptor, priva
     lateinit var serverInfo: JSONObject
         private set
 
+    /** quired's own notifications (`_quire/progress`, `_quire/login/prompt`; docs/quire-setup.md §4.2), in order. */
+    @Volatile
+    var extensions: ((String, JSONObject) -> Unit)? = null
+
+    /** quired's version, from its initialize answer. */
+    val quiredVersion: String
+        get() = serverInfo.optJSONObject("agentInfo")?.optString("version").orEmpty()
+
     init {
         connection = AcpConnection(
             FileInputStream(pfd.fileDescriptor),
             FileOutputStream(pfd.fileDescriptor),
             object : AcpConnection.Handler {
                 override fun onNotification(method: String, params: JSONObject) {
+                    if (method.startsWith("_quire/")) {
+                        extensions?.invoke(method, params)
+                        return
+                    }
                     if (method != "session/update") return
                     val sid = params.optString("sessionId")
                     val update = params.optJSONObject("update") ?: return
@@ -146,6 +158,9 @@ class AgentHost private constructor(private val pfd: ParcelFileDescriptor, priva
     }
 
     fun cancel(sessionId: String) = connection.notify("session/cancel", JSONObject().put("sessionId", sessionId))
+
+    /** One of quired's setup methods (`_quire/catalog`, `_quire/install`, …; docs/quire-setup.md §4.2). */
+    fun call(method: String, params: JSONObject, timeoutMs: Long): JSONObject = connection.call(method, params, timeoutMs)
 
     override fun close() = connection.close()
 

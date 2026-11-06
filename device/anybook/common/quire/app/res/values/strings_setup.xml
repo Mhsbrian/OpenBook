@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 The OpenBook Authors
+  SPDX-License-Identifier: Apache-2.0
+
+  Quire setup's words (ANAL-393): docs/quire-setup.md §2 and the prototype, docs/quire-setup-design/index.html.
+-->
+<resources>
+    <string name="setup_title">Set up Quire</string>
+    <string name="setup_app">Quire</string>
+    <string name="setup_close">Close</string>
+    <string name="setup_steps">Setup steps</string>
+    <string name="setup_step_linux">Linux</string>
+    <string name="setup_step_agents">Agents</string>
+    <string name="setup_step_signin">Sign in</string>
+    <string name="setup_step_try">Try it</string>
+    <string name="setup_step_done">%1$s, done</string>
+    <string name="setup_step_now">%1$s, current step</string>
+
+    <string name="setup_next">Next</string>
+    <string name="setup_not_now">Not now</string>
+    <string name="setup_skip">Skip</string>
+    <string name="setup_later">Later</string>
+    <string name="setup_done">Done</string>
+    <string name="setup_back">Back</string>
+    <string name="setup_cancel">Cancel</string>
+    <string name="setup_try_again">Try again</string>
+    <string name="setup_check_again">Check again</string>
+    <string name="setup_open_terminal">Open Terminal</string>
+
+    <!-- Welcome -->
+    <string name="setup_welcome_title">Bring your AI agents to OpenBook</string>
+    <string name="setup_welcome_lead">Quire works with the agents you already use. Set them up once, then call Quire from anywhere on the laptop.</string>
+    <string name="setup_point1_title">They run on this laptop</string>
+    <string name="setup_point1">In a private Linux environment that Quire sets up for you. No Terminal needed.</string>
+    <string name="setup_point2_title">Pick the ones you like</string>
+    <string name="setup_point2">Claude Code, GitHub Copilot, Gemini CLI, opencode, Cursor and more.</string>
+    <string name="setup_point3_title">You stay in charge</string>
+    <string name="setup_point3">Quire asks before anything destructive, and every change it makes can be undone.</string>
+    <string name="setup_welcome_hint">Downloads about 800 MB, once. Takes a few minutes.</string>
+    <string name="setup_get_started">Get started</string>
+
+    <!-- Linux -->
+    <string name="setup_linux_title">Setting up the Linux environment</string>
+    <string name="setup_linux_title_done">The Linux environment is ready</string>
+    <string name="setup_linux_lead">Your agents run here, on this laptop. This happens once.</string>
+    <string name="setup_linux_lead_done">Your agents will run here, on this laptop.</string>
+    <string name="setup_linux_hint">You can close this window. Quire carries on and tells you when it’s ready.</string>
+    <string name="setup_row_check">This laptop can run it</string>
+    <string name="setup_row_check_sub">Hardware virtualization is on</string>
+    <string name="setup_row_download">Downloading the Linux environment</string>
+    <string name="setup_row_download_sub">%1$d of %2$d MB</string>
+    <string name="setup_row_download_done">Checked</string>
+    <string name="setup_row_unpack">Unpacking</string>
+    <string name="setup_row_unpack_sub">Debian 13 with Quire’s helper</string>
+    <string name="setup_row_start">Starting Linux</string>
+    <string name="setup_row_connect">Connecting Quire</string>
+    <string name="setup_row_connect_done">Quire’s helper answered</string>
+    <string name="setup_percent">%1$d %%</string>
+    <string name="setup_set_up">Set up</string>
+
+    <string name="setup_nokvm_title">Turn on virtualization first</string>
+    <string name="setup_nokvm_lead">The Linux environment needs your processor’s virtualization, and it is switched off in this laptop’s firmware.</string>
+    <string name="setup_nokvm_heading">In the firmware settings</string>
+    <string name="setup_nokvm_1">Restart the laptop and open its firmware settings. Many laptops use F2 or Delete while the logo shows.</string>
+    <string name="setup_nokvm_2">Turn on SVM Mode (AMD) or Intel Virtualization Technology.</string>
+    <string name="setup_nokvm_3">Save, restart, and open Quire again.</string>
+    <string name="setup_nokvm_why">Nothing else on OpenBook changes. Until then, Quire can’t run agents on this laptop.</string>
+    <string name="setup_noimage_title">This build has no Linux environment yet</string>
+    <string name="setup_noimage_lead">This build of OpenBook doesn’t include a Linux environment image yet, so Quire can’t set one up. A later update brings it.</string>
+    <string name="setup_noavf_title">This build has no Linux environment</string>
+    <string name="setup_noavf_lead">This build of OpenBook was made without the Linux environment, so Quire can’t run agents on this laptop.</string>
+    <string name="setup_error_title">The Linux environment didn’t start</string>
+    <string name="setup_error_lead">Try again. If it keeps failing, open Terminal to see why.</string>
+    <string name="setup_old_title">Quire’s helper needs updating</string>
+    <string name="setup_old_lead">This Linux environment has an older Quire helper that can’t install agents. Reset it in Terminal › Settings › Recovery, then open Quire again. Resetting replaces the files in the Linux environment.</string>
+
+    <!-- Agents -->
+    <string name="setup_agents_title">Choose your agents</string>
+    <string name="setup_agents_lead">Pick one or more. Quire installs each with its maker’s own installer.</string>
+    <string name="setup_first_pick">Good first pick</string>
+    <string name="setup_installed">Installed</string>
+    <string name="setup_not_installed">Didn’t install</string>
+    <string name="setup_coming">Coming to Quire:</string>
+    <string name="setup_coming_acp">Any agent that speaks the Agent Client Protocol works too.</string>
+    <string name="setup_selected">%1$d selected · about %2$d MB</string>
+    <string name="setup_select_hint">Select the agents you want</string>
+    <string name="setup_what_runs">What will run</string>
+    <string name="setup_install">Install</string>
+    <string name="setup_install_one">Install %1$s</string>
+    <string name="setup_install_n">Install %1$d agents</string>
+    <string name="setup_card">%1$s, %2$s. %3$s</string>
+    <string name="setup_selected_state">Selected</string>
+    <string name="setup_unselected_state">Not selected</string>
+    <string name="setup_what_runs_lead">Each agent comes from its maker. Its commands run in the Linux environment as your user, without admin rights. Debian packages come from Debian’s archive.</string>
+    <string name="setup_what_runs_debian"># From Debian’s archive, installed by Quire: %1$s</string>
+    <string name="setup_what_runs_from"># %1$s, from %2$s</string>
+    <string name="setup_what_runs_fine">The same list stays under Show details while it runs.</string>
+
+    <string name="setup_installing_title">Installing your agents</string>
+    <string name="setup_installing_lead">Each one comes from its maker. You can keep working meanwhile.</string>
+    <string name="setup_installed_title">Installed</string>
+    <string name="setup_installed_lead">Next, sign in to the ones that need an account.</string>
+    <string name="setup_installing_hint">Installing %1$d of %2$d</string>
+    <string name="setup_show_details">Show details</string>
+    <string name="setup_hide_details">Hide details</string>
+    <string name="setup_waiting">Waiting…</string>
+    <string name="setup_debian">Installing %1$s from Debian</string>
+    <string name="setup_debian_failed">Couldn’t install %1$s from Debian. Check the internet connection and try again.</string>
+
+    <!-- Sign in -->
+    <string name="setup_signin_title">Sign in</string>
+    <string name="setup_signin_lead">Each agent signs in with its maker, in your browser. Quire never sees your password.</string>
+    <string name="setup_signin_button">Sign in</string>
+    <string name="setup_signed_in">Signed in</string>
+    <string name="setup_ready">Ready</string>
+    <string name="setup_no_account">No account needed</string>
+    <string name="setup_signin_pending">%1$d still to sign in. You can do it later from Quire.</string>
+    <string name="setup_all_set">All set.</string>
+    <string name="setup_signin_to">Sign in to %1$s</string>
+    <string name="setup_device_lead">%1$s asks you to confirm this laptop with a one-time code.</string>
+    <string name="setup_device_copy">Copy this code</string>
+    <string name="setup_copy">Copy</string>
+    <string name="setup_copied">Copied</string>
+    <string name="setup_device_enter">Enter it on the sign-in page</string>
+    <string name="setup_open_page">Open the sign-in page</string>
+    <string name="setup_waiting_browser">Waiting for you to finish in the browser…</string>
+    <string name="setup_waiting_agent">Starting %1$s’s sign-in…</string>
+    <string name="setup_device_fine">The code works once, for a few minutes.</string>
+    <string name="setup_paste_lead">The sign-in page signs you in and shows a code. Paste it here to finish.</string>
+    <string name="setup_paste_open">Open the sign-in page</string>
+    <string name="setup_paste_code">Paste the code it shows you</string>
+    <string name="setup_paste_hint">Code from the sign-in page</string>
+    <string name="setup_paste_fine">The code goes straight to %1$s in the Linux environment. Quire doesn’t keep it.</string>
+    <string name="setup_use_key">Use an API key instead</string>
+    <string name="setup_link_lead">Sign in on the sign-in page. This window finishes by itself.</string>
+    <string name="setup_key_title">Add a key for %1$s</string>
+    <string name="setup_key_lead">Paste the API key from your provider’s account page.</string>
+    <string name="setup_key_hint">Paste the key</string>
+    <string name="setup_key_save">Save</string>
+    <string name="setup_key_fine">The key is kept only in the Linux environment, in a file only you can read. Other agents in it run as you too, so they could read it.</string>
+    <string name="setup_signin_failed">The sign-in didn’t finish. Try again.</string>
+    <string name="setup_signin_terminal">This agent couldn’t sign in from here. Open Terminal, start it, and sign in the way it asks.</string>
+    <string name="setup_key_failed">Quire couldn’t save the key. Try again.</string>
+
+    <!-- Try it -->
+    <string name="setup_try_title">Say hello</string>
+    <string name="setup_try_lead">A first request, to check that everything works.</string>
+    <string name="setup_hello_prompt">Introduce yourself in one sentence.</string>
+    <string name="setup_answering">Answering…</string>
+    <string name="setup_default_agent">Your default agent · change it anytime</string>
+    <string name="setup_hello_failed">%1$s didn’t answer: %2$s</string>
+    <string name="setup_call_title">Call Quire anytime</string>
+    <string name="setup_call_shake">Shake the pointer quickly from side to side,</string>
+    <string name="setup_call_or">or press</string>
+    <string name="setup_is_set_up">Quire is set up.</string>
+    <string name="setup_no_agent_yet">Install an agent first to try Quire.</string>
+
+    <!-- Agents page -->
+    <string name="setup_manage_title">Your agents</string>
+    <string name="setup_manage_lead">Call Quire with a shake of the pointer or Meta+Space. Your default agent answers first.</string>
+    <string name="setup_env_heading">Linux environment</string>
+    <string name="setup_agents_heading">Agents</string>
+    <string name="setup_env_running">Running</string>
+    <string name="setup_env_stopped">Stopped</string>
+    <string name="setup_env_sub">Debian 13 · Quire helper %1$s</string>
+    <string name="setup_stop">Stop</string>
+    <string name="setup_start">Start</string>
+    <string name="setup_add_agents">Add agents</string>
+    <string name="setup_none_installed">No agents yet.</string>
+    <string name="setup_default">Default agent</string>
+    <string name="setup_make_default">Make %1$s the default</string>
+    <string name="setup_more">More for %1$s</string>
+    <string name="setup_update">Update</string>
+    <string name="setup_sign_in_again">Sign in again</string>
+    <string name="setup_sign_out">Sign out</string>
+    <string name="setup_remove">Remove</string>
+    <string name="setup_remove_settings">Remove, and delete its settings</string>
+    <string name="setup_manage_signed_in">%1$s · Signed in</string>
+    <string name="setup_manage_signed_out">%1$s · Not signed in</string>
+    <string name="setup_manage_no_account">%1$s · No account needed</string>
+
+    <!-- Notification -->
+    <string name="setup_channel">Quire setup</string>
+    <string name="setup_ready_title">The Linux environment is ready</string>
+    <string name="setup_ready_text">Choose the agents Quire should use.</string>
+    <string name="setup_failed_title">The Linux environment didn’t start</string>
+    <string name="setup_failed_text">Open Quire to see why.</string>
+</resources>

@@ -22,3 +22,5 @@ assets/src/fonts
 assets/src/inputs
 docs/quire-design/fonts
 docs/launcher-design/fonts
+# Built by scripts/aosp-build.sh before Soong (ANAL-393): the quired package Quire core carries.
+device/anybook/common/quire/prebuilt/
