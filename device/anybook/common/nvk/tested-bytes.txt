@@ -1,16 +1,20 @@
 # The driver libraries OpenBook NVK carries, as tested: SHA-256, file in ~/anybook/mesa/out/nvk-rm-clean/vendor/lib64
 # (scripts/mesa-android-build.sh -- nvk-rm-clean), name in the package's lib/x86_64. scripts/nvk-stage.sh stages
 # only these bytes (--untested overrides it, for development images only).
-# Source: the clean-room commit ea217004c40fac92b6e3d17af01ad9e0024a003f (mesa/nvk-rm-clean/clean-commit.txt),
-# Mesa HEAD 09036ef4590123904b369f095085c2ca92dd16e0 (mesa-26.2.5 + 40 patches). The commit 5f5c3d64 (Mesa f17ab6ff96,
+# Source: the clean-room commit 97e14854e16397094649b13c680f6a926abc1071 (mesa/nvk-rm-clean/clean-commit.txt),
+# Mesa HEAD bc5b152c0cbc1128a66e80fd9123b6c5d79b1e6e (mesa-26.2.5 + 41 patches). The commit 5f5c3d64 (Mesa f17ab6ff96,
 # 38 patches; vulkan.nouveau.so 4c800a2c...) was tested on the RTX 4090 by ANAL-326 (stage 2b, 2026-11-01): dEQP-VK
 # 66,226 cases through NVK's own HAL entry, 39,021 pass, 4 harness failures, no Xid. Patch 0027 changes only Android's
 # swapchain usage queries (ANAL-349 ran it on the G14: a Vulkan 1.0 app and an ANGLE app). Patch 0028 changes only how
 # a VRAM swapchain image is copied into its window buffer at present (the copy engine instead of a 3D draw); these
-# bytes ran on the G14's RTX 5070 Ti Laptop through OpenBook's per-app choice (ANAL-351, 2026-11-02). The other three
-# libraries are unchanged.
-# build_time: L1793654100
-3419a57ca9e8060a500cd1b36d5d5c77d6ab1984adeccf18c4adb87dac97bf74	hw/vulkan.nouveau.so	vulkan.radv.so
-0f6c604bff6452d4d60494b3d362ef8b398e5a6caa24e26920157a950512f84f	libnv_bionic_native.so	libnv_bionic_native.so
+# bytes ran on the G14's RTX 5070 Ti Laptop through OpenBook's per-app choice (ANAL-351, 2026-11-02). Patch 0029 makes only the
+# one-time log lines of 0021 and 0027 thread-safe. ANAL-345 changes only the backend: a first-come, first-served lock
+# for its device state and panic-free test callbacks. These bytes ran on the RTX 4090 (dEQP-VK 66,226 cases, the same
+# results case for case as 5f5c3d64's; 22/22 backend hardware tests; no Xid) and on the G14 (ANAL-345, 2026-11-06: 21
+# of 22 backend hardware tests, the one failure known and open; a Vulkan 1.0 app and an ANGLE app on the RTX). libdrm.so
+# and libelf_mesa.so are unchanged.
+# build_time: L1793973592
+7bb60cfe32ab7b0da599d8c2380d5cae98ce565f4765b11d9437621746780915	hw/vulkan.nouveau.so	vulkan.radv.so
+6ce57be69ac9ebe08474ef59b050b32f2e5e32554b67f3fba536e6297b670407	libnv_bionic_native.so	libnv_bionic_native.so
 ccf9766c7904edf4b1d82649a96af5bc5bc0df4c027d6dffbca656f49574ef71	libdrm.so	libdrm.so
 5f491b5d06eb9bc4bcb2abfd99510d5f2e4fa69aabece234ba91f787e38a2438	libelf_mesa.so	libelf_mesa.so
