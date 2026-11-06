@@ -16,6 +16,7 @@ W="$(mktemp -d /tmp/quire-unit.XXXXXX)"
 trap 'rm -rf "$W"' EXIT
 "$KOTLINC/bin/kotlinc" -jvm-target 17 -language-version 2.2 -nowarn -d "$W/classes" \
   "$Q/app/src/dev/openbook/quire/note/SessionRoutes.kt" \
+  "$Q/app/src/dev/openbook/quire/note/NoteSession.kt" \
   "$Q/app/src/dev/openbook/quire/invocation/IntakePolicy.kt" \
   "$Q/app/src/dev/openbook/quire/setup/SetupModel.kt" \
   "$Q"/tests/unit/*.kt

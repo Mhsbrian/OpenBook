@@ -97,13 +97,11 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         private set
     var endedAt = 0L
         private set
-    var sessionId: String? = null
-        private set
-
-    /** The connection [sessionId] was opened on: the session's ID means something only there (SessionRoutes). */
-    private var sessionAgent: AcpAgent? = null
+    /** The note's ACP session, the connection it is on, and what has gone with a prompt (NoteSession). */
+    private val session = NoteSession<AcpAgent>()
+    val sessionId: String?
+        get() = session.id
     private var pending: Block.Consent? = null
-    private var intakeSent = false
     private var stopTimeout: Runnable? = null
 
     /**
@@ -120,7 +118,6 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
     private val changeEntries = ArrayList<ChangeLog.Entry>()
 
     /** Q6: the first turn opens with the skill's preface; every turn with the time and the windows on screen. */
-    private var contextSent = false
     private var nextToolStep = 1
 
     init {
@@ -249,7 +246,7 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
     fun tryAgain() = retry()
 
     fun removeIntake() {
-        if (intakeSent) return
+        if (session.intakeSent) return
         intake = null
         host.changed(this)
     }
@@ -291,9 +288,9 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
 
     private fun agentReady(entry: AgentEntry, agent: AcpAgent, text: String) {
         if (!running || stopping) return
-        val sid = sessionId
-        if (sid != null && sessionAgent === agent) {
-            turn(agent, sid, text)
+        val sid = session.id
+        session.reusableOn(agent)?.let {
+            turn(agent, it, text)
             return
         }
         if (sid != null) {
@@ -304,8 +301,7 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         agent.newSession { r ->
             if (!running || stopping) return@newSession
             r.onSuccess {
-                sessionId = it
-                sessionAgent = agent
+                session.opened(agent, it)
                 host.agents.own(agent, it, this)
                 Log.i(TAG, "note: task $id session $it with ${entry.endpoint.id}")
                 turn(agent, it, text)
@@ -315,11 +311,10 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
     }
 
     private fun releaseSession() {
-        val sid = sessionId
-        val a = sessionAgent
+        val sid = session.id
+        val a = session.connection
         if (sid != null && a != null) host.agents.release(a, sid, this)
-        sessionId = null
-        sessionAgent = null
+        session.clear()
     }
 
     private fun turn(agent: AcpAgent, sid: String, text: String) {
@@ -327,14 +322,14 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         // The live context (ANAL-220): who the agent is, the time, the language and the windows on screen. From Quire,
         // and labelled so; app names only, no window titles.
         try {
-            content.put(text(LiveContext.block(context, first = !contextSent)))
+            content.put(text(LiveContext.block(context, first = !session.contextSent)))
         } catch (e: Exception) {
             Log.w(TAG, "note: task $id: no live context: ${e.message}")
         }
-        contextSent = true
-        if (!intakeSent) {
+        session.contextSent = true
+        if (!session.intakeSent) {
             intakeContent(agent).forEach { content.put(it) }
-            intakeSent = true
+            session.intakeSent = true
         }
         content.put(JSONObject().put("type", "text").put("text", text))
         Log.i(TAG, "note: task $id prompt (${content.length()} blocks)")
@@ -397,9 +392,9 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
             // A lab run is the whole task; an agent's run is a step of its turn, which is cancelled too.
             if (!ctl.agentMode) return
         }
-        val sid = sessionId
+        val sid = session.id
         // The cancel goes to the connection the session lives on, never to whichever agent the note shows.
-        val a = sessionAgent
+        val a = session.connection
         markInterrupted()
         if (sid == null || a == null) {
             ended("cancelled")
@@ -604,7 +599,7 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         blocks += card
         phase = Phase.WAITING
         Log.i(TAG, "note: task $id permission for ${step?.id} options=${options.map { it.id }} " +
-            "from ${sessionAgent?.endpoint?.id} session $sessionId")
+            "from ${session.connection?.endpoint?.id} session ${session.id}")
         host.changed(this, Focus.CONSENT)
         host.announce(this, context.getString(R.string.q_a11y_consent, name, card.title,
             options.joinToString(", ") { it.name }), true)
@@ -746,6 +741,8 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
     }
 
     private fun failed(error: Throwable) {
+        // A session quired no longer knows (its agent was restarted): the next message opens a new one.
+        if (error is AcpConnection.RpcError && error.message.startsWith("unknown session")) session.stopped()
         if (!running) return
         if (error is AcpConnection.RpcError && error.code == AcpConnection.AUTH_REQUIRED) {
             agent?.needsSignIn = true
@@ -775,6 +772,7 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
         phase = Phase.ERROR
         val name = agent?.name ?: ""
         val (msg, details) = when (error) {
+            is SessionStopped -> context.getString(R.string.q_err_restarted) to (error.message ?: "")
             is AcpConnection.RpcError -> context.getString(R.string.q_err_agent, error.message) to
                 "ACP error ${error.code}: ${error.message}" + (error.data?.let { "\n$it" } ?: "")
             else -> context.getString(R.string.q_err_closed) to (error.cause?.message ?: error.message ?: "")
@@ -785,6 +783,18 @@ class Task(private val host: Host, var agent: AgentEntry?, var intake: Intake?, 
     override fun onAgentClosed(error: Throwable?) {
         if (running) failed(java.io.IOException("connection closed", error))
     }
+
+    /**
+     * quired ended this note's session because the agent's sign-in changed (ANAL-393). The note forgets it; a turn that
+     * was running ends with that reason, and the next message opens a new session with the context and intake again.
+     */
+    override fun onSessionStopped(reason: String) {
+        Log.i(TAG, "note: task $id session ${session.id} ended by quired ($reason), running=$running")
+        session.stopped()
+        if (running) failed(SessionStopped(reason))
+    }
+
+    private class SessionStopped(reason: String) : Exception(reason)
 
     private fun unreachable(entry: AgentEntry, error: Throwable) {
         if (!running) return

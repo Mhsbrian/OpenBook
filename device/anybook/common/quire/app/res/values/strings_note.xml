@@ -142,6 +142,7 @@
     <string name="q_err_max_turns">The agent reached its limit of steps for one request.</string>
     <string name="q_err_unknown">The agent ended the turn early.</string>
     <string name="q_err_agent">The agent reported an error: %1$s.</string>
+    <string name="q_err_restarted">The agent restarted because its sign-in changed. Send your message again.</string>
     <string name="q_err_closed">The agent closed the connection before finishing.</string>
     <string name="q_err_unreachable">%1$s isn’t running</string>
     <string name="q_err_unreachable_msg">Quire couldn’t reach it. Nothing was sent.</string>
