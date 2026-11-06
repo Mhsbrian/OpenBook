@@ -20,6 +20,7 @@ TESTS=(
   "python3 $R/tests/g14-lock-test.py"
   "python3 $R/tests/release/identity-scan-test.py"
   "python3 $R/tests/release/source-closure-test.py"
+  "python3 $R/tests/release/sources-links-test.py"
   # Ships in userdebug images as /vendor/bin/openbook-pc-setup-test (device/anybook/common/pc links it), so it stays
   # next to the scripts the device tree links.
   "bash $R/scripts/openbook-pc-setup-test.sh bash"

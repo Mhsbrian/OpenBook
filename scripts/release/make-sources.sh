@@ -26,6 +26,7 @@
 #
 # usage: make-sources.sh --version V --image IMG [--kernel-ws DIR] [--out DIR] [--reuse DIR] [--notice-root DIR]
 #                        [--home URL] [--contact URL] [--mesa-note FILE] [--install-note FILE]
+#                        [--commit C --commit-check REPO]
 #   --image        the live image (its .build.json and .img.json name the build, the commit and the loader version)
 #   --kernel-ws    the Kleaf workspace that built the image's kernel (default: found by the kernel release's commit
 #                  among <data dir>/kernel/*/ws and <data dir>/kernel/src)
@@ -38,12 +39,16 @@
 #   --contact URL  where to ask for missing source (default <home>/issues)
 #   --mesa-note FILE  Markdown added to SOURCES.md's Mesa section: what a rebuild from these files was checked to give
 #   --install-note FILE  the same for the kernel install section
+#   --commit C     pack the build files from C in this repository instead of the commit the image's build record
+#                  names, for an image built before its history was rewritten (ANAL-388: OpenBook's public history
+#                  started anew on 2026-11-05). Needs --commit-check REPO, a repository holding the recorded commit:
+#                  every packed file must be the same blob in both, or the script refuses
 # Needs network for the systemd sources (GitHub, gitlab.archlinux.org). Log: <data dir>/logs/release/sources-<V>-<UTC>.log
 set -euo pipefail
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}
 R=$(cd "$(dirname "$0")/../.." && pwd)
 S=$A/aosp/src; P=$S/out/target/product/anybook_g14
-VER=; IMG=; KWS=; OUT=; REUSE=; NROOT=; MNOTE=; INOTE=
+VER=; IMG=; KWS=; OUT=; REUSE=; NROOT=; MNOTE=; INOTE=; PUBC=; CHECKREPO=
 HOME_URL=https://github.com/Mhsbrian/OpenBook; CONTACT=
 while [ $# -gt 0 ]; do
   case $1 in
@@ -57,7 +62,9 @@ while [ $# -gt 0 ]; do
     --contact) CONTACT=$2; shift 2 ;;
     --mesa-note) MNOTE=$(realpath "$2"); shift 2 ;;
     --install-note) INOTE=$(realpath "$2"); shift 2 ;;
-    -h|--help) sed -n '3,43p' "$0"; exit 0 ;;
+    --commit) PUBC=$2; shift 2 ;;
+    --commit-check) CHECKREPO=$(realpath "$2"); shift 2 ;;
+    -h|--help) sed -n '3,46p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -65,6 +72,7 @@ die() { echo "make-sources: $*" >&2; exit 1; }
 [ -n "$VER" ] || die "--version is required"
 [ -n "$IMG" ] && [ -f "${IMG%.img}.build.json" ] || die "--image: a live image with its .build.json"
 CONTACT=${CONTACT:-$HOME_URL/issues}
+[ -z "$PUBC" ] || [ -n "$CHECKREPO" ] || die "--commit needs --commit-check REPO, a repository with the image's recorded commit"
 OUT=${OUT:-$A/release/out/$VER/sources}
 [ "$OUT" != "$REUSE" ] || die "--out and --reuse must differ"
 W=$A/release/work/sources-$VER
@@ -267,9 +275,19 @@ if ! reused "openbook-$VER-source-systemd-boot.tar.xz"; then
 fi
 
 # 4. OpenBook's build and install files, at the commit that built the image
+mapfile -t SPEC < <(sed -e 's/#.*//' -e 's/[[:space:]]*$//' "$R/scripts/release/source-build-files.txt" | grep -v '^$')
+if [ -n "$PUBC" ]; then
+  # The recorded commit is in a rewritten history: pack the same files from PUBC, after checking them blob by blob.
+  git -C "$CHECKREPO" cat-file -e "$COMMIT^{commit}" 2>/dev/null || die "the image's commit '$COMMIT' is not in $CHECKREPO"
+  PUBC=$(git -C "$R" rev-parse -q --verify "$PUBC^{commit}") || die "--commit: not a commit in $R"
+  diff <(git -C "$CHECKREPO" ls-tree -r "$COMMIT" -- "${SPEC[@]}" | awk '{print $3, $4}') \
+       <(git -C "$R" ls-tree -r "$PUBC" -- "${SPEC[@]}" | awk '{print $3, $4}') \
+    || die "--commit ${PUBC:0:12}: its build files differ from those of the image's commit ${COMMIT:0:12}"
+  echo "-- the image's commit ${COMMIT:0:12} and ${PUBC:0:12} hold the same $(git -C "$R" ls-tree -r --name-only "$PUBC" -- "${SPEC[@]}" | wc -l) build files"
+  COMMIT=$PUBC
+fi
 echo "-- build files at ${COMMIT:0:12} (scripts/release/source-build-files.txt)"
 [ -n "$COMMIT" ] && git -C "$R" cat-file -e "$COMMIT^{commit}" 2>/dev/null || die "the image's commit '$COMMIT' is not in $R"
-mapfile -t SPEC < <(sed -e 's/#.*//' -e 's/[[:space:]]*$//' "$R/scripts/release/source-build-files.txt" | grep -v '^$')
 for p in "${SPEC[@]}"; do
   [ -n "$(git -C "$R" ls-tree -r --name-only "$COMMIT" -- "$p")" ] || die "source-build-files.txt: $p is not in $COMMIT"
 done
@@ -371,6 +389,7 @@ fi
 python3 "$R/scripts/release/sources-md.py" --version "$VER" --kernel-release "$KREL" --loader "$LOADER" \
   --kernel-revisions "$K/provenance/REVISIONS.txt" --userspace-revisions "$U/REVISIONS.txt" \
   --notice-scan "$W/notice-scan.json" --build-files "$BD" --tree "$TREE" --home "$HOME_URL" --contact "$CONTACT" \
+  ${PUBC:+--commit "$PUBC"} \
   --mesa-provenance <(tar -xJf "$OUT/openbook-$VER-source-userspace.tar.xz" -O "openbook-$VER-source-userspace/mesa-build/PROVENANCE.txt") \
   ${MNOTE:+--mesa-note "$MNOTE"} ${INOTE:+--install-note "$INOTE"} \
   --installer-tools "$(jq -r '(.tools // []) | map(sub(" "; " ")) | join(", ")' "$BJ")" --out "$OUT/SOURCES.md"
@@ -381,9 +400,7 @@ pack "openbook-$VER-source-build" "$BD"
 # 6. gates on what will be published
 echo "-- no private identity in any output (identity-scan.py)"
 "${ID_SCAN[@]}" "$OUT" || die "a private identity is in the source folder: nothing here may be published"
-echo "-- no pointer to the private development repository"
-if grep -nE 'github\.com/Mhsbrian/OpenBook([/.#]|$)|\bdocs/[A-Za-z-]+\.md\b' "$OUT/SOURCES.md"; then
-  die "SOURCES.md points at the private repository"
-fi
+echo "-- no pointer to a private repository or a development document (sources-links.py)"
+python3 "$R/scripts/release/sources-links.py" "$OUT/SOURCES.md" || die "SOURCES.md points where its readers can't follow"
 rm -rf "$W"
 echo "-- done: $OUT"; ls -l "$OUT"; echo "log: $LOG"

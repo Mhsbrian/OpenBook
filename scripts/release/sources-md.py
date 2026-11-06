@@ -17,6 +17,7 @@ def main():
         ap.add_argument("--" + o, required=True)
     ap.add_argument("--mesa-note")
     ap.add_argument("--install-note")
+    ap.add_argument("--commit", help="the OpenBook commit the build files were packed from (make-sources.sh --commit)")
     ap.add_argument("--installer-tools", default="the packages its Dockerfile names")
     a = ap.parse_args()
     v = a.version
@@ -45,7 +46,9 @@ def main():
          "Mesa itself |",
          f"| `{SB}.tar.xz` | {a.loader} (LGPL-2.1+): systemd's upstream source and Arch Linux's packaging |",
          f"| `{B}.tar.xz` | OpenBook's scripts and configuration that built and installed the parts above, as they "
-         f"were in the commit that built the image (git tree `{a.tree}`), and a copy of this file |",
+         + (f"were when the image was built: the files of OpenBook commit `{a.commit}` (git tree `{a.tree}`), and a "
+            "copy of this file |" if a.commit else
+            f"were in the commit that built the image (git tree `{a.tree}`), and a copy of this file |"),
          "| `aosp-manifest.xml` | every Android project in the build, at its exact revision (all public at "
          "android.googlesource.com) |", "",
          "OpenBook's own files are under the Apache License 2.0, as their SPDX headers say. Every other file keeps",
