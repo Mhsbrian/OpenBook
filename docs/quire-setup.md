@@ -1,8 +1,9 @@
 # Quire setup: agents in a few clicks (ANAL-393)
 
-As of 2026-11-06. This is the design and the build plan for setting up Quire's agents: a short wizard that gets the
-Linux environment ready, installs the agents a person picks, signs them in and checks that one answers. After setup,
-the same window is where agents are managed. It is for review before it is built. How Quire works is
+As of 2026-11-06. This is the design of Quire setup: a short wizard that gets the Linux environment ready, installs
+the agents a person picks, signs them in and checks that one answers. After setup, the same window is where agents
+are managed. It is built (ANAL-393) and checked in Cuttlefish; the G14 gets it with the next release. Not built yet:
+the Quire card on OpenBook setup's Extras page (§4.4) and the Settings tile (§2.1). How Quire works is
 [`quire.md`](quire.md); the note's design is [`quire-design.md`](quire-design.md).
 
 Labels: **C** = confirmed (read in our AOSP 17 tree or our code, or ran it), **R** = from the maker's documentation,
@@ -138,8 +139,9 @@ verify, extract, commit:
   3. **The manifest present but with no URL** is the state before an image is published (§7). The status is
      `no_image`, and the wizard says "This build doesn't include a Linux environment image yet". The same happens when
      the manifest is unreadable or invalid, and it says that instead.
-  4. **No manifest at all** keeps AOSP's behaviour (Google's image). That happens only in builds that aren't
-     OpenBook's: every OpenBook product installs the manifest.
+  4. **No manifest** on an OpenBook build is `no_image` too. The build is recognised as OpenBook's by Quire core
+     being installed (`/system_ext/priv-app/OpenBookQuire`), not by the manifest itself. Only a build that isn't
+     OpenBook's keeps AOSP's behaviour (Google's image).
 - **Stage.** The download goes to a staging file in the Terminal app's no-backup storage (`linux-staging/`), never
   into the install folder. A small `staging.json` next to it records the manifest's URL, hash and size.
 - **Resume after a restart.** On the next start, if `staging.json` matches the manifest, the bytes already staged are
@@ -256,10 +258,12 @@ version named in `quired`'s catalog on our dev host). Nothing here was installed
 recipes are checked again in the guest when they're built (§8), and the catalog records the date.
 
 **What changed since the catalog was last checked (2026-10-18):** every agent now has an installer that needs no root
-and no Node.js, except Gemini CLI, which needs Debian's Node.js. Some makers also publish versioned binaries (§6). Grok CLI (`grok agent stdio`) and
-Antigravity CLI (`agy acp`) now document ACP servers, and Gemini CLI's flag is `--acp`. **HYPOTHESIS** until
-`quired probe` opens a session with each: if it does, they move from "planned adapter" to supported with no adapter
-code, and only Codex stays under "Coming to Quire".
+and no Node.js, except Gemini CLI, which needs Debian's Node.js. Some makers also publish versioned binaries (§6).
+Grok CLI (`grok agent stdio`) and Antigravity CLI (`agy acp`) now have ACP servers (C, `quired probe` on the dev
+host, 2026-11-06: Grok answered ACP v1 `initialize` and `session/new` asked for sign-in; Antigravity opened a session
+and offers its own `authenticate` methods), so they are supported with no adapter code. Gemini CLI's flag is `--acp`
+(not run: it isn't installed on the dev host). Only Codex stays under "Coming to Quire". Antigravity signs in through
+ACP's own `authenticate` (kind `acp` in the catalog).
 
 | Agent | Install (as `droid`, no root unless noted) | Update · remove | Sign-in in the wizard | Key or token | ACP |
 |---|---|---|---|---|---|
@@ -422,6 +426,5 @@ release's approval, after B Honey approves the licensing request in §7.
 
 - Pairing a second computer (`quire-pairing.md`).
 - Direct cloud APIs with no CLI (`quire.md` §4, connector 3).
-- An adapter for Codex: it appears under "Coming to Quire" until `quired` can run it. Grok and Antigravity join the
-  grid only if their ACP servers pass `quired probe` (§5).
+- An adapter for Codex: it appears under "Coming to Quire" until `quired` can run it.
 - Translations: English only, as in OpenBook setup.

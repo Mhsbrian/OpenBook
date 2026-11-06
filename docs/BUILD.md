@@ -606,6 +606,22 @@ scripts/quire/linux-env-adb.sh -s SERIAL check OUT/images.tar.gz RUN
 sh q4-device-check.sh /sdcard/linux/images.tar.gz /data/local/tmp/q4 [PROMPT]
 ```
 
+Quire setup (ANAL-393, `docs/quire-setup.md`):
+
+```bash
+device/anybook/common/quire/tools/unit-test.sh                          # SetupModel with the other host tests
+device/anybook/common/linux-env/tests/image-archive-test.sh TREE       # patch 0003's install classes (TREE: patched Virtualization)
+scripts/quire/linux-env-qemu.sh OUT/images.tar.gz RUN --setup          # the admin worker and an install, real services
+scripts/quire/setup-walk.py SERIAL RUN --image OUT/images.tar.gz       # the wizard in Cuttlefish, every page
+scripts/quire/linux-env-sources.py OUT BUNDLE --fetch                  # a release's source bundle for the guest image
+scripts/quire/linux-env-sources.py --check OUT BUNDLE                  # make-release.sh --linux-env runs this
+```
+
+- `scripts/aosp-build.sh` builds the `quired` package that Quire core carries (`/system_ext/etc/quire/quired.deb`) from
+  `quire/` before Soong runs, into the gitignored `device/anybook/common/quire/prebuilt/`.
+- The image a build installs is named by `device/anybook/common/linux-env/linux-env.json`; the release fills its URL
+  and SHA-256. With no URL, the wizard says the build has no image yet.
+
 - AVF comes from `device/anybook/common/linux-env/linux-env.mk` (both products, through `desktop.mk`); the Terminal
   app's agent bridge is `aosp/patches/packages/modules/Virtualization/0001` (`aosp-build.sh` applies it).
 - The image builder runs as root in a privileged container and uses loop devices. A desktop automounter (udiskie, for

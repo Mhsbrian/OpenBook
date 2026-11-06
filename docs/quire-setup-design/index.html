@@ -320,7 +320,7 @@ const AGENTS = [
   { id: 'claude',   name: 'Claude Code',     by: 'Anthropic',      needs: 'A Claude plan or an API key', ini: 'CC', c: '#5B5D72', mb: 70, signin: 'paste' },
   { id: 'opencode', name: 'opencode',        by: 'Open source',    needs: 'Free models, no account', ini: 'oc', c: '#72557B', mb: 60, signin: 'none', pick: true },
   { id: 'copilot',  name: 'GitHub Copilot',  by: 'GitHub',         needs: 'A GitHub account with Copilot', ini: 'Cp', c: '#4F5065', mb: 110, signin: 'device' },
-  { id: 'agy',      name: 'Antigravity',     by: 'Google',         needs: 'A Google account', ini: 'Ag', c: '#5A6190', mb: 90, signin: 'paste' },
+  { id: 'antigravity',    name: 'Antigravity',     by: 'Google',         needs: 'A Google account', ini: 'Ag', c: '#5A6190', mb: 90, signin: 'paste' },
   { id: 'gemini',   name: 'Gemini CLI',      by: 'Google',         needs: 'A Gemini API key', ini: 'G', c: '#565B8C', mb: 90, signin: 'key' },
   { id: 'cursor',   name: 'Cursor Agent',    by: 'Cursor',         needs: 'A Cursor account', ini: 'Cu', c: '#5E5E68', mb: 120, signin: 'link' },
   { id: 'kimi',     name: 'Kimi Code',       by: 'Moonshot AI',    needs: 'A Kimi account or an API key', ini: 'Ki', c: '#6A5E7E', mb: 80, signin: 'device' },
@@ -334,7 +334,7 @@ const RECIPE = {
   claude:   { from: 'claude.ai', cmd: ['curl -fsSL https://claude.ai/install.sh | bash'] },
   opencode: { from: 'opencode.ai', cmd: ['curl -fsSL https://opencode.ai/v2/install | bash -s -- --no-modify-path'] },
   copilot:  { from: 'github.com', cmd: ['# GitHub’s release binary, version pinned, checksum checked', 'copilot 1.0.106 for linux-x64 → ~/.local/bin/copilot'] },
-  agy:      { from: 'antigravity.google', cmd: ['curl -fsSL https://antigravity.google/cli/install.sh | bash'] },
+  antigravity: { from: 'antigravity.google', cmd: ['curl -fsSL https://antigravity.google/cli/install.sh | bash'] },
   gemini:   { from: 'Debian, npmjs.com', deb: ['nodejs', 'npm'], cmd: ['npm install -g --prefix ~/.local @google/gemini-cli'] },
   cursor:   { from: 'cursor.com', cmd: ['curl https://cursor.com/install -fsS | bash'] },
   kimi:     { from: 'kimi.com', cmd: ['KIMI_NO_MODIFY_PATH=1 bash -c "$(curl -fsSL https://code.kimi.com/kimi-code/install.sh)"'] },
@@ -568,7 +568,7 @@ const SHEET = {
     <div class="acts"><span class="spacer"></span><button class="btn text" data-act="closeSheet">Cancel</button></div>
     <div class="fine">The key is kept only in the Linux environment, in a file only ${a.name} reads. Quire doesn’t show it again.</div>`; },
 };
-const MAKER = { claude: { who: 'Anthropic', site: 'claude.ai' }, agy: { who: 'Google', site: 'accounts.google.com' },
+const MAKER = { claude: { who: 'Anthropic', site: 'claude.ai' }, antigravity: { who: 'Google', site: 'accounts.google.com' },
   copilot: { who: 'GitHub', site: 'github.com/login/device' }, kimi: { who: 'Kimi', site: 'kimi.com' }, grok: { who: 'xAI', site: 'accounts.x.ai' } };
 
 const answer = (a) => `Hi, I’m Quire, running ${a.name} here on your laptop. Ask me to change a setting, find a file, or get something done in an app, and I’ll show you each step as I go.`;
@@ -691,11 +691,11 @@ function play() {
     st.jobs = Object.fromEntries(ids.map(k => [k, { progress: 0, line: 'Waiting…' }]));
     st.screen = 'installing'; show();
     const LINES = { claude: ['Downloading Claude Code’s installer', 'Installing Claude Code 2.1.318'], copilot: ['Downloading GitHub’s installer', 'Installing Copilot CLI 1.0.106'],
-      agy: ['Downloading Google’s installer', 'Installing Antigravity CLI 1.5.2'], grok: ['Downloading xAI’s installer', 'Installing Grok CLI 1.0.77'],
+      antigravity: ['Downloading Google’s installer', 'Installing Antigravity CLI 1.5.2'], grok: ['Downloading xAI’s installer', 'Installing Grok CLI 1.0.77'],
       gemini: ['Installing Node.js 20 from Debian', 'Downloading @google/gemini-cli'], cursor: ['Downloading Cursor Agent', 'Installing Cursor Agent'],
       kimi: ['Downloading Kimi’s installer', 'Installing Kimi Code'], hermes: ['Downloading Hermes Agent', 'Installing Hermes Agent'], omp: ['Downloading Oh My Pi', 'Installing Oh My Pi'],
       opencode: ['Downloading opencode', 'Installing opencode'] };
-    const VERS = { agy: 'v1.5.2', grok: 'v1.0.77', claude: 'v2.1.318', copilot: 'v1.0.106', gemini: 'v0.21.0', cursor: '2026.11.05', kimi: 'v2.4.1', hermes: 'v0.20.5', omp: 'v18.11.2', opencode: 'v2.2.5' };
+    const VERS = { antigravity: 'v1.5.2', grok: 'v1.0.77', claude: 'v2.1.318', copilot: 'v1.0.106', gemini: 'v0.21.0', cursor: '2026.11.05', kimi: 'v2.4.1', hermes: 'v0.20.5', omp: 'v18.11.2', opencode: 'v2.2.5' };
     let i = 0;
     const next = () => {
       if (i >= ids.length) { show(); return; }

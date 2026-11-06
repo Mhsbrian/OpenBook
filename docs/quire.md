@@ -355,12 +355,13 @@ Quire core (platform_app)                 Terminal app (vmlauncher_app)         
   `.deb` with a systemd unit (user `droid`, vsock port 7690), and `socat`, which AOSP's ttyd bridge needs but its
   builder doesn't install. A test image may carry a pinned, checksummed agent (opencode, MIT); a product image ships
   none. The guest image is about 800 MB.
-- **Installing the guest.** On a debuggable build the Terminal app installs the image from
-  `/sdcard/linux/images.tar.gz`. Without it there, the Terminal app downloads Google's image, which has no `quired`.
-  On an installed OpenBook, `scripts/quire/linux-env-adb.sh push` puts the image there over adb and checks its sha256
-  on the device. It refuses while a Linux environment is installed, because replacing one deletes the guest's files;
-  the person does that in the Terminal app's Recovery settings. `linux-env-adb.sh check` then runs the on-device check
-  (`q4-device-check.sh`) and pulls its results.
+- **Installing the guest.** Quire setup does it (`docs/quire-setup.md`, ANAL-393): the Terminal app installs
+  OpenBook's image named by `/product/etc/openbook/linux-env.json`, verified against its pinned SHA-256 before anything
+  is extracted, and never Google's image on an OpenBook build. On a debuggable build a copy at
+  `/sdcard/linux/images.tar.gz` comes first; `scripts/quire/linux-env-adb.sh push` puts it there over adb and checks
+  its sha256 on the device. It refuses while a Linux environment is installed, because replacing one deletes the
+  guest's files; the person does that in the Terminal app's Recovery settings. `linux-env-adb.sh check` then runs the
+  on-device check (`q4-device-check.sh`) and pulls its results.
 - **Building it.** The builder works in its own folder (`WORK/work`, its `-W`). While it runs,
   `scripts/quire/unmount-build-loops.sh` undoes a desktop automounter's mounts of that folder's two loop-backed files,
   and of nothing else (test: `tests/quire/unmount-build-loops-test.sh`). The guest's `cidata.iso` (its guest agent and
@@ -573,8 +574,10 @@ quired run --connect ADDR [flags] AGENT PROMPT...
   connect and `accept4` are raw system calls on non-blocking sockets in Go's poller.
 - **Guest packaging:** `quire/linux-env/` (`build-deb.sh`, `quired.service`). On an installed system the image goes in
   over adb: `scripts/quire/linux-env-adb.sh` (§4.1).
-- **Updates:** a new `quired` reaches a Linux environment that is already installed only with a new guest image, which
-  replaces the person's guest files. A self-update from Quire core is planned (§10.5).
+- **Updates:** since 0.4.0 (ANAL-393), Quire core carries the `quired` package that matches it and, when the guest's
+  is older, hands it to the guest's admin worker, which installs it in a unit of its own and keeps the guest's files
+  (`docs/quire-setup.md` §4.3). A guest with 0.3.0 has no worker; it is updated only by a new image, which replaces its
+  files.
 
 ## 7. Milestones
 
