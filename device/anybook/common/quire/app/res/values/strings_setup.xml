@@ -73,7 +73,23 @@
     <string name="setup_error_title">The Linux environment didn’t start</string>
     <string name="setup_error_lead">Try again. If it keeps failing, open Terminal to see why.</string>
     <string name="setup_old_title">Quire’s helper needs updating</string>
-    <string name="setup_old_lead">This Linux environment has an older Quire helper that can’t install agents. Reset it in Terminal › Settings › Recovery, then open Quire again. Resetting replaces the files in the Linux environment.</string>
+    <string name="setup_old_lead">This Linux environment has an older Quire helper that can’t install agents. Update it and keep your files, or start the Linux environment over.</string>
+    <!-- A Linux environment without Quire's helper (ANAL-394): Google's image, or a quired that doesn't answer. -->
+    <string name="setup_nohelper_google_title">This Linux environment doesn’t have Quire’s helper</string>
+    <string name="setup_nohelper_google_lead">It was set up from Google’s Linux image, before OpenBook had its own. Quire’s agents run through a small helper that this image doesn’t include.</string>
+    <string name="setup_nohelper_title">Quire’s helper isn’t answering</string>
+    <string name="setup_nohelper_lead">The Linux environment is running, but Quire’s helper in it doesn’t answer. It may have been removed, or it doesn’t start.</string>
+    <string name="setup_keep_title">Keep your files</string>
+    <string name="setup_keep_lead">Open Terminal, paste this command and press Enter. It adds Quire’s helper and changes nothing else.</string>
+    <string name="setup_keep_command_desc">Command: %1$s</string>
+    <string name="setup_keep_fine">Quire put %1$s in your Downloads, and the command checks it before installing it. If Terminal says the file isn’t there, start clean instead.</string>
+    <string name="setup_keep_preparing">Putting Quire’s helper in your Downloads…</string>
+    <string name="setup_helper_no_deb">This build of OpenBook doesn’t carry Quire’s helper, so starting clean is the way to go.</string>
+    <string name="setup_helper_no_copy">Quire couldn’t put its helper in your Downloads (%1$s), so starting clean is the way to go.</string>
+    <string name="setup_clean_title">Start clean</string>
+    <string name="setup_clean_lead">In Terminal, open Settings › Recovery and reset the Linux environment. Quire then sets up OpenBook’s Linux environment, helper included.</string>
+    <string name="setup_clean_warning">This deletes the files in the Linux environment.</string>
+    <string name="setup_helper_hint">Quire carries on by itself once the helper answers.</string>
 
     <!-- Agents -->
     <string name="setup_agents_title">Choose your agents</string>
@@ -168,6 +184,8 @@
     <string name="setup_agents_heading">Agents</string>
     <string name="setup_env_running">Running</string>
     <string name="setup_env_stopped">Stopped</string>
+    <string name="setup_env_no_helper">Running, without Quire’s helper</string>
+    <string name="setup_env_fix">Fix</string>
     <string name="setup_env_sub">Debian 13 · Quire helper %1$s</string>
     <string name="setup_stop">Stop</string>
     <string name="setup_start">Start</string>

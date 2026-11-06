@@ -393,11 +393,11 @@ class SetupActivity : Activity() {
 
     private fun problem() {
         val m = model
+        if (m.remedy == Remedy.HELPER) return helperPage()
         val (t, l) = when (m.remedy) {
             Remedy.FIRMWARE -> R.string.setup_nokvm_title to R.string.setup_nokvm_lead
             Remedy.NO_IMAGE -> R.string.setup_noimage_title to R.string.setup_noimage_lead
             Remedy.NO_AVF -> R.string.setup_noavf_title to R.string.setup_noavf_lead
-            Remedy.OLD_HELPER -> R.string.setup_old_title to R.string.setup_old_lead
             else -> R.string.setup_error_title to R.string.setup_error_lead
         }
         val col = pageColumn(getString(t), getString(l))
@@ -424,7 +424,7 @@ class SetupActivity : Activity() {
                 LinearLayout.LayoutParams(-1, -2).apply { topMargin = dpi(14f) })
         }
         hint(null)
-        if (m.remedy == Remedy.OLD_HELPER || m.remedy == Remedy.RETRY) {
+        if (m.remedy == Remedy.RETRY) {
             action(getString(R.string.setup_open_terminal), QButton.Style.TEXT) { setup.openTerminal() }
         } else {
             action(getString(R.string.setup_close), QButton.Style.TEXT) { finish() }
@@ -433,6 +433,71 @@ class SetupActivity : Activity() {
         action(getString(again), QButton.Style.FILLED, DEFAULT_FOCUS) {
             if (m.remedy == Remedy.RETRY) setup.startLinux() else setup.refresh()
         }
+    }
+
+    /**
+     * A running Linux environment without a usable Quire helper (ANAL-394): what is wrong, in plain words, and the two
+     * ways out. Keep your files: one command, copied with a button, run in Terminal. Start clean: Terminal's Recovery,
+     * which deletes the Linux files. The wizard carries on by itself once the helper answers or the Linux environment
+     * was reset (SetupController.watchHelper).
+     */
+    private fun helperPage() {
+        val m = model
+        val (t, l) = when {
+            m.env == SetupModel.Env.OLD_HELPER -> R.string.setup_old_title to R.string.setup_old_lead
+            m.foreignImage -> R.string.setup_nohelper_google_title to R.string.setup_nohelper_google_lead
+            else -> R.string.setup_nohelper_title to R.string.setup_nohelper_lead
+        }
+        val col = pageColumn(getString(t), getString(l))
+        val keep = optionCard(Icons.TERMINAL, getString(R.string.setup_keep_title), getString(R.string.setup_keep_lead))
+        val command = m.helperCommand
+        when {
+            command.isNotEmpty() -> {
+                keep.addView(LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    addView(code(command).apply {
+                        tag = "command"
+                        contentDescription = getString(R.string.setup_keep_command_desc, command)
+                    }, LinearLayout.LayoutParams(0, -2, 1f))
+                    addView(button(getString(R.string.setup_copy), QButton.Style.PAPER, "copycommand", glyph = Icons.CONTENT_COPY) {
+                        setup.copy(getString(R.string.setup_keep_title), command)
+                    }, LinearLayout.LayoutParams(-2, -2).apply { marginStart = dpi(12f) })
+                }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dpi(12f) })
+                keep.addView(text(TextRole.META, p.onSurfaceVariant, getString(R.string.setup_keep_fine, m.helperDeb)),
+                    LinearLayout.LayoutParams(-1, -2).apply { topMargin = dpi(8f) })
+            }
+            m.helperDebProblem.isNotEmpty() -> keep.addView(text(TextRole.LABEL, p.onSurface, m.helperDebProblem),
+                LinearLayout.LayoutParams(-1, -2).apply { topMargin = dpi(10f) })
+            else -> keep.addView(waiting(getString(R.string.setup_keep_preparing)))
+        }
+        col.addView(keep.parent as View, LinearLayout.LayoutParams(dpi(760f), -2).apply { topMargin = dpi(24f) })
+        val clean = optionCard(Icons.REFRESH, getString(R.string.setup_clean_title), getString(R.string.setup_clean_lead))
+        clean.addView(LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            addView(Icon(context, Icons.WARNING, 16f, p.onSurfaceVariant), LinearLayout.LayoutParams(dpi(18f), dpi(18f)).apply { marginEnd = dpi(6f) })
+            addView(text(TextRole.LABEL_MEDIUM, p.onSurface, getString(R.string.setup_clean_warning)), LinearLayout.LayoutParams(0, -2, 1f))
+        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dpi(10f) })
+        col.addView(clean.parent as View, LinearLayout.LayoutParams(dpi(760f), -2).apply { topMargin = dpi(12f) })
+        hint(hintText(getString(R.string.setup_helper_hint)))
+        action(getString(R.string.setup_check_again), QButton.Style.TEXT, "checkagain") { setup.refresh() }
+        action(getString(R.string.setup_open_terminal), QButton.Style.FILLED, DEFAULT_FOCUS) { setup.openTerminal() }
+    }
+
+    /** One way out on the helper page: an icon, a heading and a line; returns the column to add more to. */
+    private fun optionCard(glyph: String, title: String, lead: String): LinearLayout {
+        val inner = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(dpi(22f), dpi(20f), dpi(22f), dpi(20f))
+            background = rounded(context, p.card, 16f, p.cardOutline, 1f)
+            addView(tile(glyph, 44f, 13f), LinearLayout.LayoutParams(dpi(44f), dpi(44f)).apply { marginEnd = dpi(16f) })
+            addView(inner, LinearLayout.LayoutParams(0, -2, 1f))
+        }
+        inner.addView(text(TextRole.PROMPT, p.onSurface, title).apply { isAccessibilityHeading = true })
+        inner.addView(text(TextRole.LABEL, p.onSurfaceVariant, lead), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dpi(4f) })
+        return inner
     }
 
     private fun agents(installing: Boolean) {
@@ -720,10 +785,18 @@ class SetupActivity : Activity() {
             addView(tile(Icons.TERMINAL, 40f, 12f), LinearLayout.LayoutParams(dpi(40f), dpi(40f)).apply { marginEnd = dpi(14f) })
             addView(LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
-                addView(text(TextRole.LABEL_MEDIUM, p.onSurface, getString(if (running) R.string.setup_env_running else R.string.setup_env_stopped)))
+                addView(text(TextRole.LABEL_MEDIUM, p.onSurface, getString(when {
+                    m.helperMissing -> R.string.setup_env_no_helper
+                    running -> R.string.setup_env_running
+                    else -> R.string.setup_env_stopped
+                })))
                 addView(text(TextRole.META, p.onSurfaceVariant, getString(R.string.setup_env_sub, m.quired.ifEmpty { "—" })))
             }, LinearLayout.LayoutParams(0, -2, 1f))
-            addView(button(getString(if (running) R.string.setup_stop else R.string.setup_start), QButton.Style.PAPER, "envbutton") {
+            // Without a helper the agents can't run: the button opens the ways out instead of stopping it.
+            if (m.helperMissing) addView(button(getString(R.string.setup_env_fix), QButton.Style.PAPER, "envbutton") {
+                m.go(Page.LINUX)
+                render()
+            }) else addView(button(getString(if (running) R.string.setup_stop else R.string.setup_start), QButton.Style.PAPER, "envbutton") {
                 if (running) setup.stopLinux() else setup.startLinux()
             })
         }

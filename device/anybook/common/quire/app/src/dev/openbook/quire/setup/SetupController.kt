@@ -12,6 +12,8 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -51,6 +53,13 @@ class SetupController(private val app: QuireApplication) {
     @Volatile private var loginJob: String? = null
     @Volatile private var hostWired: AgentHost? = null
     @Volatile private var updateTried = false
+    @Volatile private var watching = false
+
+    /** The installed image the bridge last reported (Connectors.Status.image); "" when none or not said. */
+    @Volatile private var lastImage = ""
+
+    /** Mirrors [SetupModel.helperMissing] for the worker threads; the model itself changes only on the main thread. */
+    @Volatile private var helperMissing = false
 
     /** The window is on screen; when it isn't, a finished step 1 posts a notification instead. */
     @Volatile var visible = false
@@ -96,7 +105,15 @@ class SetupController(private val app: QuireApplication) {
 
     private fun publish(s: Connectors.Status) {
         val env = envOf(s)
-        ui { onEnv(env, s.detail.orEmpty(), s.phase.orEmpty(), s.bytes, s.total) }
+        // The image is the bridge's answer; a state Quire decided itself (no AVF, no KVM, off) says nothing about it.
+        val image = when (s.state) {
+            Connectors.State.READY, Connectors.State.STARTING, Connectors.State.STOPPED, Connectors.State.NOT_INSTALLED,
+            Connectors.State.INSTALLING, Connectors.State.NO_IMAGE -> s.image.orEmpty()
+            else -> s.image
+        }
+        if (image != null) lastImage = image
+        if (env != SetupModel.Env.READY) helperMissing = false
+        ui { onEnv(env, s.detail.orEmpty(), s.phase.orEmpty(), s.bytes, s.total, image) }
     }
 
     /** What is there now: the environment's state and, when it runs, the agents. Cheap; starts nothing. */
@@ -202,12 +219,17 @@ class SetupController(private val app: QuireApplication) {
         return h
     }
 
-    /** Lists quired's catalog into the model, asking again for up to [waitMs] while quired starts. */
+    /**
+     * Lists quired's catalog into the model, asking again for up to [waitMs] while quired starts. An image that isn't
+     * OpenBook's has no quired unless the person installed one, so it gets only [FOREIGN_WAIT_MS]. When nothing answers
+     * on a running VM, or quired is too old for setup, the page offers the ways out ([noHelper]).
+     */
     private fun catalog(waitMs: Long): Boolean {
         if (catalogRunning) return true
         catalogRunning = true
         try {
-            val deadline = SystemClock.elapsedRealtime() + waitMs
+            val foreign = lastImage.isNotEmpty() && !SetupModel.isOpenBookImage(lastImage)
+            val deadline = SystemClock.elapsedRealtime() + if (foreign) minOf(waitMs, FOREIGN_WAIT_MS) else waitMs
             while (true) {
                 try {
                     val h = host()
@@ -216,6 +238,7 @@ class SetupController(private val app: QuireApplication) {
                     val version = res.optString("quired", h.quiredVersion)
                     Log.i(TAG, "setup: catalog quired=$version agents=${agents.size} installed=" +
                         agents.filter { it.installed }.joinToString(",") { it.id })
+                    helperMissing = false
                     ui { onEnv(SetupModel.Env.READY); onCatalog(version, agents) }
                     checkSignIns(agents.filter { it.installed && it.supported && !it.needsNoAccount }.map { it.id })
                     keepQuiredCurrent(h)
@@ -223,14 +246,16 @@ class SetupController(private val app: QuireApplication) {
                 } catch (e: AcpError) {
                     if (e.code == AcpError.METHOD_NOT_FOUND) {
                         Log.i(TAG, "setup: quired has no setup methods (older than 0.4.0)")
-                        ui { onEnv(SetupModel.Env.OLD_HELPER) }
+                        noHelper(old = true, "")
                         return false
                     }
                     if (SystemClock.elapsedRealtime() > deadline) throw e
                 } catch (e: Exception) {
                     if (SystemClock.elapsedRealtime() > deadline) {
                         Log.i(TAG, "setup: quired did not answer: ${e.javaClass.simpleName}: ${e.message}")
-                        ui { onEnv(SetupModel.Env.ERROR, "Quire’s helper in the Linux environment didn’t answer") }
+                        // Only a VM that still runs lacks a helper; one that stopped meanwhile says so instead.
+                        val now = Connectors.LinuxEnvironment.status(app)
+                        if (now.state == Connectors.State.READY) noHelper(old = false, e.message.orEmpty()) else publish(now)
                         return false
                     }
                     app.agents.disconnect()
@@ -240,6 +265,137 @@ class SetupController(private val app: QuireApplication) {
         } finally {
             catalogRunning = false
         }
+    }
+
+    /**
+     * A running Linux environment without a usable quired (ANAL-394): none answers (Google's image, or a quired that
+     * was removed), or it is older than setup ([old]). The page offers the ways out; Quire puts its package in
+     * Downloads for the one command, and carries on by itself once quired answers.
+     */
+    private fun noHelper(old: Boolean, detail: String) {
+        Log.i(TAG, "setup: no usable quired in the Linux environment (${if (old) "older than 0.4.0" else "none answers"}), " +
+            "image \"${lastImage.ifEmpty { "?" }}\"")
+        helperMissing = true
+        ui { onEnv(if (old) SetupModel.Env.OLD_HELPER else SetupModel.Env.NO_HELPER, detail) }
+        offerHelperDeb()
+        watchHelper()
+    }
+
+    /**
+     * Copies the quired package this build carries into the person's Downloads, as quired_<version>_<arch>.deb, where
+     * the Linux environment sees it ([SetupModel.GUEST_DOWNLOADS]). Written beside it and renamed, so the command never
+     * meets half a file; a copy that is already there and matches is kept. The command checks its SHA-256 before dpkg
+     * runs it, because other apps that may manage all files can change Downloads.
+     */
+    private fun offerHelperDeb() = work("helper-deb") {
+        val deb = File(QUIRED_DEB)
+        val version = runCatching { File(QUIRED_VERSION).readText().trim() }.getOrDefault("")
+        if (!deb.isFile || version.isEmpty()) {
+            Log.w(TAG, "setup: this build carries no quired package ($QUIRED_DEB)")
+            ui { onHelperDeb("", "", app.getString(R.string.setup_helper_no_deb)) }
+            return@work
+        }
+        val name = SetupModel.helperDebName(version, debArch())
+        try {
+            if (!SetupModel.safeDebName(name)) throw IllegalStateException("unexpected package name $name")
+            val sha = sha256(deb)
+            @Suppress("DEPRECATION")
+            val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            if (!dir.isDirectory && !dir.mkdirs()) throw java.io.IOException("Downloads isn't there")
+            val target = File(dir, name)
+            if (target.isFile && target.length() == deb.length() && sha256(target) == sha) {
+                Log.i(TAG, "setup: $name is already in Downloads")
+            } else {
+                val part = File(dir, ".$name.part")
+                deb.inputStream().use { i -> java.io.FileOutputStream(part).use { o -> i.copyTo(o); o.fd.sync() } }
+                if (sha256(part) != sha || !part.renameTo(target)) {
+                    part.delete()
+                    throw java.io.IOException("the copy in Downloads didn't match")
+                }
+                Log.i(TAG, "setup: copied $name (sha256 $sha) to Downloads")
+            }
+            ui { onHelperDeb(name, sha) }
+        } catch (e: Exception) {
+            Log.w(TAG, "setup: couldn't put $name in Downloads: ${e.message}")
+            ui { onHelperDeb("", "", app.getString(R.string.setup_helper_no_copy, e.message.orEmpty())) }
+        }
+    }
+
+    /**
+     * While the Linux environment has no usable quired, checks every [WATCH_POLL_MS] whether one answers now (the
+     * person ran the command) or the Linux environment was reset in Recovery, and carries on either way: the catalog
+     * moves the wizard on, and a reset image is set up again. Stops when the state is anything else, or after
+     * [WATCH_MS].
+     */
+    private fun watchHelper() {
+        if (watching) return
+        watching = true
+        work("helper-watch") {
+            try {
+                val until = SystemClock.elapsedRealtime() + WATCH_MS
+                while (helperMissing && SystemClock.elapsedRealtime() < until) {
+                    SystemClock.sleep(WATCH_POLL_MS)
+                    if (!helperMissing) break
+                    if (linuxRunning || catalogRunning) continue
+                    val s = Connectors.LinuxEnvironment.status(app)
+                    when (s.state) {
+                        Connectors.State.READY -> {
+                            publish(s)
+                            if (helperAnswers()) {
+                                Log.i(TAG, "setup: quired answers now; carrying on")
+                                catalog(QUIRED_WAIT_MS)
+                                break
+                            }
+                        }
+                        // Reset in Recovery: set up OpenBook's image, as the page said Quire would.
+                        Connectors.State.NOT_INSTALLED, Connectors.State.INSTALLING, Connectors.State.STARTING -> {
+                            Log.i(TAG, "setup: the Linux environment is ${s.state} now; setting it up")
+                            helperMissing = false
+                            publish(s)
+                            startLinux(showPage = false)
+                            break
+                        }
+                        else -> {
+                            helperMissing = false
+                            publish(s)
+                            break
+                        }
+                    }
+                }
+            } finally {
+                watching = false
+            }
+        }
+    }
+
+    /**
+     * One quick question to quired: does it answer the setup catalog? A quired too old for setup counts as no. The old
+     * one's connection is kept for the note's agents; a broken one is dropped so the next try reconnects.
+     */
+    private fun helperAnswers(): Boolean = try {
+        host().call("_quire/catalog", JSONObject(), PROBE_MS)
+        true
+    } catch (e: AcpError) {
+        if (e.code != AcpError.METHOD_NOT_FOUND) app.agents.disconnect()
+        false
+    } catch (e: Exception) {
+        app.agents.disconnect()
+        false
+    }
+
+    private fun debArch(): String = if (Build.SUPPORTED_ABIS.firstOrNull()?.startsWith("arm64") == true) "arm64" else "amd64"
+
+    private fun sha256(f: File): String {
+        val md = MessageDigest.getInstance("SHA-256")
+        f.inputStream().use { i ->
+            val buf = ByteArray(1 shl 16)
+            while (true) {
+                val n = i.read(buf)
+                if (n < 0) break
+                md.update(buf, 0, n)
+            }
+        }
+        return md.digest().joinToString("") { "%02x".format(it) }
     }
 
     private fun parseCatalog(list: JSONArray): List<SetupModel.Agent> = (0 until list.length()).map { i ->
@@ -587,7 +743,7 @@ class SetupController(private val app: QuireApplication) {
     /**
      * The guest's quired matches the one this image carries (docs/quire-setup.md §4.4): when it is older, the admin
      * worker installs this one in a unit of its own, and Quire reconnects. A guest without a worker (0.3.0) stays as
-     * it is; the wizard says so (Env.OLD_HELPER).
+     * it is; the wizard offers the person's own command instead (Env.OLD_HELPER, [noHelper]).
      */
     private fun keepQuiredCurrent(h: AgentHost) {
         if (updateTried) return
@@ -648,6 +804,12 @@ class SetupController(private val app: QuireApplication) {
         private const val INSTALL_MS = 20 * 60_000L
         private const val LOGIN_MS = 15 * 60_000L
         private const val UPDATE_MS = 3 * 60_000L
+
+        /** How long an image that isn't OpenBook's gets to answer: quired starts in seconds if the person added it. */
+        private const val FOREIGN_WAIT_MS = 8_000L
+        private const val WATCH_POLL_MS = 3_000L
+        private const val WATCH_MS = 30 * 60_000L
+        private const val PROBE_MS = 5_000L
 
         /** The quired package this image carries, and its version (device/anybook/common/quire/Android.bp). */
         const val QUIRED_DEB = "/system_ext/etc/quire/quired.deb"

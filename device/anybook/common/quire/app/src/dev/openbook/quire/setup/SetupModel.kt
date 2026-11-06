@@ -17,10 +17,18 @@ class SetupModel {
         UNKNOWN, READY, NO_AVF, NO_KVM, OFF, NOT_INSTALLED, NO_IMAGE, INSTALLING, STOPPED, STARTING, ERROR,
         /** Running, but its quired predates setup (0.3.0) and can't install agents or update itself. */
         OLD_HELPER,
+        /**
+         * Running, but no quired answers in it (ANAL-394): the image isn't OpenBook's (Google's, which the Terminal app
+         * installed before OpenBook pinned its own), or its quired was removed or doesn't start.
+         */
+        NO_HELPER,
     }
 
-    /** What the person can do about an [Env] on the Linux page (§2, page 1′). */
-    enum class Remedy { NONE, START, FIRMWARE, NO_IMAGE, RETRY, OLD_HELPER, NO_AVF }
+    /**
+     * What the person can do about an [Env] on the Linux page (§2, page 1′). [HELPER]: install quired from the package
+     * Quire put in Downloads and keep the Linux files, or reset the Linux environment in Terminal's Recovery.
+     */
+    enum class Remedy { NONE, START, FIRMWARE, NO_IMAGE, RETRY, HELPER, NO_AVF }
 
     enum class Row { WAIT, NOW, DONE, FAILED }
 
@@ -89,6 +97,25 @@ class SetupModel {
     var total = -1L
         private set
 
+    /**
+     * The installed image, the first line of its build_id as the Terminal app's bridge reports it (docs/quire-setup.md
+     * §4.5); "" when none is installed or the Terminal app doesn't say.
+     */
+    var image = ""
+        private set
+
+    /** quired's package in the person's Downloads, its file name, for the one command; "" when there is none to offer. */
+    var helperDeb = ""
+        private set
+
+    /** The package's SHA-256, which the command checks before dpkg runs it. */
+    var helperSha = ""
+        private set
+
+    /** Why there is no package to offer, when there isn't (this build carries none, or Downloads couldn't take it). */
+    var helperDebProblem = ""
+        private set
+
     /** Set once the Linux environment answered while the person watched step 1, so its rows read as done. */
     var linuxDone = false
         private set
@@ -141,7 +168,15 @@ class SetupModel {
         page = if (finished) Page.MANAGE else Page.WELCOME
     }
 
-    fun onEnv(env: Env, detail: String = "", phase: String = "", bytes: Long = -1, total: Long = -1) {
+    /**
+     * The Linux environment's state. [image] is the bridge's: null leaves it as it was. A Linux environment without a
+     * helper stays so while the bridge calls it running, until quired answers ([onCatalog]): "running" alone says
+     * nothing about the helper, and the way out must not blink off the page on every check.
+     */
+    fun onEnv(env: Env, detail: String = "", phase: String = "", bytes: Long = -1, total: Long = -1,
+        image: String? = null) {
+        if (image != null) this.image = image
+        if (env == Env.READY && helperMissing) return
         this.env = env
         envDetail = detail
         this.phase = phase
@@ -150,7 +185,24 @@ class SetupModel {
         if (env == Env.READY && page == Page.LINUX) linuxDone = quired.isNotEmpty()
     }
 
+    /** The package Quire copied into Downloads ([name], its [sha256]), or why it has none ([problem]). */
+    fun onHelperDeb(name: String, sha256: String, problem: String = "") {
+        val ok = safeDebName(name) && SHA256.matches(sha256)
+        helperDeb = if (ok) name else ""
+        helperSha = if (ok) sha256 else ""
+        helperDebProblem = if (ok) "" else problem.ifEmpty { "no package" }
+    }
+
+    /**
+     * quired answered with its catalog. When it had been missing (the person ran the command, or reset the Linux
+     * environment), the wizard carries on by itself from the Linux page to the next step (ANAL-394).
+     */
     fun onCatalog(quired: String, agents: List<Agent>) {
+        val recovered = helperMissing
+        if (recovered) {
+            env = Env.READY
+            envDetail = ""
+        }
         this.quired = quired
         this.agents = agents
         selected.retainAll(agents.filter { it.supported && !it.installed }.map { it.id }.toSet())
@@ -162,6 +214,7 @@ class SetupModel {
                 ?: installedAgents.firstOrNull()?.id
         }
         if (env == Env.READY && page == Page.LINUX) linuxDone = true
+        if (recovered && page == Page.LINUX) go(afterLinux())
     }
 
     fun onSignIn(agent: String, state: SignState) {
@@ -217,6 +270,24 @@ class SetupModel {
 
     // ------------------------------------------------------------------------------------------------ derived
 
+    /** The Linux environment runs, but Quire's helper in it can't serve setup: missing, silent, or too old. */
+    val helperMissing: Boolean
+        get() = env == Env.OLD_HELPER || env == Env.NO_HELPER
+
+    /** The installed image isn't OpenBook's, so it came without quired. Unknown ("") is not counted as foreign. */
+    val foreignImage: Boolean
+        get() = image.isNotEmpty() && !isOpenBookImage(image)
+
+    /**
+     * The one command that installs the helper and keeps the Linux files; "" when there is no package to offer. It
+     * copies the package out of shared storage first and checks that copy's SHA-256, so what dpkg installs as root is
+     * exactly what this build carries, whatever another app does to Downloads meanwhile.
+     */
+    val helperCommand: String
+        get() = if (helperDeb.isEmpty()) "" else
+            "cp $GUEST_DOWNLOADS/$helperDeb /tmp/ && echo \"$helperSha  /tmp/$helperDeb\" | sha256sum -c && " +
+                "sudo dpkg -i /tmp/$helperDeb"
+
     /** What the person can do about the environment now. */
     val remedy: Remedy
         get() = when (env) {
@@ -224,7 +295,7 @@ class SetupModel {
             Env.NO_KVM -> Remedy.FIRMWARE
             Env.NO_IMAGE -> Remedy.NO_IMAGE
             Env.ERROR -> Remedy.RETRY
-            Env.OLD_HELPER -> Remedy.OLD_HELPER
+            Env.OLD_HELPER, Env.NO_HELPER -> Remedy.HELPER
             Env.OFF, Env.NOT_INSTALLED, Env.STOPPED, Env.UNKNOWN -> Remedy.START
             Env.INSTALLING, Env.STARTING, Env.READY -> Remedy.NONE
         }
@@ -241,7 +312,7 @@ class SetupModel {
             Env.NO_IMAGE -> 1
             Env.INSTALLING -> if (phase == "unpack" || phase == "verify") 2 else 1
             Env.STARTING, Env.STOPPED -> 3
-            Env.READY, Env.ERROR, Env.OLD_HELPER -> 4
+            Env.READY, Env.ERROR, Env.OLD_HELPER, Env.NO_HELPER -> 4
             else -> 0
         }
         return List(5) { i ->
@@ -310,6 +381,20 @@ class SetupModel {
 
     companion object {
         private const val MB = 1_000_000L
+
+        /** The person's Downloads as the Linux environment sees it: the Terminal app shares /storage/emulated/<user>. */
+        const val GUEST_DOWNLOADS = "/mnt/shared/Download"
+
+        /** OpenBook's images name themselves so in build_id (scripts/quire/linux-env-image.sh); Google's say ferrochrome. */
+        fun isOpenBookImage(buildId: String) = buildId.trim().startsWith("openbook_")
+
+        /** The package's name in Downloads, as dpkg-deb names it: quired_<version>_<arch>.deb. */
+        fun helperDebName(version: String, arch: String = "amd64") = "quired_${version.trim()}_$arch.deb"
+
+        private val SHA256 = Regex("[0-9a-f]{64}")
+
+        /** A name safe to put in a shell command the person pastes: Debian's version characters only, no path. */
+        fun safeDebName(name: String) = name.length <= 80 && Regex("quired_[0-9][0-9A-Za-z.+~]*_[a-z0-9]+\\.deb").matches(name)
 
         /** Approximate downloads (docs/quire-setup.md §5), only for the hint under the grid. */
         private val SIZE_MB = mapOf("claude" to 70, "opencode" to 60, "copilot" to 110, "antigravity" to 90,
