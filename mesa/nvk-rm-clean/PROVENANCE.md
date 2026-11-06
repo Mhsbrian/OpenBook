@@ -140,26 +140,101 @@ while doing this work, apart from the directory listings above, which showed nam
 - **What it read:** this tree (`README.md`, this file, `scripts/build-clean.sh`, patches `0021`, `0027` and `0028`);
   upstream Mesa `mesa-26.2.5` with this tree's patches applied (`src/nouveau/vulkan/nvk_android.c`,
   `src/vulkan/runtime/vk_android.c`, `src/util/u_atomic.h`, `src/util/u_call_once.h`); OpenBook `main` (the NVK
-  package, its provenance files and build scripts, `docs/nvk-openbook.md`); the ANAL-353 and ANAL-338 threads and the
-  ANAL-345 issue text.
+  package, its provenance files, build and G14 scripts, `docs/nvk-openbook.md`); the ANAL-353 and ANAL-338 threads, the
+  ANAL-345 issue text, and ANAL-349's and ANAL-351's G14 notes and session scripts.
 - **Seen, not opened:** `ls ~/anybook/cleanroom` printed the name `work-dirty`. Nothing on the excluded list was
   otherwise opened, searched or used.
 - **The change:** patch `0029`, from Mesa's `u_atomic.h`: each flag is tested and set in one `p_atomic_xchg()`, so
   exactly one caller logs. No other behaviour changes.
-- **Hardware:** the G14's RTX 5070 Ti Laptop through OpenBook's per-app choice, a Vulkan 1.0 app and an ANGLE app, as
-  for ANAL-349 (ANAL-353's thread has the logs).
+- **Hardware:** none in this run. Its G14 session (2026-11-06 12:47Z) stopped at the idle gate because the laptop was
+  in use, and nothing ran. The check, a Vulkan 1.0 app and an ANGLE app on the G14's RTX as for ANAL-349, goes with the
+  next NVK build, ANAL-345's, which carries this patch.
 
 **Author's statement** (ANAL-353, clean-side author, 2026-11-06): "I read nothing on the excluded list in README.md
 while doing this work, apart from the directory listing above, which showed a name and no file content."
 
+## Clean-side work (ANAL-345)
+
+- **Who:** the ANAL-345 run of 2026-11-06. On the G14's RTX 5070 Ti Laptop (GB205) the clean build `5f5c3d6` showed
+  GPU exceptions under dEQP-VK, a device loss in a backend hardware test, a slow free, and five hardware tests that
+  never ran. Its intake was only ANAL-345 with its attachment and ANAL-330's comments (symptoms only).
+- **What it read:** this tree (`backend/src/mesa.rs`, `gpu.rs`, `fences.rs`, `slots.rs`, `mesa_reclaim_tests.rs`,
+  `mesa_hardware_tests.rs`, the `nvk-rm-clean` patches); upstream Mesa `mesa-26.2.5` and its class headers
+  (`clc96f.h`, `clca6f.h`, `clcd97.h`); OGKM `615.78.08` class headers (`clc86f.h`, `clc96f.h`, `clca6f.h`); Linux
+  6.18 nouveau for facts only (`nouveau_drm.c`: Blackwell channels use the Volta fence; `gv100_fence.c`); the Rust
+  standard library documentation (`std::sync::Mutex` makes no fairness guarantee); OpenBook `main`
+  (`scripts/graphics/nvk-package-hosttest.sh`, `scripts/g14-lock.sh`, `docs/nvk-openbook.md`); the ANAL-327 host-test
+  logs; ANAL-338 and ANAL-353's issue text.
+- **Seen, not opened:** listings of `~/anybook`, `~/anybook/mesa/{src,build,out}`, `~/anybook/gfx-cts/nvk-test`,
+  `~/anybook/kernel` and `~/anybook/evidence/openbook` printed the names of excluded trees and folders. OpenBook's
+  `nvk-package-hosttest.sh` names ANAL-326's baseline folder; it was not used. Nothing on the excluded list, and
+  nothing of ANAL-326 or ANAL-336, was opened, searched or used.
+
+### Slow free: the Bridge lock is first-come, first-served (`backend/src/fair.rs`)
+
+- **Symptom:** `mesa::reclaim_tests::concurrent_alloc_free_gated_submit_stress` failed on the GB205 with
+  `slow free 629.97661ms` (limit 250 ms). On the RTX 4090 the same bytes passed with a worst free of 234 ms.
+- **Experiment (own, RTX 4090, OGKM 615.78.08):** timing `Bridge::lock` showed a free blocked 80–100 ms while the
+  holder before it had taken the lock about 2 us earlier: many short critical sections of the three allocator threads
+  ran while the free waited. `std::sync::Mutex` lets a running thread re-take the lock before a woken waiter (its
+  documentation gives no fairness guarantee), so the free starved; the reclaim work inside the lock never exceeded
+  20 ms.
+- **The change:** `FairMutex`, a ticket lock built on `std::sync::{Mutex, Condvar}`, guards `Inner`. A caller waits only
+  for those that asked before it. The data stays in a `std::sync::Mutex`, so the happens-before between owners that
+  `Confined` relies on is unchanged; poisoning is ignored as before. Three unit tests (`fair::tests`).
+- **Result (RTX 4090):** worst free 234 ms and 110 ms before, 7.3 ms after; host-gated batches in 20 s from 964–1,468
+  to 23,331, foreign-gated from 413–657 to 20,154 (those threads had been starved too).
+
+### Five tests never ran: the reclaim fixtures' C callbacks never panic (`backend/src/mesa_reclaim_tests.rs`)
+
+- **Symptom:** after the device loss in `startup_sync_churn_every_exported_fence_signals` the process aborted
+  (`panic in a function that cannot unwind`, exit 134), so `sync_fd_export_never_returns_an_unsignalable_fence`,
+  `watcher_gate_release_and_contended_waiters_never_lose_a_wakeup` and the three `rm::budget_tests` never ran.
+- **Cause (from the G14 backtrace in the attachment):** a worker panicked on `expect("deferred VA ranges are
+  reclaimed")` while it held the VA pool's mutex, which poisoned it. Unwinding dropped the Bridge, whose close ran
+  the pending VA releases. `pool_release`, an `extern "C"` callback, then panicked on the `PoisonError`, and since
+  Rust 1.81 a panic cannot unwind out of an `extern "C"` function, so the process aborted (Rust reference, "Unwinding";
+  the panic message itself says so).
+- **The change:** `record_release` and `pool_release` take a poisoned lock anyway and never assert; a slot released
+  twice is recorded (`VaPool::released_twice`) and asserted in the test body. The VA pools are declared before the
+  Bridges, so they also outlive them when a failure unwinds (before, a failing test could free a pool that the
+  Bridge's close then wrote into). Production code is unchanged.
+
+### Investigated, not changed: GPU exceptions with several GPU contexts on the GB205
+
+- **Symptom:** under dEQP-VK with several processes the GB205 logs Xid 13 (shader program header errors,
+  `INSTR_RAM_ACCESS_OUT_OF_BOUNDS`), 31, 32 and 69, and 14–40 of the 98-case list's cases fail or flake. One
+  process: 0 Xid, and only 3–5 bad cases. `startup_sync_churn_every_exported_fence_signals` (one process, two
+  devices × two threads, four channel groups) loses the device the same way.
+- **Experiments (own, G14, open kernel modules 615.78.08, 2026-11-06; logs on ANAL-345):** none of these removed the
+  Xids or reduced the bad cases: `NV_RM_COMPLETION_WFI=all|gr|both`, `NVK_DEBUG=push_sync`, `NVK_DEBUG=gart`, GPFIFO
+  entries as main segments (every public writer: UVM `uvm_turing_host.c`/`uvm_hopper_host.c`, `nvidia-push.c`, Linux
+  nouveau), no ZCULL storage and no ZCULL in NVK, the GPFIFO ring and USERD in system memory, graphics and compute
+  preemption set to WFI (`NV2080_CTRL_CMD_GR_SET_CTXSW_PREEMPTION_MODE`; RM's defaults were already WFI and ZCULL
+  SEPARATE_BUFFER, `NV2080_CTRL_CMD_GR_GET_CTXSW_MODES`), and a 100 ms channel-group timeslice
+  (`NVA06C_CTRL_CMD_SET_TIMESLICE`). Those probes were scratch builds only; nothing of them is in this tree. The cause is
+  open.
+
+### Statement
+
+- **Also read for this work:** the ANAL-338 thread; an ANAL-338 helper's intake log and probe patch in ANAL-345's own
+  evidence folder (written from ANAL-345, ANAL-330's comments and this README's sources); ANAL-353's G14 tooling
+  (`sit353.sh`, `mk-test-apk.sh`) and its OpenBook carry-over patch; OpenBook `scripts/gpu-diag.sh` and
+  `scripts/g14-adb.sh`; the ANAL-240 dEQP test package (Khronos dEQP-VK, deqp-runner, the HAL shim) as the test
+  harness only; OGKM `615.78.08` `ctrl2080gr.h`, `ctrla06c.h`, `nvos.h`, `dev_esched_pbdma.h`,
+  `kernel_graphics_context.c` and `kernel_graphics.c` (names of preemption buffers).
+
+**Author's statement** (ANAL-345, clean-side author, 2026-11-06): "I read nothing on the excluded list in README.md
+while doing this work, apart from the directory listings above, which showed names and no file content."
+
 ## In OpenBook (ANAL-327)
 
-OpenBook carries this tree's commit `77608ebf9b1519140756494dc5b4d71f04761a29`: ANAL-330's clean-side tree as ANAL-326
-tested it (stage 2b, commit `5f5c3d64`), plus ANAL-349's patch `0027`, ANAL-351's patch `0028` and ANAL-353's patch
-`0029`, each tested on the G14 by its run. The backend and
+OpenBook carries this tree's commit `97e14854e16397094649b13c680f6a926abc1071`: ANAL-330's clean-side tree as ANAL-326
+tested it (stage 2b, commit `5f5c3d64`), plus ANAL-349's patch `0027`, ANAL-351's patch `0028`, ANAL-353's patch `0029`
+and ANAL-345's two backend changes (the first-come, first-served Bridge lock and panic-free test callbacks). The backend and
 these documents are in `mesa/nvk-rm-clean/`, the patches in `mesa/patches/`. The clean-room build scripts are replaced
 by the `nvk-rm-clean` tree of `scripts/mesa-android-build.sh`. Its bytes are in `device/anybook/common/nvk/tested-bytes.txt`
-(`vulkan.nouveau.so` `7bb60cfe…`; `libnv_bionic_native.so` `0f6c604b…`, `libdrm.so` `ccf9766c…` and `libelf_mesa.so`
+(`vulkan.nouveau.so` `7bb60cfe…`, `libnv_bionic_native.so` `6ce57be6…`; `libdrm.so` `ccf9766c…` and `libelf_mesa.so`
 `5f491b5d…` are unchanged). Everything above this section is the commit's `PROVENANCE.md`, unchanged.
 
 ### Every file from the commit
@@ -169,7 +244,7 @@ the commit's file, then this section).
 
 | OpenBook path | Blob | Origin |
 |---|---|---|
-| `mesa/nvk-rm-clean/PROVENANCE.md` | `f5bf3c54b665` (prefix:21965) | AnyBook, ANAL-324 (the clean-room tree's own) |
+| `mesa/nvk-rm-clean/PROVENANCE.md` | `eaf97f8677bf` (prefix:28473) | AnyBook, ANAL-324 (the clean-room tree's own) |
 | `mesa/nvk-rm-clean/SPEC.md` | `1160cd019d5c` (exact) | AnyBook, ANAL-324 (the clean-room tree's own) |
 | `mesa/nvk-rm-clean/backend/Cargo.lock` | `2418f9cba3f4` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
 | `mesa/nvk-rm-clean/backend/Cargo.toml` | `f19b89037563` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); library only |
@@ -188,13 +263,14 @@ the commit's file, then this section).
 | `mesa/nvk-rm-clean/backend/src/diag.rs` | `a8aa6a31750c` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
 | `mesa/nvk-rm-clean/backend/src/events.rs` | `f33eb3abe882` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
 | `mesa/nvk-rm-clean/backend/src/external.rs` | `66d668045871` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
+| `mesa/nvk-rm-clean/backend/src/fair.rs` | `46c0d31e8da9` (exact) | AnyBook, ANAL-345 (clean side): the FIFO Bridge lock |
 | `mesa/nvk-rm-clean/backend/src/fences.rs` | `d5e29d7092f0` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
 | `mesa/nvk-rm-clean/backend/src/gpu.rs` | `b5c696835a1e` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
 | `mesa/nvk-rm-clean/backend/src/host_packet_tests.rs` | `7648e0856498` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
-| `mesa/nvk-rm-clean/backend/src/lib.rs` | `d641ff4d9c7d` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
-| `mesa/nvk-rm-clean/backend/src/mesa.rs` | `ff14b789b52a` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
+| `mesa/nvk-rm-clean/backend/src/lib.rs` | `8a4ddd8dd9f9` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side); the FIFO Bridge lock by ANAL-345 (clean side) |
+| `mesa/nvk-rm-clean/backend/src/mesa.rs` | `94704f47c387` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side); the FIFO Bridge lock by ANAL-345 (clean side) |
 | `mesa/nvk-rm-clean/backend/src/mesa_hardware_tests.rs` | `fceeeae727e5` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
-| `mesa/nvk-rm-clean/backend/src/mesa_reclaim_tests.rs` | `091b591f28dd` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
+| `mesa/nvk-rm-clean/backend/src/mesa_reclaim_tests.rs` | `fc8279001823` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side); panic-free C callbacks by ANAL-345 (clean side) |
 | `mesa/nvk-rm-clean/backend/src/platform.rs` | `df03809c67aa` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
 | `mesa/nvk-rm-clean/backend/src/reactor.rs` | `8d5b20b88728` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
 | `mesa/nvk-rm-clean/backend/src/reclaim.rs` | `25c364276267` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |

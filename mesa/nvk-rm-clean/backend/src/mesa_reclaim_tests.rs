@@ -11,7 +11,7 @@ use super::*;
 use std::{
     fs::{File, OpenOptions},
     os::fd::{AsRawFd, FromRawFd},
-    sync::{atomic::AtomicU32, mpsc, Barrier},
+    sync::{atomic::AtomicU32, mpsc, Barrier, Mutex},
     thread,
     time::Duration,
 };
@@ -160,9 +160,17 @@ struct Released {
     calls: AtomicU32,
     ranges: Mutex<Vec<(u64, u64)>>,
 }
+/// C callbacks must never panic: a panic cannot unwind out of an `extern "C"`
+/// function, so it would abort the whole test process (ANAL-345: one device
+/// loss cost the remaining hardware tests). Poisoned locks are taken anyway
+/// and problems are recorded for the test body to assert.
 unsafe extern "C" fn record_release(data: *mut c_void, address: u64, size: u64) {
     let released = unsafe { &*(data as *const Released) };
-    released.ranges.lock().unwrap().push((address, size));
+    released
+        .ranges
+        .lock()
+        .unwrap_or_else(|p| p.into_inner())
+        .push((address, size));
     released.calls.fetch_add(1, Ordering::SeqCst);
 }
 fn va_free(b: *mut Bridge, mappings: &[u64], address: u64, size: u64, released: &Released) -> i32 {
@@ -444,11 +452,29 @@ fn freed_memory_stays_mapped_until_the_gated_batch_retires() {
 struct VaPool {
     free: Mutex<Vec<u64>>,
     released: AtomicU64,
+    /// A slot came back while already free (asserted by the tests, never in
+    /// the callback: see record_release).
+    released_twice: AtomicBool,
+}
+impl VaPool {
+    fn new(slots: impl Iterator<Item = u64>) -> Self {
+        Self {
+            free: Mutex::new(slots.collect()),
+            released: AtomicU64::new(0),
+            released_twice: AtomicBool::new(false),
+        }
+    }
+    fn take(&self) -> Option<u64> {
+        self.free.lock().unwrap_or_else(|p| p.into_inner()).pop()
+    }
 }
 unsafe extern "C" fn pool_release(data: *mut c_void, address: u64, _size: u64) {
     let pool = unsafe { &*(data as *const VaPool) };
-    let mut free = pool.free.lock().unwrap();
-    assert!(!free.contains(&address), "VA slot released twice");
+    let mut free = pool.free.lock().unwrap_or_else(|p| p.into_inner());
+    if free.contains(&address) {
+        pool.released_twice.store(true, Ordering::SeqCst);
+        return;
+    }
     free.push(address);
     pool.released.fetch_add(1, Ordering::SeqCst);
 }
@@ -468,14 +494,13 @@ fn concurrent_alloc_free_gated_submit_stress() {
     let before = fd_count();
     let pci = selected_pci();
     let drm = Arc::new(render_node(pci));
+    // Declared before the bridges, so it also outlives them when a failure
+    // unwinds: their close runs the pending releases into it.
+    let pool = Arc::new(VaPool::new((0..512).map(|i| VA_BASE + (64 << 20) + i * SLOT)));
     let mut bridge = open(pci);
     let mut producer = open(pci);
     let b = SendPtr(&mut *bridge);
     let p = SendPtr(&mut *producer);
-    let pool = Arc::new(VaPool {
-        free: Mutex::new((0..512).map(|i| VA_BASE + (64 << 20) + i * SLOT).collect()),
-        released: AtomicU64::new(0),
-    });
     let stop = Arc::new(AtomicBool::new(false));
     let failures = Arc::new(Mutex::new(Vec::<String>::new()));
     let slow_free = Arc::new(AtomicU64::new(0)); // worst free, ns
@@ -487,7 +512,7 @@ fn concurrent_alloc_free_gated_submit_stress() {
         f();
         slow.fetch_max(t.elapsed().as_nanos() as u64, Ordering::Relaxed);
     };
-    let take_slot = |pool: &VaPool| -> Option<u64> { pool.free.lock().unwrap().pop() };
+    let take_slot = |pool: &VaPool| -> Option<u64> { pool.take() };
     let mut threads = Vec::new();
     // Allocators.
     for seed in 0..3u64 {
@@ -747,6 +772,7 @@ fn concurrent_alloc_free_gated_submit_stress() {
         frees,
         "one release per VA free"
     );
+    assert!(!pool.released_twice.load(Ordering::SeqCst), "VA slot released twice");
     assert_eq!(pool.free.lock().unwrap().len(), 512);
     assert_eq!(unsafe { nv_rm_sync_destroy(b.0, timeline) }, 0);
     drop(bridge);
@@ -919,6 +945,16 @@ fn startup_sync_churn_every_exported_fence_signals() {
     let before = fd_count();
     let pci = selected_pci();
     let drm = Arc::new(render_node(pci));
+    // Mesa's heap: a range is reusable only after its release ran. One pool
+    // per thread, declared before the devices so it outlives them even when a
+    // failure unwinds (their close runs the pending releases into it).
+    let pools: Vec<Arc<VaPool>> = (0..4u64)
+        .map(|t| {
+            Arc::new(VaPool::new(
+                (0..64).map(move |i| VA_BASE + (1 << 32) + (t * 64 + i) * SLOT),
+            ))
+        })
+        .collect();
     let mut devices = [open(pci), open(pci)];
     let ptrs = [SendPtr(&mut *devices[0]), SendPtr(&mut *devices[1])];
     let stop = Arc::new(AtomicBool::new(false));
@@ -931,22 +967,18 @@ fn startup_sync_churn_every_exported_fence_signals() {
     for t in 0..4usize {
         let device = t % 2;
         let b = ptrs[device];
-        let (stop, failures, latest, drm, worst) = (
+        let (stop, failures, latest, drm, worst, pool) = (
             Arc::clone(&stop),
             Arc::clone(&failures),
             Arc::clone(&latest),
             Arc::clone(&drm),
             Arc::clone(&worst),
+            Arc::clone(&pools[t]),
         );
         threads.push(thread::spawn(move || {
             let b = b;
             let mut ctx = context(b.0);
             let fences: Vec<u64> = (0..3).map(|_| create(b.0, false, 0)).collect();
-            // Mesa's heap: a range is reusable only after its release ran.
-            let pool = Arc::new(VaPool {
-                free: Mutex::new((0..64).map(|i| VA_BASE + (1 << 32) + ((t as u64) * 64 + i) * SLOT).collect()),
-                released: AtomicU64::new(0),
-            });
             let mut frames = 0u64;
             while !stop.load(Ordering::Relaxed) {
                 frames += 1;
@@ -978,7 +1010,7 @@ fn startup_sync_churn_every_exported_fence_signals() {
                     assert_eq!(unsafe { nv_rm_sync_destroy(b.0, id) }, 0);
                 }
                 // dequeue: temporary AHB import + free (GetMemoryFdProperties).
-                let va = pool.free.lock().unwrap().pop().expect("deferred VA ranges are reclaimed");
+                let va = pool.take().expect("deferred VA ranges are reclaimed");
                 let memory = alloc(b.0, 65536, true);
                 let mapping = bind(b.0, memory, 65536, va);
                 let r = unsafe {
@@ -1053,6 +1085,7 @@ fn startup_sync_churn_every_exported_fence_signals() {
             *f,
             "one release per VA free"
         );
+        assert!(!pool.released_twice.load(Ordering::SeqCst), "VA slot released twice");
         released.calls.fetch_add(*f as u32, Ordering::SeqCst);
     }
     let failures = failures.lock().unwrap().clone();
@@ -1065,7 +1098,8 @@ fn startup_sync_churn_every_exported_fence_signals() {
     }
     let releases = released.calls.load(Ordering::SeqCst);
     drop(devices);
-    drop(joined); // VA pools outlive every possible release (close runs them)
+    drop(joined);
+    drop(pools); // VA pools outlive every possible release (close runs them)
     drop(drm);
     assert_eq!(fd_count(), before, "fd leak");
     println!(
