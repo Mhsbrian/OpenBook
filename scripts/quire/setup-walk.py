@@ -4,6 +4,7 @@
 """Walk Quire setup (ANAL-393, docs/quire-setup.md §8) on a booted userdebug OpenBook device, normally Cuttlefish.
 
 usage: setup-walk.py SERIAL OUTDIR [--image images.tar.gz] [--agent opencode] [--only SECTION,...]
+       setup-walk.py SERIAL OUTDIR --no-helper GOOGLE_IMAGE [--reset-image OPENBOOK_IMAGE]
 
 The device starts with the Linux environment off and not installed, the way a person meets it. With --image, the
 guest image goes to /sdcard/linux/images.tar.gz first (a debuggable build's source, docs/quire-setup.md §4.1); without
@@ -19,6 +20,13 @@ Sections, in order:
   dark      The agents page and the agents grid in the dark theme.
   keys      Esc closes a sheet, then the window.
   health    Crashes, ANRs and SELinux denials of Quire and the Terminal app.
+
+With --no-helper (ANAL-394) the walk is welcome, nohelper, health instead. nohelper installs GOOGLE_IMAGE, an image
+without quired (Google's), the way an OpenBook laptop got it before patch 0003. The wizard must say the Linux
+environment has no Quire helper, put the package in Downloads, and show the command and the two ways out. Then the
+person's way: Copy, Open Terminal, paste, Enter, and the wizard carries on to Agents by itself. With --reset-image it
+then starts over from Google's image and resets the Linux environment with OPENBOOK_IMAGE staged (`pm clear` of the
+Terminal app stands in for Recovery's reset), and the wizard must set the new image up and carry on by itself.
 
 Writes OUTDIR/results.tsv, OUTDIR/checks.log and a screenshot per page. Reuses q2-cf-check.py's device helpers.
 """
@@ -151,6 +159,171 @@ def linux(d, image):
              f"{time.time() - t0:.0f} s; bridge {state}; phases seen: {','.join(sorted(seen)) or 'none'}")
     d.result("the wizard showed install progress", shot, ",".join(sorted(seen)))
     return m is not None and m.group(1) == "answered"
+
+
+NOHELPER_TITLE = "This Linux environment doesn’t have Quire’s helper"
+
+
+def stage(d, image, label):
+    d.sh("mkdir -p /sdcard/linux")
+    t0 = time.time()
+    r = d.run("push", str(image), "/sdcard/linux/images.tar.gz", timeout=900)
+    d.result(f"{label} at /sdcard/linux/images.tar.gz", r.returncode == 0, f"{time.time() - t0:.0f} s")
+
+
+def fresh(d):
+    """The Linux environment off and not installed, setup never finished, Downloads without the package."""
+    d.sh(f"am force-stop {QUIRE}; pm clear {QUIRE} >/dev/null 2>&1; pm clear {TERMINAL} >/dev/null 2>&1; "
+         f"pm disable-user {TERMINAL} >/dev/null 2>&1; rm -f /sdcard/Download/quired_*.deb /sdcard/Download/.quired_*")
+
+
+def reach_nohelper(d, label, timeout=1800):
+    """Get started on a fresh device, then the no-helper page: the log line that says so, and its title."""
+    open_setup(d)
+    tag = d.mark(label)
+    t0 = time.time()
+    if not (tap(d, desc="Get started", timeout=15) or tap(d, text="Get started")):
+        d.result(f"{label}: Get started tapped", False, "not found")
+        return None
+    m = d.wait_log(r'setup: no usable quired in the Linux environment \((.*?)\), image "(.*)"', timeout, since=tag)
+    page = find(d, text=NOHELPER_TITLE, timeout=20) is not None
+    d.result(f"{label}: the wizard says the Linux environment has no Quire helper", m is not None and page,
+             f"{time.time() - t0:.0f} s; {m.group(0) if m else 'no log line'}")
+    return m
+
+
+def carried_on(d, tag, timeout):
+    """quired answered and the wizard moved from the Linux page to Agents by itself. The window is brought back only
+    once the log says so, so the Terminal keeps the keyboard until then."""
+    m = d.wait_log(r"setup: catalog quired=(\S+) agents=(\d+)", timeout, since=tag)
+    if m is None:
+        return None, False
+    open_setup(d)
+    on = find(d, text="Choose your agents", timeout=20) is not None
+    return m, on
+
+
+def terminal_ready(d):
+    """The Terminal app in front with its shell: its first-run permission questions (notifications, local network,
+    microphone) answered Don't allow, as a person who only wants the shell would, then the terminal focused."""
+    for _ in range(6):
+        n = find(d, starts="Allow Terminal", timeout=6)
+        if n is None:
+            break
+        if not (tap(d, text="DON’T ALLOW", timeout=2) or tap(d, text="Don’t allow", timeout=1)
+                or tap(d, text="DON'T ALLOW", timeout=1)):
+            break
+        time.sleep(1)
+    time.sleep(3)
+    prompt = find(d, starts="droid@", timeout=30)
+    if prompt is not None:
+        d.tap_node(prompt)
+    return prompt is not None
+
+
+def nohelper(d, image, reset_image):
+    d.log("== nohelper")
+    d.sh("cmd wifi set-wifi-enabled enabled; sleep 3; cmd wifi connect-network VirtWifi open")
+    d.run("root")  # the bridge's status is for its permission's holders, and root
+    d.run("wait-for-device")
+    fresh(d)
+    stage(d, image, "an image without quired")
+    m = reach_nohelper(d, "nohelper")
+    if m is None:
+        return False
+    state, raw = bridge(d)
+    d.write("20-bridge-status.txt", raw)
+    img = re.search(r"image=([^,}]*)", raw)
+    d.result("the bridge names the installed image (patch 0004)", img is not None and img.group(1).startswith("ferrochrome/"),
+             img.group(1) if img else raw[-200:])
+    d.result("Quire waited the short time an image that isn't OpenBook's gets", "none answers" in m.group(1) and
+             m.group(2).startswith("ferrochrome/"), m.group(0))
+    time.sleep(3)
+    d.screencap("20-nohelper.png")
+    xml = d.ui()
+    d.write("20-nohelper.xml", xml)
+    for label in ("Keep your files", "Start clean", "This deletes the files in the Linux environment.", "Open Terminal",
+                  "Check again"):
+        d.result(f"the page shows \"{label}\"", find(d, text=label, timeout=3) is not None
+                 or find(d, desc=label, timeout=1) is not None, "")
+    node = find(d, starts="Command: ", timeout=10)
+    command = (node.get("content-desc") or "")[len("Command: "):] if node is not None else ""
+    d.write("20-command.txt", command + "\n")
+    pkg = re.search(r"/mnt/shared/Download/(quired_[^ ]+\.deb)", command)
+    shipped = d.sh("sha256sum /system_ext/etc/quire/quired.deb").split()[:1]
+    copied = d.sh(f"sha256sum /sdcard/Download/{pkg.group(1)}").split()[:1] if pkg else []
+    d.result("Quire put its package in Downloads, byte for byte", bool(shipped) and shipped == copied,
+             f"{pkg.group(1) if pkg else 'no package in the command'} {copied[0][:16] if copied else '-'}")
+    d.result("the command checks that package's SHA-256 before dpkg", bool(shipped) and
+             f'echo "{shipped[0]}  /tmp/{pkg.group(1) if pkg else ""}" | sha256sum -c && sudo dpkg -i' in command, command)
+    bad = unlabeled(xml)
+    d.result("every control on the page has a label", not bad, "; ".join(bad[:5]))
+    d.sh("cmd uimode night yes")
+    time.sleep(2)
+    d.screencap("21-nohelper-dark.png")
+    d.sh("cmd uimode night no")
+    time.sleep(1)
+
+    # Keep your files, the person's way: Copy, Open Terminal, paste, Enter.
+    tag = d.mark("keep")
+    d.result("Copy tapped", tap(d, desc="Copy", timeout=5), "")
+    clip = d.sh("cmd clipboard get-primary-clip 2>/dev/null")  # where the platform has it; informational
+    if command and command in clip:
+        d.result("the clipboard holds the command", True, "")
+    d.result("Open Terminal tapped", tap(d, text="Open Terminal", timeout=5), "")
+    d.result("Terminal shows its shell", terminal_ready(d), "")
+    d.screencap("22-terminal.png")
+    d.sh("input keycombination CTRL_LEFT SHIFT_LEFT V")
+    time.sleep(2)
+    d.screencap("23-terminal-pasted.png")
+    d.sh("input keyevent ENTER")
+    t0 = time.time()
+    got, on = carried_on(d, tag, 90)
+    how = "pasted with Ctrl+Shift+V"
+    if got is None:
+        d.screencap("23b-terminal-after-paste.png")
+        d.sh("input keycombination CTRL_LEFT V")
+        time.sleep(2)
+        d.sh("input keyevent ENTER")
+        how = "pasted with Ctrl+V"
+        got, on = carried_on(d, tag, 90)
+    if got is None:
+        # No paste reached the shell: type the same command, so the rest of the path is still checked.
+        d.screencap("23c-terminal-no-paste.png")
+        terminal_ready(d)
+        d.sh("input text " + "\'" + command.replace(" ", "%s") + "\'")
+        d.sh("input keyevent ENTER")
+        how = "typed (no paste reached the shell)"
+        got, on = carried_on(d, tag, 120)
+    if not on:
+        d.screencap("24-terminal-after.png")
+    d.screencap("25-carried-on.png")
+    d.result("the command ran in Terminal and quired answers", got is not None,
+             f"{how}; {time.time() - t0:.0f} s; {got.group(0) if got else 'no catalog in 2 min'}")
+    d.result("the wizard carried on to Agents by itself", on, "")
+    if reset_image is None:
+        return got is not None and on
+
+    # Start clean: from Google's image again, reset with OpenBook's image staged.
+    fresh(d)
+    stage(d, image, "an image without quired, again")
+    if reach_nohelper(d, "nohelper-reset") is None:
+        return False
+    stage(d, reset_image, "OpenBook's image, for the reset")
+    tag = d.mark("reset")
+    t0 = time.time()
+    d.sh(f"pm clear {TERMINAL} >/dev/null 2>&1; pm enable {TERMINAL} >/dev/null 2>&1")
+    seen = d.wait_log(r"setup: the Linux environment is (\w+) now; setting it up", 60, since=tag)
+    d.result("the reset is noticed and the Linux environment set up again", seen is not None,
+             seen.group(0) if seen else "no log line in 60 s")
+    got, on = carried_on(d, tag, 900)
+    d.screencap("26-reset-carried-on.png")
+    state, raw = bridge(d)
+    d.write("26-bridge-status.txt", raw)
+    d.result("after the reset: OpenBook's image, quired answers", got is not None and "image=openbook_" in raw,
+             f"{time.time() - t0:.0f} s; {got.group(0) if got else '-'}; {raw[-160:]}")
+    d.result("after the reset: the wizard carried on to Agents by itself", on, "")
+    return got is not None and on
 
 
 def agents(d, agent):
@@ -287,6 +460,8 @@ def main():
     ap.add_argument("--image")
     ap.add_argument("--agent", default="opencode")
     ap.add_argument("--only")
+    ap.add_argument("--no-helper", dest="nohelper")
+    ap.add_argument("--reset-image")
     a = ap.parse_args()
     d = q2.Dev(a.serial, Path(a.out))
     only = set(a.only.split(",")) if a.only else None
@@ -300,6 +475,10 @@ def main():
               ("animator_duration_scale", "transition_animation_scale", "window_animation_scale")}
     for k in scales:
         d.sh(f"settings put global {k} 0")
+    if a.nohelper:
+        welcome(d)
+        nohelper(d, a.nohelper, a.reset_image)
+        only = {"none"}
     if want("welcome"):
         welcome(d)
     ok = True

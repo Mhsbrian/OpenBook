@@ -1,0 +1,5 @@
+# anybook-qemu plus virtiofsd, for a guest that needs the Terminal app's virtiofs share (tag "android", the person's
+# shared storage at /mnt/shared): scripts/quire/linux-env-qemu.sh --no-helper (ANAL-394). Built on demand; the base
+# image is left as it is.
+FROM anybook-qemu
+RUN pacman -Sy --noconfirm --needed virtiofsd && pacman -Scc --noconfirm

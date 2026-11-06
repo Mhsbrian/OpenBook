@@ -4,6 +4,7 @@
 # vsock and lists the agents installed in the guest, and a prompt crosses vsock and comes back.
 #
 #   scripts/quire/linux-env-qemu.sh IMAGES_TAR_GZ OUTDIR [--prompt AGENT TEXT] [--cid N] [--setup]
+#   scripts/quire/linux-env-qemu.sh IMAGES_TAR_GZ OUTDIR --no-helper DEB [--cid N]
 #
 # The guest runs as AVF runs it: direct kernel boot (vmlinuz, initrd.img, root=/dev/vda1 on a GPT
 # disk whose partition keeps the image's GUID), AOSP's cidata.iso as the second disk, virtio-net,
@@ -23,22 +24,32 @@
 # then opencode is installed by its catalog recipe through quired serve's _quire/install and
 # answers one prompt. It needs the guest online (QEMU's user network).
 #
+# --no-helper DEB checks Quire setup's way out for a Linux environment without quired (ANAL-394,
+# docs/quire-setup.md §4.4) on an image that has none, normally Google's: nothing answers on vsock
+# 7690; DEB (the quired package Quire core carries) is put in the person's Downloads, which the
+# guest sees as the Terminal app shares it (virtiofs, tag "android", at /mnt/shared); the wizard's
+# command, built as SetupModel.helperCommand builds it, refuses a tampered copy and installs the
+# real one; then quired and the admin worker answer from this host (CID 2), and a file the person
+# had in the guest is still there.
+#
 # Writes OUTDIR/: console.log, timings.txt, agents-host.txt (through vsock), guest.txt (quired
 # agents inside the guest, quired's journal, a refused loopback connection), prompt.ndjson, and
-# with --setup setup-*.ndjson, setup-guest.txt and setup-summary.txt.
+# with --setup setup-*.ndjson, setup-guest.txt and setup-summary.txt; with --no-helper
+# nohelper-*.txt, nohelper-*.ndjson and nohelper-summary.txt.
 set -euo pipefail
 repo=$(cd "$(dirname "$0")/../.." && pwd)
-usage="usage: linux-env-qemu.sh IMAGES_TAR_GZ OUTDIR [--prompt AGENT TEXT] [--cid N] [--setup]"
+usage="usage: linux-env-qemu.sh IMAGES_TAR_GZ OUTDIR [--prompt AGENT TEXT] [--cid N] [--setup | --no-helper DEB]"
 tar=${1:?$usage}
 out=${2:?$usage}
 shift 2
 cid=218
-prompt_agent= prompt_text= setup=
+prompt_agent= prompt_text= setup= nohelper_deb=
 while [ $# -gt 0 ]; do
 	case $1 in
 		--prompt) prompt_agent=$2; prompt_text=$3; shift 3 ;;
 		--cid) cid=$2; shift 2 ;;
 		--setup) setup=1; shift ;;
+		--no-helper) nohelper_deb=$(cd "$(dirname "$2")" && pwd)/$(basename "$2"); shift 2 ;;
 		*) echo "unknown option $1" >&2; exit 2 ;;
 	esac
 done
@@ -69,13 +80,115 @@ params=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['params
 docker rm -f "$name" >/dev/null 2>&1 || true
 trap 'docker rm -f "$name" >/dev/null 2>&1 || true' EXIT
 t0=$(date +%s.%N)
-docker run -d --name "$name" --network host --device /dev/kvm --device /dev/vhost-vsock -v "$g:/g" anybook-qemu \
-	qemu-system-x86_64 -enable-kvm -cpu host -smp 4 -m 4096 -nographic -no-reboot \
-	-kernel /g/vmlinuz -initrd /g/initrd.img -append "$params" \
-	-drive file=/g/disk.img,if=virtio,format=raw -drive file=/g/cidata.iso,if=virtio,format=raw,readonly=on \
-	-device vhost-vsock-pci,guest-cid="$cid" -netdev user,id=n0 -device virtio-net-pci,netdev=n0 \
-	-chardev socket,id=s0,host=127.0.0.1,port=$serial_port,server=on,wait=off,logfile=/g/console.log \
-	-serial chardev:s0 -monitor none -display none >/dev/null
+qemu=(qemu-system-x86_64 -enable-kvm -cpu host -smp 4 -m 4096 -nographic -no-reboot
+	-kernel /g/vmlinuz -initrd /g/initrd.img -append "$params"
+	-drive file=/g/disk.img,if=virtio,format=raw -drive file=/g/cidata.iso,if=virtio,format=raw,readonly=on
+	-device vhost-vsock-pci,guest-cid="$cid" -netdev user,id=n0 -device virtio-net-pci,netdev=n0
+	-chardev socket,id=s0,host=127.0.0.1,port=$serial_port,server=on,wait=off,logfile=/g/console.log
+	-serial chardev:s0 -monitor none -display none)
+if [ -z "$nohelper_deb" ]; then
+	docker run -d --name "$name" --network host --device /dev/kvm --device /dev/vhost-vsock -v "$g:/g" anybook-qemu \
+		"${qemu[@]}" >/dev/null
+else
+	# The person's shared storage, as the Terminal app gives it: virtiofs, tag "android", which the guest mounts at
+	# /mnt/shared. virtiofsd runs beside QEMU in anybook-qemu-vfs (tools/Dockerfile.qemu-vfs, built once), as this
+	# host's user, who owns the folder: as root in the container it can't set its capabilities.
+	docker image inspect anybook-qemu-vfs >/dev/null 2>&1 ||
+		docker build -q -t anybook-qemu-vfs -f "$repo/tools/Dockerfile.qemu-vfs" "$repo/tools" >/dev/null
+	mkdir -p "$g/shared/Download"
+	docker run -d --name "$name" --network host --device /dev/kvm --device /dev/vhost-vsock -v "$g:/g" anybook-qemu-vfs \
+		sh -c 'setpriv --reuid=$0 --regid=$0 --clear-groups /usr/lib/virtiofsd --socket-path=/g/vfs.sock --shared-dir=/g/shared --sandbox=none \
+			--announce-submounts > /g/virtiofsd.log 2>&1 & for i in $(seq 1 50); do [ -S /g/vfs.sock ] && break; sleep 0.1; done; exec "$@"' \
+		"$(id -u)" "${qemu[@]}" -object memory-backend-memfd,id=mem,size=4096M,share=on -numa node,memdev=mem \
+		-chardev socket,id=vfs,path=/g/vfs.sock -device vhost-user-fs-pci,chardev=vfs,tag=android >/dev/null
+fi
+
+if [ -n "$nohelper_deb" ]; then
+	sum=$out/nohelper-summary.txt
+	: > "$sum"
+	pass=0 fail=0
+	check() { # NAME CONDITION...: records PASS or FAIL
+		local name=$1; shift
+		if "$@"; then echo "PASS $name" | tee -a "$sum"; pass=$((pass + 1)); else echo "FAIL $name" | tee -a "$sum"; fail=$((fail + 1)); fi
+	}
+	gsh() { python3 "$repo/scripts/quire/serial-shell.py" 127.0.0.1 "$serial_port" droid droid "$@"; }
+	# The guest is up once the serial console takes droid's login (cloud-init made the user).
+	up=
+	for _ in $(seq 1 60); do
+		if gsh 'cat /etc/debian_version' > "$out/nohelper-login.txt" 2>&1; then up=$(date +%s.%N); break; fi
+		sleep 3
+	done
+	cp "$g/console.log" "$out/console.log" 2>/dev/null || true
+	check "the guest boots and droid logs in on the serial console" test -n "$up"
+	[ -n "$up" ] || { echo "no-helper checks: $pass passed, $fail failed" | tee -a "$sum"; exit 1; }
+	awk -v a="$t0" -v b="$up" 'BEGIN { printf "qemu start -> serial login: %.1f s\n", b - a }' | tee "$out/timings.txt"
+
+	# (a) What Quire meets: an image that isn't OpenBook's, and nothing on vsock 7690.
+	tar -xzOf "$tar" build_id > "$out/nohelper-build_id.txt"
+	echo "build_id: $(cat "$out/nohelper-build_id.txt")" | tee -a "$sum"
+	check "the image isn't OpenBook's (build_id)" bash -c '! grep -q "^openbook_" "$1"' _ "$out/nohelper-build_id.txt"
+	sleep 20  # systemd has started whatever it starts by now
+	"$quired" agents --connect "vsock:$cid:7690" > "$out/nohelper-7690-before.txt" 2>&1 && rc=0 || rc=$?
+	check "nothing answers on vsock 7690 (exit $rc)" test "$rc" -ne 0
+	key=keep-$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')
+	gsh 'cat /etc/os-release | head -3' 'systemctl --version | head -1' 'command -v quired; echo quired-present=$?' \
+		'systemctl is-enabled quired.service 2>&1; true' "printf '%s\\n' $key > ~/keep-me.txt && sha256sum ~/keep-me.txt" \
+		'command -v curl wget python3' > "$out/nohelper-guest-before.txt" 2>&1 || true
+	check "no quired in the guest" grep -q 'quired-present=1' "$out/nohelper-guest-before.txt"
+
+	# (b) Downloads as the guest sees it, filled from this host: a tampered copy first, then the real one.
+	# A field of DEB's control file: dpkg-deb where there is one, else bsdtar (the host may not be Debian's).
+	deb_field() {
+		if command -v dpkg-deb >/dev/null; then dpkg-deb -f "$nohelper_deb" "$1"; else
+			bsdtar -xOf "$nohelper_deb" 'control.tar.*' | bsdtar -xOf - ./control | sed -n "s/^$1: //p"; fi
+	}
+	version=$(deb_field Version)
+	debname=$(deb_field Package)_${version}_$(deb_field Architecture).deb
+	sha=$(sha256sum "$nohelper_deb" | cut -d' ' -f1)
+	# SetupModel.helperCommand, character for character.
+	cmd="cp /mnt/shared/Download/$debname /tmp/ && echo \"$sha  /tmp/$debname\" | sha256sum -c && sudo dpkg -i /tmp/$debname"
+	printf '%s\n' "$cmd" > "$out/nohelper-command.txt"
+	srv=$work/nohelper-srv
+	rm -rf "$srv"
+	mkdir -p "$srv/good" "$srv/bad"
+	cp "$nohelper_deb" "$srv/good/$debname"
+	{ cat "$nohelper_deb"; printf 'x'; } > "$srv/bad/$debname"
+	# What Quire core does on Android: the package in Downloads, which the guest sees through the share.
+	fetch() { cp "$srv/$1/$debname" "$g/shared/Download/$debname" && echo "ls -l /mnt/shared/Download/ && echo fetched-$1"; }
+	gsh "$(fetch bad)" "$cmd; echo command=\$?" 'command -v quired; echo quired-present=$?' \
+		> "$out/nohelper-tampered.txt" 2>&1 || true
+	check "the tampered copy reached Downloads" grep -q 'fetched-bad' "$out/nohelper-tampered.txt"
+	check "the command refuses the tampered copy (sha256sum FAILED)" grep -q 'FAILED' "$out/nohelper-tampered.txt"
+	check "the command stops before dpkg on the tampered copy" grep -Eq 'command=[1-9]' "$out/nohelper-tampered.txt"
+	check "nothing was installed from the tampered copy" grep -q 'quired-present=1' "$out/nohelper-tampered.txt"
+	t1=$(date +%s.%N)
+	gsh "$(fetch good)" "$cmd; echo command=\$?" > "$out/nohelper-install.txt" 2>&1 || true
+	check "the real copy reached Downloads" grep -q 'fetched-good' "$out/nohelper-install.txt"
+	check "sha256sum accepts the real copy" grep -q ": OK" "$out/nohelper-install.txt"
+	check "the command installs quired (exit 0)" grep -q 'command=0' "$out/nohelper-install.txt"
+
+	# (c) Quire's side, from this host as Android: quired answers with the setup catalog, and the
+	# admin worker's socket unit works on this image's systemd.
+	ans=
+	for _ in $(seq 1 30); do
+		if "$quired" setup --connect "vsock:$cid:7690" _quire/catalog > "$out/nohelper-catalog.ndjson" 2>&1; then ans=$(date +%s.%N); break; fi
+		sleep 1
+	done
+	[ -z "$ans" ] || awk -v a="$t1" -v b="$ans" 'BEGIN { printf "command -> quired answering the catalog: %.1f s\n", b - a }' | tee -a "$out/timings.txt"
+	check "quired answers the setup catalog on vsock 7690, as $version" grep -q "\"quired\":\"$version\"" "$out/nohelper-catalog.ndjson"
+	"$quired" admin call --connect "vsock:$cid:7691" version > "$out/nohelper-admin.ndjson" 2>&1 || true
+	check "the admin worker answers on vsock 7691" grep -q '"version":"' "$out/nohelper-admin.ndjson"
+	gsh 'systemctl is-active quired.service quire-admin.socket' 'dpkg-query -W quired' 'sha256sum ~/keep-me.txt' \
+		'journalctl -u quired.service -b --no-pager -o short-monotonic | tail -15' \
+		> "$out/nohelper-guest-after.txt" 2>&1 || true
+	check "quired.service and quire-admin.socket are active" bash -c '[ "$(grep -cx active "$1")" -ge 2 ]' _ "$out/nohelper-guest-after.txt"
+	keysha=$(printf '%s\n' "$key" | sha256sum | cut -d' ' -f1)
+	check "the person's file is still there, unchanged" grep -q "$keysha  /home/droid/keep-me.txt" "$out/nohelper-guest-after.txt"
+	cp "$g/console.log" "$out/console.log"
+	echo "no-helper checks: $pass passed, $fail failed" | tee -a "$sum"
+	[ "$fail" -eq 0 ]
+	exit
+fi
 
 # quired answers once the guest has booted, cloud-init has made the user and systemd started it.
 ready=
