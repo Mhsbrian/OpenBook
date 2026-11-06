@@ -81,7 +81,7 @@
  }
  
  # Install required packages and optimize the process
-@@ -127,9 +148,24 @@
+@@ -127,9 +148,31 @@
  
  ### --- Main Execution --- ###
  
@@ -91,6 +91,13 @@
 +export_kernel() {
 +  local v
 +  v=$(ls -1 /boot/vmlinuz-* | sed 's|/boot/vmlinuz-||' | sort -V | tail -1)
++  # The packages installed above may bring a newer kernel, whose initrd is then made while the
++  # builder diverts udevadm to a stub: the guest can't load virtio_blk and finds no root. Make it
++  # again now that the diversion is gone, and refuse an initrd without udev where it can be listed.
++  update-initramfs -c -k "$v" 2>/dev/null || update-initramfs -u -k "$v"
++  if list=$(lsinitramfs "/boot/initrd.img-$v" 2>/dev/null); then
++    grep -q 'bin/udevadm$' <<<"$list" || { echo "initrd.img-$v has no udev" >&2; exit 1; }
++  fi
 +  mkdir -p /mnt/build/openbook-kernel
 +  cp "/boot/vmlinuz-$v" /mnt/build/openbook-kernel/vmlinuz
 +  cp "/boot/initrd.img-$v" /mnt/build/openbook-kernel/initrd.img

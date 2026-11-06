@@ -42,6 +42,7 @@ import (
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/acp"
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/agents"
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/harness"
+	"github.com/Mhsbrian/OpenBook/quire/quired/internal/setup"
 )
 
 // Extension methods and the _meta key quired serve uses.
@@ -64,6 +65,9 @@ type Server struct {
 	Discover func(context.Context) []agents.Found
 	Start    func(context.Context, agents.Spec, harness.Client, harness.Options) (harness.Agent, error)
 	Log      *log.Logger
+	// Setup answers the setup wizard's methods (_quire/catalog, _quire/install...) and keeps
+	// the agents' keys; nil offers none of them.
+	Setup *setup.Service
 }
 
 // Agent is one row of _quire/agents.
@@ -278,6 +282,12 @@ func (c *conn) handle(ctx context.Context, method string, params json.RawMessage
 	if !ok {
 		return nil, acp.Errorf(acp.CodeInvalidRequest, "initialize first")
 	}
+	if c.s.Setup != nil {
+		notify := func(m string, p any) { _ = c.out().Notify(c.ctx, m, p) }
+		if res, err, ok := c.s.Setup.Handle(ctx, method, params, notify); ok {
+			return res, err
+		}
+	}
 	switch method {
 	case MethodAgents:
 		return c.listAgents(ctx), nil
@@ -327,7 +337,7 @@ func (c *conn) handle(ctx context.Context, method string, params json.RawMessage
 func (c *conn) initializeResult() acp.InitializeResponse {
 	meta, _ := json.Marshal(map[string]any{MetaKey: map[string]any{
 		"router":  true,
-		"methods": []string{MethodAgents, MethodDescribe},
+		"methods": c.methods(),
 		// session/new's _meta.quire.tools and .skill are understood; tools are relayed with these.
 		"tools":       true,
 		"skill":       true,
@@ -340,6 +350,14 @@ func (c *conn) initializeResult() acp.InitializeResponse {
 		AuthMethods:       []acp.AuthMethod{},
 		AgentInfo:         &acp.Implementation{Name: "quired", Title: "Quire harness host (OpenBook)", Version: c.s.Version},
 	}
+}
+
+func (c *conn) methods() []string {
+	m := []string{MethodAgents, MethodDescribe}
+	if c.s.Setup != nil {
+		m = append(m, setup.Methods...)
+	}
+	return m
 }
 
 func (c *conn) listAgents(ctx context.Context) agentsResult {
@@ -426,7 +444,12 @@ func (c *conn) start(id string, client harness.Client) (harness.Agent, error) {
 		return nil, acp.Errorf(acp.CodeInvalidParams, "quired has no adapter for %s yet: %s", id, f.Note)
 	}
 	t0 := time.Now()
-	a, err := c.s.Start(c.ctx, f.Spec, client, harness.Options{Path: f.Path, Version: f.Version, ClientInfo: c.s.ClientInfo, FS: c.s.FS})
+	opts := harness.Options{Path: f.Path, Version: f.Version, ClientInfo: c.s.ClientInfo, FS: c.s.FS}
+	if c.s.Setup != nil {
+		// The keys stored for this agent, and only this agent's.
+		opts.Env = c.s.Setup.KeyEnv(id)
+	}
+	a, err := c.s.Start(c.ctx, f.Spec, client, opts)
 	if err != nil {
 		c.s.logf("%s: start %s: %s", c.peer, id, firstLine(err.Error()))
 		return nil, err

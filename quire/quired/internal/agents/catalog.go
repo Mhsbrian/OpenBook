@@ -1,11 +1,14 @@
-// Package agents knows which coding agents quired can drive, how to start each one, and how to
-// find the ones installed on this machine.
+// Package agents knows which coding agents quired can drive, how to start each one, how to
+// find the ones installed on this machine, and how to install, update, remove and sign in each
+// one (setup.go).
 package agents
 
 import (
 	"bytes"
 	"context"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -23,8 +26,6 @@ const (
 	ClaudeStream Protocol = "claude-stream"
 	// Planned protocols: recognised, but quired has no adapter yet.
 	CodexAppServer Protocol = "codex-app-server"
-	GrokHeadless   Protocol = "grok-headless"
-	AgyStream      Protocol = "agy-stream"
 	None           Protocol = "none"
 )
 
@@ -41,27 +42,194 @@ type Spec struct {
 	// Checked records the CLI version this entry was last run against, or "" if it never was.
 	Checked string `json:"checked,omitempty"`
 	Note    string `json:"note,omitempty"`
+	// Maker and Needs are what the setup wizard's card says: who makes it, and what it takes.
+	Maker string `json:"maker,omitempty"`
+	Needs string `json:"needs,omitempty"`
+	// Setup is how quired installs, updates, removes and signs in this agent; nil if it can't.
+	Setup *Setup `json:"-"`
 }
+
+// Recipe sources were read on 2026-11-06 (docs/quire-setup.md §5). Where a fact rests on an
+// agent's own --help, the version is the one installed on the OpenBook dev host then.
+const recipesChecked = "2026-11-06"
+
+// Script installers fetch the maker's script with curl, as the maker documents; Debian's curl and
+// CA certificates come from the admin worker first (setup.go, DebianAllowlist).
+var scriptDeps = []string{"ca-certificates", "curl"}
 
 // Catalog lists the agents quired knows, in display order.
 var Catalog = []Spec{
-	{ID: "claude", Name: "Claude Code", Binaries: []string{"claude"}, Protocol: ClaudeStream,
-		Checked: "2.1.301", Note: "adapted: print mode, stream-json; resumes with --resume"},
-	{ID: "opencode", Name: "opencode", Binaries: []string{"opencode"}, Protocol: ACP, Args: []string{"acp"}, Checked: "2.0.31"},
-	{ID: "copilot", Name: "GitHub Copilot CLI", Binaries: []string{"copilot"}, Protocol: ACP, Args: []string{"--acp"}, Checked: "1.0.98"},
-	{ID: "cursor", Name: "Cursor Agent", Binaries: []string{"cursor-agent"}, Protocol: ACP, Args: []string{"acp"}, Checked: "2026.10.14"},
-	{ID: "kimi", Name: "Kimi Code", Binaries: []string{"kimi"}, Protocol: ACP, Args: []string{"acp"}, Checked: "2.2.0"},
-	{ID: "hermes", Name: "Hermes Agent", Binaries: []string{"hermes"}, Protocol: ACP, Args: []string{"acp"}, Checked: "0.20.5"},
-	{ID: "omp", Name: "Oh My Pi", Binaries: []string{"omp"}, Protocol: ACP, Args: []string{"acp"}, Checked: "18.11.2"},
-	{ID: "gemini", Name: "Gemini CLI", Binaries: []string{"gemini"}, Protocol: ACP, Args: []string{"--experimental-acp"},
-		Note: "not installed on the test host; the ACP flag is unverified"},
-	{ID: "grok", Name: "Grok CLI", Binaries: []string{"grok"}, Protocol: GrokHeadless, Checked: "1.0.62",
-		Note: "no ACP server; headless --output-format streaming-json emits ACP session updates (adapter planned)"},
-	{ID: "codex", Name: "Codex CLI", Binaries: []string{"codex"}, Protocol: CodexAppServer, Checked: "0.163.0",
+	{ID: "claude", Name: "Claude Code", Maker: "Anthropic", Needs: "A Claude plan or an API key",
+		Binaries: []string{"claude"}, Protocol: ClaudeStream, Checked: "2.1.318",
+		Note: "adapted: print mode, stream-json; resumes with --resume",
+		Setup: &Setup{
+			Source: "https://code.claude.com/docs/en/setup",
+			Debian: scriptDeps,
+			Install: []Step{{Title: "Install Claude Code with Anthropic's installer",
+				Run: Command{Shell: "curl -fsSL https://claude.ai/install.sh | bash"}, Source: "https://code.claude.com/docs/en/setup"}},
+			Update: []Step{{Title: "Update Claude Code", Run: Command{Argv: []string{BinToken, "update"}}}},
+			Remove: Removal{Paths: []string{".local/bin/claude", ".local/share/claude"}, Settings: []string{".claude", ".claude.json"}},
+			SignIn: []SignIn{
+				{ID: "claude-ai", Kind: KindPaste, Label: "Claude account", Run: Command{Argv: []string{BinToken, "auth", "login", "--claudeai"}}},
+				{ID: "console", Kind: KindPaste, Label: "Anthropic Console", Run: Command{Argv: []string{BinToken, "auth", "login", "--console"}}},
+				{ID: "key", Kind: KindKey, Label: "Anthropic API key"},
+			},
+			Keys:   []Key{{Name: "ANTHROPIC_API_KEY", Label: "Anthropic API key"}},
+			Status: &Status{Run: Command{Argv: []string{BinToken, "auth", "status", "--json"}}, Yes: `"loggedIn"\s*:\s*true`, No: `"loggedIn"\s*:\s*false|[Nn]ot logged in`},
+			Logout: &Command{Argv: []string{BinToken, "auth", "logout"}},
+		}},
+	{ID: "opencode", Name: "opencode", Maker: "Open source", Needs: "Free models, no account",
+		Binaries: []string{"opencode"}, Protocol: ACP, Args: []string{"acp"}, Checked: "2.2.5",
+		Setup: &Setup{
+			Source: "https://opencode.ai/v2/docs",
+			Debian: scriptDeps,
+			// opencode.ai/install installs v1; v2 has its own script.
+			Install: []Step{{Title: "Install opencode with its installer",
+				Run: Command{Shell: "curl -fsSL https://opencode.ai/v2/install | bash -s -- --no-modify-path"}, Source: "https://opencode.ai/v2/install"}},
+			Update: []Step{{Title: "Update opencode", Run: Command{Argv: []string{BinToken, "upgrade"}}}},
+			Remove: Removal{Run: &Command{Argv: []string{BinToken, "uninstall"}}, Paths: []string{".opencode/bin/opencode"},
+				Settings: []string{".config/opencode", ".local/share/opencode"}},
+			SignIn: []SignIn{{ID: "none", Kind: KindNone, Label: "Free models, no account"}},
+		}},
+	{ID: "copilot", Name: "GitHub Copilot CLI", Maker: "GitHub", Needs: "A GitHub account with Copilot",
+		Binaries: []string{"copilot"}, Protocol: ACP, Args: []string{"--acp"}, Checked: "1.0.106",
+		Setup: &Setup{
+			Source: "https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli",
+			Debian: scriptDeps,
+			Install: []Step{{Title: "Install Copilot CLI with GitHub's installer",
+				Run: Command{Shell: "curl -fsSL https://gh.io/copilot-install | bash"}, Source: "https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli"}},
+			Update: []Step{{Title: "Update Copilot CLI", Run: Command{Argv: []string{BinToken, "update"}}}},
+			Remove: Removal{Paths: []string{".local/bin/copilot"}, Settings: []string{".copilot"}},
+			SignIn: []SignIn{
+				// Its default on a desktop waits on a local port; the device code works from Android's browser.
+				{ID: "device", Kind: KindDevice, Label: "GitHub account", Run: Command{Argv: []string{BinToken, "login", "--device-code"}}},
+				{ID: "key", Kind: KindKey, Label: "Fine-grained token"},
+			},
+			Keys: []Key{{Name: "COPILOT_GITHUB_TOKEN", Label: "GitHub fine-grained token with Copilot Requests"}},
+		}},
+	{ID: "antigravity", Name: "Antigravity CLI", Maker: "Google", Needs: "A Google account",
+		Binaries: []string{"agy", "antigravity"}, Protocol: ACP, Args: []string{"acp"}, Checked: "1.5.2",
+		Note: "ACP server (agy acp); signs in through ACP's authenticate",
+		Setup: &Setup{
+			Source: "https://antigravity.google/docs/getting-started",
+			Debian: scriptDeps,
+			Install: []Step{{Title: "Install Antigravity CLI with Google's installer",
+				Run: Command{Shell: "curl -fsSL https://antigravity.google/cli/install.sh | bash"}, Source: "https://antigravity.google/docs/getting-started"}},
+			Update: []Step{{Title: "Update Antigravity CLI", Run: Command{Argv: []string{BinToken, "update"}}}},
+			Remove: Removal{Paths: []string{".local/bin/agy"}, Settings: []string{".gemini/antigravity-cli"}},
+			// No login command or flag that forces a code flow; its ACP server offers authMethods.
+			SignIn: []SignIn{{ID: "acp", Kind: KindACP, Label: "Google account"}},
+		}},
+	{ID: "gemini", Name: "Gemini CLI", Maker: "Google", Needs: "A Gemini API key",
+		Binaries: []string{"gemini"}, Protocol: ACP, Args: []string{"--acp"},
+		Note: "the ACP flag is from Gemini CLI's docs (geminicli.com/docs/cli/acp-mode); not yet run",
+		Setup: &Setup{
+			Source: "https://www.geminicli.com/docs/get-started/installation",
+			Debian: []string{"nodejs", "npm"},
+			Install: []Step{{Title: "Install Gemini CLI from npm",
+				Run: Command{Argv: []string{"npm", "install", "-g", "--prefix", HomeToken + "/.local", "@google/gemini-cli"}}, Source: "https://www.geminicli.com/docs/get-started/installation"}},
+			Update: []Step{{Title: "Update Gemini CLI", Run: Command{Argv: []string{"npm", "install", "-g", "--prefix", HomeToken + "/.local", "@google/gemini-cli@latest"}}}},
+			Remove: Removal{Run: &Command{Argv: []string{"npm", "uninstall", "-g", "--prefix", HomeToken + "/.local", "@google/gemini-cli"}}, Settings: []string{".gemini"}},
+			// Free-tier Google sign-in moved to Antigravity CLI on 2026-06-18 (geminicli.com auth docs).
+			SignIn: []SignIn{{ID: "key", Kind: KindKey, Label: "Gemini API key"}},
+			Keys:   []Key{{Name: "GEMINI_API_KEY", Label: "Gemini API key"}},
+		}},
+	{ID: "cursor", Name: "Cursor Agent", Maker: "Cursor", Needs: "A Cursor account",
+		Binaries: []string{"cursor-agent"}, Protocol: ACP, Args: []string{"acp"}, Checked: "2026.11.05",
+		Setup: &Setup{
+			Source: "https://cursor.com/docs/cli/installation",
+			Debian: scriptDeps,
+			Install: []Step{{Title: "Install Cursor Agent with Cursor's installer",
+				Run: Command{Shell: "curl https://cursor.com/install -fsS | bash"}, Source: "https://cursor.com/docs/cli/installation"}},
+			Update: []Step{{Title: "Update Cursor Agent", Run: Command{Argv: []string{BinToken, "update"}}}},
+			Remove: Removal{Paths: []string{".local/bin/agent", ".local/bin/cursor-agent", ".local/share/cursor-agent"}, Settings: []string{".cursor"}},
+			SignIn: []SignIn{
+				// Prints a link and polls; nothing to copy.
+				{ID: "link", Kind: KindLink, Label: "Cursor account", Run: Command{Argv: []string{BinToken, "login"}, Env: []string{"NO_OPEN_BROWSER=1"}}},
+				{ID: "key", Kind: KindKey, Label: "Cursor API key"},
+			},
+			Keys:   []Key{{Name: "CURSOR_API_KEY", Label: "Cursor API key"}},
+			Status: &Status{Run: Command{Argv: []string{BinToken, "status", "--format", "json"}}, Yes: `"(isAuthenticated|authenticated|loggedIn)"\s*:\s*true|"email"\s*:\s*"[^"]+"`, No: `"(isAuthenticated|authenticated|loggedIn)"\s*:\s*false|[Nn]ot (logged|signed) in`},
+			Logout: &Command{Argv: []string{BinToken, "logout"}},
+		}},
+	{ID: "kimi", Name: "Kimi Code", Maker: "Moonshot AI", Needs: "A Kimi account or an API key",
+		Binaries: []string{"kimi"}, Protocol: ACP, Args: []string{"acp"}, Checked: "2.4.1",
+		Setup: &Setup{
+			Source: "https://moonshotai.github.io/kimi-code/en/guides/getting-started",
+			Debian: scriptDeps,
+			Install: []Step{{Title: "Install Kimi Code with its installer",
+				Run: Command{Shell: "curl -fsSL https://code.kimi.com/kimi-code/install.sh | KIMI_NO_MODIFY_PATH=1 bash"}, Source: "https://moonshotai.github.io/kimi-code/en/guides/getting-started"}},
+			Update: []Step{{Title: "Update Kimi Code", Run: Command{Argv: []string{BinToken, "upgrade"}}}},
+			Remove: Removal{Paths: []string{".kimi-code"}, Settings: []string{".kimi"}},
+			SignIn: []SignIn{
+				{ID: "device", Kind: KindDevice, Label: "Kimi account", Run: Command{Argv: []string{BinToken, "login"}}},
+				{ID: "key", Kind: KindKey, Label: "Kimi Platform API key"},
+			},
+			Keys: []Key{{Name: "KIMI_MODEL_API_KEY", Label: "Kimi Platform API key"}},
+		}},
+	{ID: "grok", Name: "Grok CLI", Maker: "xAI", Needs: "An xAI account or an API key",
+		Binaries: []string{"grok"}, Protocol: ACP, Args: []string{"agent", "stdio"}, Checked: "1.0.77",
+		Setup: &Setup{
+			Source: "https://docs.x.ai/build/overview",
+			Debian: scriptDeps,
+			// The installer also links `agent`, which clashes with Cursor's; quired runs both by full name.
+			Install: []Step{{Title: "Install Grok CLI with xAI's installer",
+				Run: Command{Shell: "curl -fsSL https://x.ai/cli/install.sh | bash"}, Source: "https://docs.x.ai/build/overview"}},
+			Update: []Step{{Title: "Update Grok CLI", Run: Command{Argv: []string{BinToken, "update"}}}},
+			Remove: Removal{Paths: []string{".grok/bin"}, Settings: []string{".grok"}},
+			SignIn: []SignIn{
+				{ID: "device", Kind: KindDevice, Label: "xAI account", Run: Command{Argv: []string{BinToken, "login", "--device-auth"}}},
+				{ID: "key", Kind: KindKey, Label: "xAI API key"},
+			},
+			Keys:   []Key{{Name: "XAI_API_KEY", Label: "xAI API key"}},
+			Logout: &Command{Argv: []string{BinToken, "logout"}},
+		}},
+	{ID: "hermes", Name: "Hermes Agent", Maker: "Nous Research", Needs: "A model provider you choose",
+		Binaries: []string{"hermes"}, Protocol: ACP, Args: []string{"acp"}, Checked: "0.20.5",
+		Setup: &Setup{
+			Source: "https://hermes-agent.nousresearch.com/docs/getting-started/installation",
+			// It calls `sudo -n` for libatomic1 itself, which can't work under NoNewPrivileges.
+			Debian: []string{"ca-certificates", "curl", "git", "tar", "xz-utils", "libatomic1"},
+			Install: []Step{{Title: "Install Hermes Agent with its installer",
+				Run: Command{Shell: "curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash"}, Source: "https://hermes-agent.nousresearch.com/docs/getting-started/installation"}},
+			Update: []Step{{Title: "Update Hermes Agent", Run: Command{Argv: []string{BinToken, "update"}}}},
+			Remove: Removal{Run: &Command{Argv: []string{BinToken, "uninstall"}}, Paths: []string{".local/bin/hermes"}, Settings: []string{".hermes"}},
+			SignIn: []SignIn{
+				{ID: "portal", Kind: KindDevice, Label: "Nous Portal", Run: Command{Argv: []string{BinToken, "portal", "login"}}},
+				{ID: "key", Kind: KindKey, Label: "A provider's API key"},
+			},
+			Keys: []Key{
+				{Name: "OPENROUTER_API_KEY", Label: "OpenRouter API key"},
+				{Name: "ANTHROPIC_API_KEY", Label: "Anthropic API key"},
+				{Name: "OPENAI_API_KEY", Label: "OpenAI API key"},
+			},
+			Logout: &Command{Argv: []string{BinToken, "logout"}},
+		}},
+	{ID: "omp", Name: "Oh My Pi", Maker: "Open source", Needs: "A model provider you choose",
+		Binaries: []string{"omp"}, Protocol: ACP, Args: []string{"acp"}, Checked: "18.11.2",
+		Setup: &Setup{
+			Source: "https://github.com/can1357/oh-my-pi",
+			Debian: scriptDeps,
+			Install: []Step{{Title: "Install Oh My Pi with its installer",
+				Run: Command{Shell: "curl -fsSL https://omp.sh/install | sh"}, Source: "https://github.com/can1357/oh-my-pi"}},
+			Update: []Step{{Title: "Update Oh My Pi", Run: Command{Argv: []string{BinToken, "update"}}}},
+			Remove: Removal{Paths: []string{".local/bin/omp"}, Settings: []string{".omp"}},
+			SignIn: []SignIn{
+				{ID: "anthropic", Kind: KindPaste, Label: "Claude account", Run: Command{Argv: []string{BinToken, "login", "anthropic"}}},
+				{ID: "key", Kind: KindKey, Label: "A provider's API key"},
+			},
+			Keys: []Key{
+				{Name: "ANTHROPIC_API_KEY", Label: "Anthropic API key"},
+				{Name: "OPENROUTER_API_KEY", Label: "OpenRouter API key"},
+				{Name: "OPENAI_API_KEY", Label: "OpenAI API key"},
+				{Name: "GEMINI_API_KEY", Label: "Gemini API key"},
+				{Name: "XAI_API_KEY", Label: "xAI API key"},
+			},
+		}},
+	{ID: "codex", Name: "Codex CLI", Maker: "OpenAI", Needs: "A ChatGPT plan or an API key",
+		Binaries: []string{"codex"}, Protocol: CodexAppServer, Checked: "0.167.0",
 		Note: "speaks its own JSON-RPC (codex app-server); adapter planned"},
-	{ID: "antigravity", Name: "Antigravity CLI", Binaries: []string{"agy", "antigravity"}, Protocol: AgyStream, Checked: "1.4.0",
-		Note: "print mode with stream-json; adapter planned"},
-	{ID: "pi", Name: "Pi", Binaries: []string{"pi"}, Protocol: None, Checked: "1.3.0",
+	{ID: "pi", Name: "Pi", Binaries: []string{"pi"}, Protocol: None, Checked: "1.5.0",
 		Note: "no ACP or machine-readable stream found in --help"},
 }
 
@@ -91,7 +259,49 @@ type Env struct {
 }
 
 // HostEnv is the real machine.
-var HostEnv = Env{LookPath: exec.LookPath, Version: runVersion}
+var HostEnv = Env{LookPath: LookPath, Version: runVersion}
+
+// MakerDirs are the folders, under $HOME, that the makers' installers put agents in. They are
+// searched after PATH, so an agent installed a moment ago is found without a restart.
+var MakerDirs = []string{".local/bin", ".opencode/bin", ".kimi-code/bin", ".grok/bin"}
+
+// LookPath is exec.LookPath, then the makers' folders under $HOME.
+func LookPath(file string) (string, error) {
+	p, err := exec.LookPath(file)
+	if err == nil {
+		return p, nil
+	}
+	home, herr := os.UserHomeDir()
+	if herr != nil {
+		return "", err
+	}
+	for _, d := range MakerDirs {
+		c := filepath.Join(home, d, file)
+		if fi, serr := os.Stat(c); serr == nil && fi.Mode().IsRegular() && fi.Mode().Perm()&0o111 != 0 {
+			return c, nil
+		}
+	}
+	return "", err
+}
+
+// PathWithMakerDirs returns path with the makers' folders under home appended, for commands
+// quired starts.
+func PathWithMakerDirs(path, home string) string {
+	parts := []string{}
+	if path != "" {
+		parts = strings.Split(path, string(os.PathListSeparator))
+	}
+	have := map[string]bool{}
+	for _, p := range parts {
+		have[p] = true
+	}
+	for _, d := range MakerDirs {
+		if p := filepath.Join(home, d); !have[p] {
+			parts = append(parts, p)
+		}
+	}
+	return strings.Join(parts, string(os.PathListSeparator))
+}
 
 func runVersion(ctx context.Context, path string) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)

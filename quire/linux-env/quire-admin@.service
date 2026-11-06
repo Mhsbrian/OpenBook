@@ -1,0 +1,26 @@
+# One connection to the admin worker (quire-admin.socket). It runs as root and does three fixed
+# things for Quire core: Debian prerequisites from a fixed list, quired updates (dpkg runs in a
+# transient unit of its own, so quired's restart can't stop it), and reading an update's result.
+# quired.service itself keeps NoNewPrivileges, so no agent can reach root.
+[Unit]
+Description=Quire admin worker (connection %i)
+Documentation=https://github.com/Mhsbrian/OpenBook/blob/main/docs/quire-setup.md
+CollectMode=inactive-or-failed
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/quired admin
+StandardInput=null
+StandardOutput=journal
+StandardError=journal
+RuntimeMaxSec=30min
+NoNewPrivileges=yes
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+RestrictRealtime=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_VSOCK AF_NETLINK

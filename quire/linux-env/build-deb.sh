@@ -12,15 +12,18 @@ out=${1:?usage: build-deb.sh OUTDIR [amd64|arm64]}
 arch=${2:-amd64}
 mkdir -p "$out"
 out=$(cd "$out" && pwd)
-version=$(sed -n 's/^const version = "\(.*\)"/\1/p' "$src/main.go")
+# QUIRED_VERSION overrides the version (a test package newer than the image's, for update checks).
+version=${QUIRED_VERSION:-$(sed -n 's/^var version = "\(.*\)"/\1/p' "$src/main.go")}
 [ -n "$version" ] || { echo "no version in main.go" >&2; exit 1; }
 
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
 root=$stage/quired_${version}_${arch}
 install -d "$root/DEBIAN" "$root/usr/bin" "$root/usr/lib/systemd/system" "$root/usr/share/doc/quired"
-(cd "$src" && CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -trimpath -ldflags='-s -w' -o "$root/usr/bin/quired" .)
+(cd "$src" && CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -trimpath -ldflags="-s -w -X main.version=$version" -o "$root/usr/bin/quired" .)
 install -m 0644 "$here/quired.service" "$root/usr/lib/systemd/system/quired.service"
+install -m 0644 "$here/quire-admin.socket" "$root/usr/lib/systemd/system/quire-admin.socket"
+install -m 0644 "$here/quire-admin@.service" "$root/usr/lib/systemd/system/quire-admin@.service"
 sed -e "s/@VERSION@/$version/" -e "s/@ARCH@/$arch/" "$here/deb/control.in" > "$root/DEBIAN/control"
 install -m 0755 "$here/deb/postinst" "$here/deb/prerm" "$here/deb/postrm" "$root/DEBIAN/"
 printf 'quired is part of OpenBook: https://github.com/Mhsbrian/OpenBook\nLicence: see the repository.\n' > "$root/usr/share/doc/quired/README"

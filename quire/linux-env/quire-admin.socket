@@ -1,0 +1,15 @@
+# The admin worker of OpenBook's Linux environment (docs/quire-setup.md §4.3): vsock port 7691,
+# one worker per connection. The worker serves only the host (Android, CID 2), where only Quire
+# core can reach this port through the Terminal app's bridge; anything else is refused.
+[Unit]
+Description=Quire admin worker socket (vsock 7691)
+Documentation=https://github.com/Mhsbrian/OpenBook/blob/main/docs/quire-setup.md
+ConditionVirtualization=vm
+
+[Socket]
+ListenStream=vsock::7691
+Accept=yes
+MaxConnections=4
+
+[Install]
+WantedBy=sockets.target

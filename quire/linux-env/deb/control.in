@@ -8,4 +8,6 @@ Homepage: https://github.com/Mhsbrian/OpenBook
 Description: Quire harness host for OpenBook
  Finds the AI coding agents installed in this Linux environment and serves
  them to Quire, OpenBook's agent layer, over the Agent Client Protocol on
- vsock port 7690. Only the Android host may connect.
+ vsock port 7690, and installs and signs in agents for Quire's setup. Its
+ admin worker (vsock port 7691) installs Debian prerequisites from a fixed
+ list and quired updates. Only the Android host may connect to either.

@@ -18,6 +18,7 @@ import (
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/agents"
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/harness"
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/serve"
+	"github.com/Mhsbrian/OpenBook/quire/quired/internal/setup"
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/vsock"
 )
 
@@ -46,10 +47,12 @@ func cmdServe(ctx context.Context, args []string) error {
 	// Logs go to stderr (the journal, under systemd): connections, agents, sessions and stop
 	// reasons. Never prompts, answers or the environment.
 	lg := log.New(os.Stderr, "", log.LstdFlags|log.Lmicroseconds)
+	discover := func(ctx context.Context) []agents.Found { return agents.Discover(ctx, agents.HostEnv) }
 	srv := &serve.Server{
 		Version: version, ClientInfo: clientInfo, Root: *root, FS: *fsOn, Log: lg,
-		Discover: func(ctx context.Context) []agents.Found { return agents.Discover(ctx, agents.HostEnv) },
+		Discover: discover,
 		Start:    harness.Start,
+		Setup:    &setup.Service{Home: setup.HomeDir(), Version: version, Discover: discover, Log: lg},
 	}
 	if *stdio {
 		return srv.Serve(ctx, "stdio", os.Stdin, os.Stdout)
