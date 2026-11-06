@@ -148,6 +148,8 @@
     <string name="setup_paste_code">Paste the code it shows you</string>
     <string name="setup_paste_hint">Code from the sign-in page</string>
     <string name="setup_paste_fine">The code goes straight to %1$s in the Linux environment. Quire doesn’t keep it.</string>
+    <string name="setup_paste_answer">%1$s says: %2$s</string>
+    <string name="setup_paste_ended">This sign-in has ended, so the code can’t be used. Press Try again for a new one.</string>
     <string name="setup_use_key">Use an API key instead</string>
     <string name="setup_link_lead">Sign in on the sign-in page. This window finishes by itself.</string>
     <string name="setup_key_title">Add a key for %1$s</string>

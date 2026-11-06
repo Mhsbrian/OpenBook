@@ -1024,9 +1024,14 @@ class SetupActivity : Activity() {
                     if (v.isNotBlank()) setup.paste(v)
                 }))
                 if (pr.url.isEmpty()) s.addView(waiting(getString(R.string.setup_waiting_agent, name)))
+                if (pr.answer.isNotEmpty()) s.addView(text(TextRole.LABEL, p.onSurfaceVariant,
+                    getString(R.string.setup_paste_answer, name, pr.answer)), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dpi(12f) })
                 failed(s, pr)
                 val keyMethod = a?.methods?.firstOrNull { it.kind == Kind.KEY }
                 s.addView(sheetActions(null,
+                    if (pr.ended) button(getString(R.string.setup_try_again), QButton.Style.TEXT, "again") {
+                        setup.signIn(pr.agent, pr.method)
+                    } else null,
                     keyMethod?.let { km ->
                         button(getString(R.string.setup_use_key), QButton.Style.TEXT, "usekey", glyph = Icons.KEY) {
                             setup.signIn(pr.agent, km)

@@ -81,8 +81,12 @@ class SetupModel {
     enum class SignState { NOT_NEEDED, OUT, IN, UNKNOWN }
 
     /** A sign-in in progress: what the agent's own login asked for (§4.2 `_quire/login/prompt`). */
+    /**
+     * A sign-in in progress. [answer] is what the agent said after a pasted code, and [ended] says its login has
+     * stopped, so a code pasted now can't reach it (ANAL-395).
+     */
     data class Prompt(val agent: String, val method: Method, var url: String = "", var code: String = "",
-        var paste: Boolean = false, var failed: String = "")
+        var paste: Boolean = false, var failed: String = "", var answer: String = "", var ended: Boolean = false)
 
     var page = Page.WELCOME
         private set
