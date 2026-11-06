@@ -471,7 +471,7 @@ class SetupActivity : Activity() {
                 LinearLayout.LayoutParams(-1, -2).apply { topMargin = dpi(10f) })
             else -> keep.addView(waiting(getString(R.string.setup_keep_preparing)))
         }
-        col.addView(keep.parent as View, LinearLayout.LayoutParams(dpi(760f), -2).apply { topMargin = dpi(24f) })
+        col.addView(keep.parent as View, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dpi(18f) })
         val clean = optionCard(Icons.REFRESH, getString(R.string.setup_clean_title), getString(R.string.setup_clean_lead))
         clean.addView(LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -479,7 +479,7 @@ class SetupActivity : Activity() {
             addView(Icon(context, Icons.WARNING, 16f, p.onSurfaceVariant), LinearLayout.LayoutParams(dpi(18f), dpi(18f)).apply { marginEnd = dpi(6f) })
             addView(text(TextRole.LABEL_MEDIUM, p.onSurface, getString(R.string.setup_clean_warning)), LinearLayout.LayoutParams(0, -2, 1f))
         }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dpi(10f) })
-        col.addView(clean.parent as View, LinearLayout.LayoutParams(dpi(760f), -2).apply { topMargin = dpi(12f) })
+        col.addView(clean.parent as View, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dpi(10f) })
         hint(hintText(getString(R.string.setup_helper_hint)))
         action(getString(R.string.setup_check_again), QButton.Style.TEXT, "checkagain") { setup.refresh() }
         action(getString(R.string.setup_open_terminal), QButton.Style.FILLED, DEFAULT_FOCUS) { setup.openTerminal() }
@@ -490,7 +490,7 @@ class SetupActivity : Activity() {
         val inner = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(dpi(22f), dpi(20f), dpi(22f), dpi(20f))
+            setPadding(dpi(20f), dpi(16f), dpi(20f), dpi(16f))
             background = rounded(context, p.card, 16f, p.cardOutline, 1f)
             addView(tile(glyph, 44f, 13f), LinearLayout.LayoutParams(dpi(44f), dpi(44f)).apply { marginEnd = dpi(16f) })
             addView(inner, LinearLayout.LayoutParams(0, -2, 1f))

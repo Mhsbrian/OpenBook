@@ -116,6 +116,12 @@ class SetupModel {
     var helperDebProblem = ""
         private set
 
+    /**
+     * The Linux environment had no usable helper while the person was on the Linux page, and the wizard is waiting for
+     * one: the next catalog carries it on to the next step, after the command or after a reset and a new image alike.
+     */
+    private var carryOn = false
+
     /** Set once the Linux environment answered while the person watched step 1, so its rows read as done. */
     var linuxDone = false
         private set
@@ -177,6 +183,7 @@ class SetupModel {
         image: String? = null) {
         if (image != null) this.image = image
         if (env == Env.READY && helperMissing) return
+        if (env == Env.OLD_HELPER || env == Env.NO_HELPER) carryOn = true
         this.env = env
         envDetail = detail
         this.phase = phase
@@ -198,8 +205,9 @@ class SetupModel {
      * environment), the wizard carries on by itself from the Linux page to the next step (ANAL-394).
      */
     fun onCatalog(quired: String, agents: List<Agent>) {
-        val recovered = helperMissing
-        if (recovered) {
+        val recovered = carryOn
+        carryOn = false
+        if (helperMissing) {
             env = Env.READY
             envDetail = ""
         }

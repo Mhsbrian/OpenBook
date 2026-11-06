@@ -162,6 +162,23 @@ object SetupModelTest {
             c.eq("helper answers: linux done", linuxDone, true)
             c.eq("helper answers: on to agents", page, Page.AGENTS)
         }
+        // Start clean: Recovery reset it, a new image is installed and started, and its quired answers.
+        SetupModel().apply {
+            open(false)
+            go(Page.LINUX)
+            onEnv(Env.READY, image = google)
+            onEnv(Env.NO_HELPER)
+            onEnv(Env.NOT_INSTALLED, image = "")
+            onEnv(Env.INSTALLING, phase = "unpack")
+            onEnv(Env.STARTING)
+            onEnv(Env.READY, image = ours)
+            c.eq("after a reset: the new image is ready", env, Env.READY)
+            onCatalog("0.4.0", listOf(mk("claude")))
+            c.eq("after a reset: on to agents", page, Page.AGENTS)
+            go(Page.LINUX)
+            onCatalog("0.4.1", listOf(mk("claude")))
+            c.eq("carried on once: a later catalog doesn't move the page", page, Page.LINUX)
+        }
         SetupModel().apply {
             open(false)
             go(Page.LINUX)
