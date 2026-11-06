@@ -63,6 +63,28 @@ const (
 var Methods = []string{MethodCatalog, MethodInstall, MethodUpdate, MethodRemove, MethodLogin, MethodLoginInput,
 	MethodKey, MethodSignout, MethodSignin, MethodCancel}
 
+// CredentialsChanged reports whether a setup call changed agent's credentials, so quired must
+// stop the agent's running processes: a key stored, a login that finished, or any sign-out (it
+// may have removed the key file even if the maker's logout then failed).
+func CredentialsChanged(method string, params json.RawMessage, err error) (agent string, changed bool) {
+	switch method {
+	case MethodSignout:
+	case MethodKey, MethodLogin:
+		if err != nil {
+			return "", false
+		}
+	default:
+		return "", false
+	}
+	var p struct {
+		Agent string `json:"agent"`
+	}
+	if json.Unmarshal(params, &p) != nil || p.Agent == "" {
+		return "", false
+	}
+	return p.Agent, true
+}
+
 // CodeCancelled is the error code of a job that was cancelled (LSP's RequestCancelled).
 const CodeCancelled = -32800
 
@@ -572,7 +594,7 @@ func (s *Service) remove(ctx context.Context, p jobParams, notify Notifier) (any
 	}
 	if p.Settings {
 		if path, err := s.keys().Remove(spec.ID); err == nil && path != "" {
-			res.Removed = append(res.Removed, path)
+			res.Removed = append(res.Removed, tilde(s.Home, path))
 		}
 	}
 	s.logf("setup: removed %s: %v", spec.ID, res.Removed)
@@ -732,9 +754,30 @@ func (s *Service) setKey(agent, name, value string) error {
 	return nil
 }
 
+// signoutResult says what sign-out did, and what it couldn't (docs/quire-setup.md §6):
+//
+//   - Ran is the maker's logout command, if quired ran it; Removed the files quired deleted.
+//   - AccountSignedOut is true only when the agent is signed out as far as quired can know: the
+//     maker's logout ran and exited 0, or every sign-in the agent has is a key Quire stored and
+//     that key is gone. False when the agent still reports an account; null when quired can't
+//     tell. Removing Quire's key file alone never counts for an agent with a login of its own.
+//   - Verified is true when quired checked the result: the agent's own status command says
+//     signed out, or the key file is confirmed gone for a key-only agent.
+//   - Manual is what the person still has to do; Cleanup where the maker keeps its login.
 type signoutResult struct {
-	Ran     *string  `json:"ran"`
-	Removed []string `json:"removed"`
+	Ran              *string  `json:"ran"`
+	Removed          []string `json:"removed"`
+	AccountSignedOut *bool    `json:"accountSignedOut"`
+	Verified         bool     `json:"verified"`
+	Manual           []string `json:"manual"`
+	Cleanup          []string `json:"cleanup"`
+}
+
+func tilde(home, path string) string {
+	if rel, err := filepath.Rel(home, path); err == nil && !strings.HasPrefix(rel, "..") && !filepath.IsAbs(rel) {
+		return "~/" + rel
+	}
+	return path
 }
 
 func (s *Service) signout(ctx context.Context, agent string) (any, error) {
@@ -742,25 +785,102 @@ func (s *Service) signout(ctx context.Context, agent string) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	res := signoutResult{Removed: []string{}}
+	st := spec.Setup
+	res := signoutResult{Removed: []string{}, Manual: []string{}, Cleanup: []string{}}
+	if st != nil {
+		for _, p := range st.LoginFiles {
+			res.Cleanup = append(res.Cleanup, "~/"+filepath.Clean(p))
+		}
+	}
 	path, err := s.keys().Remove(spec.ID)
 	if err != nil {
 		return nil, acp.Errorf(acp.CodeInvalidRequest, "the key file: %v", err)
 	}
 	if path != "" {
-		res.Removed = append(res.Removed, path)
+		res.Removed = append(res.Removed, tilde(s.Home, path))
 	}
-	if spec.Setup != nil && spec.Setup.Logout != nil {
-		if f, ok := s.installed(ctx, spec.ID); ok {
-			shown := spec.Setup.Logout.Shown(f.Path, s.Home)
-			res.Ran = &shown
-			if _, err := s.capture(ctx, *spec.Setup.Logout, f.Path, time.Minute); err != nil {
-				return nil, acp.Errorf(acp.CodeInternalError, "%s: %v", shown, err)
+	keyGone := !s.keys().Has(spec.ID)
+	where := strings.Join(res.Cleanup, " and ")
+	switch {
+	case st != nil && st.Logout != nil:
+		f, ok := s.installed(ctx, spec.ID)
+		if !ok {
+			res.Manual = append(res.Manual, fmt.Sprintf("%s isn't installed, so its own sign-out couldn't run.", spec.Name))
+			if where != "" {
+				res.Manual = append(res.Manual, fmt.Sprintf("If it was signed in, its login is in %s; delete it there in Terminal.", where))
+			}
+			break
+		}
+		shown := st.Logout.Shown(f.Path, s.Home)
+		res.Ran = &shown
+		out, err := s.capture(ctx, *st.Logout, f.Path, time.Minute)
+		if err != nil {
+			msg := err.Error()
+			var ee *exec.ExitError
+			if errors.As(err, &ee) {
+				msg = fmt.Sprintf("exit status %d", ee.ExitCode())
+			}
+			data, _ := json.Marshal(map[string]any{"step": 1, "output": tailLinesOf(out), "removed": res.Removed})
+			s.logf("setup: sign-out of %s: %s failed: %s", spec.ID, shown, msg)
+			return nil, &acp.RPCError{Code: acp.CodeInternalError, Message: shown + ": " + msg, Data: data}
+		}
+		res.AccountSignedOut = boolp(true)
+		if status, _ := s.status(ctx, spec, f.Path); status != nil {
+			res.Verified = true
+			if *status {
+				res.AccountSignedOut = boolp(false)
+				res.Manual = append(res.Manual, fmt.Sprintf("%s still reports a signed-in account after its sign-out.", spec.Name))
+				if where != "" {
+					res.Manual = append(res.Manual, fmt.Sprintf("Its login is in %s; delete it there in Terminal.", where))
+				}
 			}
 		}
+	case st.OnlyKey():
+		// Every way it signs in is a key Quire stores, and that key is gone.
+		res.AccountSignedOut = boolp(keyGone)
+		res.Verified = keyGone
+	case st.MakerLogin():
+		f, ok := s.installed(ctx, spec.ID)
+		if ok {
+			if status, _ := s.status(ctx, spec, f.Path); status != nil {
+				res.Verified = true
+				res.AccountSignedOut = boolp(!*status)
+			}
+		}
+		if res.AccountSignedOut == nil || !*res.AccountSignedOut {
+			res.Manual = append(res.Manual, s.signoutNote(spec, where))
+		}
+	default:
+		res.Manual = append(res.Manual, s.signoutNote(spec, where))
 	}
-	s.logf("setup: signed out %s (key file removed: %t)", spec.ID, path != "")
+	s.logf("setup: sign-out of %s: ran %t, key file removed %t, account signed out %v, verified %t",
+		spec.ID, res.Ran != nil, path != "", fmtBool(res.AccountSignedOut), res.Verified)
 	return res, nil
+}
+
+func (s *Service) signoutNote(spec agents.Spec, where string) string {
+	if spec.Setup != nil && spec.Setup.SignoutNote != "" {
+		return spec.Setup.SignoutNote
+	}
+	if where != "" {
+		return fmt.Sprintf("%s has no sign-out command. Its login is in %s; delete it there in Terminal.", spec.Name, where)
+	}
+	return fmt.Sprintf("%s has no sign-out command quired can run.", spec.Name)
+}
+
+func fmtBool(b *bool) string {
+	if b == nil {
+		return "unknown"
+	}
+	return fmt.Sprint(*b)
+}
+
+func tailLinesOf(out string) string {
+	lines := strings.Split(strings.TrimRight(out, "\n"), "\n")
+	if len(lines) > tailLines {
+		lines = lines[len(lines)-tailLines:]
+	}
+	return strings.Join(lines, "\n")
 }
 
 // HomeDir is the user's home, for the service.

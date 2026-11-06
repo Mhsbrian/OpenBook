@@ -164,3 +164,25 @@ func TestLookPathFindsTheMakersFolders(t *testing.T) {
 		}
 	}
 }
+
+// An agent with a login of its maker's own and no logout command must tell the person how to
+// sign it out, and where its login lives.
+func TestEveryLoginHasAWayToSignOut(t *testing.T) {
+	for _, s := range Catalog {
+		st := s.Setup
+		if st == nil {
+			continue
+		}
+		if st.MakerLogin() && len(st.LoginFiles) == 0 {
+			t.Errorf("%s: no LoginFiles for its own login", s.ID)
+		}
+		if st.MakerLogin() && st.Logout == nil && st.SignoutNote == "" {
+			t.Errorf("%s: no logout command and no SignoutNote", s.ID)
+		}
+		for _, p := range st.LoginFiles {
+			if filepath.IsAbs(p) || strings.HasPrefix(filepath.Clean(p), "..") {
+				t.Errorf("%s: login path %q must be inside $HOME", s.ID, p)
+			}
+		}
+	}
+}

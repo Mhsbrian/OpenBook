@@ -63,6 +63,15 @@ func TestMain(m *testing.M) {
 			os.Exit(1)
 		}
 		fmt.Println("Login successful.")
+	case "logout-ok":
+		fmt.Println("Logged out.")
+	case "logout-fail":
+		fmt.Println("error: the credential store is locked")
+		os.Exit(2)
+	case "status-out":
+		fmt.Println(`{"loggedIn": false}`)
+	case "status-in":
+		fmt.Println(`{"loggedIn": true, "email": "someone@example.invalid"}`)
 	case "tty":
 		var t syscall.Termios
 		_, _, e := syscall.Syscall(syscall.SYS_IOCTL, 0, syscall.TCGETS, uintptr(unsafe.Pointer(&t)))
@@ -552,7 +561,7 @@ func TestKeysArePrivateAndOnlyForTheirAgent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(raw), filepath.Join(dir, "fake.env")) {
+	if !strings.Contains(string(raw), `"removed":["~/.config/quire/keys/fake.env"]`) {
 		t.Errorf("sign-out = %s", raw)
 	}
 	if _, err := os.Lstat(filepath.Join(dir, "fake.env")); !os.IsNotExist(err) {
@@ -666,5 +675,156 @@ func TestSigninStatus(t *testing.T) {
 	raw, _ = fx.call(ctxT(t), MethodSignin, map[string]string{"agent": "fake"})
 	if string(raw) != `{"signedIn":true}` {
 		t.Errorf("status: %s", raw)
+	}
+}
+
+func signoutOf(t *testing.T, fx *fixture) (signoutResult, error) {
+	t.Helper()
+	raw, err := fx.call(ctxT(t), MethodSignout, map[string]string{"agent": "fake"})
+	var res signoutResult
+	if err == nil {
+		if err := json.Unmarshal(raw, &res); err != nil {
+			t.Fatal(err)
+		}
+		// The shape Quire core relies on: every field present.
+		for _, k := range []string{`"ran":`, `"removed":[`, `"accountSignedOut":`, `"verified":`, `"manual":[`, `"cleanup":[`} {
+			if !strings.Contains(string(raw), k) {
+				t.Errorf("sign-out lacks %s: %s", k, raw)
+			}
+		}
+	}
+	return res, err
+}
+
+func TestSignoutSaysWhatItDidAndWhatIsLeft(t *testing.T) {
+	login := []agents.SignIn{{ID: "device", Kind: agents.KindDevice, Label: "Fake account", Run: fake("device")}, {ID: "key", Kind: agents.KindKey, Label: "key"}}
+	keys := []agents.Key{{Name: "FAKE_API_KEY", Label: "k"}}
+	status := func(mode string) *agents.Status {
+		return &agents.Status{Run: fake(mode), Yes: `"loggedIn":\s*true`, No: `"loggedIn":\s*false`}
+	}
+	logout := func(mode string) *agents.Command { c := fake(mode); return &c }
+	cases := []struct {
+		name      string
+		st        agents.Setup
+		installed bool
+		signedOut *bool
+		verified  bool
+		ran       bool
+		manual    string
+	}{
+		{"logout, then status says signed out", agents.Setup{SignIn: login, Keys: keys, Logout: logout("logout-ok"), Status: status("status-out")}, true, boolp(true), true, true, ""},
+		{"logout, no status command", agents.Setup{SignIn: login, Keys: keys, Logout: logout("logout-ok")}, true, boolp(true), false, true, ""},
+		{"logout, but status still signed in", agents.Setup{SignIn: login, Keys: keys, Logout: logout("logout-ok"), Status: status("status-in"), LoginFiles: []string{".fake"}},
+			true, boolp(false), true, true, "still reports a signed-in account"},
+		{"logout command, agent not installed", agents.Setup{SignIn: login, Keys: keys, Logout: logout("logout-ok"), LoginFiles: []string{".fake"}}, false, nil, false, false, "isn't installed"},
+		{"only a Quire key", agents.Setup{SignIn: []agents.SignIn{{ID: "key", Kind: agents.KindKey, Label: "k"}}, Keys: keys}, true, boolp(true), true, false, ""},
+		{"a maker login and no logout command", agents.Setup{SignIn: login, Keys: keys, LoginFiles: []string{".fake"}, SignoutNote: "Fake has no sign-out command; delete ~/.fake."},
+			true, nil, false, false, "Fake has no sign-out command"},
+		{"a maker login, no logout, status says still in", agents.Setup{SignIn: login, Keys: keys, Status: status("status-in"), LoginFiles: []string{".fake"}},
+			true, boolp(false), true, false, "has no sign-out command. Its login is in ~/.fake"},
+		{"no account at all", agents.Setup{SignIn: []agents.SignIn{{ID: "none", Kind: agents.KindNone}}, SignoutNote: "Fake uses no account."}, true, nil, false, false, "Fake uses no account."},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			fx := newFixture(t, c.st)
+			if c.installed {
+				installFake(t, fx)
+			}
+			if len(c.st.Keys) > 0 {
+				if err := fx.s.keys().Set("fake", "FAKE_API_KEY", "k-1"); err != nil {
+					t.Fatal(err)
+				}
+			}
+			res, err := signoutOf(t, fx)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if fmtBool(res.AccountSignedOut) != fmtBool(c.signedOut) || res.Verified != c.verified || (res.Ran != nil) != c.ran {
+				t.Errorf("result = %+v (accountSignedOut %s)", res, fmtBool(res.AccountSignedOut))
+			}
+			manual := strings.Join(res.Manual, " ")
+			if (c.manual == "") != (manual == "") || !strings.Contains(manual, c.manual) {
+				t.Errorf("manual = %q, want %q", manual, c.manual)
+			}
+			if len(c.st.LoginFiles) > 0 && strings.Join(res.Cleanup, " ") != "~/.fake" {
+				t.Errorf("cleanup = %v", res.Cleanup)
+			}
+			if len(c.st.Keys) > 0 && (len(res.Removed) != 1 || res.Removed[0] != "~/.config/quire/keys/fake.env") {
+				t.Errorf("removed = %v", res.Removed)
+			}
+			if fx.s.keys().Has("fake") {
+				t.Error("the key file survived")
+			}
+		})
+	}
+}
+
+func TestAFailedLogoutIsAnError(t *testing.T) {
+	logout := fake("logout-fail")
+	fx := newFixture(t, agents.Setup{SignIn: []agents.SignIn{{ID: "device", Kind: agents.KindDevice, Label: "x", Run: fake("device")}},
+		Keys: []agents.Key{{Name: "FAKE_API_KEY", Label: "k"}}, Logout: &logout})
+	installFake(t, fx)
+	_ = fx.s.keys().Set("fake", "FAKE_API_KEY", "k-1")
+	_, err := signoutOf(t, fx)
+	re := rpcErr(t, err)
+	var data struct {
+		Step    int      `json:"step"`
+		Output  string   `json:"output"`
+		Removed []string `json:"removed"`
+	}
+	_ = json.Unmarshal(re.Data, &data)
+	if re.Code != acp.CodeInternalError || !strings.Contains(re.Message, "exit status 2") || data.Step != 1 ||
+		!strings.Contains(data.Output, "credential store is locked") || len(data.Removed) != 1 {
+		t.Fatalf("error = %+v data = %+v", re, data)
+	}
+}
+
+// Every catalog agent, installed (its binary a stand-in whose logout and status print nothing
+// and exit 0) and not installed: never "signed out" on the strength of Quire's key file alone
+// when the maker has its own login, and always a way out when quired can't do it.
+func TestSignoutOfEveryCatalogAgent(t *testing.T) {
+	for _, installed := range []bool{true, false} {
+		home := t.TempDir()
+		bin := filepath.Join(home, "stand-in")
+		_ = os.WriteFile(bin, []byte("#!/bin/sh\nexit 0\n"), 0o755)
+		s := &Service{Home: home, Version: "test", Discover: func(context.Context) []agents.Found {
+			if !installed {
+				return nil
+			}
+			var out []agents.Found
+			for _, sp := range agents.Catalog {
+				out = append(out, agents.Found{Spec: sp, Path: bin, Supported: sp.Protocol.Supported()})
+			}
+			return out
+		}}
+		for _, sp := range agents.Catalog {
+			if sp.Setup == nil {
+				continue
+			}
+			res, err, _ := s.Handle(ctxT(t), MethodSignout, []byte(`{"agent":"`+sp.ID+`"}`), func(string, any) {})
+			if err != nil {
+				t.Errorf("%s: %v", sp.ID, err)
+				continue
+			}
+			r := res.(signoutResult)
+			b, _ := json.Marshal(r)
+			t.Logf("installed=%v %s: %s", installed, sp.ID, b)
+			st := sp.Setup
+			if st.MakerLogin() && st.Logout == nil && r.AccountSignedOut != nil && *r.AccountSignedOut {
+				t.Errorf("%s: signed out with no logout command", sp.ID)
+			}
+			if (r.AccountSignedOut == nil || !*r.AccountSignedOut) && len(r.Manual) == 0 {
+				t.Errorf("%s: not signed out, and nothing tells the person what to do", sp.ID)
+			}
+			if st.MakerLogin() && len(r.Cleanup) == 0 {
+				t.Errorf("%s: no cleanup path for its own login", sp.ID)
+			}
+			if installed && st.Logout != nil && r.Ran == nil {
+				t.Errorf("%s: its logout didn't run", sp.ID)
+			}
+			if st.OnlyKey() && (r.AccountSignedOut == nil || !*r.AccountSignedOut) {
+				t.Errorf("%s: key-only and not signed out", sp.ID)
+			}
+		}
 	}
 }

@@ -17,6 +17,41 @@ type Setup struct {
 	Keys    []Key    // environment variables the agent takes a key or token from
 	Status  *Status  // how to tell whether it is signed in; nil if the maker has no command
 	Logout  *Command // the maker's own sign-out; nil if there is none
+	// LoginFiles are where, under $HOME, the maker keeps its own login, for the person to clean
+	// up when there is no sign-out command (or it couldn't run).
+	LoginFiles []string
+	// SignoutNote tells the person how to sign the agent out when quired can't: no logout
+	// command, or one that needs a choice made in Terminal.
+	SignoutNote string
+}
+
+// OnlyKey reports whether every way to sign the agent in is a key Quire stores, so deleting
+// Quire's key file signs it out.
+func (s *Setup) OnlyKey() bool {
+	if s == nil || len(s.SignIn) == 0 {
+		return false
+	}
+	for _, m := range s.SignIn {
+		if m.Kind != KindKey {
+			return false
+		}
+	}
+	return true
+}
+
+// MakerLogin reports whether the agent has a sign-in of its maker's own (a login command or
+// ACP's authenticate), which Quire's key file doesn't cover.
+func (s *Setup) MakerLogin() bool {
+	if s == nil {
+		return false
+	}
+	for _, m := range s.SignIn {
+		switch m.Kind {
+		case KindDevice, KindPaste, KindLink, KindACP:
+			return true
+		}
+	}
+	return false
 }
 
 // Step is one command of a recipe.

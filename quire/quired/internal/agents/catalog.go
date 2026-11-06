@@ -76,7 +76,9 @@ var Catalog = []Spec{
 			},
 			Keys:   []Key{{Name: "ANTHROPIC_API_KEY", Label: "Anthropic API key"}},
 			Status: &Status{Run: Command{Argv: []string{BinToken, "auth", "status", "--json"}}, Yes: `"loggedIn"\s*:\s*true`, No: `"loggedIn"\s*:\s*false|[Nn]ot logged in`},
-			Logout: &Command{Argv: []string{BinToken, "auth", "logout"}},
+			Logout: &Command{Argv: []string{BinToken, "auth", "logout"}}, // local --help 2.1.318
+			// Where Claude Code keeps its login on Linux: unconfirmed which file.
+			LoginFiles: []string{".claude", ".claude.json"},
 		}},
 	{ID: "opencode", Name: "opencode", Maker: "Open source", Needs: "Free models, no account",
 		Binaries: []string{"opencode"}, Protocol: ACP, Args: []string{"acp"}, Checked: "2.2.5",
@@ -90,6 +92,10 @@ var Catalog = []Spec{
 			Remove: Removal{Run: &Command{Argv: []string{BinToken, "uninstall"}}, Paths: []string{".opencode/bin/opencode"},
 				Settings: []string{".config/opencode", ".local/share/opencode"}},
 			SignIn: []SignIn{{ID: "none", Kind: KindNone, Label: "Free models, no account"}},
+			// `opencode auth logout` exists (local --help 2.2.5) but opens a picker without an account
+			// named, so quired doesn't run it. Where v2 keeps providers' logins: unconfirmed.
+			LoginFiles:  []string{".local/share/opencode"},
+			SignoutNote: "opencode's free models use no account. Providers you added in opencode itself stay; remove them in Terminal with `opencode auth logout`.",
 		}},
 	{ID: "copilot", Name: "GitHub Copilot CLI", Maker: "GitHub", Needs: "A GitHub account with Copilot",
 		Binaries: []string{"copilot"}, Protocol: ACP, Args: []string{"--acp"}, Checked: "1.0.106",
@@ -106,6 +112,10 @@ var Catalog = []Spec{
 				{ID: "key", Kind: KindKey, Label: "Fine-grained token"},
 			},
 			Keys: []Key{{Name: "COPILOT_GITHUB_TOKEN", Label: "GitHub fine-grained token with Copilot Requests"}},
+			// No logout command (local --help 1.0.106). Without a system keychain its token is "stored
+			// in a plain text config file under ~/.copilot/" (copilot login --help).
+			LoginFiles:  []string{".copilot"},
+			SignoutNote: "Copilot CLI has no sign-out command. To sign it out, delete ~/.copilot in Terminal (rm -r ~/.copilot), which also deletes its settings and sessions, and revoke its access in GitHub's settings (github.com/settings/applications).",
 		}},
 	{ID: "antigravity", Name: "Antigravity CLI", Maker: "Google", Needs: "A Google account",
 		Binaries: []string{"agy", "antigravity"}, Protocol: ACP, Args: []string{"acp"}, Checked: "1.5.2",
@@ -119,6 +129,10 @@ var Catalog = []Spec{
 			Remove: Removal{Paths: []string{".local/bin/agy"}, Settings: []string{".gemini/antigravity-cli"}},
 			// No login command or flag that forces a code flow; its ACP server offers authMethods.
 			SignIn: []SignIn{{ID: "acp", Kind: KindACP, Label: "Google account"}},
+			// No logout subcommand (local --help 1.5.2). Its application data folder defaults to
+			// ~/.gemini/antigravity-cli (agy acp --help); which file holds the login: unconfirmed.
+			LoginFiles:  []string{".gemini/antigravity-cli"},
+			SignoutNote: "Antigravity CLI has no sign-out command. To sign it out, delete ~/.gemini/antigravity-cli in Terminal (rm -r ~/.gemini/antigravity-cli), which also deletes its conversations and settings, and remove its access in your Google Account (myaccount.google.com/connections).",
 		}},
 	{ID: "gemini", Name: "Gemini CLI", Maker: "Google", Needs: "A Gemini API key",
 		Binaries: []string{"gemini"}, Protocol: ACP, Args: []string{"--acp"},
@@ -133,6 +147,8 @@ var Catalog = []Spec{
 			// Free-tier Google sign-in moved to Antigravity CLI on 2026-06-18 (geminicli.com auth docs).
 			SignIn: []SignIn{{ID: "key", Kind: KindKey, Label: "Gemini API key"}},
 			Keys:   []Key{{Name: "GEMINI_API_KEY", Label: "Gemini API key"}},
+			// A Google sign-in made in Terminal lives here; Quire only ever stores the key.
+			LoginFiles: []string{".gemini"},
 		}},
 	{ID: "cursor", Name: "Cursor Agent", Maker: "Cursor", Needs: "A Cursor account",
 		Binaries: []string{"cursor-agent"}, Protocol: ACP, Args: []string{"acp"}, Checked: "2026.11.05",
@@ -150,7 +166,9 @@ var Catalog = []Spec{
 			},
 			Keys:   []Key{{Name: "CURSOR_API_KEY", Label: "Cursor API key"}},
 			Status: &Status{Run: Command{Argv: []string{BinToken, "status", "--format", "json"}}, Yes: `"(isAuthenticated|authenticated|loggedIn)"\s*:\s*true|"email"\s*:\s*"[^"]+"`, No: `"(isAuthenticated|authenticated|loggedIn)"\s*:\s*false|[Nn]ot (logged|signed) in`},
-			Logout: &Command{Argv: []string{BinToken, "logout"}},
+			Logout: &Command{Argv: []string{BinToken, "logout"}}, // "Sign out and clear stored authentication" (local --help)
+			// Which of these holds the login: unconfirmed.
+			LoginFiles: []string{".cursor", ".config/cursor"},
 		}},
 	{ID: "kimi", Name: "Kimi Code", Maker: "Moonshot AI", Needs: "A Kimi account or an API key",
 		Binaries: []string{"kimi"}, Protocol: ACP, Args: []string{"acp"}, Checked: "2.4.1",
@@ -160,12 +178,18 @@ var Catalog = []Spec{
 			Install: []Step{{Title: "Install Kimi Code with its installer",
 				Run: Command{Shell: "curl -fsSL https://code.kimi.com/kimi-code/install.sh | KIMI_NO_MODIFY_PATH=1 bash"}, Source: "https://moonshotai.github.io/kimi-code/en/guides/getting-started"}},
 			Update: []Step{{Title: "Update Kimi Code", Run: Command{Argv: []string{BinToken, "upgrade"}}}},
-			Remove: Removal{Paths: []string{".kimi-code"}, Settings: []string{".kimi"}},
+			// The installer puts the binary in ~/.kimi-code/bin; ~/.kimi-code also holds its
+			// config.toml and data (seen on the dev host), so only bin/ goes without the settings.
+			Remove: Removal{Paths: []string{".kimi-code/bin"}, Settings: []string{".kimi-code"}},
 			SignIn: []SignIn{
 				{ID: "device", Kind: KindDevice, Label: "Kimi account", Run: Command{Argv: []string{BinToken, "login"}}},
 				{ID: "key", Kind: KindKey, Label: "Kimi Platform API key"},
 			},
 			Keys: []Key{{Name: "KIMI_MODEL_API_KEY", Label: "Kimi Platform API key"}},
+			// No logout command (local --help 2.4.1 lists login only). Its config lives in
+			// ~/.kimi-code (config.toml on the dev host); which file holds the login: unconfirmed.
+			LoginFiles:  []string{".kimi-code"},
+			SignoutNote: "Kimi Code has no sign-out command. To sign it out, delete ~/.kimi-code in Terminal (rm -r ~/.kimi-code), which also deletes its settings and sessions, and Kimi Code itself when Quire installed it there.",
 		}},
 	{ID: "grok", Name: "Grok CLI", Maker: "xAI", Needs: "An xAI account or an API key",
 		Binaries: []string{"grok"}, Protocol: ACP, Args: []string{"agent", "stdio"}, Checked: "1.0.77",
@@ -181,8 +205,9 @@ var Catalog = []Spec{
 				{ID: "device", Kind: KindDevice, Label: "xAI account", Run: Command{Argv: []string{BinToken, "login", "--device-auth"}}},
 				{ID: "key", Kind: KindKey, Label: "xAI API key"},
 			},
-			Keys:   []Key{{Name: "XAI_API_KEY", Label: "xAI API key"}},
-			Logout: &Command{Argv: []string{BinToken, "logout"}},
+			Keys:       []Key{{Name: "XAI_API_KEY", Label: "xAI API key"}},
+			Logout:     &Command{Argv: []string{BinToken, "logout"}}, // "Sign out and clear cached credentials" (local --help 1.0.77)
+			LoginFiles: []string{".grok"},
 		}},
 	{ID: "hermes", Name: "Hermes Agent", Maker: "Nous Research", Needs: "A model provider you choose",
 		Binaries: []string{"hermes"}, Protocol: ACP, Args: []string{"acp"}, Checked: "0.20.5",
@@ -203,7 +228,9 @@ var Catalog = []Spec{
 				{Name: "ANTHROPIC_API_KEY", Label: "Anthropic API key"},
 				{Name: "OPENAI_API_KEY", Label: "OpenAI API key"},
 			},
-			Logout: &Command{Argv: []string{BinToken, "logout"}},
+			// "Remove stored credentials and reset provider config", for the active provider (local --help 0.20.5).
+			Logout:     &Command{Argv: []string{BinToken, "logout"}},
+			LoginFiles: []string{".hermes"},
 		}},
 	{ID: "omp", Name: "Oh My Pi", Maker: "Open source", Needs: "A model provider you choose",
 		Binaries: []string{"omp"}, Protocol: ACP, Args: []string{"acp"}, Checked: "18.11.2",
@@ -225,6 +252,10 @@ var Catalog = []Spec{
 				{Name: "GEMINI_API_KEY", Label: "Gemini API key"},
 				{Name: "XAI_API_KEY", Label: "xAI API key"},
 			},
+			// No logout command (local --help 18.11.2: login, auth export/import, auth-broker). Its
+			// data lives in ~/.omp (agent/agent.db on the dev host); which file holds the login: unconfirmed.
+			LoginFiles:  []string{".omp"},
+			SignoutNote: "Oh My Pi has no sign-out command. To sign it out, delete ~/.omp in Terminal (rm -r ~/.omp), which also deletes its settings and sessions.",
 		}},
 	{ID: "codex", Name: "Codex CLI", Maker: "OpenAI", Needs: "A ChatGPT plan or an API key",
 		Binaries: []string{"codex"}, Protocol: CodexAppServer, Checked: "0.167.0",

@@ -30,7 +30,7 @@ import (
 )
 
 // version is set at build time for test packages (build-deb.sh, QUIRED_VERSION).
-var version = "0.4.0"
+var version = "0.4.1"
 
 var clientInfo = acp.Implementation{Name: "quired", Title: "Quire harness host (OpenBook)", Version: version}
 
