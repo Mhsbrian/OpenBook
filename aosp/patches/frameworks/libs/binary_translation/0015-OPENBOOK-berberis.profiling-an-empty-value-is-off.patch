@@ -1,0 +1,101 @@
+From f431560b90339de441789470eb649f3eeb056c2f Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 01:00:00 +0000
+Subject: [PATCH] OPENBOOK: berberis.profiling: an empty value is off
+
+Found by ANAL-387's G14 session: a profiling run puts berberis.profiling back
+to its earlier value, and an earlier value of nothing becomes an empty
+property, since Android can't delete one. GetProfilingConfig() returned that
+empty string, and for a standalone executable ProfilerOpenLogFile matches the
+filter with strstr(exe, ""), which always matches: every translated
+executable wrote a perf map until the next reboot. Apps compare the package
+name exactly and weren't affected.
+
+GetProfilingConfig() now returns null for an empty value, as an empty
+berberis.stats is off.
+
+Test: ProfilingConfig.EmptyProfilingPropertyIsOff runs this binary again
+with BERBERIS_PROFILING empty, 1 and a package name (the value is read once
+per process) and checks what the translator makes of each.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Co-authored-by: multica-agent <github@multica.ai>
+---
+ base/config_globals.cc                 |  8 +++++-
+ runtime/arm64/translator_stats_test.cc | 34 ++++++++++++++++++++++++++
+ 2 files changed, 41 insertions(+), 1 deletion(-)
+
+diff --git a/base/config_globals.cc b/base/config_globals.cc
+index c5a059b8..5df32488 100644
+--- a/base/config_globals.cc
++++ b/base/config_globals.cc
+@@ -230,7 +230,13 @@ const char* GetTranslationModeConfig() {
+ 
+ const char* GetProfilingConfig() {
+   static ConfigStr var("BERBERIS_PROFILING", "berberis.profiling");
+-  return var.get();
++  // region digitalis
++  // An empty value is off, as it is for berberis.stats. A profiling run that puts the property
++  // back to an empty value (Android can't delete one) must not turn the perf map on for every
++  // translated executable: strstr(exe, "") always matches (ANAL-387).
++  const char* value = var.get();
++  return value != nullptr && *value != '\0' ? value : nullptr;
++  // endregion
+ }
+ 
+ uintptr_t GetEntryPointOverride() {
+diff --git a/runtime/arm64/translator_stats_test.cc b/runtime/arm64/translator_stats_test.cc
+index 36b91368..42245205 100644
+--- a/runtime/arm64/translator_stats_test.cc
++++ b/runtime/arm64/translator_stats_test.cc
+@@ -39,6 +39,7 @@
+ #include <vector>
+ 
+ #include "berberis/base/bit_util.h"
++#include "berberis/base/config_globals.h"
+ #include "berberis/base/maps_snapshot.h"
+ #include "berberis/guest_state/guest_addr.h"
+ #include "berberis/guest_state/guest_state.h"
+@@ -719,6 +720,39 @@ TEST(TranslatorStatsMapsSnapshot, AnonymousMappingHasNoOffset) {
+   EXPECT_EQ(result.value().offset, 0u);
+ }
+ 
++// Run by EmptyProfilingPropertyIsOff in a fresh copy of this binary: what the translator makes of
++// BERBERIS_PROFILING there.
++TEST(ProfilingConfig, DISABLED_Print) {
++  const char* value = GetProfilingConfig();
++  printf("@profiling=%s\n", value == nullptr ? "(off)" : value);
++}
++
++// An empty berberis.profiling is off, as an empty berberis.stats is (ANAL-387): GetProfilingConfig()
++// is read once per process, so each value is tried in a fresh process.
++TEST(ProfilingConfig, EmptyProfilingPropertyIsOff) {
++  char self[4096];
++  ssize_t n = readlink("/proc/self/exe", self, sizeof(self) - 1);
++  ASSERT_GT(n, 0);
++  self[n] = '\0';
++  auto run = [&](const char* value) {
++    std::string cmd = std::string("BERBERIS_PROFILING='") + value + "' '" + self +
++                      "' --gtest_filter=ProfilingConfig.DISABLED_Print --gtest_also_run_disabled_tests "
++                      "2>/dev/null | grep '^@profiling='";
++    FILE* f = popen(cmd.c_str(), "r");
++    char line[256] = {};
++    if (f == nullptr || fgets(line, sizeof(line), f) == nullptr) {
++      line[0] = '\0';
++    }
++    if (f != nullptr) {
++      pclose(f);
++    }
++    return std::string(line);
++  };
++  EXPECT_EQ(run(""), "@profiling=(off)\n");
++  EXPECT_EQ(run("1"), "@profiling=1\n");
++  EXPECT_EQ(run("org.example.app"), "@profiling=org.example.app\n");
++}
++
+ }  // namespace
+ 
+ }  // namespace berberis
+-- 
+2.56.0
+

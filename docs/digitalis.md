@@ -285,6 +285,12 @@ The bridge is part of the normal product build (`scripts/aosp-build.sh`). Nothin
         snapshot, and the app can still flush between the reading and a later kill. So it isn't the number a
         force-stop loses. Tests keep the raw values and their read times. Drops at the cap were counted as not
         persistable before.
+  15. An empty `berberis.profiling` is off (ANAL-387).
+      - **What it fixes:** a profiling run puts the property back to what it was. If it was unset, that leaves it
+        empty, since Android can't delete a property. For a standalone executable the translator matched the filter
+        with `strstr(exe, "")`, which always matches, so every translated executable wrote a perf map until the
+        next reboot. Apps compare the package name exactly and weren't affected.
+      - **How:** `GetProfilingConfig()` returns null for an empty value, as an empty `berberis.stats` is off.
 - **ART patch** (`aosp/patches/art/`): `libnativebridge` sets `Build.CPU_ABI` and `CPU_ABI2` for bridged apps again (the Fennec fix).
 - **Device:** `device/anybook/common/native-bridge/`:
   - `native-bridge.mk` inherits Digitalis's `enable_arm64_to_x86_64.mk` and adds `openbook_bridge_check`;
