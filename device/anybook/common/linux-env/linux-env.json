@@ -1,0 +1,8 @@
+{
+  "_comment": "The Linux environment image this build installs (docs/quire-setup.md 4.1). With no url the Terminal app reports no_image and downloads nothing; a release fills url, sha256, size and installed_size from the image it publishes.",
+  "version": null,
+  "url": null,
+  "sha256": null,
+  "size": null,
+  "installed_size": null
+}
