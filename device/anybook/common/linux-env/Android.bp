@@ -1,0 +1,19 @@
+// Copyright (C) 2026 The OpenBook Authors
+// SPDX-License-Identifier: Apache-2.0
+//
+// The manifest of the Linux environment image this build installs (ANAL-393, docs/quire-setup.md §4.1). The Terminal
+// app reads it from /product/etc/openbook/linux-env.json (aosp/patches/packages/modules/Virtualization/0003). It
+// installs the image the manifest pins, checked whole against its size and SHA-256 before anything is extracted, and
+// never falls back to Google's image. With no URL, as here until a release publishes one, it reports no_image.
+
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+prebuilt_etc {
+    name: "openbook_linux_env_manifest",
+    product_specific: true,
+    sub_dir: "openbook",
+    src: "linux-env.json",
+    filename_from_src: true,
+}

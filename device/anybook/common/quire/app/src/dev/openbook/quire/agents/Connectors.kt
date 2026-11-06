@@ -32,8 +32,10 @@ object Connectors {
         TERMINAL_OFF,
         /** The Linux environment is on, but its Debian image isn't installed yet. */
         NOT_INSTALLED,
-        /** The Terminal app is installing the Debian image. */
+        /** The Terminal app is installing the Debian image ([Status.phase], [Status.bytes] of [Status.total]). */
         INSTALLING,
+        /** This build names no Linux environment image yet (ANAL-393: its manifest has no URL, or is invalid). */
+        NO_IMAGE,
         STOPPED,
         STARTING,
         /** The Linux environment failed (detail says how), or quired didn't answer in it. */
@@ -42,7 +44,15 @@ object Connectors {
         NOT_PAIRED,
     }
 
-    data class Status(val connector: String, val state: State, val detail: String? = null) {
+    data class Status(
+        val connector: String,
+        val state: State,
+        val detail: String? = null,
+        /** While installing: download, verify or unpack (docs/quire-setup.md §4.1). */
+        val phase: String? = null,
+        val bytes: Long = -1,
+        val total: Long = -1,
+    ) {
         fun describe(context: Context): String {
             val text = when (state) {
                 State.READY -> R.string.agents_ready
@@ -52,6 +62,7 @@ object Connectors {
                 State.TERMINAL_OFF -> R.string.agents_terminal_off
                 State.NOT_INSTALLED -> R.string.agents_not_installed
                 State.INSTALLING -> R.string.agents_installing
+                State.NO_IMAGE -> R.string.agents_no_image
                 State.STOPPED -> R.string.agents_stopped
                 State.STARTING -> R.string.agents_starting
                 State.ERROR -> R.string.agents_error
@@ -67,6 +78,9 @@ object Connectors {
         const val TERMINAL = "com.android.virtualization.terminal"
         private const val AUTHORITY = "com.android.virtualization.terminal.agentbridge"
         private val QUIRED: Uri = Uri.parse("content://$AUTHORITY/vsock/7690")
+
+        /** The guest's admin worker (docs/quire-setup.md §4.3): root, fixed operations, host peers only. */
+        private val ADMIN: Uri = Uri.parse("content://$AUTHORITY/vsock/7691")
 
         fun status(context: Context): Status {
             val pm = context.packageManager
@@ -100,7 +114,9 @@ object Connectors {
                 "starting" -> Status(NAME, State.STARTING)
                 "stopped" -> Status(NAME, State.STOPPED)
                 "not_installed" -> Status(NAME, State.NOT_INSTALLED)
-                "installing" -> Status(NAME, State.INSTALLING)
+                "installing" -> Status(NAME, State.INSTALLING, null, bundle.getString("phase"),
+                    bundle.getLong("bytes", -1), bundle.getLong("total", -1))
+                "no_image" -> Status(NAME, State.NO_IMAGE, message)
                 else -> Status(NAME, State.ERROR, message ?: "unknown state ${bundle?.getString("state")}")
             }
         }
@@ -187,6 +203,18 @@ object Connectors {
         private const val ERROR_GRACE_MS = 20_000L
         private const val PUBLISH_LAG_MS = 10_000L
         private const val POLL_MS = 1000L
+
+        /** Asks the Terminal app to stop the Linux environment (the agents page's Stop). */
+        fun stop(context: Context): Status = try {
+            parse(context.contentResolver.call(AUTHORITY, "stop", null, null))
+        } catch (e: Exception) {
+            Status(NAME, State.ERROR, "the Terminal app's agent bridge: ${e.message}")
+        }
+
+        /** A stream to the guest's admin worker, relayed by the Terminal app like [connect]. */
+        fun connectAdmin(context: Context): ParcelFileDescriptor =
+            context.contentResolver.openFileDescriptor(ADMIN, "rw")
+                ?: throw java.io.FileNotFoundException("the Terminal app returned no stream")
 
         /** A stream to the guest's quired, relayed by the Terminal app. */
         fun connect(context: Context): ParcelFileDescriptor =

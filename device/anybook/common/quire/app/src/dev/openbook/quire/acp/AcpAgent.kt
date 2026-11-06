@@ -177,6 +177,9 @@ class AcpAgent(
         fun onToolCall(agent: AcpAgent, sessionId: String, name: String, args: JSONObject, answer: (JSONObject) -> Unit)
 
         fun onClosed(agent: AcpAgent, error: Throwable?)
+
+        /** quired ended [sessionIds] on this connection (`_quire/agent/stopped`: the agent's credentials changed). */
+        fun onSessionsStopped(agent: AcpAgent, sessionIds: List<String>, reason: String) {}
     }
 
     private val io = Executors.newSingleThreadExecutor { r -> Thread(r, "acp-open-${endpoint.id}") }
@@ -305,6 +308,13 @@ class AcpAgent(
 
     private val handler = object : AcpConnection.Handler {
         override fun onNotification(method: String, params: JSONObject) {
+            if (method == "_quire/agent/stopped") {
+                val list = params.optJSONArray("sessions")
+                val ids = (0 until (list?.length() ?: 0)).map { list!!.optString(it) }.filter { it.isNotEmpty() }
+                val reason = params.optString("reason")
+                main.execute { listener.onSessionsStopped(this@AcpAgent, ids, reason) }
+                return
+            }
             if (method != "session/update") return
             val sessionId = params.optString("sessionId")
             val update = params.optJSONObject("update") ?: return

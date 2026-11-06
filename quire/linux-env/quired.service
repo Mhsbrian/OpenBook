@@ -18,11 +18,14 @@ Group=users
 WorkingDirectory=/home/droid
 Environment=HOME=/home/droid
 Environment=USER=droid
-# Where agent CLIs install themselves: npm and pipx (~/.local/bin), opencode's installer, /usr/local.
-Environment=PATH=/home/droid/.local/bin:/home/droid/.opencode/bin:/home/droid/.npm-global/bin:/usr/local/bin:/usr/bin:/bin
+# Where agent CLIs install themselves: npm, pipx and most makers' installers (~/.local/bin),
+# opencode's, Kimi Code's and Grok CLI's own folders, /usr/local.
+Environment=PATH=/home/droid/.local/bin:/home/droid/.opencode/bin:/home/droid/.kimi-code/bin:/home/droid/.grok/bin:/home/droid/.npm-global/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=/usr/bin/quired serve --vsock 7690 --root /home/droid
 Restart=on-failure
 RestartSec=2
+# Nothing quired starts (agents, installers, logins) may gain root, sudo included. Root work goes
+# through the admin worker (quire-admin.socket), which takes only fixed requests from Android.
 NoNewPrivileges=yes
 
 [Install]

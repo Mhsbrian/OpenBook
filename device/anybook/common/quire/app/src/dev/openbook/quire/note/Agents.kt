@@ -78,6 +78,9 @@ class AgentDirectory(context: Context, private val main: Executor) : AcpAgent.Li
 
         /** Q6: an agent's call of Quire's OS tools; [answer] takes an MCP CallToolResult, once, from any thread. */
         fun onToolCall(name: String, args: JSONObject, answer: (JSONObject) -> Unit)
+
+        /** quired ended this owner's session (the agent's credentials changed); the connection stays open. */
+        fun onSessionStopped(reason: String)
     }
 
     private val prefs = context.getSharedPreferences("agents", Context.MODE_PRIVATE)
@@ -202,6 +205,16 @@ class AgentDirectory(context: Context, private val main: Executor) : AcpAgent.Li
             return
         }
         owner.onToolCall(name, args, answer)
+    }
+
+    /**
+     * quired ended some sessions on [agent]'s connection because the agent's credentials changed (ANAL-393): only the
+     * tasks that own them hear of it, and open a new session with their next message. Other tasks run on.
+     */
+    override fun onSessionsStopped(agent: AcpAgent, sessionIds: List<String>, reason: String) {
+        val owned = owners.dropSessions(agent, sessionIds)
+        Log.i(TAG, "acp: ${agent.endpoint.id} ended ${sessionIds.size} session(s) ($reason), ${owned.size} in notes")
+        owned.forEach { it.onSessionStopped(reason) }
     }
 
     /** A connection closed: only the tasks with a session on it hear of it; other agents' tasks run on. */

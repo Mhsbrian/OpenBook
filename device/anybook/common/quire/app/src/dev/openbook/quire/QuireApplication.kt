@@ -23,6 +23,9 @@ class QuireApplication : Application() {
     lateinit var surface: QuireSurface
         private set
 
+    /** Quire setup (docs/quire-setup.md): the Linux environment, agents and sign-in, outliving the wizard's window. */
+    val setup: dev.openbook.quire.setup.SetupController by lazy { dev.openbook.quire.setup.SetupController(this) }
+
     /** Disk work: screenshots and invocation records. */
     val io: ExecutorService = Executors.newSingleThreadExecutor()
 

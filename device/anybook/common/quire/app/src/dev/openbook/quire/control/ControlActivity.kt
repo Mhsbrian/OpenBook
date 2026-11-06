@@ -50,6 +50,11 @@ class ControlActivity : Activity(), ComputerControl.Listener, Agents.Listener, A
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // The Q2/Q4 test window: only the scripted checks on debuggable builds open it (ANAL-393).
+        if (!android.os.Build.isDebuggable()) {
+            finish()
+            return
+        }
         setContentView(layout())
         control.addListener(this)
         agents.addListener(this)

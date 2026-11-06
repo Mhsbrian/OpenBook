@@ -37,13 +37,18 @@
 #                 the image is checked against kernel/firmware/anybook-nvidia-open.tsv by extracting the image's own
 #                 vendor partition (--vendor-img, default PRODUCT_OUT's vendor.img when its sha256 matches), and the
 #                 Agreement goes next to the image, in SHA256SUMS and in release.json. Owner decision 2026-10-31.
+#   --linux-env DIR --linux-env-sources DIR
+#                 the Linux environment image Quire's agents run in (scripts/quire/linux-env-image.sh's output folder)
+#                 and its source bundle (scripts/quire/linux-env-sources.py --fetch). The bundle is checked against the
+#                 image's own package list first, and the release stops if any source is missing (ANAL-393,
+#                 docs/quire-setup.md §7). Both go next to the image and into SHA256SUMS.
 #   --private     the image is for the owner's own use (e.g. it carries NVIDIA's GSP firmware): compress and checksum
 #                 only. No torrent, no mirrors, and release.json says private.
 # Output: --out DIR (default <data dir>/release/out/<V>); log: <data dir>/logs/release/release-<V>-<UTC>.log
 set -euo pipefail
 A=${OPENBOOK_HOME:-${ANYBOOK_HOME:-$HOME/anybook}}
 R=$(cd "$(dirname "$0")/../.." && pwd)
-IMG=; VER=; OUT=; CHANNEL=preview; SITE=; KEY=; SIGPUB=; SRC=; OWNER=0; WAIVE=; PRIVATE=0; XZL=9; DEFTR=1; NVLIC=; VIMG=; PARTS=
+LENV=; LENVSRC=; IMG=; VER=; OUT=; CHANNEL=preview; SITE=; KEY=; SIGPUB=; SRC=; OWNER=0; WAIVE=; PRIVATE=0; XZL=9; DEFTR=1; NVLIC=; VIMG=; PARTS=
 MIRRORS=(); TRACKERS=()
 DEFAULT_TRACKERS=(
   udp://tracker.opentrackr.org:1337/announce
@@ -69,6 +74,8 @@ while [ $# -gt 0 ]; do
     --nvidia-licence) NVLIC=$(realpath "$2"); shift 2 ;;
     --vendor-img) VIMG=$(realpath "$2"); shift 2 ;;
     --partitions) PARTS=$(realpath "$2"); shift 2 ;;
+    --linux-env) LENV=$(realpath "$2"); shift 2 ;;
+    --linux-env-sources) LENVSRC=$(realpath "$2"); shift 2 ;;
     --xz-level) XZL=$2; shift 2 ;;
     -h|--help) sed -n '3,30p' "$0"; exit 0 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
@@ -192,12 +199,22 @@ else
   rm -f "$OUT/$NAME.img.xz.torrent"; echo '{}' > "$TJ"
 fi
 
+# 3b. the Linux environment image and its complete source (ANAL-393)
+if [ -n "$LENV" ]; then
+  [ -n "$LENVSRC" ] || die "--linux-env needs --linux-env-sources (scripts/quire/linux-env-sources.py --fetch)"
+  echo "-- the Linux environment image and its source bundle"
+  python3 "$R/scripts/quire/linux-env-sources.py" --check "$LENV" "$LENVSRC" || die "the Linux environment's source bundle is incomplete"
+  cp --reflink=auto "$LENV/images.tar.gz" "$OUT/$NAME.linux-env.tar.gz"
+  tar -C "$(dirname "$LENVSRC")" -cf "$OUT/$NAME.linux-env-source.tar" "$(basename "$LENVSRC")"
+fi
+
 # 4. checksums and signature
 echo "-- SHA256SUMS"
 {
   (cd "$OUT" && sha256sum "$NAME.img.xz")
   if [ $PRIVATE = 0 ]; then (cd "$OUT" && sha256sum "$NAME.img.xz.torrent"); fi
   if [ $NVOK = 1 ]; then (cd "$OUT" && sha256sum "$NVLICNAME"); fi
+  if [ -n "$LENV" ]; then (cd "$OUT" && sha256sum "$NAME.linux-env.tar.gz" "$NAME.linux-env-source.tar"); fi
   echo "$WANT  $NAME.img"   # the decompressed image, for people who unpack it first (sha256sum -c --ignore-missing)
 } > "$OUT/SHA256SUMS.tmp"
 mv "$OUT/SHA256SUMS.tmp" "$OUT/SHA256SUMS"

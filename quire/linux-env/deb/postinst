@@ -3,8 +3,12 @@ set -e
 if [ "$1" = configure ]; then
 	# Works in the image build's chroot too, where systemd isn't running.
 	deb-systemd-helper enable quired.service >/dev/null || true
+	deb-systemd-helper enable quire-admin.socket >/dev/null || true
 	if [ -d /run/systemd/system ]; then
 		systemctl daemon-reload >/dev/null || true
+		# Only quired restarts. An update runs from the admin worker's own transient unit, which a
+		# restart of the worker would stop half-way, so the worker's socket is only started.
 		systemctl restart quired.service >/dev/null || true
+		systemctl start quire-admin.socket >/dev/null || true
 	fi
 fi

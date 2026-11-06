@@ -26,6 +26,10 @@ fun main() {
     dev.openbook.quire.note.SessionRoutesTest.run(c)
     println("== IntakePolicy")
     dev.openbook.quire.invocation.IntakePolicyTest.run(c)
+    println("== NoteSession")
+    dev.openbook.quire.note.NoteSessionTest.run(c)
+    println("== SetupModel")
+    dev.openbook.quire.setup.SetupModelTest.run(c)
     println("${c.passed} passed, ${c.failed.size} failed")
     if (c.failed.isNotEmpty()) kotlin.system.exitProcess(1)
 }

@@ -1,0 +1,1374 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenBook <noreply@anybook.invalid>
+Date: Fri, 6 Nov 2026 16:00:00 +0000
+Subject: [PATCH] OPENBOOK: TerminalApp: OpenBook's pinned image, verified
+ before it is installed
+
+On a build that isn't debuggable, the Terminal app downloaded Google's
+image, which has no quired for Quire's agents. Its install also wrote
+each tar entry to dir.resolve(name) as the archive streamed in, with no
+check on the name, and marked the install complete only at the end.
+
+The image now comes from OpenBook's manifest,
+/product/etc/openbook/linux-env.json (URL, SHA-256, size, installed
+size), on every build type. A debuggable build still takes
+/sdcard/linux/images.tar.gz first, for the checks. A manifest with no
+URL, an invalid one, or an OpenBook build whose manifest is missing
+reports no_image and downloads nothing: never Google's. A build without
+OpenBook's folder keeps AOSP's download.
+
+OpenBook's image is installed in four steps (openbook/):
+- staged in no-backup storage (linux-staging/images.tar.gz.part with
+  staging.json), and continued after a restart with a Range request,
+  sent with If-Range and kept only on a 206 whose Content-Range starts
+  where the file ends; a 200, another range or a changed manifest
+  starts over;
+- verified whole, size and SHA-256, before anything is extracted;
+- extracted into <install>.new, refusing absolute paths, "..", paths
+  outside the folder or in a subfolder, links, devices, FIFOs, folders,
+  names AOSP's installer doesn't know, a name twice, and more than the
+  installed size;
+- swapped in by rename after the marker is written. What the person
+  has in the folder that isn't part of an image (root_part_backup) is
+  kept; a crash mid-swap is finished or undone on the next install.
+A refused image is dropped and not retried. A free-space check comes
+first. AOSP's streamed install, still used for /sdcard and Google's
+image, refuses entries that would leave the folder.
+
+The agent bridge reports no_image, the install's phase (download,
+verify, unpack), bytes and total, gets call("stop"), and offers vsock
+port 7691, quired's root worker in the guest, beside 7690.
+
+OpenBook ANAL-393 (Quire setup).
+
+Change-Id: I7144c884b2f5cf4c2f25b9ad511f6fc0cdd42e65
+---
+ .../terminal/AgentBridgeProvider.kt           |  57 +++-
+ .../virtualization/terminal/Application.kt    |   8 +
+ .../virtualization/terminal/ImageArchive.kt   | 146 ++++++++-
+ .../terminal/InstallerService.kt              |   4 +-
+ .../terminal/new2/core/Installer.kt           |   2 +
+ .../terminal/openbook/OpenBookImage.kt        | 301 ++++++++++++++++++
+ .../terminal/openbook/OpenBookInstall.kt      |  71 +++++
+ .../terminal/openbook/SafeExtractor.kt        | 198 ++++++++++++
+ .../terminal/openbook/StagedDownload.kt       | 249 +++++++++++++++
+ 9 files changed, 1019 insertions(+), 17 deletions(-)
+ create mode 100644 android/TerminalApp/java/com/android/virtualization/terminal/openbook/OpenBookImage.kt
+ create mode 100644 android/TerminalApp/java/com/android/virtualization/terminal/openbook/OpenBookInstall.kt
+ create mode 100644 android/TerminalApp/java/com/android/virtualization/terminal/openbook/SafeExtractor.kt
+ create mode 100644 android/TerminalApp/java/com/android/virtualization/terminal/openbook/StagedDownload.kt
+
+diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
+index 0787d9082..7550dfa52 100644
+--- a/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
++++ b/android/TerminalApp/java/com/android/virtualization/terminal/AgentBridgeProvider.kt
+@@ -33,6 +33,7 @@ import com.android.virtualization.terminal.new2.core.InstallState
+ import com.android.virtualization.terminal.new2.core.Installer
+ import com.android.virtualization.terminal.new2.core.VmController
+ import com.android.virtualization.terminal.new2.core.VmState
++import com.android.virtualization.terminal.openbook.InstallProgress
+ import java.io.FileDescriptor
+ import java.io.FileInputStream
+ import java.io.FileNotFoundException
+@@ -41,8 +42,9 @@ import java.util.concurrent.atomic.AtomicInteger
+ import kotlin.concurrent.thread
+ 
+ /**
+- * OpenBook: lets the system's agent host (Quire core) reach one service in the Linux environment
+- * while it runs: the guest's `quired serve` on vsock port 7690.
++ * OpenBook: lets the system's agent host (Quire core) reach two services in the Linux environment
++ * while it runs: the guest's `quired serve` on vsock port 7690, and `quired admin` on 7691, the
++ * guest's narrow root worker (Debian prerequisites and `quired` updates; it accepts only the host).
+  *
+  * Only a VM's owner can have a vsock to it, so this process connects to the guest, as
+  * [AndroidToVmBridge] does for ttyd, and relays the connection to one end of a socket pair; the
+@@ -52,20 +54,24 @@ import kotlin.concurrent.thread
+  * [PERMISSION] (signature|privileged), and only the ports in [PORTS] are offered: ttyd and the guest
+  * agent stay private to this app.
+  *
+- * - `openFile(content://com.android.virtualization.terminal.agentbridge/vsock/7690, "rw")`
+- * - `call("status")` returns `state` (not_installed, installing, stopped, starting, running, error) and,
+- *   for an error, `message`.
++ * - `openFile(content://com.android.virtualization.terminal.agentbridge/vsock/7690, "rw")`, and `.../vsock/7691`
++ * - `call("status")` returns `state` (not_installed, installing, stopped, starting, running, error, no_image) and,
++ *   for an error or no_image, `message`. While installing it also returns `phase` (download, verify, unpack),
++ *   `bytes` and `total` (0 when unknown). no_image: this OpenBook build has no image to install (its manifest names
++ *   none, or is invalid or missing), and nothing is downloaded instead.
+  * - `call("start")` starts the Linux environment for the caller and returns the same: it installs it first when it
+  *   isn't (from the image a debuggable build finds in /sdcard/linux, else the download), then starts the VM, so the
+  *   person never has to open this app for Quire's agents. Both run in [VmService], a foreground service: the caller
+  *   exempts this app from the background start limit first (PowerExemptionManager.addToTemporaryAllowList).
++ * - `call("stop")` stops the VM if it runs, and returns the same.
+  */
+ class AgentBridgeProvider : ContentProvider() {
+     companion object {
++        private const val INIT_WAIT_S = 20L
+         private const val TAG = "AgentBridge"
+         const val AUTHORITY = "com.android.virtualization.terminal.agentbridge"
+         const val PERMISSION = "com.android.virtualization.terminal.permission.ACCESS_AGENT_BRIDGE"
+-        val PORTS = setOf(7690L)
++        val PORTS = setOf(7690L, 7691L)
+         /** Nothing listens here; [probe] only asks whether the guest answers at all. */
+         private const val PROBE_PORT = 7699
+         private val nextId = AtomicInteger()
+@@ -82,7 +88,10 @@ class AgentBridgeProvider : ContentProvider() {
+     private fun state(): Pair<String, String?> {
+         if (!Flags.terminalNewuiJetpack()) return "error" to "the agent bridge needs the new Terminal UI"
+         if (Installer.isInstalling) return "installing" to null
+-        if (!InstalledImage.getDefault(context!!).isInstalled()) return "not_installed" to null
++        if (!InstalledImage.getDefault(context!!).isInstalled()) {
++            ImageArchive.noImageReason()?.let { return "no_image" to it }
++            return "not_installed" to null
++        }
+         return when (val s = VmController.vmState.value) {
+             // VmController calls the VM running as soon as crosvm is started, and AVF keeps listing it while its
+             // vhost-user helpers live, even after crosvm exited (at once without KVM: "no enabled hypervisor").
+@@ -118,24 +127,56 @@ class AgentBridgeProvider : ContentProvider() {
+ 
+     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
+         enforce()
++        // A call can arrive while the app is still starting (the provider is published first): the Installer and
++        // VmController it uses aren't set up until Application.onCreate ends (C, Cuttlefish 2026-11-06: an install
++        // started then failed with "NetworkMonitor not initialized").
++        if (!Application.initialized.await(INIT_WAIT_S, java.util.concurrent.TimeUnit.SECONDS)) {
++            return Bundle().apply {
++                putString("state", "error")
++                putString("message", "the Terminal app is still starting")
++            }
++        }
+         val (state, message) =
+             when (method) {
+                 "status" -> state()
+                 "start" -> start()
++                "stop" -> stop()
+                 else -> throw IllegalArgumentException("unknown method $method")
+             }
+         return Bundle().apply {
+             putString("state", state)
+             message?.let { putString("message", it) }
++            if (state == "installing") {
++                // What the installer is doing now; the new UI's own progress when it set none (a streamed install).
++                val phase = InstallProgress.phase
++                val installing = Installer.installState.value as? InstallState.Installing
++                putString("phase", phase ?: "download")
++                putLong("bytes", if (phase != null) InstallProgress.bytes else installing?.progress?.value ?: 0L)
++                putLong(
++                    "total",
++                    if (phase != null && InstallProgress.total > 0) InstallProgress.total
++                    else installing?.totalBytes ?: 0L,
++                )
++            }
+         }
+     }
+ 
++    /** Stops the VM when it runs; an install in progress carries on. */
++    private fun stop(): Pair<String, String?> {
++        val vm = VmController.virtualMachine
++        if (vm != null && vm.status == VirtualMachine.STATUS_RUNNING) {
++            Log.i(TAG, "stop: stopping the Linux environment for ${callingPackage ?: "?"}")
++            VmController.stop()
++        }
++        return state()
++    }
++
+     /** Installs if needed, then starts the VM; returns the state right after asking. See the class. */
+     private fun start(): Pair<String, String?> {
+         val (state, message) = state()
+         return try {
+             when (state) {
+-                "running", "starting", "installing" -> state to message
++                "running", "starting", "installing", "no_image" -> state to message
+                 "not_installed" -> {
+                     Log.i(TAG, "start: installing the Linux environment for ${callingPackage ?: "?"}")
+                     Installer.install()
+diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/Application.kt b/android/TerminalApp/java/com/android/virtualization/terminal/Application.kt
+index b33c0b0db..5fcd80cfe 100644
+--- a/android/TerminalApp/java/com/android/virtualization/terminal/Application.kt
++++ b/android/TerminalApp/java/com/android/virtualization/terminal/Application.kt
+@@ -31,6 +31,7 @@ public class Application : AndroidApplication() {
+             VmController.initialize(this)
+         }
+         setupNotificationChannels()
++        initialized.countDown()
+     }
+ 
+     private fun setupNotificationChannels() {
+@@ -57,6 +58,13 @@ public class Application : AndroidApplication() {
+         const val CHANNEL_LONG_RUNNING_ID = "long_running"
+         const val CHANNEL_SYSTEM_EVENTS_ID = "system_events"
+ 
++        /**
++         * Opened once onCreate has set up the Installer and VmController. Content providers are published before
++         * Application.onCreate runs, so a provider call (the agent bridge's) can arrive on a binder thread before them;
++         * it waits on this.
++         */
++        @JvmField val initialized = java.util.concurrent.CountDownLatch(1)
++
+         fun getInstance(c: Context): Application = c.getApplicationContext() as Application
+     }
+ }
+diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/ImageArchive.kt b/android/TerminalApp/java/com/android/virtualization/terminal/ImageArchive.kt
+index 08009f98d..58ef3010d 100644
+--- a/android/TerminalApp/java/com/android/virtualization/terminal/ImageArchive.kt
++++ b/android/TerminalApp/java/com/android/virtualization/terminal/ImageArchive.kt
+@@ -20,8 +20,15 @@ import android.os.Build
+ import android.os.Environment
+ import android.util.Log
+ import com.android.virtualization.terminal.MainActivity.Companion.TAG
++import com.android.virtualization.terminal.openbook.HttpFetcher
++import com.android.virtualization.terminal.openbook.ImageManifest
++import com.android.virtualization.terminal.openbook.ImageRefusedException
++import com.android.virtualization.terminal.openbook.ImageSource
++import com.android.virtualization.terminal.openbook.InstallProgress
++import com.android.virtualization.terminal.openbook.OpenBookInstall
+ import java.io.BufferedInputStream
+ import java.io.FileInputStream
++import java.io.FileNotFoundException
+ import java.io.FileOutputStream
+ import java.io.IOException
+ import java.io.InputStream
+@@ -31,6 +38,7 @@ import java.net.MalformedURLException
+ import java.net.URL
+ import java.nio.file.Files
+ import java.nio.file.Path
++import java.nio.file.Paths
+ import java.nio.file.StandardCopyOption
+ import java.util.function.Function
+ import kotlin.coroutines.cancellation.CancellationException
+@@ -58,6 +66,12 @@ internal class ImageArchive {
+ 
+     private data class PathSource<out Path>(val value: Path) : Source<Nothing, Path>()
+ 
++    /** OpenBook: the image its manifest pins (openbook/OpenBookImage.kt). */
++    private data class OpenBookSource(val manifest: ImageManifest) : Source<Nothing, Nothing>()
++
++    /** OpenBook: no usable image in this build, and never Google's instead. */
++    private data class NoImageSource(val reason: String) : Source<Nothing, Nothing>()
++
+     private val source: Source<URL, Path>
+     private val extra_source: Path
+ 
+@@ -71,11 +85,21 @@ internal class ImageArchive {
+         extra_source = extra_path
+     }
+ 
++    private constructor(src: Source<URL, Path>, extra_path: Path) {
++        source = src
++        extra_source = extra_path
++    }
++
++    /** Why this build has no image to install, or null when it has one. */
++    fun noImageReason(): String? = (source as? NoImageSource)?.reason
++
+     /** Tests if ImageArchive exists on the medium. */
+     fun exists(): Boolean {
+         return when (source) {
+             is UrlSource -> true
+             is PathSource -> Files.exists(source.value)
++            is OpenBookSource -> true
++            is NoImageSource -> false
+         }
+     }
+ 
+@@ -84,12 +108,17 @@ internal class ImageArchive {
+         return when (source) {
+             is UrlSource -> source.value.toString()
+             is PathSource -> source.value.toString()
++            is OpenBookSource -> source.manifest.url
++            is NoImageSource -> "(no image: ${source.reason})"
+         }
+     }
+ 
+     /** Returns size of the archive in bytes */
+     @Throws(IOException::class)
+     fun getSize(): Long {
++        // No image on this build: an IOException, which every caller handles (the Installer's status check falls
++        // back to its estimate), never the IllegalStateException below that would end the app.
++        if (source is NoImageSource) throw FileNotFoundException(source.reason)
+         check(exists()) { "Cannot get size of non existing archive" }
+         return when (source) {
+             is UrlSource -> {
+@@ -103,6 +132,8 @@ internal class ImageArchive {
+                 }
+             }
+             is PathSource -> Files.size(source.value)
++            is OpenBookSource -> source.manifest.size
++            is NoImageSource -> throw FileNotFoundException(source.reason)
+         }
+     }
+ 
+@@ -113,6 +144,7 @@ internal class ImageArchive {
+      */
+     @Throws(IOException::class)
+     internal fun getInputStream(offset: Long = 0L): InputStream {
++        if (source is NoImageSource) throw FileNotFoundException(source.reason)
+         check(exists()) { "Cannot get input stream of non existing archive" }
+         return when (source) {
+             is UrlSource -> {
+@@ -129,6 +161,8 @@ internal class ImageArchive {
+                 }
+                 stream
+             }
++            is OpenBookSource -> HttpFetcher().open(source.manifest.url, offset, null).body
++            is NoImageSource -> throw FileNotFoundException(source.reason)
+         }
+     }
+ 
+@@ -147,14 +181,85 @@ internal class ImageArchive {
+         context: Context,
+         dir: Path,
+         filter: Function<InputStream, InputStream>?,
++    ): Flow<Long> =
++        when (source) {
++            is OpenBookSource -> installOpenBook(context, dir, source.manifest)
++            is NoImageSource -> callbackFlow { close(FileNotFoundException(source.reason)) }
++            else -> installStreamed(context, dir, filter)
++        }
++
++    /**
++     * OpenBook's image (docs/quire-setup.md §4.1): staged in no-backup storage, checked whole against the manifest's
++     * size and SHA-256, then extracted with [SafeExtractor] into `<dir>.new`, which replaces [dir] only once it is
++     * complete. A failure leaves [dir] as it was. A refused image is never retried ([ImageRefusedException]); other
++     * failures keep the staged bytes, and the next try continues from them. The caller's [Function] filter isn't
++     * used: its reconnect counts from the start of one stream, and the staged file continues across restarts.
++     */
++    private fun installOpenBook(context: Context, dir: Path, manifest: ImageManifest): Flow<Long> = callbackFlow {
++        val job =
++            launch(Dispatchers.IO) {
++                Log.i(TAG, "Install started. OpenBook image ${manifest.version ?: "?"}: ${manifest.url}")
++                try {
++                    OpenBookInstall(
++                            manifest,
++                            context.noBackupFilesDir.toPath().resolve(STAGING_DIRNAME),
++                            dir,
++                            InstalledImage.MARKER_FILENAME,
++                        )
++                        .run(
++                            { newDir, names ->
++                                installCidata(
++                                    context,
++                                    newDir,
++                                    CIDATA_NAME in names,
++                                    InstalledImage.CIDATA_BUILD_ID_FILENAME in names,
++                                )
++                            },
++                            { phase, bytes, total ->
++                                InstallProgress.set(phase, bytes, total)
++                                if (phase == "download") trySend(bytes)
++                            },
++                        ) {
++                            !isActive
++                        }
++                    Log.i(TAG, "OpenBook image installed in $dir (sha256 ${manifest.sha256})")
++                    InstallProgress.clear()
++                    close()
++                } catch (e: Exception) {
++                    InstallProgress.clear()
++                    Log.e(TAG, "Installing the OpenBook image failed", e)
++                    close(e)
++                }
++            }
++        awaitClose { job.cancel() }
++    }
++
++    /** AOSP's handling of cidata.iso, for an image extracted into [dir]. */
++    private fun installCidata(context: Context, dir: Path, hasCidataInImage: Boolean, hasCidataBuildIdInImage: Boolean) {
++        if (Build.isDebuggable() && extra_source.exists() == true) {
++            Log.d(TAG, "Installing /sdcard/linux/cidata.iso")
++            Files.copy(extra_source, dir.resolve(extra_source.fileName), StandardCopyOption.REPLACE_EXISTING)
++            dir.resolve(InstalledImage.CIDATA_BUILD_ID_FILENAME).writeText("dev")
++        } else if (hasCidataInImage) {
++            if (!hasCidataBuildIdInImage) {
++                Files.deleteIfExists(dir.resolve(InstalledImage.CIDATA_BUILD_ID_FILENAME))
++            }
++        } else {
++            Log.d(TAG, "Installing bundled cidata.iso")
++            copyAsset(context, CIDATA_NAME, dir)
++            copyAsset(context, InstalledImage.CIDATA_BUILD_ID_FILENAME, dir)
++        }
++    }
++
++    /** AOSP's install: the archive streamed straight into [dir]. */
++    private fun installStreamed(
++        context: Context,
++        dir: Path,
++        filter: Function<InputStream, InputStream>?,
+     ): Flow<Long> = callbackFlow {
+         val job =
+             launch(Dispatchers.IO) {
+-                val sourceString =
+-                    when (source) {
+-                        is PathSource -> source.value.toString()
+-                        is UrlSource -> source.value.toString()
+-                    }
++                val sourceString = getPath()
+                 Log.d(TAG, "Install started. source: $sourceString, destination: $dir")
+ 
+                 try {
+@@ -162,6 +267,7 @@ internal class ImageArchive {
+                         when (source) {
+                             is UrlSource -> source.value.openStream()
+                             is PathSource -> FileInputStream(source.value.toFile())
++                            else -> throw IllegalStateException("not a streamed source: $sourceString")
+                         }
+                     val bufferedStream = BufferedInputStream(rawStream)
+                     val filteredStream = filter?.apply(bufferedStream) ?: bufferedStream
+@@ -170,6 +276,7 @@ internal class ImageArchive {
+                             if (!isActive) {
+                                 throw CancellationException("Installation cancelled")
+                             }
++                            InstallProgress.set(if (source is UrlSource) "download" else "unpack", bytes, 0)
+                             trySend(bytes)
+                         }
+ 
+@@ -178,6 +285,7 @@ internal class ImageArchive {
+                     TarArchiveInputStream(GzipCompressorInputStream(countingStream)).use { tarStream
+                         ->
+                         Files.createDirectories(dir)
++                        val root = dir.toAbsolutePath().normalize()
+                         var entry: ArchiveEntry?
+                         while ((tarStream.nextEntry.also { entry = it }) != null) {
+                             val name = entry!!.getName().removePrefix("./")
+@@ -186,6 +294,10 @@ internal class ImageArchive {
+                                 if (name == InstalledImage.CIDATA_BUILD_ID_FILENAME) true
+                                 else hasCidataBuildIdInImage
+                             val to = dir.resolve(name)
++                            // OpenBook: an entry never lands outside the install folder.
++                            if (!to.toAbsolutePath().normalize().startsWith(root)) {
++                                throw ImageRefusedException("refused the image: '$name' leaves the folder")
++                            }
+                             if (Files.isDirectory(to)) {
+                                 Files.createDirectories(to)
+                                 continue
+@@ -221,8 +333,10 @@ internal class ImageArchive {
+                     }
+ 
+                     commitInstallationAt(dir)
++                    InstallProgress.clear()
+                     close()
+                 } catch (e: Exception) {
++                    InstallProgress.clear()
+                     Log.e(TAG, "Installing images.tar.gz failed", e)
+                     close(e)
+                 }
+@@ -271,6 +385,8 @@ internal class ImageArchive {
+         private const val DIR_IN_SDCARD = "linux"
+         private const val ARCHIVE_NAME = "images.tar.gz"
+         private const val CIDATA_NAME = "cidata.iso"
++        /** OpenBook: where the download is staged, in the app's no-backup storage. */
++        private const val STAGING_DIRNAME = "linux-staging"
+         // TODO(b/403131508): externalize the version number
+         private const val VERSION_INT = 5_100_000 // 5.1.0
+         private val BUILD_TAG =
+@@ -315,15 +431,31 @@ internal class ImageArchive {
+         }
+ 
+         /**
+-         * Creates ImageArchive from either SdCard or Internet. SdCard is used only when the build
++         * OpenBook: the image to download. The one this build's manifest pins, or none ([noImageReason]) when the
++         * manifest has no URL, is invalid or is missing; Google's only on a build that isn't OpenBook's.
++         */
++        fun fromNetwork(): ImageArchive {
++            val cidata = getSdcardPathForTesting().resolve(CIDATA_NAME)
++            return when (val s = ImageSource.select(false, Paths.get("/nonexistent"), Paths.get(ImageManifest.PATH))) {
++                is ImageSource.OpenBook -> ImageArchive(OpenBookSource(s.manifest), cidata)
++                is ImageSource.NoImage -> ImageArchive(NoImageSource(s.reason), cidata)
++                else -> fromInternet()
++            }
++        }
++
++        /**
++         * Creates ImageArchive from either SdCard or the network ([fromNetwork]). SdCard is used only when the build
+          * is debuggable and the file actually exists.
+          */
+         fun getDefault(): ImageArchive {
+             return if (isLocalImage()) {
+                 fromSdCard()
+             } else {
+-                fromInternet()
++                fromNetwork()
+             }
+         }
++
++        /** Why this build has nothing to install (OpenBook with no usable image), or null. */
++        fun noImageReason(): String? = getDefault().noImageReason()
+     }
+ }
+diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/InstallerService.kt b/android/TerminalApp/java/com/android/virtualization/terminal/InstallerService.kt
+index afdb854d3..6816f4134 100644
+--- a/android/TerminalApp/java/com/android/virtualization/terminal/InstallerService.kt
++++ b/android/TerminalApp/java/com/android/virtualization/terminal/InstallerService.kt
+@@ -27,7 +27,7 @@ import android.os.Build
+ import android.os.IBinder
+ import android.util.Log
+ import com.android.internal.annotations.GuardedBy
+-import com.android.virtualization.terminal.ImageArchive.Companion.fromInternet
++import com.android.virtualization.terminal.ImageArchive.Companion.fromNetwork
+ import com.android.virtualization.terminal.ImageArchive.Companion.fromSdCard
+ import com.android.virtualization.terminal.InstalledImage.Companion.getDefault
+ import com.android.virtualization.terminal.InstallerService.InstallerServiceImpl
+@@ -197,7 +197,7 @@ class InstallerService : Service() {
+         val dest = getDefault(this).installDir
+         try {
+             runBlocking {
+-                fromInternet()
++                fromNetwork()
+                     .installTo(this@InstallerService, dest) {
+                         val filter = WifiCheckInputStream(it)
+                         filter.setWifiOnly(isWifiOnly)
+diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/new2/core/Installer.kt b/android/TerminalApp/java/com/android/virtualization/terminal/new2/core/Installer.kt
+index a8bd5315b..27aea43f1 100644
+--- a/android/TerminalApp/java/com/android/virtualization/terminal/new2/core/Installer.kt
++++ b/android/TerminalApp/java/com/android/virtualization/terminal/new2/core/Installer.kt
+@@ -258,6 +258,8 @@ object Installer {
+ 
+     private fun isPermanentError(e: IOException): Boolean {
+         if (e is java.io.FileNotFoundException) return true
++        // OpenBook: a refused image (wrong hash or size, an unsafe entry) would be refused again.
++        if (e is com.android.virtualization.terminal.openbook.ImageRefusedException) return true
+         if (e is java.nio.file.AccessDeniedException) return true
+         val msg = e.message
+         if (msg != null && msg.contains("No space left on device")) return true
+diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/openbook/OpenBookImage.kt b/android/TerminalApp/java/com/android/virtualization/terminal/openbook/OpenBookImage.kt
+new file mode 100644
+index 000000000..2bf1ac8fd
+--- /dev/null
++++ b/android/TerminalApp/java/com/android/virtualization/terminal/openbook/OpenBookImage.kt
+@@ -0,0 +1,301 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.android.virtualization.terminal.openbook
++
++import java.io.IOException
++import java.nio.file.Files
++import java.nio.file.Path
++import java.nio.file.Paths
++
++/*
++ * OpenBook: which Linux environment image this build installs, and how it is checked (docs/quire-setup.md §4.1).
++ * Nothing in this package uses Android types, so its rules run in host tests
++ * (device/anybook/common/linux-env/tests/image-archive-test.sh).
++ */
++
++/** The image was refused: a wrong hash or size, an unsafe archive entry, or no usable image. Never retried. */
++class ImageRefusedException(message: String) : IOException(message)
++
++/** `/product/etc/openbook/linux-env.json`, with a URL: the image this build installs. */
++data class ImageManifest(
++    val version: String?,
++    val url: String,
++    val sha256: String,
++    val size: Long,
++    val installedSize: Long?,
++) {
++    sealed interface Read {
++        data class Ready(val manifest: ImageManifest) : Read
++
++        /** The state before an image is published: the manifest names no URL. */
++        data class NoUrl(val version: String?) : Read
++
++        data class Invalid(val reason: String) : Read
++    }
++
++    companion object {
++        const val PATH = "/product/etc/openbook/linux-env.json"
++        private val HEX64 = Regex("^[0-9a-fA-F]{64}$")
++
++        fun read(text: String): Read {
++            val o =
++                try {
++                    MiniJson.parse(text) as? Map<*, *> ?: return Read.Invalid("not a JSON object")
++                } catch (e: IllegalArgumentException) {
++                    return Read.Invalid(e.message ?: "not JSON")
++                }
++            val version = o["version"] as? String
++            val url = o["url"]
++            if (url == null || (url is String && url.isBlank())) return Read.NoUrl(version)
++            if (url !is String) return Read.Invalid("url is not a string")
++            if (!url.startsWith("https://") && !url.startsWith("http://")) {
++                return Read.Invalid("url must be http or https")
++            }
++            val sha = o["sha256"] as? String ?: return Read.Invalid("no sha256")
++            if (!HEX64.matches(sha)) return Read.Invalid("sha256 is not 64 hex digits")
++            val size = (o["size"] as? Long)?.takeIf { it > 0 } ?: return Read.Invalid("size must be a positive integer")
++            val installed =
++                when (val v = o["installed_size"]) {
++                    null -> null
++                    is Long -> v.takeIf { it > 0 } ?: return Read.Invalid("installed_size must be positive")
++                    else -> return Read.Invalid("installed_size must be an integer")
++                }
++            return Read.Ready(ImageManifest(version, url, sha.lowercase(), size, installed))
++        }
++    }
++}
++
++/** Where this build's image comes from, decided in the order of docs/quire-setup.md §4.1. */
++sealed interface ImageSource {
++    /** A debuggable build's `/sdcard/linux/images.tar.gz`, for the checks. */
++    data class SdCard(val archive: Path) : ImageSource
++
++    data class OpenBook(val manifest: ImageManifest) : ImageSource
++
++    /** An OpenBook build with no usable image. Never Google's instead. */
++    data class NoImage(val reason: String) : ImageSource
++
++    /** Not an OpenBook build: AOSP's own download. */
++    data object Upstream : ImageSource
++
++    companion object {
++        /**
++         * Quire core, the system app every OpenBook product installs (device/anybook/common/quire). A build with it
++         * is OpenBook's whether or not its image manifest is there, so a missing manifest is [NoImage], never Google's
++         * image (ANAL-393, the Checker's follow-up).
++         */
++        const val OPENBOOK_MARKER = "/system_ext/priv-app/OpenBookQuire"
++
++        /**
++         * [manifest] is [ImageManifest.PATH]. An OpenBook build ([openBookMarker] present, or the manifest's folder)
++         * with no usable manifest gets [NoImage]. Only a build that isn't OpenBook's keeps AOSP's download.
++         */
++        fun select(debuggable: Boolean, sdcardArchive: Path, manifest: Path,
++            openBookMarker: Path = Paths.get(OPENBOOK_MARKER)): ImageSource {
++            if (debuggable && Files.isRegularFile(sdcardArchive)) return SdCard(sdcardArchive)
++            if (Files.exists(manifest)) {
++                val text =
++                    try {
++                        String(Files.readAllBytes(manifest), Charsets.UTF_8)
++                    } catch (e: IOException) {
++                        return NoImage("the image manifest can't be read: ${e.message}")
++                    }
++                return when (val r = ImageManifest.read(text)) {
++                    is ImageManifest.Read.Ready -> OpenBook(r.manifest)
++                    is ImageManifest.Read.NoUrl -> NoImage("this build doesn't include a Linux environment image yet")
++                    is ImageManifest.Read.Invalid -> NoImage("the image manifest is invalid: ${r.reason}")
++                }
++            }
++            val dir = manifest.parent
++            if (Files.exists(openBookMarker) || (dir != null && Files.isDirectory(dir))) {
++                return NoImage("the image manifest is missing")
++            }
++            return Upstream
++        }
++    }
++}
++
++/** What the install is doing, for the agent bridge: `phase` is download, verify or unpack; null when idle. */
++object InstallProgress {
++    @Volatile var phase: String? = null
++        private set
++
++    @Volatile var bytes: Long = 0
++        private set
++
++    @Volatile var total: Long = 0
++        private set
++
++    fun set(phase: String, bytes: Long, total: Long) {
++        this.bytes = bytes
++        this.total = total
++        this.phase = phase
++    }
++
++    fun clear() {
++        phase = null
++        bytes = 0
++        total = 0
++    }
++}
++
++/** Just enough JSON for the manifest and the staging record: objects, arrays, strings, integers, true, false, null. */
++object MiniJson {
++    fun parse(text: String): Any? {
++        val p = Parser(text)
++        p.ws()
++        val v = p.value()
++        p.ws()
++        require(p.i == text.length) { "trailing characters at ${p.i}" }
++        return v
++    }
++
++    fun write(o: Map<String, Any?>): String =
++        o.entries.joinToString(",", "{", "}") { (k, v) ->
++            quote(k) + ":" + when (v) {
++                null -> "null"
++                is String -> quote(v)
++                is Number, is Boolean -> v.toString()
++                else -> throw IllegalArgumentException("unsupported value for $k")
++            }
++        }
++
++    private fun quote(s: String): String {
++        val b = StringBuilder("\"")
++        for (c in s) {
++            when {
++                c == '"' -> b.append("\\\"")
++                c == '\\' -> b.append("\\\\")
++                c < ' ' -> b.append(String.format("\\u%04x", c.code))
++                else -> b.append(c)
++            }
++        }
++        return b.append('"').toString()
++    }
++
++    private class Parser(val s: String) {
++        var i = 0
++
++        fun ws() {
++            while (i < s.length && s[i].isWhitespace()) i++
++        }
++
++        fun value(): Any? {
++            require(i < s.length) { "unexpected end" }
++            return when (s[i]) {
++                '{' -> obj()
++                '[' -> arr()
++                '"' -> str()
++                't' -> lit("true", true)
++                'f' -> lit("false", false)
++                'n' -> lit("null", null)
++                else -> num()
++            }
++        }
++
++        private fun lit(word: String, v: Any?): Any? {
++            require(s.startsWith(word, i)) { "bad literal at $i" }
++            i += word.length
++            return v
++        }
++
++        private fun obj(): Map<String, Any?> {
++            val m = LinkedHashMap<String, Any?>()
++            i++
++            ws()
++            if (i < s.length && s[i] == '}') {
++                i++
++                return m
++            }
++            while (true) {
++                ws()
++                require(i < s.length && s[i] == '"') { "expected a key at $i" }
++                val k = str()
++                ws()
++                require(i < s.length && s[i] == ':') { "expected ':' at $i" }
++                i++
++                ws()
++                m[k] = value()
++                ws()
++                require(i < s.length) { "unexpected end" }
++                when (s[i++]) {
++                    ',' -> continue
++                    '}' -> return m
++                    else -> throw IllegalArgumentException("expected ',' or '}' at ${i - 1}")
++                }
++            }
++        }
++
++        private fun arr(): List<Any?> {
++            val l = ArrayList<Any?>()
++            i++
++            ws()
++            if (i < s.length && s[i] == ']') {
++                i++
++                return l
++            }
++            while (true) {
++                ws()
++                l += value()
++                ws()
++                require(i < s.length) { "unexpected end" }
++                when (s[i++]) {
++                    ',' -> continue
++                    ']' -> return l
++                    else -> throw IllegalArgumentException("expected ',' or ']' at ${i - 1}")
++                }
++            }
++        }
++
++        private fun str(): String {
++            val b = StringBuilder()
++            i++
++            while (true) {
++                require(i < s.length) { "unterminated string" }
++                val c = s[i++]
++                when (c) {
++                    '"' -> return b.toString()
++                    '\\' -> {
++                        require(i < s.length) { "unterminated escape" }
++                        when (val e = s[i++]) {
++                            '"', '\\', '/' -> b.append(e)
++                            'b' -> b.append('\b')
++                            'f' -> b.append('\u000c')
++                            'n' -> b.append('\n')
++                            'r' -> b.append('\r')
++                            't' -> b.append('\t')
++                            'u' -> {
++                                require(i + 4 <= s.length) { "bad \\u escape" }
++                                b.append(s.substring(i, i + 4).toInt(16).toChar())
++                                i += 4
++                            }
++                            else -> throw IllegalArgumentException("bad escape \\$e")
++                        }
++                    }
++                    else -> b.append(c)
++                }
++            }
++        }
++
++        private fun num(): Long {
++            val start = i
++            if (i < s.length && s[i] == '-') i++
++            while (i < s.length && s[i].isDigit()) i++
++            require(i > start && (i < s.length && s[i] in ".eE").not()) { "only integers are supported, at $start" }
++            return s.substring(start, i).toLongOrNull() ?: throw IllegalArgumentException("bad number at $start")
++        }
++    }
++}
+diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/openbook/OpenBookInstall.kt b/android/TerminalApp/java/com/android/virtualization/terminal/openbook/OpenBookInstall.kt
+new file mode 100644
+index 000000000..a2c2abc11
+--- /dev/null
++++ b/android/TerminalApp/java/com/android/virtualization/terminal/openbook/OpenBookInstall.kt
+@@ -0,0 +1,71 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.android.virtualization.terminal.openbook
++
++import java.nio.file.Files
++import java.nio.file.Path
++
++/**
++ * Installs OpenBook's image in four steps (docs/quire-setup.md §4.1): stage the download in [staging], verify all of
++ * it, extract checked names into `<install>.new`, then swap that in for [install]. A failure at any step leaves
++ * [install] as it was. A refused image ([ImageRefusedException]) is dropped from [staging], so it is never extracted
++ * or continued later; any other failure keeps the staged bytes for the next try.
++ *
++ * [cidata] adds the guest agent's files to the extracted folder (AOSP's handling, which needs Android), given the
++ * names the archive held.
++ */
++class OpenBookInstall(
++    private val manifest: ImageManifest,
++    private val staging: Path,
++    private val install: Path,
++    private val marker: String,
++    private val fetcher: Fetcher = HttpFetcher(),
++    private val usableSpace: (Path) -> Long = { Files.getFileStore(it).usableSpace },
++) {
++    fun run(
++        cidata: (Path, Set<String>) -> Unit,
++        listener: StagedDownload.Listener,
++        cancelled: () -> Boolean,
++    ) {
++        val download = StagedDownload(staging, manifest, fetcher, usableSpace)
++        val newDir = InstallCommit.staging(install)
++        try {
++            InstallCommit.recover(install, marker)
++            val installed = manifest.installedSize ?: (manifest.size * 4)
++            val archive = download.run(installed, listener, cancelled)
++            listener.phase("unpack", 0, installed)
++            try {
++                val names =
++                    SafeExtractor.extract(
++                        archive,
++                        newDir,
++                        manifest.installedSize?.let { it + StagedDownload.SPACE_MARGIN },
++                        { n -> listener.phase("unpack", n, installed) },
++                        cancelled,
++                    )
++                cidata(newDir, names)
++                InstallCommit.commit(newDir, install, marker)
++            } catch (e: Exception) {
++                SafeExtractor.deleteTree(newDir)
++                throw e
++            }
++            download.clear()
++        } catch (e: ImageRefusedException) {
++            download.clear()
++            throw e
++        }
++    }
++}
+diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/openbook/SafeExtractor.kt b/android/TerminalApp/java/com/android/virtualization/terminal/openbook/SafeExtractor.kt
+new file mode 100644
+index 000000000..1f249b62f
+--- /dev/null
++++ b/android/TerminalApp/java/com/android/virtualization/terminal/openbook/SafeExtractor.kt
+@@ -0,0 +1,198 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.android.virtualization.terminal.openbook
++
++import java.io.BufferedInputStream
++import java.io.FileInputStream
++import java.io.IOException
++import java.nio.file.FileVisitResult
++import java.nio.file.Files
++import java.nio.file.LinkOption
++import java.nio.file.Path
++import java.nio.file.SimpleFileVisitor
++import java.nio.file.StandardCopyOption
++import java.nio.file.StandardOpenOption
++import java.nio.file.attribute.BasicFileAttributes
++import java.util.concurrent.CancellationException
++import org.apache.commons.compress.archivers.tar.TarArchiveEntry
++import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
++import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
++
++/**
++ * Extracts a verified image archive into a fresh folder, refusing anything AOSP's installer doesn't expect: a path
++ * that is absolute, has `..` or leaves the folder; anything that isn't a regular file (links, devices, FIFOs,
++ * folders other than the archive's root); a name outside [ALLOWED]; a name twice; more bytes than [limit].
++ */
++object SafeExtractor {
++    val ALLOWED =
++        setOf(
++            "build_id",
++            "root_part",
++            "vm_config.json",
++            "vmlinuz",
++            "initrd.img",
++            "efi_part",
++            "cidata.iso",
++            "cidata.build_id",
++        )
++
++    /** Returns the names extracted. On any refusal [dest] is deleted and [ImageRefusedException] thrown. */
++    fun extract(
++        archive: Path,
++        dest: Path,
++        limit: Long?,
++        onBytes: (Long) -> Unit = {},
++        cancelled: () -> Boolean = { false },
++    ): Set<String> {
++        deleteTree(dest)
++        Files.createDirectories(dest)
++        val root = dest.toAbsolutePath().normalize()
++        val names = LinkedHashSet<String>()
++        var total = 0L
++        try {
++            TarArchiveInputStream(GzipCompressorInputStream(BufferedInputStream(FileInputStream(archive.toFile())))).use { tar ->
++                val buf = ByteArray(256 * 1024)
++                while (true) {
++                    val e = tar.nextEntry as TarArchiveEntry? ?: break
++                    val raw = e.name
++                    val name = raw.removePrefix("./").removeSuffix("/")
++                    if (name.isEmpty() || name == ".") {
++                        if (e.isDirectory) continue
++                        refuse(raw, "an entry with no name")
++                    }
++                    if (raw.startsWith("/")) refuse(raw, "an absolute path")
++                    if (raw.contains('\u0000') || raw.contains('\\')) refuse(raw, "a name with a NUL or a backslash")
++                    if (name.split('/').any { it == ".." }) refuse(raw, "a path with ..")
++                    val to = root.resolve(name).normalize()
++                    if (!to.startsWith(root)) refuse(raw, "a path outside the image folder")
++                    if (to.parent != root) refuse(raw, "a path in a subfolder")
++                    when {
++                        e.isSymbolicLink -> refuse(raw, "a symbolic link")
++                        e.isLink -> refuse(raw, "a hard link")
++                        e.isCharacterDevice || e.isBlockDevice -> refuse(raw, "a device")
++                        e.isFIFO -> refuse(raw, "a FIFO")
++                        e.isDirectory -> refuse(raw, "a folder")
++                        e.isGNUSparse -> refuse(raw, "a sparse file")
++                    }
++                    if (name !in ALLOWED) refuse(raw, "a file the installer doesn't know")
++                    if (!names.add(name)) refuse(raw, "a file twice")
++                    if (limit != null && total + e.size > limit) refuse(raw, "more than the image's installed size")
++                    Files.newOutputStream(to, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE).use { out ->
++                        while (true) {
++                            if (cancelled()) throw CancellationException("the install was cancelled")
++                            val n = tar.read(buf)
++                            if (n < 0) break
++                            total += n
++                            if (limit != null && total > limit) refuse(raw, "more than the image's installed size")
++                            out.write(buf, 0, n)
++                            onBytes(total)
++                        }
++                    }
++                }
++            }
++        } catch (e: Exception) {
++            deleteTree(dest)
++            throw e
++        }
++        if (names.isEmpty()) {
++            deleteTree(dest)
++            throw ImageRefusedException("the image archive is empty")
++        }
++        return names
++    }
++
++    private fun refuse(entry: String, what: String): Nothing =
++        throw ImageRefusedException("refused the image: '$entry' is $what")
++
++    fun deleteTree(p: Path) {
++        if (!Files.exists(p, LinkOption.NOFOLLOW_LINKS)) return
++        Files.walkFileTree(
++            p,
++            object : SimpleFileVisitor<Path>() {
++                override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
++                    Files.delete(file)
++                    return FileVisitResult.CONTINUE
++                }
++
++                override fun postVisitDirectory(dir: Path, exc: IOException?): FileVisitResult {
++                    Files.delete(dir)
++                    return FileVisitResult.CONTINUE
++                }
++            },
++        )
++    }
++}
++
++/**
++ * Puts a complete, extracted image in place of the install folder, keeping what the person has there that isn't part
++ * of an image (such as `root_part_backup`, the old guest's disk kept by an upgrade). Each step leaves something
++ * [recover] can finish or undo, so an interrupted swap never loses the old folder.
++ */
++object InstallCommit {
++    private fun old(install: Path) = install.resolveSibling(install.fileName.toString() + ".old")
++
++    fun staging(install: Path): Path = install.resolveSibling(install.fileName.toString() + ".new")
++
++    /** [newDir] already holds the image; writes [marker] in it, then swaps it in for [install]. */
++    fun commit(newDir: Path, install: Path, marker: String) {
++        Files.createFile(newDir.resolve(marker))
++        val old = old(install)
++        SafeExtractor.deleteTree(old)
++        if (Files.exists(install, LinkOption.NOFOLLOW_LINKS)) Files.move(install, old, StandardCopyOption.ATOMIC_MOVE)
++        try {
++            Files.move(newDir, install, StandardCopyOption.ATOMIC_MOVE)
++        } catch (e: IOException) {
++            if (Files.exists(old)) Files.move(old, install, StandardCopyOption.ATOMIC_MOVE)
++            throw e
++        }
++        carryOver(old, install, marker)
++        SafeExtractor.deleteTree(old)
++    }
++
++    /** Finishes or undoes a swap that a crash interrupted, and drops a leftover extraction. */
++    fun recover(install: Path, marker: String) {
++        val old = old(install)
++        val new = staging(install)
++        val hasInstall = Files.exists(install, LinkOption.NOFOLLOW_LINKS)
++        if (Files.exists(old, LinkOption.NOFOLLOW_LINKS)) {
++            if (!hasInstall) {
++                if (Files.exists(new.resolve(marker))) {
++                    Files.move(new, install, StandardCopyOption.ATOMIC_MOVE)
++                    carryOver(old, install, marker)
++                    SafeExtractor.deleteTree(old)
++                } else {
++                    Files.move(old, install, StandardCopyOption.ATOMIC_MOVE)
++                }
++            } else {
++                carryOver(old, install, marker)
++                SafeExtractor.deleteTree(old)
++            }
++        }
++        SafeExtractor.deleteTree(new)
++    }
++
++    private fun carryOver(old: Path, install: Path, marker: String) {
++        if (!Files.isDirectory(old, LinkOption.NOFOLLOW_LINKS)) return
++        Files.list(old).use { s ->
++            for (f in s.toList()) {
++                val n = f.fileName.toString()
++                if (n in SafeExtractor.ALLOWED || n == marker) continue
++                val to = install.resolve(n)
++                if (!Files.exists(to, LinkOption.NOFOLLOW_LINKS)) Files.move(f, to, StandardCopyOption.ATOMIC_MOVE)
++            }
++        }
++    }
++}
+diff --git a/android/TerminalApp/java/com/android/virtualization/terminal/openbook/StagedDownload.kt b/android/TerminalApp/java/com/android/virtualization/terminal/openbook/StagedDownload.kt
+new file mode 100644
+index 000000000..f74bbcfac
+--- /dev/null
++++ b/android/TerminalApp/java/com/android/virtualization/terminal/openbook/StagedDownload.kt
+@@ -0,0 +1,249 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++package com.android.virtualization.terminal.openbook
++
++import java.io.ByteArrayInputStream
++import java.io.Closeable
++import java.io.FileInputStream
++import java.io.FileNotFoundException
++import java.io.FileOutputStream
++import java.io.IOException
++import java.io.InputStream
++import java.net.HttpURLConnection
++import java.net.URL
++import java.nio.file.Files
++import java.nio.file.Path
++import java.security.MessageDigest
++import java.util.concurrent.CancellationException
++
++/** One HTTP answer: its status, `Content-Range`, the validator (ETag or Last-Modified), and its body. */
++class FetchResponse(val code: Int, val contentRange: String?, val validator: String?, val body: InputStream) :
++    Closeable {
++    override fun close() = body.close()
++}
++
++fun interface Fetcher {
++    /** GET [url] from [offset] (a `Range` request when it is above 0), with `If-Range: validator` when given. */
++    fun open(url: String, offset: Long, validator: String?): FetchResponse
++}
++
++class HttpFetcher(private val connectMs: Int = 30_000, private val readMs: Int = 60_000) : Fetcher {
++    override fun open(url: String, offset: Long, validator: String?): FetchResponse {
++        val c = URL(url).openConnection() as HttpURLConnection
++        c.connectTimeout = connectMs
++        c.readTimeout = readMs
++        c.instanceFollowRedirects = true
++        c.setRequestProperty("Accept-Encoding", "identity")
++        if (offset > 0) {
++            c.setRequestProperty("Range", "bytes=$offset-")
++            validator?.let { c.setRequestProperty("If-Range", it) }
++        }
++        val code = c.responseCode
++        val body = if (code in 200..299) c.inputStream else (c.errorStream ?: ByteArrayInputStream(ByteArray(0)))
++        return FetchResponse(
++            code,
++            c.getHeaderField("Content-Range"),
++            c.getHeaderField("ETag") ?: c.getHeaderField("Last-Modified"),
++            object : InputStream() {
++                override fun read() = body.read()
++
++                override fun read(b: ByteArray, off: Int, len: Int) = body.read(b, off, len)
++
++                override fun close() {
++                    body.close()
++                    c.disconnect()
++                }
++            },
++        )
++    }
++}
++
++/**
++ * The image's download, staged in [dir] (the Terminal app's no-backup storage), never in the install folder:
++ * `images.tar.gz.part` and `staging.json`, which records the manifest it belongs to. A later start, after this process
++ * ended too, continues where the file ends: by a `Range` request, taken only on a 206 whose `Content-Range` starts
++ * there. A 200, any other range or a changed manifest starts over. [run] returns the archive only once all of it
++ * matches the pinned size and SHA-256; nothing is extracted before that.
++ */
++class StagedDownload(
++    private val dir: Path,
++    private val manifest: ImageManifest,
++    private val fetcher: Fetcher,
++    private val usableSpace: (Path) -> Long = { Files.getFileStore(it).usableSpace },
++) {
++    fun interface Listener {
++        fun phase(phase: String, bytes: Long, total: Long)
++    }
++
++    val part: Path = dir.resolve("images.tar.gz.part")
++    private val record: Path = dir.resolve("staging.json")
++
++    /** Bytes already staged for this manifest; 0 when nothing is, or what is belongs to another manifest. */
++    fun staged(): Long {
++        if (!Files.isRegularFile(part) || recorded() == null) return 0
++        val n = Files.size(part)
++        return if (n <= manifest.size) n else 0
++    }
++
++    /** The staged archive, verified. [installedNeed] is the space the extraction needs on the same storage. */
++    fun run(installedNeed: Long, listener: Listener, cancelled: () -> Boolean): Path {
++        Files.createDirectories(dir)
++        var offset = staged()
++        val validator = if (offset > 0) recorded()?.second else null
++        if (offset == 0L) reset()
++        val need = (manifest.size - offset) + installedNeed + SPACE_MARGIN
++        val have = usableSpace(dir)
++        if (have < need) throw IOException("No space left on device: the Linux environment needs $need bytes, $have free")
++
++        val digest = MessageDigest.getInstance("SHA-256")
++        if (offset > 0) {
++            // Hash what is already here, so the whole file is checked, not only the new bytes.
++            val staged = offset
++            listener.phase("verify", 0, staged)
++            FileInputStream(part.toFile()).use { input ->
++                pump(input, null, digest, staged, cancelled, exact = true) { n -> listener.phase("verify", n, staged) }
++            }
++        }
++        if (offset < manifest.size) {
++            var r = fetcher.open(manifest.url, offset, validator)
++            if (offset > 0 && !(r.code == 206 && rangeMatches(r.contentRange, offset, manifest.size))) {
++                when (r.code) {
++                    // The server sent the whole file (If-Range: it changed), or a range we didn't ask for: start over.
++                    200 -> {}
++                    206, 416 -> r = r.also { it.close() }.let { fetcher.open(manifest.url, 0, null) }
++                    else -> r.use { failed(it.code) }
++                }
++                offset = 0
++                digest.reset()
++                reset()
++            }
++            r.use { resp ->
++                val continuing = offset > 0
++                if (!continuing && !(resp.code == 200 || (resp.code == 206 && rangeMatches(resp.contentRange, 0, manifest.size)))) {
++                    failed(resp.code)
++                }
++                writeRecord(resp.validator)
++                val from = offset
++                FileOutputStream(part.toFile(), true).use { out ->
++                    pump(resp.body, out, digest, manifest.size - from, cancelled, exact = false) { n ->
++                        listener.phase("download", from + n, manifest.size)
++                    }
++                }
++            }
++        }
++        listener.phase("verify", manifest.size, manifest.size)
++        val got = Files.size(part)
++        if (got != manifest.size) throw IOException("the download ended early: $got of ${manifest.size} bytes")
++        val hex = digest.digest().joinToString("") { "%02x".format(it) }
++        if (hex != manifest.sha256) refuse("the image's SHA-256 is $hex, not the pinned ${manifest.sha256}")
++        return part
++    }
++
++    private fun failed(code: Int): Nothing {
++        if (code == 404 || code == 410) throw FileNotFoundException("the image is not at ${manifest.url} (HTTP $code)")
++        throw IOException("downloading the image: HTTP $code")
++    }
++
++    /** Removes the staged download and its record. */
++    fun clear() {
++        Files.deleteIfExists(part)
++        Files.deleteIfExists(record)
++    }
++
++    private fun refuse(why: String): Nothing {
++        clear()
++        throw ImageRefusedException(why)
++    }
++
++    private fun reset() {
++        Files.deleteIfExists(part)
++        writeRecord(null)
++    }
++
++    /** (url, validator) when the record belongs to this manifest. */
++    private fun recorded(): Pair<String, String?>? {
++        if (!Files.isRegularFile(record)) return null
++        val o =
++            try {
++                MiniJson.parse(String(Files.readAllBytes(record), Charsets.UTF_8)) as? Map<*, *>
++            } catch (e: Exception) {
++                null
++            } ?: return null
++        if (o["url"] != manifest.url || o["sha256"] != manifest.sha256 || o["size"] != manifest.size) return null
++        return manifest.url to (o["validator"] as? String)
++    }
++
++    private fun writeRecord(validator: String?) {
++        val tmp = dir.resolve("staging.json.tmp")
++        Files.write(
++            tmp,
++            MiniJson.write(
++                    mapOf(
++                        "url" to manifest.url,
++                        "sha256" to manifest.sha256,
++                        "size" to manifest.size,
++                        "validator" to validator,
++                    )
++                )
++                .toByteArray(Charsets.UTF_8),
++        )
++        Files.move(tmp, record, java.nio.file.StandardCopyOption.REPLACE_EXISTING,
++            java.nio.file.StandardCopyOption.ATOMIC_MOVE)
++    }
++
++    private fun pump(
++        input: InputStream,
++        out: java.io.OutputStream?,
++        digest: MessageDigest,
++        limit: Long,
++        cancelled: () -> Boolean,
++        exact: Boolean = true,
++        progress: (Long) -> Unit,
++    ) {
++        val buf = ByteArray(256 * 1024)
++        var n = 0L
++        var lastReport = 0L
++        while (true) {
++            if (cancelled()) throw CancellationException("the install was cancelled")
++            val want = if (exact) minOf(buf.size.toLong(), limit - n).toInt() else buf.size
++            if (exact && want <= 0) break
++            val r = input.read(buf, 0, want)
++            if (r < 0) break
++            if (!exact && n + r > limit) refuse("the download is larger than the pinned ${manifest.size} bytes")
++            digest.update(buf, 0, r)
++            out?.write(buf, 0, r)
++            n += r
++            if (n - lastReport >= REPORT_EVERY) {
++                lastReport = n
++                progress(n)
++            }
++        }
++        progress(n)
++    }
++
++    companion object {
++        /** Room left over after the download and the extraction. */
++        const val SPACE_MARGIN = 256L shl 20
++        private const val REPORT_EVERY = 1L shl 20
++
++        /** `bytes START-END/TOTAL` with START == [offset], END the last byte, and TOTAL [size] or `*`. */
++        fun rangeMatches(contentRange: String?, offset: Long, size: Long): Boolean {
++            val m = Regex("""^\s*bytes\s+(\d+)-(\d+)/(\d+|\*)\s*$""").find(contentRange ?: return false) ?: return false
++            val (start, end, total) = m.destructured
++            return start.toLongOrNull() == offset && end.toLongOrNull() == size - 1 && (total == "*" || total.toLongOrNull() == size)
++        }
++    }
++}

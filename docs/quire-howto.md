@@ -35,30 +35,42 @@ time it works in an app, the laptop asks whether Quire may use screen automation
 
 Battery Saver can't turn on while the laptop is plugged in. Android allows it only on battery.
 
-## Pick or add an agent
+## Set up Quire
 
-- **The first time**, the note says "Connect an agent" and lists what it found in the Linux environment. Click
-  the **Connect** button for the agent you want. Quire sends nothing to an agent before you connect it.
+Open **Quire** from All Apps, or click **Set up Quire** in the note. Setup is one window with four steps, and a step
+that is already done is skipped:
+
+1. **Linux:** Quire turns on the Linux environment, downloads it (about 800 MB, once), checks it and starts it. You
+   can close the window; a notification says when it's ready. If the laptop's virtualization is off in its
+   firmware, the page says how to turn it on.
+2. **Agents:** pick the ones you want. Each card says who makes it and what it needs: opencode works with free
+   models and needs no account. **What will run** shows the exact commands before you install. Agents run as your
+   user in the Linux environment, without admin rights.
+3. **Sign in:** each agent signs in with its maker, in your browser. The window shows a one-time code to copy, or a
+   field for the code the page gives you. Some agents take an API key instead. Quire never sees your password.
+4. **Try it:** Quire sends one real request to your default agent and shows the answer.
+
+After setup, **Quire** in All Apps opens on your agents: the Linux environment (Stop, Start), and each agent with
+Update, Sign in again, Sign out and Remove, a mark for the default one, and **Add agents**. Terminal is still there
+for anything else: any agent that speaks the Agent Client Protocol and is on the Linux environment's `PATH` is listed.
+
 - **To switch agents**, click the agent's name on the note's last line.
-- **To add an agent**, install its command-line tool in the Linux environment: open **Terminal** and install it the
-  way its maker says. The next time you call Quire, the note lists it. Quire knows Claude Code, opencode, GitHub
-  Copilot CLI, Cursor Agent, Gemini CLI, Codex CLI, Grok CLI, Antigravity CLI, Kimi Code, Hermes and Oh My Pi. Not all
-  of them can run through Quire yet; `quire.md` §6 lists which.
-- **Sign-ins:** an agent that needs one shows **Sign in** in the note. The agent runs its own sign-in, and Quire never
-  sees your password. Some agents sign in only from the Terminal, with their own login command.
-- Test images of the Linux environment come with opencode, which uses its free model and needs no account. A product
-  image ships no agent.
+- **Quire knows** Claude Code, opencode, GitHub Copilot CLI, Cursor Agent, Gemini CLI, Antigravity CLI, Kimi Code,
+  Grok CLI, Hermes and Oh My Pi. Codex CLI is listed as coming. `quire-setup.md` §5 has each one's installer and
+  sign-in.
+- **Keys** are kept only in the Linux environment, in a file only your user can read. Other agents there run as
+  your user too, so they could read it. Sign out deletes it.
+- **Test images** of the Linux environment come with opencode. A release image ships no agent.
 
 ## The Linux environment
 
 Agents run in the Linux environment, a Debian virtual machine on the laptop. It needs hardware virtualization (SVM on
 AMD) turned on in the laptop's firmware; without it, Quire says so.
 
-- **First start:** turn on **Settings › System › Developer options › Linux development environment**, then open
-  **Terminal** once. On a `userdebug` build, such as the developer previews, it installs OpenBook's Debian image, with
-  `quired`, from `/sdcard/linux/images.tar.gz` and starts it. From a build host, `scripts/quire/linux-env-adb.sh push`
-  puts the image there. Without it, the Terminal app downloads Google's image, which has no `quired`, so Quire finds no
-  agent.
+- **First start:** Quire setup does it (above). The image is OpenBook's own Debian image with `quired`, checked
+  against a SHA-256 the build pins. On a `userdebug` build, such as the developer previews, a copy at
+  `/sdcard/linux/images.tar.gz` is used instead; from a build host, `scripts/quire/linux-env-adb.sh push` puts it
+  there. A build that names no image says so; OpenBook never installs Google's image, which has no `quired`.
 - **To stop it for now:** use the Terminal notification.
 - **To turn it off:** switch **Linux development environment** off. Quire then says the Linux environment is off
   instead of failing.

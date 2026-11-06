@@ -7,7 +7,11 @@
 # AVF release flags (custom VMs with paravirtualized devices, networking).
 #
 # The Terminal app ships disabled, as in AOSP: the person turns it on in Developer options ("Linux development
-# environment"). It finds its Debian image at /sdcard/linux/images.tar.gz on a debuggable build, else downloads
-# Google's; OpenBook builds its own (scripts/quire/linux-env-image.sh). Whether VMs can run is decided at boot: by
-# Cuttlefish's launcher, and on a PC by init.openbook.rc from whether KVM is there.
+# environment"), or Quire does. It finds its Debian image at /sdcard/linux/images.tar.gz on a debuggable build, else
+# downloads the one linux-env.json pins; OpenBook builds its own (scripts/quire/linux-env-image.sh). Whether VMs can
+# run is decided at boot: by Cuttlefish's launcher, and on a PC by init.openbook.rc from whether KVM is there.
 $(call inherit-product, packages/modules/Virtualization/apex/product_packages.mk)
+
+# OpenBook's image for it (ANAL-393): /product/etc/openbook/linux-env.json pins the image's URL and SHA-256. The
+# Terminal app installs only that image, checked before it is extracted, on every build type, and never Google's.
+PRODUCT_PACKAGES += openbook_linux_env_manifest

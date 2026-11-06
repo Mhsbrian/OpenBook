@@ -164,7 +164,7 @@ func newFixture(t *testing.T, needAuth bool) *fixture {
 		Discover: func(context.Context) []agents.Found {
 			return []agents.Found{
 				{Spec: agents.Spec{ID: "fake", Name: "Fake", Protocol: agents.ACP}, Path: "/bin/true", Version: "1", Supported: true},
-				{Spec: agents.Spec{ID: "grok", Name: "Grok CLI", Protocol: agents.GrokHeadless, Note: "no adapter"}, Path: "/bin/true", Supported: false},
+				{Spec: agents.Spec{ID: "grok", Name: "Grok CLI", Protocol: agents.CodexAppServer, Note: "no adapter"}, Path: "/bin/true", Supported: false},
 			}
 		},
 		Start: func(_ context.Context, spec agents.Spec, c harness.Client, _ harness.Options) (harness.Agent, error) {
@@ -515,7 +515,7 @@ func TestServeAuthRequiredThenAuthenticate(t *testing.T) {
 
 func TestServeRefusesBeforeInitializeAndUnknownAgents(t *testing.T) {
 	srv := &Server{Version: "test", Root: t.TempDir(), Discover: func(context.Context) []agents.Found {
-		return []agents.Found{{Spec: agents.Spec{ID: "grok", Protocol: agents.GrokHeadless, Note: "no adapter"}, Supported: false}}
+		return []agents.Found{{Spec: agents.Spec{ID: "grok", Protocol: agents.CodexAppServer, Note: "no adapter"}, Supported: false}}
 	}}
 	sr, cw := io.Pipe()
 	cr, sw := io.Pipe()

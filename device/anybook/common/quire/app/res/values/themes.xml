@@ -11,6 +11,12 @@
         <item name="android:defaultFocusHighlightEnabled">false</item>
     </style>
 
+    <!-- Quire setup (ANAL-393): the window draws the note's glass itself (setup/SetupViews.kt GlassBackground). -->
+    <style name="Theme.Quire.Setup" parent="Theme.Quire">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+    </style>
+
     <!-- ConsentWaitActivity: transparent, no animation, no system bars of its own; its window is inert (no touch, no
          focus) and only shows Quire's waiting card beneath the platform's consent dialog. -->
     <style name="Theme.Quire.ConsentWait" parent="@android:style/Theme.Translucent.NoTitleBar">

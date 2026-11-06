@@ -40,6 +40,13 @@ class SessionRoutes<C : Any, O : Any> {
         return gone.map { it.value }
     }
 
+    /**
+     * quired ended some sessions on [connection] (`_quire/agent/stopped`): removes exactly those routes and returns
+     * their owners. Other sessions on it, and every route on other connections, stay.
+     */
+    fun dropSessions(connection: C, sessionIds: Collection<String>): List<O> =
+        sessionIds.mapNotNull { owners.remove(Key(connection, it)) }
+
     val size: Int
         get() = owners.size
 }

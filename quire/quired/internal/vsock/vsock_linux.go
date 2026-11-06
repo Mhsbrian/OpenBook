@@ -218,3 +218,23 @@ func Available() bool {
 
 // IsClosed reports whether err came from using a closed listener or connection.
 func IsClosed(err error) bool { return errors.Is(err, os.ErrClosed) }
+
+// AF_VSOCK is the address family of vsock sockets, as Peer reports it.
+const AF_VSOCK = afVsock
+
+// Peer returns the address family of the socket fd's peer and, for vsock, its address. A
+// socket handed over by systemd (socket activation with Accept=yes) is checked this way.
+func Peer(fd int) (family uint16, addr Addr, err error) {
+	var buf [128]byte // sockaddr_storage
+	l := uint32(len(buf))
+	_, _, e := syscall.Syscall(syscall.SYS_GETPEERNAME, uintptr(fd), uintptr(unsafe.Pointer(&buf[0])), uintptr(unsafe.Pointer(&l)))
+	if e != 0 {
+		return 0, Addr{}, os.NewSyscallError("getpeername", e)
+	}
+	family = *(*uint16)(unsafe.Pointer(&buf[0]))
+	if family == afVsock {
+		sa := (*rawSockaddrVM)(unsafe.Pointer(&buf[0]))
+		addr = Addr{CID: sa.CID, Port: sa.Port}
+	}
+	return family, addr, nil
+}

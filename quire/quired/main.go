@@ -29,7 +29,8 @@ import (
 	"github.com/Mhsbrian/OpenBook/quire/quired/internal/serve"
 )
 
-const version = "0.3.0"
+// version is set at build time for test packages (build-deb.sh, QUIRED_VERSION).
+var version = "0.4.1"
 
 var clientInfo = acp.Implementation{Name: "quired", Title: "Quire harness host (OpenBook)", Version: version}
 
@@ -40,6 +41,9 @@ Usage:
   quired probe [--json] (--all | AGENT...)     start agents and open a session, without prompting
   quired run [flags] AGENT PROMPT...           run one turn (PROMPT "-" reads stdin)
   quired serve [serve flags]                   serve Quire core over ACP (vsock by default)
+  quired setup --connect ADDR METHOD [JSON]    call one of quired serve's setup methods (_quire/catalog...)
+  quired admin                                 the root worker, from quire-admin.socket (vsock 7691)
+  quired admin call --connect ADDR METHOD [JSON]  call the root worker
   quired version
 
 run flags:
@@ -80,6 +84,10 @@ func main() {
 		err = cmdRun(ctx, os.Args[2:])
 	case "serve":
 		err = cmdServe(ctx, os.Args[2:])
+	case "setup":
+		err = cmdSetup(ctx, os.Args[2:])
+	case "admin":
+		err = cmdAdmin(ctx, os.Args[2:])
 	case "permission-mcp": // started by the Claude Code adapter, not by people
 		err = cmdPermissionMCP(os.Args[2:])
 	case "tools-mcp": // started by agents in a Quire session, not by people
