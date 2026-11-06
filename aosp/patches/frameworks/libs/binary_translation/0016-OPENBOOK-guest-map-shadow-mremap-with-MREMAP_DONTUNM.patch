@@ -1,0 +1,338 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 02:49:17 +0000
+Subject: [PATCH] OPENBOOK: guest map shadow: mremap with MREMAP_DONTUNMAP
+ keeps the old range executable
+
+mremap with MREMAP_DONTUNMAP moves the pages to the new range but leaves
+the old range mapped, with its protection unchanged (mremap(2); for
+file-backed mappings since Linux 5.13). MremapForGuest treated every
+successful mremap as a move: RemapExecutable copied the executable bits
+to the new range and cleared them on the old one.
+
+V8 does exactly this to copy its embedded builtins next to its code range
+(OS::RemapPages on Linux 5.13 and later, from
+Isolate::MaybeRemapEmbeddedBuiltinsIntoCodeRange). WebAssembly code is
+shared by every isolate, so it keeps calling builtins at their original
+addresses in the library's .text. In a translated Chromium renderer
+those 558 pages of builtins became non-executable to the guest, and the
+first JS-to-WebAssembly call (WasmCompileLazy) died with SIGSEGV in
+berberis_HandleNoExec (ANAL-392).
+
+With MREMAP_DONTUNMAP, RemapExecutableDontUnmap now gives the new range
+the old range's bits, as before, and leaves the old range's bits alone.
+The old range's contents can still change (anonymous memory reads as
+zeros afterwards, a private file mapping falls back to the file's
+bytes), so its translations are dropped.
+
+Tests: guest_map_shadow_test.cc's RemapDontUnmap (executable, not
+executable and partly executable sources); mremap_dontunmap_test.cc runs
+guest code through the dispatcher before and after a real
+MREMAP_DONTUNMAP: the old range stays executable, the moved code runs at
+its new address, and new code written at the old address runs instead
+of the old translation. A plain move still clears the old range.
+---
+ guest_os_primitives/guest_map_shadow.cc       |  27 ++++
+ guest_os_primitives/guest_map_shadow_test.cc  |  28 ++++
+ .../guest_os_primitives/guest_map_shadow.h    |   7 +
+ kernel_api/sys_mman_emulation.cc              |  13 +-
+ runtime/arm64/Android.bp                      |   1 +
+ runtime/arm64/mremap_dontunmap_test.cc        | 151 ++++++++++++++++++
+ 6 files changed, 226 insertions(+), 1 deletion(-)
+ create mode 100644 runtime/arm64/mremap_dontunmap_test.cc
+
+diff --git a/guest_os_primitives/guest_map_shadow.cc b/guest_os_primitives/guest_map_shadow.cc
+index d44670eb..4315f62e 100644
+--- a/guest_os_primitives/guest_map_shadow.cc
++++ b/guest_os_primitives/guest_map_shadow.cc
+@@ -327,6 +327,33 @@ void GuestMapShadow::RemapExecutable(GuestAddr old_start,
+   ClearExecutable(old_start, old_size);
+ }
+ 
++// mremap with MREMAP_DONTUNMAP moves the pages to the new range but leaves the old range mapped,
++// with its protection unchanged (mremap(2), file-backed mappings since Linux 5.13). V8 copies its
++// embedded builtins next to its code range that way (OS::RemapPages) and still calls some of them
++// at their old addresses: WebAssembly code is shared by every isolate, so it uses the original
++// builtins. The old range therefore stays executable. Its contents can change, though: anonymous
++// memory reads as zeros afterwards and a private file mapping falls back to the file's bytes, so
++// its translations are dropped.
++void GuestMapShadow::RemapExecutableDontUnmap(GuestAddr old_start,
++                                              size_t old_size,
++                                              GuestAddr new_start,
++                                              size_t new_size) {
++  TRACE("RemapExecutableDontUnmap: from %zx..%zx to %zx..%zx",
++        old_start,
++        old_start + old_size,
++        new_start,
++        new_start + new_size);
++
++  CHECK_EQ(old_start, AlignDownGuestPageSize(old_start));
++  CHECK_EQ(new_start, AlignDownGuestPageSize(new_start));
++  // The kernel refuses MREMAP_DONTUNMAP unless it moves the mapping, to a range that doesn't
++  // overlap the old one.
++  CHECK((old_start + old_size) <= new_start || (new_start + new_size) <= old_start);
++
++  CopyExecutable(old_start, old_size < new_size ? old_size : new_size, new_start, new_size);
++  InvalidateGuestRange(old_start, AlignUpGuestPageSize(old_start + old_size));
++}
++
+ void GuestMapShadow::AddProtectedMapping(const void* start, const void* end) {
+   std::lock_guard<std::mutex> lock(mutex_);
+   protected_maps_.emplace_back(std::make_pair(start, end));
+diff --git a/guest_os_primitives/guest_map_shadow_test.cc b/guest_os_primitives/guest_map_shadow_test.cc
+index 2b96dd70..b402bca1 100644
+--- a/guest_os_primitives/guest_map_shadow_test.cc
++++ b/guest_os_primitives/guest_map_shadow_test.cc
+@@ -109,6 +109,34 @@ TEST_F(GuestMapShadowTest, Remap) {
+   ASSERT_TRUE(shadow_.IsExecutable(kGuestAddr, kRemapRegionSize2));
+ }
+ 
++// mremap(MREMAP_DONTUNMAP) leaves the old range mapped with its protection (ANAL-392).
++TEST_F(GuestMapShadowTest, RemapDontUnmap) {
++  constexpr GuestAddr kRemapAddr = 0x0010'7000;
++  constexpr GuestAddr kOtherAddr = 0x0030'7000;
++
++  shadow_.SetExecutable(kGuestAddr, kGuestRegionSize);
++  shadow_.RemapExecutableDontUnmap(kGuestAddr, kGuestRegionSize, kRemapAddr, kGuestRegionSize);
++  EXPECT_EQ(kBitSet, shadow_.GetExecutable(kGuestAddr, kGuestRegionSize));
++  EXPECT_EQ(kBitSet, shadow_.GetExecutable(kRemapAddr, kGuestRegionSize));
++
++  // A non-executable range stays so and gives a non-executable copy.
++  shadow_.ClearExecutable(kGuestAddr, kGuestRegionSize);
++  shadow_.RemapExecutableDontUnmap(kGuestAddr, kGuestRegionSize, kRemapAddr, kGuestRegionSize);
++  EXPECT_EQ(kBitUnset, shadow_.GetExecutable(kGuestAddr, kGuestRegionSize));
++  EXPECT_EQ(kBitUnset, shadow_.GetExecutable(kRemapAddr, kGuestRegionSize));
++
++  // A partly executable range keeps its bits; the copy is non-executable, as RemapExecutable's is.
++  shadow_.SetExecutable(kGuestAddr, kGuestRegionSize / 2);
++  shadow_.SetExecutable(kOtherAddr, kGuestRegionSize);
++  shadow_.RemapExecutableDontUnmap(kGuestAddr, kGuestRegionSize, kOtherAddr, kGuestRegionSize);
++  EXPECT_EQ(kBitSet, shadow_.GetExecutable(kGuestAddr, kGuestRegionSize / 2));
++  EXPECT_EQ(kBitUnset,
++            shadow_.GetExecutable(kGuestAddr + kGuestRegionSize / 2, kGuestRegionSize / 2));
++  EXPECT_EQ(kBitUnset, shadow_.GetExecutable(kOtherAddr, kGuestRegionSize));
++
++  shadow_.ClearExecutable(kGuestAddr, kGuestRegionSize);
++}
++
+ TEST_F(GuestMapShadowTest, ProtectedMappings) {
+   const char* kStart = ToHostAddr<char>(0x0010'7000);
+   const char* kEnd = kStart + kGuestRegionSize;
+diff --git a/guest_os_primitives/include/berberis/guest_os_primitives/guest_map_shadow.h b/guest_os_primitives/include/berberis/guest_os_primitives/guest_map_shadow.h
+index fd2af83b..b95970ce 100644
+--- a/guest_os_primitives/include/berberis/guest_os_primitives/guest_map_shadow.h
++++ b/guest_os_primitives/include/berberis/guest_os_primitives/guest_map_shadow.h
+@@ -72,6 +72,13 @@ class GuestMapShadow {
+ 
+   void RemapExecutable(GuestAddr old_start, size_t old_size, GuestAddr new_start, size_t new_size);
+ 
++  // mremap with MREMAP_DONTUNMAP: the new range gets the old range's executable bits and the old
++  // range, which stays mapped, keeps its own. Translations of the old range are dropped.
++  void RemapExecutableDontUnmap(GuestAddr old_start,
++                                size_t old_size,
++                                GuestAddr new_start,
++                                size_t new_size);
++
+   void AddProtectedMapping(const void* start, const void* end);
+ 
+   [[nodiscard]] bool IntersectsWithProtectedMapping(const void* start, const void* end);
+diff --git a/kernel_api/sys_mman_emulation.cc b/kernel_api/sys_mman_emulation.cc
+index 4e9a3ed8..b0ae6de4 100644
+--- a/kernel_api/sys_mman_emulation.cc
++++ b/kernel_api/sys_mman_emulation.cc
+@@ -37,6 +37,11 @@
+ #include "berberis/guest_state/guest_addr.h"
+ #include "berberis/kernel_api/guest_mapping_observer.h"
+ 
++// The host sysroot's <sys/mman.h> may predate it (linux/mman.h, Linux 5.7).
++#ifndef MREMAP_DONTUNMAP
++#define MREMAP_DONTUNMAP 4
++#endif
++
+ namespace berberis {
+ 
+ namespace {
+@@ -321,7 +326,13 @@ void* MremapForGuest(void* old_addr, size_t old_size, size_t new_size, int flags
+   // endregion
+ 
+   if (result != MAP_FAILED) {
+-    shadow->RemapExecutable(ToGuestAddr(old_addr), old_size, ToGuestAddr(result), new_size);
++    if (flags & MREMAP_DONTUNMAP) {
++      // The old range stays mapped, and executable if it was (V8's embedded builtins, ANAL-392).
++      shadow->RemapExecutableDontUnmap(
++          ToGuestAddr(old_addr), old_size, ToGuestAddr(result), new_size);
++    } else {
++      shadow->RemapExecutable(ToGuestAddr(old_addr), old_size, ToGuestAddr(result), new_size);
++    }
+   }
+   return result;
+ }
+diff --git a/runtime/arm64/Android.bp b/runtime/arm64/Android.bp
+index 12342038..b0b68fe1 100644
+--- a/runtime/arm64/Android.bp
++++ b/runtime/arm64/Android.bp
+@@ -67,6 +67,7 @@ cc_test_library {
+         x86_64: {
+             srcs: [
+                 "ic_ivau_invalidation_test.cc",
++                "mremap_dontunmap_test.cc",
+                 "persistent_cache_test.cc",
+                 "relocatable_code_test.cc",
+                 "translate_corpus_bench_test.cc",
+diff --git a/runtime/arm64/mremap_dontunmap_test.cc b/runtime/arm64/mremap_dontunmap_test.cc
+new file mode 100644
+index 00000000..fc1d86cd
+--- /dev/null
++++ b/runtime/arm64/mremap_dontunmap_test.cc
+@@ -0,0 +1,151 @@
++/*
++ * Copyright (C) 2026 The OpenBook Authors
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++// mremap(MREMAP_DONTUNMAP) moves the pages but leaves the old range mapped, with its protection
++// (mremap(2)). V8 copies its embedded builtins that way (OS::RemapPages, Linux 5.13 and later) and
++// WebAssembly code keeps calling them at their old addresses. The translator used to treat every
++// mremap as a move and mark the old range non-executable, so a translated Chromium renderer died
++// with SIGSEGV in berberis_HandleNoExec on its first WebAssembly call (ANAL-392).
++//
++// These tests run guest code through the dispatcher before and after such an mremap: the old range
++// must stay executable, the new one must run the moved code, and a translation of the old range
++// must not outlive the mremap (anonymous memory reads as zeros afterwards).
++
++#include "gtest/gtest.h"
++
++#include <sys/mman.h>
++
++#include <cerrno>
++#include <cstdint>
++#include <cstring>
++
++#include "berberis/guest_os_primitives/guest_map_shadow.h"
++#include "berberis/guest_os_primitives/guest_thread_manager.h"
++#include "berberis/guest_state/guest_addr.h"
++#include "berberis/guest_state/guest_state.h"
++#include "berberis/kernel_api/sys_mman_emulation.h"
++#include "berberis/runtime/berberis.h"
++#include "berberis/runtime/execute_guest.h"
++#include "berberis/runtime_primitives/translation_cache.h"
++
++#ifndef MREMAP_DONTUNMAP
++#define MREMAP_DONTUNMAP 4
++#endif
++
++namespace berberis {
++
++namespace {
++
++constexpr size_t kSize = 2 * 4096;
++constexpr uint32_t kMovX1_1 = 0xd2800021;  // mov x1, #1
++constexpr uint32_t kMovX1_2 = 0xd2800041;  // mov x1, #2
++constexpr uint32_t kBNext = 0x14000001;    // b .+4 (ends the region at the stop pc)
++
++void WriteCode(void* at, uint32_t first) {
++  const uint32_t code[] = {first, kBNext};
++  memcpy(at, code, sizeof(code));
++}
++
++// Runs the two instructions at `pc` and returns x1.
++uint64_t RunAt(GuestAddr pc) {
++  GuestThread* thread = GetCurrentGuestThread();
++  auto& cpu = thread->state()->cpu;
++  cpu.insn_addr = pc;
++  cpu.x[1] = 0;
++  GuestAddr stop_pc = pc + 8;
++  TranslationCache* cache = TranslationCache::GetInstance();
++  cache->SetStop(stop_pc);
++  ExecuteGuest(thread->state());
++  cache->TestingClearStop(stop_pc);
++  return cpu.x[1];
++}
++
++class Arm64MremapDontUnmap : public ::testing::Test {
++ protected:
++  void SetUp() override {
++    InitBerberis();
++    old_ = MmapForGuest(nullptr,
++                        kSize,
++                        PROT_READ | PROT_WRITE | PROT_EXEC,
++                        MAP_PRIVATE | MAP_ANONYMOUS,
++                        -1,
++                        0);
++    ASSERT_NE(old_, MAP_FAILED);
++    // The destination, reserved so MREMAP_FIXED has a free range of its own to land in.
++    new_ = MmapForGuest(nullptr, kSize, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++    ASSERT_NE(new_, MAP_FAILED);
++  }
++
++  void TearDown() override {
++    if (old_ != MAP_FAILED) MunmapForGuest(old_, kSize);
++    if (new_ != MAP_FAILED) MunmapForGuest(new_, kSize);
++  }
++
++  // Returns false (and skips) on a kernel without MREMAP_DONTUNMAP.
++  bool RemapDontUnmap() {
++    void* result = MremapForGuest(
++        old_, kSize, kSize, MREMAP_MAYMOVE | MREMAP_FIXED | MREMAP_DONTUNMAP, new_);
++    if (result == MAP_FAILED && errno == EINVAL) {
++      return false;
++    }
++    EXPECT_EQ(result, new_);
++    return result == new_;
++  }
++
++  void* old_ = MAP_FAILED;
++  void* new_ = MAP_FAILED;
++};
++
++TEST_F(Arm64MremapDontUnmap, OldRangeStaysExecutable) {
++  GuestMapShadow* shadow = GuestMapShadow::GetInstance();
++  WriteCode(old_, kMovX1_1);
++  ASSERT_EQ(RunAt(ToGuestAddr(old_)), 1u);
++
++  if (!RemapDontUnmap()) {
++    GTEST_SKIP() << "the host kernel has no MREMAP_DONTUNMAP";
++  }
++
++  // Both ranges are guest-executable: the old one still is (its mapping and protection stay),
++  // and the new one has the old one's bits.
++  ASSERT_TRUE(shadow->IsExecutable(ToGuestAddr(old_), kSize));
++  ASSERT_TRUE(shadow->IsExecutable(ToGuestAddr(new_), kSize));
++
++  // The moved code runs at its new address.
++  EXPECT_EQ(RunAt(ToGuestAddr(new_)), 1u);
++
++  // The old range is anonymous memory, so it reads as zeros now; new code written there runs, not
++  // the translation of what used to be there.
++  uint32_t first_word;
++  memcpy(&first_word, old_, sizeof(first_word));
++  EXPECT_EQ(first_word, 0u);
++  WriteCode(old_, kMovX1_2);
++  EXPECT_EQ(RunAt(ToGuestAddr(old_)), 2u);
++}
++
++// Without MREMAP_DONTUNMAP the old range is unmapped, and loses its executable bits.
++TEST_F(Arm64MremapDontUnmap, PlainMoveClearsOldRange) {
++  GuestMapShadow* shadow = GuestMapShadow::GetInstance();
++  GuestAddr old_addr = ToGuestAddr(old_);
++  void* result = MremapForGuest(old_, kSize, kSize, MREMAP_MAYMOVE | MREMAP_FIXED, new_);
++  ASSERT_EQ(result, new_);
++  old_ = MAP_FAILED;  // unmapped by the move
++  EXPECT_EQ(kBitUnset, shadow->GetExecutable(old_addr, kSize));
++  EXPECT_EQ(kBitSet, shadow->GetExecutable(ToGuestAddr(new_), kSize));
++}
++
++}  // namespace
++
++}  // namespace berberis

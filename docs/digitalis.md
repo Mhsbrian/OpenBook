@@ -291,6 +291,19 @@ The bridge is part of the normal product build (`scripts/aosp-build.sh`). Nothin
         with `strstr(exe, "")`, which always matches, so every translated executable wrote a perf map until the
         next reboot. Apps compare the package name exactly and weren't affected.
       - **How:** `GetProfilingConfig()` returns null for an empty value, as an empty `berberis.stats` is off.
+  16. `mremap` with `MREMAP_DONTUNMAP` keeps the old range executable (ANAL-392).
+      - **What it fixes:** a translated Chromium renderer died with SIGSEGV in `berberis_HandleNoExec` on its first
+        JS-to-WebAssembly call. V8 copies its embedded builtins next to its code range with
+        `mremap(MREMAP_MAYMOVE | MREMAP_FIXED | MREMAP_DONTUNMAP)` (`OS::RemapPages`, Linux 5.13 and later). That
+        leaves the old mapping in place, and WebAssembly code, shared by every isolate, keeps calling builtins at
+        their old addresses in `.text`. The translator treated every `mremap` as a move and cleared the old range's
+        executable bits, so those 558 pages of builtins became non-executable to the guest.
+      - **How:** with `MREMAP_DONTUNMAP`, `RemapExecutableDontUnmap` gives the new range the old range's bits and
+        leaves the old range's alone. The old range's translations are still dropped: anonymous memory reads as
+        zeros afterwards, and a private file mapping falls back to the file's bytes.
+      - **Result:** in QEMU (`ob20261105.1` with the patched library), ContentShell r1733160 arm64 runs WebAssembly,
+        and ANAL-379's `jitcheck.html` with all 10 tasks, wasm included, matches the reference in 6 of 6 loads,
+        translated and native. Upstream AOSP Berberis (`main`, read 2026-11-06) has the same gap.
 - **ART patch** (`aosp/patches/art/`): `libnativebridge` sets `Build.CPU_ABI` and `CPU_ABI2` for bridged apps again (the Fennec fix).
 - **Device:** `device/anybook/common/native-bridge/`:
   - `native-bridge.mk` inherits Digitalis's `enable_arm64_to_x86_64.mk` and adds `openbook_bridge_check`;
