@@ -58,8 +58,11 @@ PRODUCT_COPY_FILES += \
     device/anybook/g14/input/Asus_WMI_hotkeys.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/Asus_WMI_hotkeys.kl
 
 # Graphics modes (ANAL-246): the G14's MUX may be switched between Eco and Hybrid; Ultimate is not available yet.
-# Firmware writes stay off (no ro.vendor.openbook.gfx.fw_writes) until a release the owner approved turns them on.
+# Firmware writes are on (ANAL-322): Eco and Hybrid write the firmware's dgpu_disable, so OpenBook Graphics really
+# switches. The MUX moves only for Ultimate (not offered while the stack is unverified) and for the restore-hybrid
+# recovery. A release carries this line only with the owner's approval of the first real switch (ANAL-338).
 PRODUCT_COPY_FILES += device/anybook/g14/gfx-stacks.conf:$(TARGET_COPY_OUT_VENDOR)/etc/openbook/gfx-stacks.conf
+PRODUCT_VENDOR_PROPERTIES += ro.vendor.openbook.gfx.fw_writes=1
 # The OpenBook Graphics app (ANAL-323): the modes, and Apps on the NVIDIA GPU: the on/off switch, the games rule and
 # each app's choice (ANAL-327).
 $(call inherit-product, device/anybook/common/gfx-mode/gfx-mode-app.mk)
