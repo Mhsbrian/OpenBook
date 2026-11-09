@@ -103,10 +103,11 @@ work: that issue is on the clean room's exclusion list.
 
 ## 5. Provenance
 
-- **The driver** is ANAL-324's clean-room tree at commit `97e14854`, unchanged: ANAL-330's clean-side tree, which ANAL-326
+- **The driver** is ANAL-324's clean-room tree at commit `085f544d`, unchanged: ANAL-330's clean-side tree, which ANAL-326
   tested on the RTX 4090 (§6), plus one Android fix from ANAL-349's clean-side run (patch `0027`), one performance fix
-  from ANAL-351's (patch `0028`) thread-safe once-guards for two log lines from ANAL-353's (patch `0029`), and two backend changes from ANAL-345's
-  (a first-come, first-served lock for the backend's device state, and test callbacks that cannot abort the test process). ANAL-330's run wrote
+  from ANAL-351's (patch `0028`) thread-safe once-guards for two log lines from ANAL-353's (patch `0029`), and backend changes from ANAL-345's
+  (a first-come, first-served lock for the backend's device state; test fixtures that cannot abort the test process
+  and that join their worker threads before teardown). ANAL-330's run wrote
   the parts that had no public source. `mesa/nvk-rm-clean/README.md` and its
   `PROVENANCE.md` give every file's origin.
 - **The gate:** `scripts/nvk-provenance-check.sh` runs the clean room's scanner on every path of NVIDIA app support
@@ -157,9 +158,11 @@ scripts/graphics/nvk-package-hosttest.sh              # the image's package on t
 - **G14 coverage so far:** the RTX renders into the Radeon's linear window buffers at a steady 120 Hz for the workloads
   ANAL-336, ANAL-349 and ANAL-351 ran (glmark2, Sascha Willems' n-body, Shattered Pixel Dungeon). Patch `0028`'s copy is
   checked only with RGB565 window buffers (glmark2); other formats wait for the release's G14 smoke test.
-- **Several GPU contexts at once on the GB205** (ANAL-345, open): with two or more processes, or several queues, using
-  the RTX together, the G14 logs GPU exceptions (Xid 13, 31, 32, 69) and dEQP-VK cases fail or flake; one process at a
-  time is clean, and the RTX 4090 is clean either way. The cause is not found yet.
+- **Several GPU contexts at once on the GB205** (ANAL-345, open): with two or more processes using the RTX together,
+  the G14 logs GPU exceptions (Xid 13, 31, 32, 69) and 14–40 of 98 sampled dEQP-VK cases fail or flake. No Xids were
+  observed in the single-process runs, but correctness failures remain there too (3–5 of the 98 cases). A backend
+  test with four queues in one process also fails on the GB205; that it has the same cause is a hypothesis. The RTX
+  4090 shows none of these. The cause is not found yet.
 
 ## 8. Sources (read 2026-11-02, on the build host)
 

@@ -1,5 +1,5 @@
 # The clean-room commit this OpenBook code is taken from (ANAL-324 path A), and where each of its files is here.
-# commit 97e14854e16397094649b13c680f6a926abc1071: ~/anybook/cleanroom/nvk-rm-clean on the build host: ANAL-330's clean-side tree plus ANAL-349's patch 0027, ANAL-351's patch 0028, ANAL-353's patch 0029 and ANAL-345's backend changes (clean side),
+# commit 085f544d35429383cdb3c7aa2d8c467652aa4abe: ~/anybook/cleanroom/nvk-rm-clean on the build host: ANAL-330's clean-side tree plus ANAL-349's patch 0027, ANAL-351's patch 0028, ANAL-353's patch 0029 and ANAL-345's backend changes (clean side),
 # tested on the RTX 4090 by ANAL-326 (stage 2b) and ANAL-345, and on the G14 by ANAL-349, ANAL-351 and, with 0029 and the backend changes, ANAL-345. scripts/nvk-provenance-check.sh checks every row:
 #   exact         the OpenBook file's git blob is the commit's blob, byte for byte;
 #   prefix:N      the OpenBook file's first N bytes are the commit's whole file (PROVENANCE.md, which then
@@ -9,7 +9,7 @@
 #                 own series, the same blobs.
 # blob	clean-commit path	OpenBook path	check
 2f7896d1d1365eafb0da03d9fe456fac81408487	.gitignore	-	not-imported
-eaf97f8677bf79bdb64e4d566bdc79b12a702692	PROVENANCE.md	mesa/nvk-rm-clean/PROVENANCE.md	prefix:28473
+1a19968598a2e2cf71c8064f43be36bf60cde2e7	PROVENANCE.md	mesa/nvk-rm-clean/PROVENANCE.md	prefix:31724
 c60a771d1f8b665834b2f78356f2109ae69e8679	README.md	-	not-imported
 1160cd019d5cb674f1039d7e0b205b1292118d13	SPEC.md	mesa/nvk-rm-clean/SPEC.md	exact
 2418f9cba3f4a4b594388f3d4488a36f9c9c5f3c	backend/Cargo.lock	mesa/nvk-rm-clean/backend/Cargo.lock	exact
@@ -35,8 +35,8 @@ b5c696835a1ea2cae82113ced0d1efea30578726	backend/src/gpu.rs	mesa/nvk-rm-clean/ba
 7648e0856498ebfcfccdf3fc33c96a8e02dc3c9a	backend/src/host_packet_tests.rs	mesa/nvk-rm-clean/backend/src/host_packet_tests.rs	exact
 8a4ddd8dd9f90abc66c428e94f38563707536f99	backend/src/lib.rs	mesa/nvk-rm-clean/backend/src/lib.rs	exact
 94704f47c387fb56da39cb4c791b045068eec7d3	backend/src/mesa.rs	mesa/nvk-rm-clean/backend/src/mesa.rs	exact
-fceeeae727e5602e9580e55f24daed3c560c8c34	backend/src/mesa_hardware_tests.rs	mesa/nvk-rm-clean/backend/src/mesa_hardware_tests.rs	exact
-fc8279001823d1a92e937f63f7b1b2105e7db7c9	backend/src/mesa_reclaim_tests.rs	mesa/nvk-rm-clean/backend/src/mesa_reclaim_tests.rs	exact
+d70642e35de6ec2c9b79c9b30dbf4d798bc3c87a	backend/src/mesa_hardware_tests.rs	mesa/nvk-rm-clean/backend/src/mesa_hardware_tests.rs	exact
+e909b3e9e78b068581bad00d1b082c225c2933b9	backend/src/mesa_reclaim_tests.rs	mesa/nvk-rm-clean/backend/src/mesa_reclaim_tests.rs	exact
 df03809c67aafec67fd6a3dec3dd475d3d0dfd50	backend/src/platform.rs	mesa/nvk-rm-clean/backend/src/platform.rs	exact
 8d5b20b88728b60b780880bec705d655e893f2b2	backend/src/reactor.rs	mesa/nvk-rm-clean/backend/src/reactor.rs	exact
 25c36427626707a2f35f0af5059de41901a08a36	backend/src/reclaim.rs	mesa/nvk-rm-clean/backend/src/reclaim.rs	exact

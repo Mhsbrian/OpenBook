@@ -200,12 +200,32 @@ while doing this work, apart from the directory listing above, which showed a na
   Bridges, so they also outlive them when a failure unwinds (before, a failing test could free a pool that the
   Bridge's close then wrote into). Production code is unchanged.
 
+### Fixture workers are joined before anything they use is dropped (`backend/src/mesa_reclaim_tests.rs`, `mesa_hardware_tests.rs`)
+
+- **Finding (the Checker's review of OpenBook PR #14 on ANAL-345, 2026-11-06):** the fixtures joined their workers with
+  `join().unwrap()`. The first failed worker unwound the fixture at once and dropped the other `JoinHandle`s, which
+  detaches those threads (Rust standard library documentation, `std::thread::JoinHandle`). They still held raw
+  pointers to the Bridges, which the unwinding fixture then destroyed. The stress fixture also asserted its wake
+  signal inside the join loop. The same pattern was in all seven fixtures that hand a Bridge to other threads.
+- **The change:** `Workers` (in `mesa_reclaim_tests.rs`) owns a fixture's threads. `finish` releases the workers (a
+  stop flag, or the gate signal for the two waiters without a deadline), joins every one of them, and only then
+  returns their results or continues the first failed worker's panic (`std::panic::resume_unwind`). `Drop` does the
+  same release and joins when a failure of the fixture itself unwinds, so nothing the workers use is dropped under
+  them. The timed fixtures also stop as soon as a worker has finished early (`JoinHandle::is_finished`). All seven
+  fixtures use it; nothing is asserted between the release and the last join. Production code is unchanged.
+- **Tests (no GPU):** `a_worker_failure_is_reported_only_after_every_peer_exited`,
+  `a_failing_fixture_releases_and_joins_its_workers_first` and `workers_join_in_spawn_order_and_release_once`. Own
+  mutation check: with `Workers` behaving like the old code (report the first failure at once, detach the rest), the
+  first two fail with "the owner was dropped while a worker was still running".
+
 ### Investigated, not changed: GPU exceptions with several GPU contexts on the GB205
 
 - **Symptom:** under dEQP-VK with several processes the GB205 logs Xid 13 (shader program header errors,
   `INSTR_RAM_ACCESS_OUT_OF_BOUNDS`), 31, 32 and 69, and 14–40 of the 98-case list's cases fail or flake. One
-  process: 0 Xid, and only 3–5 bad cases. `startup_sync_churn_every_exported_fence_signals` (one process, two
-  devices × two threads, four channel groups) loses the device the same way.
+  process: no Xid was observed in the three single-process runs, but 3–5 cases still fail or flake there, so
+  correctness failures remain with one process too. `startup_sync_churn_every_exported_fence_signals` (one process,
+  two devices × two threads, four channel groups) also fails on the GB205: one batch does not retire. That it has
+  the same cause as the dEQP faults is a hypothesis.
 - **Experiments (own, G14, open kernel modules 615.78.08, 2026-11-06; logs on ANAL-345):** none of these removed the
   Xids or reduced the bad cases: `NV_RM_COMPLETION_WFI=all|gr|both`, `NVK_DEBUG=push_sync`, `NVK_DEBUG=gart`, GPFIFO
   entries as main segments (every public writer: UVM `uvm_turing_host.c`/`uvm_hopper_host.c`, `nvidia-push.c`, Linux
@@ -213,25 +233,37 @@ while doing this work, apart from the directory listing above, which showed a na
   preemption set to WFI (`NV2080_CTRL_CMD_GR_SET_CTXSW_PREEMPTION_MODE`; RM's defaults were already WFI and ZCULL
   SEPARATE_BUFFER, `NV2080_CTRL_CMD_GR_GET_CTXSW_MODES`), and a 100 ms channel-group timeslice
   (`NVA06C_CTRL_CMD_SET_TIMESLICE`). Those probes were scratch builds only; nothing of them is in this tree. The cause is
-  open.
+  open. Cross-process aliasing of GPU virtual addresses in some cache is one hypothesis; no experiment has tested it.
 
 ### Statement
 
 - **Also read for this work:** the ANAL-338 thread; an ANAL-338 helper's intake log and probe patch in ANAL-345's own
   evidence folder (written from ANAL-345, ANAL-330's comments and this README's sources); ANAL-353's G14 tooling
   (`sit353.sh`, `mk-test-apk.sh`) and its OpenBook carry-over patch; OpenBook `scripts/gpu-diag.sh` and
-  `scripts/g14-adb.sh`; the ANAL-240 dEQP test package (Khronos dEQP-VK, deqp-runner, the HAL shim) as the test
-  harness only; OGKM `615.78.08` `ctrl2080gr.h`, `ctrla06c.h`, `nvos.h`, `dev_esched_pbdma.h`,
+  `scripts/g14-adb.sh`; OGKM `615.78.08` `ctrl2080gr.h`, `ctrla06c.h`, `nvos.h`, `dev_esched_pbdma.h`,
   `kernel_graphics_context.c` and `kernel_graphics.c` (names of preemption buffers).
+- **Test harness (run, not read as a source):** the ANAL-240 package `nvk-test-20261025-anal240` (tar SHA-256
+  `30fb96ff197a3e25b7d4a7564ca51ed450b2c94f8983840c625eabd0bf326c11`, `MANIFEST.sha256` `6b9c9923…`), the one OpenBook's
+  `scripts/graphics/nvk-package-hosttest.sh` names. Used from it: `bin/deqp-binary64` (Khronos dEQP-VK, Apache-2.0,
+  `77674c78…`), `bin/deqp-runner` (0.23.2, commit `5dcd8742`, MIT, `61de6896…`), `lib/libvk_hal_shim.so` (`237cc0e7…`)
+  and `lib/libdeqp_stdout.so` (`6e22fe0c…`), the HAL shim and stdout shim of OpenBook's host test (sources in OpenBook:
+  `scripts/graphics/vk-hal-shim.c`, `deqp-stdout.c`; the package's builds were used as they are, not rebuilt), the
+  dEQP data, the case lists and `skips/nvk.txt` (`34009c8e…`). The package's own driver build
+  (`lib/hw/vulkan.nouveau.so`) was never loaded: every run used this tree's libraries. The package is not part of this
+  tree and is not redistributed with it. The Checker accepted it as a harness on ANAL-345 (2026-11-06).
+- **After the Checker's review of OpenBook PR #14 (2026-11-09):** its review comment and attachment on ANAL-345
+  (`join-unwind.rs`), and the Rust standard library documentation of `std::thread::JoinHandle`.
 
-**Author's statement** (ANAL-345, clean-side author, 2026-11-06): "I read nothing on the excluded list in README.md
-while doing this work, apart from the directory listings above, which showed names and no file content."
+**Author's statement** (ANAL-345, clean-side author, 2026-11-06, extended 2026-11-09): "I read nothing on the excluded
+list in README.md while doing this work, apart from the directory listings above, which showed names and no file
+content."
 
 ## In OpenBook (ANAL-327)
 
-OpenBook carries this tree's commit `97e14854e16397094649b13c680f6a926abc1071`: ANAL-330's clean-side tree as ANAL-326
+OpenBook carries this tree's commit `085f544d35429383cdb3c7aa2d8c467652aa4abe`: ANAL-330's clean-side tree as ANAL-326
 tested it (stage 2b, commit `5f5c3d64`), plus ANAL-349's patch `0027`, ANAL-351's patch `0028`, ANAL-353's patch `0029`
-and ANAL-345's two backend changes (the first-come, first-served Bridge lock and panic-free test callbacks). The backend and
+and ANAL-345's backend changes (the first-come, first-served Bridge lock; test fixtures whose callbacks cannot panic
+and whose workers are joined before teardown). The backend and
 these documents are in `mesa/nvk-rm-clean/`, the patches in `mesa/patches/`. The clean-room build scripts are replaced
 by the `nvk-rm-clean` tree of `scripts/mesa-android-build.sh`. Its bytes are in `device/anybook/common/nvk/tested-bytes.txt`
 (`vulkan.nouveau.so` `7bb60cfe…`, `libnv_bionic_native.so` `6ce57be6…`; `libdrm.so` `ccf9766c…` and `libelf_mesa.so`
@@ -244,7 +276,7 @@ the commit's file, then this section).
 
 | OpenBook path | Blob | Origin |
 |---|---|---|
-| `mesa/nvk-rm-clean/PROVENANCE.md` | `eaf97f8677bf` (prefix:28473) | AnyBook, ANAL-324 (the clean-room tree's own) |
+| `mesa/nvk-rm-clean/PROVENANCE.md` | `1a19968598a2` (prefix:31724) | AnyBook, ANAL-324 (the clean-room tree's own) |
 | `mesa/nvk-rm-clean/SPEC.md` | `1160cd019d5c` (exact) | AnyBook, ANAL-324 (the clean-room tree's own) |
 | `mesa/nvk-rm-clean/backend/Cargo.lock` | `2418f9cba3f4` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
 | `mesa/nvk-rm-clean/backend/Cargo.toml` | `f19b89037563` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); library only |
@@ -269,8 +301,8 @@ the commit's file, then this section).
 | `mesa/nvk-rm-clean/backend/src/host_packet_tests.rs` | `7648e0856498` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
 | `mesa/nvk-rm-clean/backend/src/lib.rs` | `8a4ddd8dd9f9` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side); the FIFO Bridge lock by ANAL-345 (clean side) |
 | `mesa/nvk-rm-clean/backend/src/mesa.rs` | `94704f47c387` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side); the FIFO Bridge lock by ANAL-345 (clean side) |
-| `mesa/nvk-rm-clean/backend/src/mesa_hardware_tests.rs` | `fceeeae727e5` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
-| `mesa/nvk-rm-clean/backend/src/mesa_reclaim_tests.rs` | `fc8279001823` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side); panic-free C callbacks by ANAL-345 (clean side) |
+| `mesa/nvk-rm-clean/backend/src/mesa_hardware_tests.rs` | `d70642e35de6` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side); joined fixture workers by ANAL-345 (clean side) |
+| `mesa/nvk-rm-clean/backend/src/mesa_reclaim_tests.rs` | `e909b3e9e78b` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side); panic-free C callbacks and joined fixture workers by ANAL-345 (clean side) |
 | `mesa/nvk-rm-clean/backend/src/platform.rs` | `df03809c67aa` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
 | `mesa/nvk-rm-clean/backend/src/reactor.rs` | `8d5b20b88728` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
 | `mesa/nvk-rm-clean/backend/src/reclaim.rs` | `25c364276267` (exact) | waydroid-nvidia v0.2.0-rc12 (MIT); cited places removed, S1–S4 and V2–V5 by ANAL-330 (clean side) |
