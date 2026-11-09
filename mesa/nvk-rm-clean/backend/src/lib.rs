@@ -19,6 +19,7 @@ pub(crate) mod diag;
 pub mod diagnostics;
 pub(crate) mod events;
 mod external;
+mod fair;
 mod fences;
 pub mod gpu;
 pub mod mesa;

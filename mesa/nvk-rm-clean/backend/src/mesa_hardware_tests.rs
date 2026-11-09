@@ -1,6 +1,7 @@
 //! Local-GPU fixtures for the caller-side bridge (ignored by default).
 //! Run alone: cargo test --offline --no-default-features --lib
 //!   mesa::hardware_tests -- --ignored --test-threads=1 --nocapture
+use super::reclaim_tests::Workers;
 use super::*;
 use std::{sync::Barrier, thread, time::Duration};
 
@@ -176,19 +177,26 @@ fn two_waiters(gpu: bool) -> (Duration, Duration, Duration) {
         };
         let ready = Arc::new(Barrier::new(3));
         let pointer = Arc::new(SendPtr(&mut *bridge));
-        let waiters: Vec<_> = (0..2)
-            .map(|_| {
-                let ready = Arc::clone(&ready);
-                let pointer = Arc::clone(&pointer);
-                thread::spawn(move || {
-                    ready.wait();
-                    let p = pointer.0;
-                    let r = unsafe { nv_rm_sync_wait_many(p, &target, 1, 0, u64::MAX) };
-                    assert_eq!(r, 0);
-                    Instant::now()
-                })
-            })
-            .collect();
+        // The waits have no deadline: if this fixture fails before its own
+        // signal below, the release signals the gate so both waiters return
+        // and are joined before the Bridge drops.
+        let mut waiters = Workers::new({
+            let pointer = Arc::clone(&pointer);
+            move || {
+                unsafe { nv_rm_sync_signal(pointer.0, gate, round) };
+            }
+        });
+        for _ in 0..2 {
+            let ready = Arc::clone(&ready);
+            let pointer = Arc::clone(&pointer);
+            waiters.spawn(move || {
+                ready.wait();
+                let p = pointer.0;
+                let r = unsafe { nv_rm_sync_wait_many(p, &target, 1, 0, u64::MAX) };
+                assert_eq!(r, 0);
+                Instant::now()
+            });
+        }
         ready.wait();
         // Let both reach their blocking point before signalling.
         while bridge.core.waiters.registered() < 2 {
@@ -197,9 +205,11 @@ fn two_waiters(gpu: bool) -> (Duration, Duration, Duration) {
         thread::sleep(Duration::from_micros(300));
         let start = Instant::now();
         assert_eq!(unsafe { nv_rm_sync_signal(&mut *bridge, gate, round) }, 0);
+        waiters.released();
         let mut times: Vec<_> = waiters
+            .finish()
             .into_iter()
-            .map(|t| t.join().unwrap().saturating_duration_since(start))
+            .map(|t| t.saturating_duration_since(start))
             .collect();
         times.sort();
         first.push(times[0]);

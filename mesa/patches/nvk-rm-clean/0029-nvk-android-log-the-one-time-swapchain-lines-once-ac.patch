@@ -1,0 +1,72 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: B Honey <9922368+Mhsbrian@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 12:30:00 +0000
+Subject: [PATCH 29/29] nvk/android: log the one-time swapchain lines once across
+ threads
+
+0021 (nvk_android_anb_vram_init()) and 0027 (setup_gralloc0_usage())
+each log a line the first time a process takes their path, guarded by a
+plain static bool that is read and then set. Two threads creating
+swapchains at once can both see it clear, and the line is then logged
+twice; the read and the write are also a data race. (ANAL-353)
+
+Test and set the flag in one step with p_atomic_xchg(), so exactly one
+caller logs. Nothing else changes.
+
+Public sources: Mesa 26.2.5 src/util/u_atomic.h (p_atomic_xchg) and
+src/util/u_call_once.h.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/nouveau/vulkan/nvk_android.c | 5 +++--
+ src/vulkan/runtime/vk_android.c  | 5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/nouveau/vulkan/nvk_android.c b/src/nouveau/vulkan/nvk_android.c
+index fae53c4..5637bd3 100644
+--- a/src/nouveau/vulkan/nvk_android.c
++++ b/src/nouveau/vulkan/nvk_android.c
+@@ -30,6 +30,7 @@
+ #include "util/log.h"
+ #include "util/os_file.h"
+ #include "util/stack_array.h"
++#include "util/u_atomic.h"
+ #include "util/u_gralloc/u_gralloc.h"
+ 
+ #include "cla097.h"
+@@ -382,9 +383,9 @@ nvk_android_anb_vram_init(struct nvk_device *dev, struct nvk_image *image,
+    if (result != VK_SUCCESS)
+       goto fail;
+ 
++   /* Once per process: swapchains may be created on several threads */
+    static bool logged;
+-   if (!logged) {
+-      logged = true;
++   if (!p_atomic_xchg(&logged, true)) {
+       mesa_logi("nvk: swapchain images in VRAM, copied to the window buffer "
+                 "at present (NVK_ANB_VRAM)");
+    }
+diff --git a/src/vulkan/runtime/vk_android.c b/src/vulkan/runtime/vk_android.c
+index 3a1ae38..b9aa3b7 100644
+--- a/src/vulkan/runtime/vk_android.c
++++ b/src/vulkan/runtime/vk_android.c
+@@ -39,6 +39,7 @@
+ #include "util/libsync.h"
+ #include "util/log.h"
+ #include "util/os_file.h"
++#include "util/u_atomic.h"
+ #include "util/u_gralloc/u_gralloc.h"
+ 
+ #include <hardware/gralloc.h>
+@@ -420,9 +421,9 @@ setup_gralloc0_usage(VkFormat format, VkImageUsageFlags image_usage,
+       (AHARDWAREBUFFER_USAGE_CPU_READ_MASK |
+        AHARDWAREBUFFER_USAGE_CPU_WRITE_MASK);
+    if (extra_cpu_usage) {
++      /* Once per process: swapchains may be created on several threads */
+       static bool logged;
+-      if (!logged) {
+-         logged = true;
++      if (!p_atomic_xchg(&logged, true)) {
+          mesa_logi("vk_android: swapchain gralloc usage from the legacy "
+                    "vkGetSwapchainGrallocUsage*ANDROID query; adding the "
+                    "driver's CPU usage 0x%" PRIx64, extra_cpu_usage);

@@ -9,8 +9,9 @@
 //! * `Core` (Arc, Send+Sync): loss flag, slot pool addresses, the waiter group,
 //!   the watcher, the shared-payload broadcast port and the device RM event
 //!   descriptor numbers. Plain data and atomics only.
-//! * `Inner` (behind one Mutex): every Rc/RefCell RM owner (client, device,
-//!   address space, channels, buffers, mappings, event sources, pool pages).
+//! * `Inner` (behind one first-come, first-served mutex, fair.rs): every
+//!   Rc/RefCell RM owner (client, device, address space, channels, buffers,
+//!   mappings, event sources, pool pages).
 //!   See `Confined` for the Send argument. Lock order: Inner -> SyncObj state
 //!   -> {Shared local, slot free list, watcher state, waiter condvar}. Nothing
 //!   blocks on GPU progress or a foreign fence while holding Inner.
@@ -36,7 +37,7 @@ use std::{
     rc::Rc,
     sync::{
         atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering},
-        Arc, Mutex, MutexGuard,
+        Arc,
     },
     time::{Duration, Instant},
 };
@@ -281,7 +282,8 @@ unsafe impl Send for Confined {}
 
 pub struct Bridge {
     core: Arc<Core>,
-    inner: Mutex<Confined>,
+    /// FIFO: a caller waits only for those that asked before it (fair.rs).
+    inner: crate::fair::FairMutex<Confined>,
     /// Perf capture armed (frame markers take the lock only then); set at
     /// open or by a late arm from submit.
     capture: std::sync::atomic::AtomicBool,
@@ -303,8 +305,8 @@ fn sync_ref<'a>(id: u64) -> Result<&'a SyncObj> {
 }
 
 impl Bridge {
-    fn lock(&self) -> MutexGuard<'_, Confined> {
-        self.inner.lock().unwrap_or_else(|p| p.into_inner())
+    fn lock(&self) -> crate::fair::FairGuard<'_, Confined> {
+        self.inner.lock()
     }
     fn new(pci: [u32; 4]) -> Result<(Self, Info)> {
         crate::diag::install_panic_hook();
@@ -349,7 +351,7 @@ impl Bridge {
         let bridge = Self {
             core,
             capture: std::sync::atomic::AtomicBool::new(capture.is_some()),
-            inner: Mutex::new(Confined(Inner {
+            inner: crate::fair::FairMutex::new(Confined(Inner {
                 queues: Vec::new(),
                 acquires: Vec::new(),
                 export_queue: None,
@@ -461,7 +463,7 @@ impl Bridge {
     fn check(&self) -> Result<()> {
         self.core.live()?;
         if self.core.scan_due(false) {
-            if let Ok(mut guard) = self.inner.try_lock() {
+            if let Some(mut guard) = self.inner.try_lock() {
                 return self.scan_locked(&mut guard.0);
             }
         }
@@ -735,7 +737,7 @@ impl Bridge {
     /// and wait paths never block on another thread's allocation).
     fn reclaim_try(&self) {
         if self.core.reclaim_pending.load(Ordering::Acquire) != 0 {
-            if let Ok(mut guard) = self.inner.try_lock() {
+            if let Some(mut guard) = self.inner.try_lock() {
                 self.reclaim_locked(&mut guard.0, false);
             }
         }

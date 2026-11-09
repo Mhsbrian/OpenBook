@@ -116,9 +116,9 @@ $(printf '        "%s",\n' "${mods[@]}" libEGL_angle libGLESv1_CM_angle libGLESv
     ],
     aaptflags: [
         "--version-code",
-        "3",
+        "4",
         "--version-name",
-        "26.2.5-openbook.3",
+        "26.2.5-openbook.4",
     ],
     optimize: {
         enabled: false,

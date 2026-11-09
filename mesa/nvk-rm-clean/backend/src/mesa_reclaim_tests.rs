@@ -11,7 +11,7 @@ use super::*;
 use std::{
     fs::{File, OpenOptions},
     os::fd::{AsRawFd, FromRawFd},
-    sync::{atomic::AtomicU32, mpsc, Barrier},
+    sync::{atomic::AtomicU32, mpsc, Barrier, Mutex},
     thread,
     time::Duration,
 };
@@ -154,15 +154,105 @@ struct SendPtr(*mut Bridge);
 unsafe impl Send for SendPtr {}
 unsafe impl Sync for SendPtr {}
 
+/// The worker threads of a fixture. Workers hold raw pointers to the Bridges
+/// (`SendPtr`) and to the VA pools, so none of those may be dropped while a
+/// worker still runs, also when the fixture fails: a `JoinHandle` that is
+/// dropped detaches its thread, and `join().unwrap()` on the first failed
+/// worker dropped the handles of all the others (ANAL-345). `Workers`
+/// releases and joins every worker before it is gone: in `finish`, which
+/// reports a worker's failure only after all of them exited, and in `Drop`,
+/// when a failure of the fixture itself unwinds through it. Declare it after
+/// the Bridges and pools its workers use, so that it drops before them.
+pub(super) struct Workers<T> {
+    /// Makes every worker return soon (a stop flag, a gate signal). It runs
+    /// once, before the first join, and must not panic.
+    release: Option<Box<dyn FnOnce()>>,
+    handles: Vec<Option<thread::JoinHandle<T>>>,
+    results: Vec<thread::Result<T>>,
+}
+impl<T: Send + 'static> Workers<T> {
+    pub(super) fn new(release: impl FnOnce() + 'static) -> Self {
+        Self {
+            release: Some(Box::new(release)),
+            handles: Vec::new(),
+            results: Vec::new(),
+        }
+    }
+    pub(super) fn spawn(&mut self, work: impl FnOnce() -> T + Send + 'static) {
+        self.handles.push(Some(thread::spawn(work)));
+    }
+    /// A worker returned or failed already (before the release, that is a
+    /// failure: the fixture can stop early).
+    pub(super) fn any_finished(&self) -> bool {
+        self.handles.iter().flatten().any(|h| h.is_finished())
+    }
+    /// The fixture released the workers itself (it checked the result).
+    pub(super) fn released(&mut self) {
+        self.release = None;
+    }
+    /// Release the workers, then join the next `count` in spawn order. Their
+    /// results, failures included, are kept for `finish`.
+    pub(super) fn join_next(&mut self, count: usize) {
+        if let Some(release) = self.release.take() {
+            release();
+        }
+        let joined = self.results.len();
+        for handle in self.handles.iter_mut().skip(joined).take(count) {
+            if let Some(handle) = handle.take() {
+                self.results.push(handle.join());
+            }
+        }
+    }
+    /// Release and join every worker; only then return their results in
+    /// spawn order, or continue the first failed worker's panic.
+    pub(super) fn finish(mut self) -> Vec<T> {
+        self.join_next(usize::MAX);
+        let mut values = Vec::new();
+        for result in std::mem::take(&mut self.results) {
+            match result {
+                Ok(value) => values.push(value),
+                Err(panic) => std::panic::resume_unwind(panic),
+            }
+        }
+        values
+    }
+}
+impl<T> Drop for Workers<T> {
+    fn drop(&mut self) {
+        if let Some(release) = self.release.take() {
+            release();
+        }
+        for handle in self.handles.iter_mut() {
+            if let Some(handle) = handle.take() {
+                // The fixture is already failing: its own panic is the report.
+                let _ = handle.join();
+            }
+        }
+    }
+}
+/// The usual release: a stop flag every worker polls.
+fn stop_flag(stop: &Arc<AtomicBool>) -> impl FnOnce() + 'static {
+    let stop = Arc::clone(stop);
+    move || stop.store(true, Ordering::SeqCst)
+}
+
 /// Records deferred VA releases (stands in for Mesa's util_vma_heap_free).
 #[derive(Default)]
 struct Released {
     calls: AtomicU32,
     ranges: Mutex<Vec<(u64, u64)>>,
 }
+/// C callbacks must never panic: a panic cannot unwind out of an `extern "C"`
+/// function, so it would abort the whole test process (ANAL-345: one device
+/// loss cost the remaining hardware tests). Poisoned locks are taken anyway
+/// and problems are recorded for the test body to assert.
 unsafe extern "C" fn record_release(data: *mut c_void, address: u64, size: u64) {
     let released = unsafe { &*(data as *const Released) };
-    released.ranges.lock().unwrap().push((address, size));
+    released
+        .ranges
+        .lock()
+        .unwrap_or_else(|p| p.into_inner())
+        .push((address, size));
     released.calls.fetch_add(1, Ordering::SeqCst);
 }
 fn va_free(b: *mut Bridge, mappings: &[u64], address: u64, size: u64, released: &Released) -> i32 {
@@ -257,17 +347,19 @@ fn free_while_foreign_gated_returns_promptly_and_reclaims_after_retirement() {
     // If any free blocked on the gated work, this watchdog provides the
     // producer signal so the test fails instead of hanging.
     let (tx, rx) = mpsc::channel::<()>();
-    let watchdog = {
+    // No release needed: the watchdog returns after 5 s at the latest.
+    let mut watchdog = Workers::new(|| ());
+    {
         let pp = SendPtr(pp);
-        thread::spawn(move || {
+        watchdog.spawn(move || {
             let pp = pp;
             if rx.recv_timeout(Duration::from_secs(5)).is_err() {
                 unsafe { nv_rm_sync_signal(pp.0, gate, 1) };
                 return true;
             }
             false
-        })
-    };
+        });
+    }
     let start = Instant::now();
     assert_eq!(unsafe { nv_rm_unbind(cp, other_map) }, 0);
     let unbind = start.elapsed();
@@ -278,7 +370,7 @@ fn free_while_foreign_gated_returns_promptly_and_reclaims_after_retirement() {
     let all = start.elapsed();
     tx.send(()).unwrap();
     assert!(
-        !watchdog.join().unwrap(),
+        !watchdog.finish()[0],
         "a free blocked on foreign-gated work"
     );
     assert!(all < Duration::from_millis(50), "frees took {all:?}");
@@ -444,11 +536,29 @@ fn freed_memory_stays_mapped_until_the_gated_batch_retires() {
 struct VaPool {
     free: Mutex<Vec<u64>>,
     released: AtomicU64,
+    /// A slot came back while already free (asserted by the tests, never in
+    /// the callback: see record_release).
+    released_twice: AtomicBool,
+}
+impl VaPool {
+    fn new(slots: impl Iterator<Item = u64>) -> Self {
+        Self {
+            free: Mutex::new(slots.collect()),
+            released: AtomicU64::new(0),
+            released_twice: AtomicBool::new(false),
+        }
+    }
+    fn take(&self) -> Option<u64> {
+        self.free.lock().unwrap_or_else(|p| p.into_inner()).pop()
+    }
 }
 unsafe extern "C" fn pool_release(data: *mut c_void, address: u64, _size: u64) {
     let pool = unsafe { &*(data as *const VaPool) };
-    let mut free = pool.free.lock().unwrap();
-    assert!(!free.contains(&address), "VA slot released twice");
+    let mut free = pool.free.lock().unwrap_or_else(|p| p.into_inner());
+    if free.contains(&address) {
+        pool.released_twice.store(true, Ordering::SeqCst);
+        return;
+    }
     free.push(address);
     pool.released.fetch_add(1, Ordering::SeqCst);
 }
@@ -468,14 +578,13 @@ fn concurrent_alloc_free_gated_submit_stress() {
     let before = fd_count();
     let pci = selected_pci();
     let drm = Arc::new(render_node(pci));
+    // Declared before the bridges, so it also outlives them when a failure
+    // unwinds: their close runs the pending releases into it.
+    let pool = Arc::new(VaPool::new((0..512).map(|i| VA_BASE + (64 << 20) + i * SLOT)));
     let mut bridge = open(pci);
     let mut producer = open(pci);
     let b = SendPtr(&mut *bridge);
     let p = SendPtr(&mut *producer);
-    let pool = Arc::new(VaPool {
-        free: Mutex::new((0..512).map(|i| VA_BASE + (64 << 20) + i * SLOT).collect()),
-        released: AtomicU64::new(0),
-    });
     let stop = Arc::new(AtomicBool::new(false));
     let failures = Arc::new(Mutex::new(Vec::<String>::new()));
     let slow_free = Arc::new(AtomicU64::new(0)); // worst free, ns
@@ -487,8 +596,8 @@ fn concurrent_alloc_free_gated_submit_stress() {
         f();
         slow.fetch_max(t.elapsed().as_nanos() as u64, Ordering::Relaxed);
     };
-    let take_slot = |pool: &VaPool| -> Option<u64> { pool.free.lock().unwrap().pop() };
-    let mut threads = Vec::new();
+    let take_slot = |pool: &VaPool| -> Option<u64> { pool.take() };
+    let mut workers = Workers::new(stop_flag(&stop));
     // Allocators.
     for seed in 0..3u64 {
         let (pool, stop, slow, frees) = (
@@ -497,7 +606,7 @@ fn concurrent_alloc_free_gated_submit_stress() {
             Arc::clone(&slow_free),
             Arc::clone(&va_frees),
         );
-        threads.push(thread::spawn(move || {
+        workers.spawn(move || {
             let b = b;
             let mut ops = 0u64;
             let mut x = 0x9e37_79b9_7f4a_7c15u64 ^ seed;
@@ -537,7 +646,7 @@ fn concurrent_alloc_free_gated_submit_stress() {
                 ops += 1;
             }
             ops
-        }));
+        });
     }
     // Submitter: host-gated batches with a driver-internal free while gated.
     {
@@ -548,7 +657,7 @@ fn concurrent_alloc_free_gated_submit_stress() {
             Arc::clone(&va_frees),
             Arc::clone(&failures),
         );
-        threads.push(thread::spawn(move || {
+        workers.spawn(move || {
             let b = b;
             let ctx = context(b.0);
             let gate = create(b.0, true, 0);
@@ -608,7 +717,7 @@ fn concurrent_alloc_free_gated_submit_stress() {
             }
             assert_eq!(unsafe { nv_rm_context_destroy(b.0, ctx) }, 0);
             k
-        }));
+        });
     }
     // Foreign-gated consumer: producer device signals a sync_file only after
     // the consumer thread freed memory behind the gated batch.
@@ -621,7 +730,7 @@ fn concurrent_alloc_free_gated_submit_stress() {
             Arc::clone(&failures),
             Arc::clone(&drm),
         );
-        threads.push(thread::spawn(move || {
+        workers.spawn(move || {
             let (b, p) = (b, p);
             let ctx = context(b.0);
             let pctx = context(p.0);
@@ -691,12 +800,12 @@ fn concurrent_alloc_free_gated_submit_stress() {
             assert_eq!(unsafe { nv_rm_context_destroy(p.0, pctx) }, 0);
             assert_eq!(unsafe { nv_rm_context_destroy(b.0, ctx) }, 0);
             k
-        }));
+        });
     }
     // CPU waiters on the submitter's GPU-signalled timeline.
     for _ in 0..2 {
         let (stop, failures) = (Arc::clone(&stop), Arc::clone(&failures));
-        threads.push(thread::spawn(move || {
+        workers.spawn(move || {
             let b = b;
             let mut wakes = 0u64;
             while !stop.load(Ordering::Relaxed) {
@@ -715,25 +824,23 @@ fn concurrent_alloc_free_gated_submit_stress() {
                 }
             }
             wakes
-        }));
+        });
     }
     let start = Instant::now();
-    while start.elapsed() < Duration::from_secs(seconds) && failures.lock().unwrap().is_empty() {
+    while start.elapsed() < Duration::from_secs(seconds)
+        && failures.lock().unwrap().is_empty()
+        && !workers.any_finished()
+    {
         thread::sleep(Duration::from_millis(200));
     }
-    stop.store(true, Ordering::SeqCst);
-    // Release waiters parked on a value the stopped submitter never reaches.
     let submitter_join_guard = Instant::now();
-    let counts: Vec<u64> = threads
-        .into_iter()
-        .enumerate()
-        .map(|(i, t)| {
-            if i == 5 {
-                assert_eq!(unsafe { nv_rm_sync_signal(b.0, timeline, u64::MAX / 2) }, 0);
-            }
-            t.join().unwrap()
-        })
-        .collect();
+    // The allocators, the submitter and the consumer first. Then release the
+    // waiters parked on a value the stopped submitter never reaches. Nothing
+    // is asserted before every worker is joined.
+    workers.join_next(5);
+    let woke = unsafe { nv_rm_sync_signal(b.0, timeline, u64::MAX / 2) };
+    let counts: Vec<u64> = workers.finish();
+    assert_eq!(woke, 0);
     assert!(submitter_join_guard.elapsed() < Duration::from_secs(30));
     let failures = failures.lock().unwrap().clone();
     assert!(failures.is_empty(), "{failures:?}");
@@ -747,6 +854,7 @@ fn concurrent_alloc_free_gated_submit_stress() {
         frees,
         "one release per VA free"
     );
+    assert!(!pool.released_twice.load(Ordering::SeqCst), "VA slot released twice");
     assert_eq!(pool.free.lock().unwrap().len(), 512);
     assert_eq!(unsafe { nv_rm_sync_destroy(b.0, timeline) }, 0);
     drop(bridge);
@@ -807,22 +915,22 @@ fn watcher_gate_release_and_contended_waiters_never_lose_a_wakeup() {
             &[point(timeline, round)],
         );
         let ready = Arc::new(Barrier::new(5));
-        let waiters: Vec<_> = (0..4)
-            .map(|i| {
-                let ready = Arc::clone(&ready);
-                thread::spawn(move || {
-                    let cp = cp;
-                    let target = if i < 2 {
-                        point(timeline, round)
-                    } else {
-                        point(cpu_wait, 0)
-                    };
-                    ready.wait();
-                    let r = unsafe { nv_rm_sync_wait_many(cp.0, &target, 1, 0, 2_000_000_000) };
-                    (r, Instant::now())
-                })
-            })
-            .collect();
+        // No release needed: every wait ends after 2 s at the latest.
+        let mut waiters = Workers::new(|| ());
+        for i in 0..4 {
+            let ready = Arc::clone(&ready);
+            waiters.spawn(move || {
+                let cp = cp;
+                let target = if i < 2 {
+                    point(timeline, round)
+                } else {
+                    point(cpu_wait, 0)
+                };
+                ready.wait();
+                let r = unsafe { nv_rm_sync_wait_many(cp.0, &target, 1, 0, 2_000_000_000) };
+                (r, Instant::now())
+            });
+        }
         ready.wait();
         while consumer.core.waiters.registered() < 4 {
             thread::yield_now();
@@ -831,8 +939,7 @@ fn watcher_gate_release_and_contended_waiters_never_lose_a_wakeup() {
         thread::sleep(Duration::from_micros(300));
         let signal = Instant::now();
         assert_eq!(unsafe { nv_rm_sync_signal(pp.0, gate, round) }, 0);
-        for w in waiters {
-            let (r, at) = w.join().unwrap();
+        for (r, at) in waiters.finish() {
             assert_eq!(
                 r, 0,
                 "round {round}: wait result {r} (timeout = lost wakeup)"
@@ -919,6 +1026,16 @@ fn startup_sync_churn_every_exported_fence_signals() {
     let before = fd_count();
     let pci = selected_pci();
     let drm = Arc::new(render_node(pci));
+    // Mesa's heap: a range is reusable only after its release ran. One pool
+    // per thread, declared before the devices so it outlives them even when a
+    // failure unwinds (their close runs the pending releases into it).
+    let pools: Vec<Arc<VaPool>> = (0..4u64)
+        .map(|t| {
+            Arc::new(VaPool::new(
+                (0..64).map(move |i| VA_BASE + (1 << 32) + (t * 64 + i) * SLOT),
+            ))
+        })
+        .collect();
     let mut devices = [open(pci), open(pci)];
     let ptrs = [SendPtr(&mut *devices[0]), SendPtr(&mut *devices[1])];
     let stop = Arc::new(AtomicBool::new(false));
@@ -927,26 +1044,22 @@ fn startup_sync_churn_every_exported_fence_signals() {
     let latest: Arc<[Mutex<Option<OwnedFd>>; 2]> = Arc::new([Mutex::new(None), Mutex::new(None)]);
     let worst = Arc::new(AtomicU64::new(0));
     let released = Arc::new(Released::default());
-    let mut threads = Vec::new();
+    let mut workers = Workers::new(stop_flag(&stop));
     for t in 0..4usize {
         let device = t % 2;
         let b = ptrs[device];
-        let (stop, failures, latest, drm, worst) = (
+        let (stop, failures, latest, drm, worst, pool) = (
             Arc::clone(&stop),
             Arc::clone(&failures),
             Arc::clone(&latest),
             Arc::clone(&drm),
             Arc::clone(&worst),
+            Arc::clone(&pools[t]),
         );
-        threads.push(thread::spawn(move || {
+        workers.spawn(move || {
             let b = b;
             let mut ctx = context(b.0);
             let fences: Vec<u64> = (0..3).map(|_| create(b.0, false, 0)).collect();
-            // Mesa's heap: a range is reusable only after its release ran.
-            let pool = Arc::new(VaPool {
-                free: Mutex::new((0..64).map(|i| VA_BASE + (1 << 32) + ((t as u64) * 64 + i) * SLOT).collect()),
-                released: AtomicU64::new(0),
-            });
             let mut frames = 0u64;
             while !stop.load(Ordering::Relaxed) {
                 frames += 1;
@@ -978,7 +1091,7 @@ fn startup_sync_churn_every_exported_fence_signals() {
                     assert_eq!(unsafe { nv_rm_sync_destroy(b.0, id) }, 0);
                 }
                 // dequeue: temporary AHB import + free (GetMemoryFdProperties).
-                let va = pool.free.lock().unwrap().pop().expect("deferred VA ranges are reclaimed");
+                let va = pool.take().expect("deferred VA ranges are reclaimed");
                 let memory = alloc(b.0, 65536, true);
                 let mapping = bind(b.0, memory, 65536, va);
                 let r = unsafe {
@@ -1033,14 +1146,16 @@ fn startup_sync_churn_every_exported_fence_signals() {
             }
             assert_eq!(unsafe { nv_rm_context_destroy(b.0, ctx) }, 0);
             (frames, pool)
-        }));
+        });
     }
     let start = Instant::now();
-    while start.elapsed() < Duration::from_secs(seconds) && !stop.load(Ordering::SeqCst) {
+    while start.elapsed() < Duration::from_secs(seconds)
+        && !stop.load(Ordering::SeqCst)
+        && !workers.any_finished()
+    {
         thread::sleep(Duration::from_millis(100));
     }
-    stop.store(true, Ordering::SeqCst);
-    let joined: Vec<(u64, Arc<VaPool>)> = threads.into_iter().map(|t| t.join().unwrap()).collect();
+    let joined: Vec<(u64, Arc<VaPool>)> = workers.finish();
     let frames: Vec<u64> = joined.iter().map(|(f, _)| *f).collect();
     // Everything retired: one uncontended status call per device reclaims
     // every group; each deferred range came back exactly once.
@@ -1053,6 +1168,7 @@ fn startup_sync_churn_every_exported_fence_signals() {
             *f,
             "one release per VA free"
         );
+        assert!(!pool.released_twice.load(Ordering::SeqCst), "VA slot released twice");
         released.calls.fetch_add(*f as u32, Ordering::SeqCst);
     }
     let failures = failures.lock().unwrap().clone();
@@ -1065,7 +1181,8 @@ fn startup_sync_churn_every_exported_fence_signals() {
     }
     let releases = released.calls.load(Ordering::SeqCst);
     drop(devices);
-    drop(joined); // VA pools outlive every possible release (close runs them)
+    drop(joined);
+    drop(pools); // VA pools outlive every possible release (close runs them)
     drop(drm);
     assert_eq!(fd_count(), before, "fd leak");
     println!(
@@ -1146,7 +1263,7 @@ fn every_submitted_batch_runs_without_a_later_doorbell() {
     let failures = Arc::new(Mutex::new(Vec::<String>::new()));
     let worst = Arc::new(AtomicU64::new(0));
     let slow = Arc::new(Mutex::new(Vec::<String>::new()));
-    let mut threads = Vec::new();
+    let mut workers = Workers::new(stop_flag(&stop));
     for t in 0..4usize {
         let b = ptrs[t % 2];
         let (stop, failures, worst, slow) = (
@@ -1155,7 +1272,7 @@ fn every_submitted_batch_runs_without_a_later_doorbell() {
             Arc::clone(&worst),
             Arc::clone(&slow),
         );
-        threads.push(thread::spawn(move || {
+        workers.spawn(move || {
             let b = b;
             let ctx = context(b.0);
             let fence = create(b.0, false, 0);
@@ -1214,7 +1331,7 @@ fn every_submitted_batch_runs_without_a_later_doorbell() {
             assert_eq!(unsafe { nv_rm_sync_destroy(b.0, fence) }, 0);
             assert_eq!(unsafe { nv_rm_context_destroy(b.0, ctx) }, 0);
             n
-        }));
+        });
     }
     // BAR1 traffic: CPU writes into mapped VRAM on both devices (off when
     // NV_RM_KICK_IDLE_MS asks for an idle GPU).
@@ -1222,7 +1339,7 @@ fn every_submitted_batch_runs_without_a_later_doorbell() {
     for d in (0..2usize).filter(|_| bar1) {
         let b = ptrs[d];
         let stop = Arc::clone(&stop);
-        threads.push(thread::spawn(move || {
+        workers.spawn(move || {
             let b = b;
             let size = 4u64 << 20;
             let memory = alloc(b.0, size, false);
@@ -1237,14 +1354,16 @@ fn every_submitted_batch_runs_without_a_later_doorbell() {
             assert_eq!(unsafe { nv_rm_unmap(b.0, memory) }, 0);
             assert_eq!(unsafe { nv_rm_free(b.0, memory) }, 0);
             words
-        }));
+        });
     }
     let start = Instant::now();
-    while start.elapsed() < Duration::from_secs(seconds) && !stop.load(Ordering::SeqCst) {
+    while start.elapsed() < Duration::from_secs(seconds)
+        && !stop.load(Ordering::SeqCst)
+        && !workers.any_finished()
+    {
         thread::sleep(Duration::from_millis(100));
     }
-    stop.store(true, Ordering::SeqCst);
-    let counts: Vec<u64> = threads.into_iter().map(|t| t.join().unwrap()).collect();
+    let counts: Vec<u64> = workers.finish();
     let failures = failures.lock().unwrap().clone();
     for d in &devices {
         assert!(!d.core.is_lost());
@@ -1294,58 +1413,59 @@ fn cpu_released_acquire_runs_without_a_doorbell_after_idle() {
     let failures = Arc::new(Mutex::new(Vec::<String>::new()));
     let worst = Arc::new(AtomicU64::new(0));
     let slow = Arc::new(AtomicU64::new(0));
-    let threads: Vec<_> = (0..4usize)
-        .map(|t| {
-            let b = ptrs[t % 2];
-            let (stop, failures, worst, slow) = (Arc::clone(&stop), Arc::clone(&failures), Arc::clone(&worst), Arc::clone(&slow));
-            thread::spawn(move || {
-                let b = b;
-                let ctx = context(b.0);
-                let gate = create(b.0, true, 0);
-                let mut x = 0x9e37_79b9_7f4a_7c15u64 ^ (t as u64 + 7);
-                let mut n = 0u64;
-                while !stop.load(Ordering::Relaxed) {
-                    n += 1;
-                    let token = submit(b.0, ctx, &[], &[point(gate, n)], &[]);
-                    x ^= x << 13;
-                    x ^= x >> 7;
-                    x ^= x << 17;
-                    thread::sleep(Duration::from_micros(x % (idle * 1000)));
-                    assert_eq!(unsafe { nv_rm_sync_signal(b.0, gate, n) }, 0);
-                    let start = Instant::now();
-                    let r = unsafe { nv_rm_wait(b.0, ctx, token, 100_000_000) };
-                    worst.fetch_max(start.elapsed().as_nanos() as u64, Ordering::Relaxed);
-                    if r != 0 {
-                        let late = unsafe { nv_rm_wait(b.0, ctx, token, 2_000_000_000) } == 0;
-                        if late {
-                            // Slow under GPU contention, not stranded.
-                            slow.fetch_add(1, Ordering::Relaxed);
-                            continue;
-                        }
-                        let next = submit(b.0, ctx, &[], &[], &[]);
-                        let after = unsafe { nv_rm_wait(b.0, ctx, token, 1_000_000_000) } == 0;
-                        let _ = unsafe { nv_rm_wait(b.0, ctx, next, 1_000_000_000) };
-                        failures.lock().unwrap().push(format!(
-                            "thread {t} batch {n}: acquire not re-polled within 100 ms of the CPU release; \
-                             STRANDED: not retired within 2.1 s without doorbell (late={late}); after a doorbell: {after}"
-                        ));
-                        stop.store(true, Ordering::SeqCst);
+    let mut workers = Workers::new(stop_flag(&stop));
+    for t in 0..4usize {
+        let b = ptrs[t % 2];
+        let (stop, failures, worst, slow) = (Arc::clone(&stop), Arc::clone(&failures), Arc::clone(&worst), Arc::clone(&slow));
+        workers.spawn(move || {
+            let b = b;
+            let ctx = context(b.0);
+            let gate = create(b.0, true, 0);
+            let mut x = 0x9e37_79b9_7f4a_7c15u64 ^ (t as u64 + 7);
+            let mut n = 0u64;
+            while !stop.load(Ordering::Relaxed) {
+                n += 1;
+                let token = submit(b.0, ctx, &[], &[point(gate, n)], &[]);
+                x ^= x << 13;
+                x ^= x >> 7;
+                x ^= x << 17;
+                thread::sleep(Duration::from_micros(x % (idle * 1000)));
+                assert_eq!(unsafe { nv_rm_sync_signal(b.0, gate, n) }, 0);
+                let start = Instant::now();
+                let r = unsafe { nv_rm_wait(b.0, ctx, token, 100_000_000) };
+                worst.fetch_max(start.elapsed().as_nanos() as u64, Ordering::Relaxed);
+                if r != 0 {
+                    let late = unsafe { nv_rm_wait(b.0, ctx, token, 2_000_000_000) } == 0;
+                    if late {
+                        // Slow under GPU contention, not stranded.
+                        slow.fetch_add(1, Ordering::Relaxed);
+                        continue;
                     }
+                    let next = submit(b.0, ctx, &[], &[], &[]);
+                    let after = unsafe { nv_rm_wait(b.0, ctx, token, 1_000_000_000) } == 0;
+                    let _ = unsafe { nv_rm_wait(b.0, ctx, next, 1_000_000_000) };
+                    failures.lock().unwrap().push(format!(
+                        "thread {t} batch {n}: acquire not re-polled within 100 ms of the CPU release; \
+                         STRANDED: not retired within 2.1 s without doorbell (late={late}); after a doorbell: {after}"
+                    ));
+                    stop.store(true, Ordering::SeqCst);
                 }
-                let last = queue_ref(&unsafe { &*b.0 }.lock().0, ctx).unwrap().last_token();
-                assert_eq!(unsafe { nv_rm_wait(b.0, ctx, last, 10_000_000_000) }, 0);
-                assert_eq!(unsafe { nv_rm_sync_destroy(b.0, gate) }, 0);
-                assert_eq!(unsafe { nv_rm_context_destroy(b.0, ctx) }, 0);
-                n
-            })
-        })
-        .collect();
+            }
+            let last = queue_ref(&unsafe { &*b.0 }.lock().0, ctx).unwrap().last_token();
+            assert_eq!(unsafe { nv_rm_wait(b.0, ctx, last, 10_000_000_000) }, 0);
+            assert_eq!(unsafe { nv_rm_sync_destroy(b.0, gate) }, 0);
+            assert_eq!(unsafe { nv_rm_context_destroy(b.0, ctx) }, 0);
+            n
+        });
+    }
     let start = Instant::now();
-    while start.elapsed() < Duration::from_secs(seconds) && !stop.load(Ordering::SeqCst) {
+    while start.elapsed() < Duration::from_secs(seconds)
+        && !stop.load(Ordering::SeqCst)
+        && !workers.any_finished()
+    {
         thread::sleep(Duration::from_millis(100));
     }
-    stop.store(true, Ordering::SeqCst);
-    let counts: Vec<u64> = threads.into_iter().map(|t| t.join().unwrap()).collect();
+    let counts: Vec<u64> = workers.finish();
     let failures = failures.lock().unwrap().clone();
     for d in &devices {
         assert!(!d.core.is_lost());
@@ -1359,4 +1479,133 @@ fn cpu_released_acquire_runs_without_a_doorbell_after_idle() {
         Duration::from_nanos(worst.load(Ordering::SeqCst)),
         slow.load(Ordering::SeqCst)
     );
+}
+
+/// Stands in for a Bridge in the `Workers` tests (no GPU): it records how
+/// many workers were still running when it was dropped.
+struct TeardownProbe {
+    running: Arc<AtomicU32>,
+    running_at_drop: Arc<AtomicU32>,
+}
+impl Drop for TeardownProbe {
+    fn drop(&mut self) {
+        self.running_at_drop
+            .store(self.running.load(Ordering::SeqCst), Ordering::SeqCst);
+    }
+}
+/// A worker that is at work until the stop request and for a while after it.
+fn busy_peer(running: &Arc<AtomicU32>, stop: &Arc<AtomicBool>) -> impl FnOnce() -> u32 + Send + 'static {
+    let (running, stop) = (Arc::clone(running), Arc::clone(stop));
+    move || {
+        running.fetch_add(1, Ordering::SeqCst);
+        while !stop.load(Ordering::SeqCst) {
+            thread::sleep(Duration::from_millis(1));
+        }
+        thread::sleep(Duration::from_millis(50));
+        running.fetch_sub(1, Ordering::SeqCst);
+        7
+    }
+}
+
+/// ANAL-345: one worker fails early while another is still active. The
+/// failure must reach the fixture only after every worker exited, so the
+/// owner (declared first, like the Bridges) is dropped with no worker left.
+/// With `join().unwrap()` on the first handle the owner dropped under the
+/// second worker.
+#[test]
+fn a_worker_failure_is_reported_only_after_every_peer_exited() {
+    let running = Arc::new(AtomicU32::new(0));
+    let running_at_drop = Arc::new(AtomicU32::new(u32::MAX));
+    let peer_was_active = AtomicBool::new(false);
+    let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _owner = TeardownProbe {
+            running: Arc::clone(&running),
+            running_at_drop: Arc::clone(&running_at_drop),
+        };
+        let stop = Arc::new(AtomicBool::new(false));
+        let mut workers = Workers::new(stop_flag(&stop));
+        let (failed_tx, failed_rx) = mpsc::channel::<()>();
+        workers.spawn(move || -> u32 {
+            // Dropped, and so seen by the fixture, when this panic unwinds.
+            let _failed = failed_tx;
+            panic!("injected worker failure");
+        });
+        workers.spawn(busy_peer(&running, &stop));
+        assert!(failed_rx.recv().is_err());
+        // The fixture can see the early failure while the peer is still at
+        // work and nothing asked it to stop.
+        while !workers.any_finished() || running.load(Ordering::SeqCst) == 0 {
+            thread::yield_now();
+        }
+        peer_was_active.store(!stop.load(Ordering::SeqCst), Ordering::SeqCst);
+        workers.finish()
+    }));
+    assert!(peer_was_active.load(Ordering::SeqCst));
+    // The fixture fails with the worker's own panic.
+    let panic = outcome.expect_err("the worker's failure must still fail the fixture");
+    assert_eq!(panic.downcast_ref::<&str>(), Some(&"injected worker failure"));
+    assert_eq!(
+        running_at_drop.load(Ordering::SeqCst),
+        0,
+        "the owner was dropped while a worker was still running"
+    );
+}
+
+/// The fixture itself fails while its workers run (an assertion on the main
+/// thread): unwinding must release and join them before the owner drops.
+#[test]
+fn a_failing_fixture_releases_and_joins_its_workers_first() {
+    let running = Arc::new(AtomicU32::new(0));
+    let running_at_drop = Arc::new(AtomicU32::new(u32::MAX));
+    let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _owner = TeardownProbe {
+            running: Arc::clone(&running),
+            running_at_drop: Arc::clone(&running_at_drop),
+        };
+        let stop = Arc::new(AtomicBool::new(false));
+        let mut workers = Workers::new(stop_flag(&stop));
+        workers.spawn(busy_peer(&running, &stop));
+        workers.spawn(busy_peer(&running, &stop));
+        while running.load(Ordering::SeqCst) < 2 {
+            thread::yield_now();
+        }
+        panic!("injected fixture failure");
+    }));
+    let panic = outcome.expect_err("the fixture's failure stays a failure");
+    assert_eq!(panic.downcast_ref::<&str>(), Some(&"injected fixture failure"));
+    assert_eq!(
+        running_at_drop.load(Ordering::SeqCst),
+        0,
+        "the owner was dropped while a worker was still running"
+    );
+}
+
+/// Results come back in spawn order, a partial join keeps what it joined, and
+/// the release runs exactly once (not at all after `released`).
+#[test]
+fn workers_join_in_spawn_order_and_release_once() {
+    let releases = Arc::new(AtomicU32::new(0));
+    let count = |releases: &Arc<AtomicU32>| {
+        let releases = Arc::clone(releases);
+        move || {
+            releases.fetch_add(1, Ordering::SeqCst);
+        }
+    };
+    let mut workers = Workers::new(count(&releases));
+    for i in 0..4u64 {
+        workers.spawn(move || {
+            thread::sleep(Duration::from_millis(4 * (4 - i)));
+            i
+        });
+    }
+    workers.join_next(2);
+    assert_eq!(releases.load(Ordering::SeqCst), 1);
+    assert_eq!(workers.finish(), [0, 1, 2, 3]);
+    assert_eq!(releases.load(Ordering::SeqCst), 1);
+
+    let mut workers = Workers::new(count(&releases));
+    workers.spawn(|| 5u64);
+    workers.released();
+    assert_eq!(workers.finish(), [5]);
+    assert_eq!(releases.load(Ordering::SeqCst), 1);
 }
