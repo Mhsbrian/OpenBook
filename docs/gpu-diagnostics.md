@@ -139,6 +139,44 @@ of several commands runs whole under `g14-lock.sh run OWNER -- SCRIPT`, so nothi
 The table groups valid runs by label and GPU seen. Each cell gives the median, then the min–max range, then
 every run's value. Invalid runs are listed with the reason.
 
+## The kernel log on a user build
+
+On a `user` build the shell can't read the kernel log: logd carries no kernel buffer, so the sampler's kernel
+watcher has nothing to read. The vendor helper (`openbook-pc-setup`, root) can hand over the kernel log's GPU
+lines for one run instead, with proof that none is missing (ANAL-402):
+
+```bash
+adb shell setprop debug.openbook.klog begin@ID          # before the run; ID: 8 to 32 letters and digits, random
+adb logcat -d -s openbook-pc-setup                      # klog: begin id=ID status=ok boot=… seq=SEQ …
+# … the run …
+adb shell setprop debug.openbook.klog end@ID@SEQ        # after it, with the SEQ that begin answered
+adb logcat -d -s openbook-pc-setup                      # klog: line … (one per GPU line), then klog: end … status=…
+```
+
+- **How it proves it.** `/dev/kmsg` gives every record a sequence number. `begin` writes a marker record and
+  answers with its number. `end` writes a second marker, reads the ring up to it, and checks that record `SEQ` is
+  still that run's marker and that every number from it to the end marker was read. Timestamps play no part, so
+  records in the same microsecond stay apart.
+- **What it hands over.** Every record between the two markers whose text has one of `NVRM`, `nvidia`, `Xid`,
+  `GSP`, `fallen off the bus`, `amdgpu`, `nouveau` or `[drm` (`filter=gpu1`): NVIDIA's lines and amdgpu's,
+  whichever GPU drew. Each line carries its place (`n=I/SENT`), its sequence number and the record's time.
+- **The last line says what the answer is worth.** `status=complete` is the only one that covers a run, and only
+  then do zero lines mean no GPU error. `truncated`, `fragmented`, `gap`, `evicted`, `other-boot`, `no-marker`
+  and `unreadable` don't; the helper's usage text says what each means. An answer whose last line is missing, or
+  with fewer `line`s than `sent=` says, is incomplete too.
+- **A line printed in pieces is not certified.** The kernel flags a piece it could not join to its line as a
+  continuation fragment (`c`). An error can then be split over two records, neither of which reads as one. The
+  helper doesn't join them: with any fragment between the markers the answer is `fragmented`, and the fragments
+  are handed over next to the matching lines for a person to read.
+- **Every line says whether it arrived whole.** `sum=` is the SHA-256 of the line without that field, and a
+  `line`'s `len=` is the length of its text. A reader that finds another sum or length has a line that was
+  shortened or changed between the helper and itself, and must not take the answer as complete.
+- **It needs no lab switch and changes nothing** but two marker lines in the kernel log. A bugreport already gives
+  adb the whole kernel log.
+
+`gpu-diag.sh` doesn't ask for it yet: OpenBook's previews are `userdebug` builds, where the sampler streams the
+kernel log itself.
+
 ## Method (ANAL-336)
 
 - The workload, scene, seed, render size, quality and frame cap go into `--label`. A run's identity is the image,

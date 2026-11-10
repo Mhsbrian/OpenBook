@@ -84,6 +84,13 @@ on property:sys.boot_completed=1
 on property:debug.openbook.dgpu_report=*
     start vendor.openbook.dgpu-report
 
+# The kernel log's GPU lines for one run, with proof that none is missing (ANAL-402): a user build's adb shell can't
+# read the kernel log. `setprop debug.openbook.klog begin@ID` before the run and `end@ID@SEQ` after it run
+# `openbook-pc-setup klog VALUE` as root, which reads /dev/kmsg by sequence number and answers in logcat
+# (`adb logcat -d -s openbook-pc-setup`). One request at a time: wait for the answer before the next.
+on property:debug.openbook.klog=*
+    start vendor.openbook.klog
+
 # Volatile dGPU power hold for battery comparisons (ANAL-238): `setprop debug.openbook.dgpu_pm on` keeps the dGPU in
 # D0, `auto` lets it reach D3cold again. A reboot returns to dgpu-pm's default.
 on property:debug.openbook.dgpu_pm=*
@@ -189,6 +196,12 @@ service vendor.openbook.dgpu-ctl /vendor/bin/openbook-pc-setup dgpu-ctl ${debug.
     disabled
 
 service vendor.openbook.lab /vendor/bin/openbook-pc-setup lab ${debug.openbook.lab}
+    user root
+    group root system
+    oneshot
+    disabled
+
+service vendor.openbook.klog /vendor/bin/openbook-pc-setup klog ${debug.openbook.klog}
     user root
     group root system
     oneshot
