@@ -571,6 +571,19 @@ hasnt() {  # hasnt NAME FILE PATTERN
 }
 ID=a1b2c3d4e5f60718
 BOOT=7f0c2a9e-52d1-4b7e-9a64-0d1f3c5b8e21
+SUM='sum=[0-9a-f]{64}'            # every line of an answer ends with, or (a "line") carries, its SHA-256
+LF="fl=- len=[0-9]+ $SUM"         # a whole record handed over: its flags, its text's length, its sum
+# whole NAME FILE PATTERN: the one line of FILE matching PATTERN arrived as the helper made it: the SHA-256 of the
+# line without its sum field (and a newline) is its sum, and a "line"'s len is its text's length.
+whole() {
+  wl=$(grep -E -- "$3" "$2" 2>/dev/null | head -n 1); wl=${wl#openbook-pc-setup: klog: }
+  case $wl in
+    line\ *) wb=${wl%% sum=*}; wr=${wl#* sum=}; wh=${wr%% *}; wt=${wr#* }; wn=${wb##* len=}
+             want=$(printf '%s %s\n' "$wb" "$wt" | sha256sum); [ "$wn" = "${#wt}" ] || want=bad-length ;;
+    *) wb=${wl% sum=*}; wh=${wl##* sum=}; want=$(printf '%s\n' "$wb" | sha256sum) ;;
+  esac
+  if [ -n "$wl" ] && [ "$wh" = "${want%% *}" ]; then echo "ok   $1"; else echo "FAIL $1: '$wl' sum should be ${want%% *}"; fails=$((fails + 1)); fi
+}
 XID='NVRM: Xid (PCI:0000:64:00): 13, pid=9001, name=deqp-vk, Graphics Exception: ESR 0x404600=0x80000002'
 RING='amdgpu 0000:65:00.0: [drm] *ERROR* ring gfx_0.0.0 timeout, signaled seq=1215, emitted seq=1217'
 # klog_begin ROOT KMSG: a ring that already holds one of NVIDIA's lines from before the run, then the checkpoint (102).
@@ -586,7 +599,8 @@ klog_begin() {
 r=$T/klog-clean; k=$r.kmsg; klog_begin "$r" "$k"
 check "klog begin: exit 0" "$r.rc" 0
 has "klog begin: the marker's sequence number, tied to the request" "$r.log" \
-  "klog: begin id=$ID status=ok boot=$BOOT seq=102 t_us=6001000 first_seq=100\$"
+  "klog: begin id=$ID status=ok boot=$BOOT seq=102 t_us=6001000 first_seq=100 $SUM\$"
+whole "klog begin: the answer's sum is its SHA-256" "$r.log" "klog: begin id=$ID status=ok"
 has "klog begin: logd copy" "$r.logd" "^-t openbook-pc-setup -p i klog: begin id=$ID status=ok"
 has "klog begin: the marker is in the kernel log" "$k" "^12,102,6001000,-;openbook-pc-setup: klog begin id=$ID tok=[0-9-]+\$"
 rec "$k" 104 7000000 'binder: 1228:1228 transaction failed 29189/-22, size 0-0 line 3095'
@@ -595,8 +609,9 @@ printf ' SUBSYSTEM=pci\n DEVICE=+pci:0000:65:00.0\n DRIVER=amdgpu\n' >> "$k"
 kl "$r" "$k" end@$ID@102
 check "klog end, clean: exit 0" "$r.rc" 0
 has "klog end, clean: complete, no lines" "$r.log" \
-  "klog: end id=$ID status=complete boot=$BOOT begin_seq=102 end_seq=106 first_seq=100 records=5 lines=0 sent=0 cut=0 filter=gpu1\$"
+  "klog: end id=$ID status=complete boot=$BOOT begin_seq=102 end_seq=106 first_seq=100 records=5 lines=0 sent=0 cut=0 cont=0 filter=gpu1 $SUM\$"
 hasnt "klog end, clean: no line handed over" "$r.log" 'klog: line '
+whole "klog end, clean: the closing line's sum is its SHA-256" "$r.log" "klog: end id=$ID status=complete"
 
 # An error from each GPU, whichever drew, and records in the same microsecond: two Xid reports with the same time and
 # text are two records, told apart by their sequence numbers.
@@ -609,16 +624,17 @@ rec "$k" 108 9000000 'healthd: battery l=80 v=15800 t=31.0 h=2 st=3'
 kl "$r" "$k" end@$ID@102
 check "klog end, errors: exit 0 (the coverage is complete)" "$r.rc" 0
 has "klog end, errors: NVIDIA's Xid, with its sequence number and time" "$r.log" \
-  "klog: line id=$ID n=1/4 seq=104 t_us=9000000 NVRM: Xid \\(PCI:0000:64:00\\): 13, pid=9001, name=deqp-vk, Graphics Exception: ESR 0x404600=0x80000002\$"
+  "klog: line id=$ID n=1/4 seq=104 t_us=9000000 fl=- len=99 $SUM NVRM: Xid \\(PCI:0000:64:00\\): 13, pid=9001, name=deqp-vk, Graphics Exception: ESR 0x404600=0x80000002\$"
+whole "klog end, errors: a line's sum covers its header and its text, and len is the text's length" "$r.log" "klog: line id=$ID n=2/4 "
 has "klog end, errors: amdgpu's ring timeout" "$r.log" \
-  "klog: line id=$ID n=2/4 seq=105 t_us=9000000 amdgpu 0000:65:00.0: \\[drm\\] \\*ERROR\\* ring gfx_0.0.0 timeout"
+  "klog: line id=$ID n=2/4 seq=105 t_us=9000000 $LF amdgpu 0000:65:00.0: \\[drm\\] \\*ERROR\\* ring gfx_0.0.0 timeout"
 has "klog end, errors: the same Xid text in the same microsecond is its own record" "$r.log" \
-  "klog: line id=$ID n=3/4 seq=106 t_us=9000000 NVRM: Xid "
-has "klog end, errors: off the bus" "$r.log" "klog: line id=$ID n=4/4 seq=107 t_us=9000000 NVRM: GPU 0000:64:00.0: GPU has fallen off the bus.\$"
+  "klog: line id=$ID n=3/4 seq=106 t_us=9000000 $LF NVRM: Xid "
+has "klog end, errors: off the bus" "$r.log" "klog: line id=$ID n=4/4 seq=107 t_us=9000000 $LF NVRM: GPU 0000:64:00.0: GPU has fallen off the bus.\$"
 has "klog end, errors: complete, four lines" "$r.log" \
-  "klog: end id=$ID status=complete boot=$BOOT begin_seq=102 end_seq=109 first_seq=100 records=8 lines=4 sent=4 cut=0 filter=gpu1\$"
+  "klog: end id=$ID status=complete boot=$BOOT begin_seq=102 end_seq=109 first_seq=100 records=8 lines=4 sent=4 cut=0 cont=0 filter=gpu1 $SUM\$"
 hasnt "klog end, errors: the line from before the checkpoint is not handed over" "$r.log" 'klog: line .*loading NVIDIA'
-has "klog end, errors: logd copy of a line" "$r.logd" "^-t openbook-pc-setup -p i klog: line id=$ID n=2/4 seq=105 "
+has "klog end, errors: logd copy of a line" "$r.logd" "^-t openbook-pc-setup -p i klog: line id=$ID n=2/4 seq=105 t_us=9000000 $LF amdgpu "
 
 # Ring eviction: the ring's oldest record is newer than the checkpoint. What is left was logged after it, so it is
 # still handed over (it can fail a run), but the answer is not "complete".
@@ -630,8 +646,8 @@ sed -n '/^6,105,/,$p' "$k" > "$k.new" && mv "$k.new" "$k"
 kl "$r" "$k" end@$ID@102
 check "klog end, ring eviction: exit 1" "$r.rc" 1
 has "klog end, ring eviction: evicted, and it says where the ring begins" "$r.log" \
-  "klog: end id=$ID status=evicted boot=$BOOT begin_seq=102 end_seq=107 first_seq=105 records=3 lines=1 sent=1 cut=0 filter=gpu1\$"
-has "klog end, ring eviction: what is left is handed over" "$r.log" "klog: line id=$ID n=1/1 seq=106 "
+  "klog: end id=$ID status=evicted boot=$BOOT begin_seq=102 end_seq=107 first_seq=105 records=3 lines=1 sent=1 cut=0 cont=0 filter=gpu1 $SUM\$"
+has "klog end, ring eviction: what is left is handed over" "$r.log" "klog: line id=$ID n=1/1 seq=106 t_us=9200000 $LF amdgpu "
 
 # A restart between the two requests: this boot's log has no record 102 yet, or its record 102 is something else.
 r=$T/klog-reboot; k=$r.kmsg; klog_begin "$r" "$k"
@@ -640,7 +656,7 @@ rec "$k" 0 100 'Linux version 6.18.21-android17-5'; rec "$k" 1 200 "$XID"
 kl "$r" "$k" end@$ID@102
 check "klog end, restarted (a short log): exit 1" "$r.rc" 1
 has "klog end, restarted (a short log): other-boot, the new boot's id" "$r.log" \
-  "klog: end id=$ID status=other-boot boot=0c6d7e1a-0000-4000-8000-9b1d2f3a4c5e begin_seq=102 end_seq=2 first_seq=0 records=0 lines=0 sent=0"
+  "klog: end id=$ID status=other-boot boot=0c6d7e1a-0000-4000-8000-9b1d2f3a4c5e begin_seq=102 end_seq=2 first_seq=0 records=0 lines=0 sent=0 cut=0 cont=0 filter=gpu1 $SUM\$"
 hasnt "klog end, restarted (a short log): no line handed over" "$r.log" 'klog: line '
 : > "$k"; i=0; while [ $i -lt 120 ]; do rec "$k" $i $((i * 1000)) "init: boot step $i"; i=$((i + 1)); done
 kl "$r" "$k" end@$ID@102
@@ -661,7 +677,48 @@ rec "$k" 104 9000000 'init: a'; rec "$k" 106 9000002 "$RING"; rec "$k" 107 90000
 kl "$r" "$k" end@$ID@102
 check "klog end, a missing record: exit 1" "$r.rc" 1
 has "klog end, a missing record: gap" "$r.log" \
-  "klog: end id=$ID status=gap boot=$BOOT begin_seq=102 end_seq=108 first_seq=100 records=6 lines=1 sent=1 cut=0 filter=gpu1\$"
+  "klog: end id=$ID status=gap boot=$BOOT begin_seq=102 end_seq=108 first_seq=100 records=6 lines=1 sent=1 cut=0 cont=0 filter=gpu1 $SUM\$"
+
+# A line the kernel printed in pieces and could not join (another message came in between): the second piece is its
+# own record, flagged "c". Here the error is split over the two, and neither piece reads as one. The helper doesn't
+# join them, so the answer is not "complete"; both pieces are handed over for a person to read.
+r=$T/klog-fragment; k=$r.kmsg; klog_begin "$r" "$k"
+rec "$k" 104 9000000 'amdgpu 0000:65:00.0: [drm] *ERROR* ring gfx_0.0.0 '
+rec "$k" 105 9000001 'healthd: battery l=80 v=15800 t=31.0 h=2 st=3'
+echo '6,106,9000002,c;timeout, signaled seq=1215, emitted seq=1217' >> "$k"
+kl "$r" "$k" end@$ID@102
+check "klog end, an error split over a continuation fragment: exit 1" "$r.rc" 1
+has "klog end, an error split over a continuation fragment: fragmented, never complete" "$r.log" \
+  "klog: end id=$ID status=fragmented boot=$BOOT begin_seq=102 end_seq=107 first_seq=100 records=6 lines=2 sent=2 cut=0 cont=1 filter=gpu1 $SUM\$"
+has "klog end, an error split over a continuation fragment: the first piece" "$r.log" \
+  "klog: line id=$ID n=1/2 seq=104 t_us=9000000 fl=- len=50 $SUM amdgpu 0000:65:00.0: \\[drm\\] \\*ERROR\\* ring gfx_0.0.0 \$"
+has "klog end, an error split over a continuation fragment: the fragment, though it names no GPU" "$r.log" \
+  "klog: line id=$ID n=2/2 seq=106 t_us=9000002 fl=c len=44 $SUM timeout, signaled seq=1215, emitted seq=1217\$"
+whole "klog end, an error split over a continuation fragment: a text ending in a space keeps its length" "$r.log" "klog: line id=$ID n=1/2 "
+# A fragment that names no GPU, after lines that do: still not complete. Older kernels flag "+", and the caller id
+# of CONFIG_PRINTK_CALLER follows the flags.
+r=$T/klog-fragment2; k=$r.kmsg; klog_begin "$r" "$k"
+echo '6,104,9000000,+;x86/split lock detection: warn' >> "$k"
+echo '6,105,9000001,c,caller=T812;failed' >> "$k"
+kl "$r" "$k" end@$ID@102
+has "klog end, fragments flagged + and c,caller=: fragmented, both counted" "$r.log" \
+  "klog: end id=$ID status=fragmented .* records=5 lines=2 sent=2 cut=0 cont=2 filter=gpu1 $SUM\$"
+has "klog end, fragments flagged + and c,caller=: the caller id is not part of the flags" "$r.log" "n=2/2 seq=105 t_us=9000001 fl=c len=6 $SUM failed\$"
+# Whole lines from a kernel that names each record's caller are not fragments.
+r=$T/klog-caller; k=$r.kmsg; klog_begin "$r" "$k"
+echo '6,104,9000000,-,caller=T812;init: starting service' >> "$k"
+echo "3,105,9000001,-,caller=C3;$RING" >> "$k"
+kl "$r" "$k" end@$ID@102
+check "klog end, records with caller ids: exit 0" "$r.rc" 0
+has "klog end, records with caller ids: complete, no fragment" "$r.log" \
+  "klog: end id=$ID status=complete boot=$BOOT begin_seq=102 end_seq=106 first_seq=100 records=5 lines=1 sent=1 cut=0 cont=0 filter=gpu1 $SUM\$"
+has "klog end, records with caller ids: the line" "$r.log" "klog: line id=$ID n=1/1 seq=105 t_us=9000001 fl=- len=[0-9]+ $SUM amdgpu "
+# An evicted ring that also holds a fragment stays "evicted": either way it is not complete.
+r=$T/klog-evicted-fragment; k=$r.kmsg; klog_begin "$r" "$k"
+rec "$k" 104 9000000 'init: a'; echo '6,105,9000001,c;b' >> "$k"
+sed -n '/^6,104,/,$p' "$k" > "$k.new" && mv "$k.new" "$k"
+kl "$r" "$k" end@$ID@102
+has "klog end, evicted and fragmented: not complete" "$r.log" "klog: end id=$ID status=evicted .* cont=1 filter=gpu1 $SUM\$"
 
 # A truncated answer: more matching lines than one answer carries. It says how many matched and how many it sent.
 r=$T/klog-truncated; k=$r.kmsg; klog_begin "$r" "$k"
@@ -669,8 +726,8 @@ rec "$k" 104 9000000 "$XID"; rec "$k" 105 9000001 "$RING"; rec "$k" 106 9000002 
 kl "$r" "$k" end@$ID@102 OPENBOOK_KLOG_MAX=2
 check "klog end, truncated: exit 1" "$r.rc" 1
 has "klog end, truncated: says so" "$r.log" \
-  "klog: end id=$ID status=truncated boot=$BOOT begin_seq=102 end_seq=107 first_seq=100 records=6 lines=3 sent=2 cut=0 filter=gpu1\$"
-has "klog end, truncated: the first two lines" "$r.log" "klog: line id=$ID n=2/2 seq=105 "
+  "klog: end id=$ID status=truncated boot=$BOOT begin_seq=102 end_seq=107 first_seq=100 records=6 lines=3 sent=2 cut=0 cont=0 filter=gpu1 $SUM\$"
+has "klog end, truncated: the first two lines" "$r.log" "klog: line id=$ID n=2/2 seq=105 t_us=9000001 $LF amdgpu "
 hasnt "klog end, truncated: not the third" "$r.log" 'klog: line .* seq=106 '
 
 # A line longer than one answer line carries is cut, and the answer says so: its end may have held the error.
@@ -679,7 +736,7 @@ rec "$k" 104 9000000 "NVRM: $(printf '%01300d' 7) failed"
 kl "$r" "$k" end@$ID@102
 check "klog end, a line cut short: exit 1" "$r.rc" 1
 has "klog end, a line cut short: says so" "$r.log" \
-  "klog: end id=$ID status=truncated boot=$BOOT begin_seq=102 end_seq=105 first_seq=100 records=4 lines=1 sent=1 cut=1 filter=gpu1\$"
+  "klog: end id=$ID status=truncated boot=$BOOT begin_seq=102 end_seq=105 first_seq=100 records=4 lines=1 sent=1 cut=1 cont=0 filter=gpu1 $SUM\$"
 
 # A ring the G14's size (~250 KiB), the run's lines at both ends of it.
 r=$T/klog-big; k=$r.kmsg; klog_begin "$r" "$k"
@@ -690,20 +747,20 @@ i=105; while [ $i -lt 2405 ]; do
 rec "$k" 2405 9900000 "$RING"
 kl "$r" "$k" end@$ID@102
 has "klog end, a ring over 128 KiB: complete" "$r.log" \
-  "klog: end id=$ID status=complete boot=$BOOT begin_seq=102 end_seq=2406 first_seq=100 records=2305 lines=2 sent=2 cut=0 filter=gpu1\$"
-has "klog end, a ring over 128 KiB: the last line" "$r.log" "klog: line id=$ID n=2/2 seq=2405 "
+  "klog: end id=$ID status=complete boot=$BOOT begin_seq=102 end_seq=2406 first_seq=100 records=2305 lines=2 sent=2 cut=0 cont=0 filter=gpu1 $SUM\$"
+has "klog end, a ring over 128 KiB: the last line" "$r.log" "klog: line id=$ID n=2/2 seq=2405 t_us=9900000 $LF amdgpu "
 
 # The marker can't be written or read back (the kernel drops writes to /dev/kmsg, or the read ends early), or the
 # kernel log can't be read at all: no answer that could pass for coverage.
 r=$T/klog-nomark; k=$r.kmsg; klog_begin "$r" "$k"
 kl "$r" "$k" end@$ID@102 OPENBOOK_KMSG_MARK=true
 check "klog end, no marker: exit 1" "$r.rc" 1
-has "klog end, no marker: says so" "$r.log" "klog: end id=$ID status=no-marker boot=$BOOT\$"
+has "klog end, no marker: says so" "$r.log" "klog: end id=$ID status=no-marker boot=$BOOT $SUM\$"
 kl "$r" "$k" begin@$ID OPENBOOK_KMSG_MARK=true
-has "klog begin, no marker: says so" "$r.log" "klog: begin id=$ID status=no-marker boot=$BOOT\$"
+has "klog begin, no marker: says so" "$r.log" "klog: begin id=$ID status=no-marker boot=$BOOT $SUM\$"
 kl "$r" "$r.absent" begin@$ID
 check "klog begin, no kernel log: exit 1" "$r.rc" 1
-has "klog begin, no kernel log: unreadable" "$r.log" "klog: begin id=$ID status=unreadable boot=$BOOT\$"
+has "klog begin, no kernel log: unreadable" "$r.log" "klog: begin id=$ID status=unreadable boot=$BOOT $SUM\$"
 
 # Requests are the shell user's: anything but begin@ID and end@ID@SEQ is refused before the kernel log is touched.
 r=$T/klog-bad; k=$r.kmsg; klog_begin "$r" "$k"; cp "$k" "$k.before"

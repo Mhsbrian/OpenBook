@@ -83,20 +83,25 @@
 #            ID is the caller's name for the run: 8 to 32 letters and digits, and it should be random.
 #              begin@ID      the checkpoint, before the run. Writes a marker record into the kernel log, reads the
 #                            log back up to it and answers with the marker's sequence number:
-#                              klog: begin id=ID status=ok boot=BOOT seq=SEQ t_us=T first_seq=F
+#                              klog: begin id=ID status=ok boot=BOOT seq=SEQ t_us=T first_seq=F sum=H
 #              end@ID@SEQ    after the run; SEQ is what begin answered. Writes a second marker and reads the log up
 #                            to it. The run is covered only when the record SEQ is still ID's begin marker and
 #                            every sequence number from it to the end marker was read (records=N of them). Then
 #                            each record between the two whose text matches KLOG_FILTER (NVIDIA's and amdgpu's
 #                            lines, whichever GPU drew) is handed over, numbered, and one last line closes the
 #                            answer:
-#                              klog: line id=ID n=I/SENT seq=SEQ t_us=T TEXT
+#                              klog: line id=ID n=I/SENT seq=SEQ t_us=T fl=FLAGS len=L sum=H TEXT
 #                              klog: end id=ID status=S boot=BOOT begin_seq=SEQ end_seq=E first_seq=F records=N
-#                                        lines=K sent=SENT cut=C filter=gpu1
-#                            status: complete (every record from begin to end was read, and every matching line
-#                            was sent whole); truncated (more than KLOG_MAX lines matched, so only the first SENT
-#                            were sent, or C of them were longer than KLOG_CUT characters and were cut there);
-#                            gap (a sequence number between the two markers was not read: the ring lost
+#                                        lines=K sent=SENT cut=C cont=X filter=gpu1 sum=H
+#                            status: complete (every record from begin to end was read, each is a whole line, and
+#                            every matching one was sent whole); truncated (more than KLOG_MAX lines matched, so
+#                            only the first SENT were sent, or C of them were longer than KLOG_CUT characters and
+#                            were cut there); fragmented (X records between the markers are continuation
+#                            fragments, FLAGS other than "-": the kernel could not join a line that was printed in
+#                            pieces, so an error may be split over two records, neither of which reads as one.
+#                            This does not join them: the fragments are handed over next to the matching lines,
+#                            for a person to read); gap (a sequence number between the two markers was not read:
+#                            the ring lost
 #                            records while it was read); evicted (the ring's oldest record is newer than SEQ: the
 #                            checkpoint and what followed it were overwritten); other-boot (no record SEQ, or it
 #                            isn't ID's marker: the laptop restarted since begin); no-marker (the marker could
@@ -105,6 +110,9 @@
 #                            the checkpoint, so they can fail a run, never clear one.
 #            Only "complete" covers a run, and only then do zero lines mean no GPU error. boot is the kernel's
 #            boot_id. t_us is the record's own time, microseconds since boot.
+#            Every line of an answer says whether it arrived whole: sum is the SHA-256 of the line without its sum
+#            field and with a newline (for a "line": "line id=… len=L TEXT"), and len is TEXT's length. A reader
+#            that finds another sum or length has a line that was shortened or changed on its way.
 #            Nothing here needs the lab switch: it reads, and a bugreport already gives adb the whole kernel log.
 #   perms    Hand amd-pstate's energy_performance_preference to the power HAL (user system). cpufreq policies send
 #            no uevents, so ueventd.rc cannot do it.
@@ -558,6 +566,10 @@ dgpu_driver() {
 # starts at the ring's oldest record. KLOG_HDR matches a record's header up to the ';'.
 KMSG=${OPENBOOK_KMSG:-/dev/kmsg}
 KLOG_HDR='^[0-9]*,[0-9]*,[0-9]*,[^;]*;'
+# FLAGS is "-" for a record that is a whole line. Anything else ("c", older kernels' "+") is a continuation fragment:
+# a line printed in pieces that the kernel could not join, because another message came in between.
+KLOG_WHOLE='^[0-9]*,[0-9]*,[0-9]*,-[,;]'
+KLOG_FRAGMENT='^[0-9]*,[0-9]*,[0-9]*,[^-]'
 # filter=gpu1: every kernel line gpu-diag's error patterns can match starts from one of these words.
 KLOG_FILTER='NVRM|nvidia|Xid|GSP|fallen off the bus|amdgpu|nouveau|\[drm'
 KLOG_MAX=${OPENBOOK_KLOG_MAX:-200}
@@ -582,7 +594,12 @@ klog_read() {
   done
 }
 klog_seq() { s=${1#*,}; echo "${s%%,*}"; }                # a record line's sequence number
-klog_tus() { s=${1#*,}; s=${s#*,}; echo "${s%%,*}"; }     # and its time
+klog_tus() { s=${1#*,}; s=${s#*,}; echo "${s%%,*}"; }     # its time
+klog_flags() { s=${1#*,}; s=${s#*,}; s=${s#*,}; echo "${s%%[,;]*}"; }   # and its flags
+# klog_sum TEXT: the SHA-256 of TEXT and a newline. Empty when it can't be computed: a reader then rejects the line.
+klog_sum() { h=$(say "$1" | sha256sum 2>/dev/null); echo "${h%% *}"; }
+# klog_out BODY: one line of an answer, "klog: BODY sum=H".
+klog_out() { log "klog: $1 sum=$(klog_sum "$1")"; }
 # klog_small N...: true when every N is a number mksh's 32-bit arithmetic can hold.
 klog_small() { for v in "$@"; do case $v in ''|*[!0-9]*|??????????*) return 1 ;; esac; done; return 0; }
 
@@ -601,20 +618,20 @@ klog() {
     log "klog: '$req' is neither begin@ID nor end@ID@SEQ (ID: 8 to 32 letters and digits)"; return 2
   fi
   boot=$(rd "${OPENBOOK_SYSFS_ROOT:-}/proc/sys/kernel/random/boot_id"); boot=${boot:--}
-  if [ ! -r "$KMSG" ]; then log "klog: $kind id=$id status=unreadable boot=$boot"; return 1; fi
+  if [ ! -r "$KMSG" ]; then klog_out "$kind id=$id status=unreadable boot=$boot"; return 1; fi
   klog_read "$kind" "$id"
-  if [ -z "$KM" ]; then log "klog: $kind id=$id status=no-marker boot=$boot"; return 1; fi
+  if [ -z "$KM" ]; then klog_out "$kind id=$id status=no-marker boot=$boot"; return 1; fi
   first=$(klog_seq "$(say "$K" | grep -m 1 "$KLOG_HDR")"); last=$(klog_seq "$KM")
-  if ! klog_small "$first" "$last"; then log "klog: $kind id=$id status=unreadable boot=$boot"; return 1; fi
+  if ! klog_small "$first" "$last"; then klog_out "$kind id=$id status=unreadable boot=$boot"; return 1; fi
   if [ "$kind" = begin ]; then
-    log "klog: begin id=$id status=ok boot=$boot seq=$last t_us=$(klog_tus "$KM") first_seq=$first"; return 0
+    klog_out "begin id=$id status=ok boot=$boot seq=$last t_us=$(klog_tus "$KM") first_seq=$first"; return 0
   fi
   # end: the window is every record from the checkpoint (or, when that is gone, from the ring's oldest) to the marker.
   from=$seq0; status=complete
   if [ "$first" -gt "$seq0" ]; then status=evicted; from=$first
   elif [ "$last" -le "$seq0" ] ||
        ! say "$K" | grep -q "^[0-9]*,$seq0,[0-9]*,[^;]*;openbook-pc-setup: klog begin id=$id tok=[0-9-]*\$"; then
-    log "klog: end id=$id status=other-boot boot=$boot begin_seq=$seq0 end_seq=$last first_seq=$first records=0 lines=0 sent=0 cut=0 filter=gpu1"
+    klog_out "end id=$id status=other-boot boot=$boot begin_seq=$seq0 end_seq=$last first_seq=$first records=0 lines=0 sent=0 cut=0 cont=0 filter=gpu1"
     return 1
   fi
   W=$(say "$K" | sed -n "/^[0-9]*,$from,/,\$p" | grep "$KLOG_HDR")
@@ -625,8 +642,12 @@ klog() {
      [ "$(say "$seqs" | head -n 1)" != "$from" ] || [ "$(say "$seqs" | tail -n 1)" != "$last" ]; then
     [ $status = complete ] && status=gap
   fi
-  # The matching records, without the two markers; never a dictionary line.
-  G=$(say "$W" | grep -v "${KLOG_HDR}openbook-pc-setup: klog " | grep -iE "$KLOG_HDR.*($KLOG_FILTER)")
+  # Continuation fragments, counted before anything is filtered: a GPU error printed in pieces may be split over two
+  # records, neither of which matches by itself. With one in the window the answer is never "complete".
+  cont=$(say "$W" | grep -vc "$KLOG_WHOLE")
+  if [ "$cont" != 0 ] && [ $status = complete ]; then status=fragmented; fi
+  # The matching records and every fragment, without the two markers; never a dictionary line.
+  G=$(say "$W" | grep -v "${KLOG_HDR}openbook-pc-setup: klog " | grep -iE "$KLOG_HDR.*($KLOG_FILTER)|$KLOG_FRAGMENT")
   lines=$(say "$G" | grep -c "$KLOG_HDR"); sent=$lines; over=0
   if [ "$lines" -gt "$KLOG_MAX" ]; then sent=$KLOG_MAX; [ $status = complete ] && status=truncated; fi
   if [ "$sent" -gt 0 ]; then
@@ -635,11 +656,13 @@ klog() {
     say "$G" | head -n "$sent" | cut -c "1-$KLOG_CUT" | {
       i=0
       while IFS= read -r l; do
-        i=$((i + 1)); log "klog: line id=$id n=$i/$sent seq=$(klog_seq "$l") t_us=$(klog_tus "$l") ${l#*;}"
+        i=$((i + 1)); t=${l#*;}
+        b="line id=$id n=$i/$sent seq=$(klog_seq "$l") t_us=$(klog_tus "$l") fl=$(klog_flags "$l") len=${#t}"
+        log "klog: $b sum=$(klog_sum "$b $t") $t"
       done
     }
   fi
-  log "klog: end id=$id status=$status boot=$boot begin_seq=$seq0 end_seq=$last first_seq=$first records=$n lines=$lines sent=$sent cut=$over filter=gpu1"
+  klog_out "end id=$id status=$status boot=$boot begin_seq=$seq0 end_seq=$last first_seq=$first records=$n lines=$lines sent=$sent cut=$over cont=$cont filter=gpu1"
   [ $status = complete ]
 }
 

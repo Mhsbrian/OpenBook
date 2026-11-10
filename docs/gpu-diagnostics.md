@@ -161,9 +161,16 @@ adb logcat -d -s openbook-pc-setup                      # klog: line … (one pe
   `GSP`, `fallen off the bus`, `amdgpu`, `nouveau` or `[drm` (`filter=gpu1`): NVIDIA's lines and amdgpu's,
   whichever GPU drew. Each line carries its place (`n=I/SENT`), its sequence number and the record's time.
 - **The last line says what the answer is worth.** `status=complete` is the only one that covers a run, and only
-  then do zero lines mean no GPU error. `truncated`, `gap`, `evicted`, `other-boot`, `no-marker` and `unreadable`
-  don't; the helper's usage text says what each means. An answer whose last line is missing, or with fewer
-  `line`s than `sent=` says, is incomplete too.
+  then do zero lines mean no GPU error. `truncated`, `fragmented`, `gap`, `evicted`, `other-boot`, `no-marker`
+  and `unreadable` don't; the helper's usage text says what each means. An answer whose last line is missing, or
+  with fewer `line`s than `sent=` says, is incomplete too.
+- **A line printed in pieces is not certified.** The kernel flags a piece it could not join to its line as a
+  continuation fragment (`c`). An error can then be split over two records, neither of which reads as one. The
+  helper doesn't join them: with any fragment between the markers the answer is `fragmented`, and the fragments
+  are handed over next to the matching lines for a person to read.
+- **Every line says whether it arrived whole.** `sum=` is the SHA-256 of the line without that field, and a
+  `line`'s `len=` is the length of its text. A reader that finds another sum or length has a line that was
+  shortened or changed between the helper and itself, and must not take the answer as complete.
 - **It needs no lab switch and changes nothing** but two marker lines in the kernel log. A bugreport already gives
   adb the whole kernel log.
 
