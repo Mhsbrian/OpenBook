@@ -43,6 +43,11 @@ r_dir_file(openbook_pc_setup, proc_openbook_nvidia)
 allow openbook_pc_setup self:capability2 syslog;
 allow openbook_pc_setup kernel:system syslog_read;
 
+# klog (ANAL-402): the kernel log's GPU lines for one run. It reads /dev/kmsg, the only reader that gives each record
+# its sequence number, which is what shows that no record between two markers is missing; the markers are its own
+# writes (above). Opening /dev/kmsg to read asks for the same CAP_SYSLOG and syslog_read as syslog(2).
+allow openbook_pc_setup kmsg_device:chr_file r_file_perms;
+
 # dgpu-driver boot (ANAL-320): look for NVIDIA's GSP firmware before asking for the load, so a public image (which
 # has the modules but not the firmware) never tries. Listing and stat only; the kernel alone reads firmware files.
 allow openbook_pc_setup openbook_vendor_fw_file:dir r_dir_perms;
